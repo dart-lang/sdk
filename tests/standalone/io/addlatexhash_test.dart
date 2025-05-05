@@ -94,7 +94,7 @@ testSameHash(String tmpDirPath) {
       path.join(dartRootPath, "tools", "addlatexhash.dart"),
       tmpPar8timesPath,
       hashPath,
-      listPath
+      listPath,
     ]);
     return Process.runSync(dartExecutable, args);
   }
@@ -167,7 +167,7 @@ testSameDVI(String tmpDirPath) {
       path.join(dartRootPath, "tools", "addlatexhash.dart"),
       tmpSpecPath,
       hashPath,
-      listPath
+      listPath,
     ]);
     return Process.runSync(dartExecutable, args);
   }

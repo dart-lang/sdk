@@ -40,8 +40,10 @@ void testDriveLetterNoBackslash() {
         }
       }
       noBackslash += path.substring(3);
-      Expect.equals("${Directory(noBackslash).statSync()}",
-          "${Directory(path).statSync()}");
+      Expect.equals(
+        "${Directory(noBackslash).statSync()}",
+        "${Directory(path).statSync()}",
+      );
     }
   }
 }

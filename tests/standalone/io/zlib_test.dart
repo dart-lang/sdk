@@ -15,12 +15,13 @@ void testZLibDeflateEmpty() {
   controller.stream
       .transform(new ZLibEncoder(gzip: false, level: 6))
       .fold<List<int>>([], (buffer, data) {
-    buffer.addAll(data);
-    return buffer;
-  }).then((data) {
-    Expect.listEquals([120, 156, 3, 0, 0, 0, 0, 1], data);
-    asyncEnd();
-  });
+        buffer.addAll(data);
+        return buffer;
+      })
+      .then((data) {
+        Expect.listEquals([120, 156, 3, 0, 0, 0, 0, 1], data);
+        asyncEnd();
+      });
   controller.close();
 }
 
@@ -30,13 +31,14 @@ void testZLibDeflateEmptyGzip() {
   controller.stream
       .transform(new ZLibEncoder(gzip: true, level: 6))
       .fold<List<int>>(<int>[], (buffer, data) {
-    buffer.addAll(data);
-    return buffer;
-  }).then((data) {
-    Expect.isTrue(data.length > 0);
-    Expect.listEquals([], new ZLibDecoder().convert(data));
-    asyncEnd();
-  });
+        buffer.addAll(data);
+        return buffer;
+      })
+      .then((data) {
+        Expect.isTrue(data.length > 0);
+        Expect.listEquals([], new ZLibDecoder().convert(data));
+        asyncEnd();
+      });
   controller.close();
 }
 
@@ -46,46 +48,13 @@ void testZLibDeflate(List<int> data) {
   controller.stream
       .transform(new ZLibEncoder(gzip: false, level: 6))
       .fold<List<int>>([], (buffer, data) {
-    buffer.addAll(data);
-    return buffer;
-  }).then((data) {
-    Expect.listEquals([
-      120,
-      156,
-      99,
-      96,
-      100,
-      98,
-      102,
-      97,
-      101,
-      99,
-      231,
-      224,
-      4,
-      0,
-      0,
-      175,
-      0,
-      46
-    ], data);
-    asyncEnd();
-  });
-  controller.add(data);
-  controller.close();
-}
-
-void testZLibDeflateGZip(List<int> data) {
-  asyncStart();
-  var controller = new StreamController<List<int>>(sync: true);
-  controller.stream.transform(new ZLibEncoder(gzip: true)).fold<List<int>>([],
-      (buffer, data) {
-    buffer.addAll(data);
-    return buffer;
-  }).then((data) {
-    Expect.equals(30, data.length);
-    Expect.listEquals(
-        [
+        buffer.addAll(data);
+        return buffer;
+      })
+      .then((data) {
+        Expect.listEquals([
+          120,
+          156,
           99,
           96,
           100,
@@ -98,19 +67,56 @@ void testZLibDeflateGZip(List<int> data) {
           224,
           4,
           0,
-          70,
-          215,
-          108,
-          69,
-          10,
           0,
+          175,
           0,
-          0
-        ],
-        // Skip header, as it can change.
-        data.sublist(10));
-    asyncEnd();
-  });
+          46,
+        ], data);
+        asyncEnd();
+      });
+  controller.add(data);
+  controller.close();
+}
+
+void testZLibDeflateGZip(List<int> data) {
+  asyncStart();
+  var controller = new StreamController<List<int>>(sync: true);
+  controller.stream
+      .transform(new ZLibEncoder(gzip: true))
+      .fold<List<int>>([], (buffer, data) {
+        buffer.addAll(data);
+        return buffer;
+      })
+      .then((data) {
+        Expect.equals(30, data.length);
+        Expect.listEquals(
+          [
+            99,
+            96,
+            100,
+            98,
+            102,
+            97,
+            101,
+            99,
+            231,
+            224,
+            4,
+            0,
+            70,
+            215,
+            108,
+            69,
+            10,
+            0,
+            0,
+            0,
+          ],
+          // Skip header, as it can change.
+          data.sublist(10),
+        );
+        asyncEnd();
+      });
   controller.add(data);
   controller.close();
 }
@@ -121,13 +127,26 @@ void testZLibDeflateRaw(List<int> data) {
   controller.stream
       .transform(new ZLibEncoder(raw: true, level: 6))
       .fold<List<int>>([], (buffer, data) {
-    buffer.addAll(data);
-    return buffer;
-  }).then((data) {
-    Expect.listEquals(
-        [99, 96, 100, 98, 102, 97, 101, 99, 231, 224, 4, 0], data);
-    asyncEnd();
-  });
+        buffer.addAll(data);
+        return buffer;
+      })
+      .then((data) {
+        Expect.listEquals([
+          99,
+          96,
+          100,
+          98,
+          102,
+          97,
+          101,
+          99,
+          231,
+          224,
+          4,
+          0,
+        ], data);
+        asyncEnd();
+      });
   controller.add(data);
   controller.close();
 }
@@ -136,8 +155,9 @@ void testZLibDeflateInvalidLevel() {
   [true, false].forEach((gzip) {
     [-2, -20, 10, 42].forEach((level) {
       Expect.throwsArgumentError(
-          () => new ZLibEncoder(gzip: gzip, level: level),
-          "'level' must be in range -1..9");
+        () => new ZLibEncoder(gzip: gzip, level: level),
+        "'level' must be in range -1..9",
+      );
     });
   });
 }
@@ -156,15 +176,17 @@ void testZLibInflate(List<int> data) {
         var controller = new StreamController<List<int>>(sync: true);
         controller.stream
             .transform(
-                new ZLibEncoder(gzip: gzip, level: level, strategy: strategy))
+              new ZLibEncoder(gzip: gzip, level: level, strategy: strategy),
+            )
             .transform(new ZLibDecoder())
             .fold<List<int>>([], (buffer, data) {
-          buffer.addAll(data);
-          return buffer;
-        }).then((inflated) {
-          Expect.listEquals(data, inflated);
-          asyncEnd();
-        });
+              buffer.addAll(data);
+              return buffer;
+            })
+            .then((inflated) {
+              Expect.listEquals(data, inflated);
+              asyncEnd();
+            });
         controller.add(data);
         controller.close();
       });
@@ -180,12 +202,13 @@ void testZLibInflateRaw(List<int> data) {
         .transform(new ZLibEncoder(raw: true, level: level))
         .transform(new ZLibDecoder(raw: true))
         .fold<List<int>>([], (buffer, data) {
-      buffer.addAll(data);
-      return buffer;
-    }).then((inflated) {
-      Expect.listEquals(data, inflated);
-      asyncEnd();
-    });
+          buffer.addAll(data);
+          return buffer;
+        })
+        .then((inflated) {
+          Expect.listEquals(data, inflated);
+          asyncEnd();
+        });
     controller.add(data);
     controller.close();
   });
@@ -220,12 +243,13 @@ void testZlibInflateWithLargerWindow() {
           .transform(new ZLibEncoder(gzip: gzip, level: level, windowBits: 8))
           .transform(new ZLibDecoder(windowBits: 10))
           .fold<List<int>>([], (buffer, data) {
-        buffer.addAll(data);
-        return buffer;
-      }).then((inflated) {
-        Expect.listEquals(data, inflated);
-        asyncEnd();
-      });
+            buffer.addAll(data);
+            return buffer;
+          })
+          .then((inflated) {
+            Expect.listEquals(data, inflated);
+            asyncEnd();
+          });
       controller.add(data);
       controller.close();
     });
@@ -242,8 +266,10 @@ void testRoundTripLarge() {
       ZLibOption.strategyDefault,
     ]) {
       final uncompressedData = List.generate(2000000, (i) => i % 256);
-      final compressedData =
-          ZLibEncoder(gzip: gzip, strategy: strategy).convert(uncompressedData);
+      final compressedData = ZLibEncoder(
+        gzip: gzip,
+        strategy: strategy,
+      ).convert(uncompressedData);
       final decodedData = new ZLibDecoder().convert(compressedData);
       Expect.listEquals(uncompressedData, decodedData);
     }
@@ -266,7 +292,7 @@ void testConcatenatedBlocksGZip() {
   /// See RFC-1952.
   final compressedData = [
     ...ZLibEncoder().convert([1, 2, 3]),
-    ...ZLibEncoder().convert([4, 5, 6])
+    ...ZLibEncoder().convert([4, 5, 6]),
   ];
   final decodedData = new ZLibDecoder(gzip: true).convert(compressedData);
   Expect.listEquals([1, 2, 3, 4, 5, 6], decodedData);
@@ -277,7 +303,7 @@ void testConcatenatedBlocksZLib() {
   // the zlib stream.
   final compressedData = [
     ...ZLibEncoder().convert([1, 2, 3]),
-    ...ZLibEncoder().convert([4, 5, 6])
+    ...ZLibEncoder().convert([4, 5, 6]),
   ];
   final decodedData = new ZLibDecoder(gzip: false).convert(compressedData);
   Expect.listEquals([1, 2, 3], decodedData);
@@ -290,11 +316,12 @@ void testInvalidDataAfterBlockGZip() {
     ...ZLibEncoder().convert([1, 2, 3]),
     1,
     2,
-    3
+    3,
   ];
 
   Expect.throwsFormatException(
-      () => new ZLibDecoder(gzip: true).convert(compressedData));
+    () => new ZLibDecoder(gzip: true).convert(compressedData),
+  );
 }
 
 void testInvalidDataAfterBlockZLib() {
@@ -304,7 +331,7 @@ void testInvalidDataAfterBlockZLib() {
     ...ZLibEncoder().convert([1, 2, 3]),
     1,
     2,
-    3
+    3,
   ];
 
   final decodedData = new ZLibDecoder(gzip: false).convert(compressedData);

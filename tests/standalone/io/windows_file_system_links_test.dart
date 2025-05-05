@@ -7,8 +7,9 @@ import "dart:io";
 import 'package:expect/expect.dart';
 
 testJunctionTypeDelete() {
-  var temp =
-      Directory.systemTemp.createTempSync('dart_windows_file_system_links');
+  var temp = Directory.systemTemp.createTempSync(
+    'dart_windows_file_system_links',
+  );
   var x = '${temp.path}${Platform.pathSeparator}x';
   var y = '${temp.path}${Platform.pathSeparator}y';
 
@@ -22,10 +23,14 @@ testJunctionTypeDelete() {
     Expect.isTrue(FileSystemEntity.isDirectorySync(x));
     Expect.equals(FileSystemEntityType.directory, FileSystemEntity.typeSync(y));
     Expect.equals(FileSystemEntityType.directory, FileSystemEntity.typeSync(x));
-    Expect.equals(FileSystemEntityType.link,
-        FileSystemEntity.typeSync(y, followLinks: false));
-    Expect.equals(FileSystemEntityType.directory,
-        FileSystemEntity.typeSync(x, followLinks: false));
+    Expect.equals(
+      FileSystemEntityType.link,
+      FileSystemEntity.typeSync(y, followLinks: false),
+    );
+    Expect.equals(
+      FileSystemEntityType.directory,
+      FileSystemEntity.typeSync(x, followLinks: false),
+    );
     Expect.equals(x, new Link(y).targetSync());
 
     // Test Junction pointing to a missing directory.
@@ -38,10 +43,14 @@ testJunctionTypeDelete() {
     Expect.isFalse(FileSystemEntity.isDirectorySync(x));
     Expect.equals(FileSystemEntityType.notFound, FileSystemEntity.typeSync(y));
     Expect.equals(FileSystemEntityType.notFound, FileSystemEntity.typeSync(x));
-    Expect.equals(FileSystemEntityType.link,
-        FileSystemEntity.typeSync(y, followLinks: false));
-    Expect.equals(FileSystemEntityType.notFound,
-        FileSystemEntity.typeSync(x, followLinks: false));
+    Expect.equals(
+      FileSystemEntityType.link,
+      FileSystemEntity.typeSync(y, followLinks: false),
+    );
+    Expect.equals(
+      FileSystemEntityType.notFound,
+      FileSystemEntity.typeSync(x, followLinks: false),
+    );
     Expect.equals(x, new Link(y).targetSync());
 
     // Delete Junction pointing to a missing directory.
@@ -52,22 +61,34 @@ testJunctionTypeDelete() {
 
     new Directory(x).createSync();
     new Link(y).create(x).then((_) {
-      Expect.equals(FileSystemEntityType.link,
-          FileSystemEntity.typeSync(y, followLinks: false));
-      Expect.equals(FileSystemEntityType.directory,
-          FileSystemEntity.typeSync(x, followLinks: false));
+      Expect.equals(
+        FileSystemEntityType.link,
+        FileSystemEntity.typeSync(y, followLinks: false),
+      );
+      Expect.equals(
+        FileSystemEntityType.directory,
+        FileSystemEntity.typeSync(x, followLinks: false),
+      );
       Expect.equals(x, new Link(y).targetSync());
 
       // Delete Junction pointing to an existing directory.
       new Directory(y).deleteSync();
       Expect.equals(
-          FileSystemEntityType.notFound, FileSystemEntity.typeSync(y));
-      Expect.equals(FileSystemEntityType.notFound,
-          FileSystemEntity.typeSync(y, followLinks: false));
+        FileSystemEntityType.notFound,
+        FileSystemEntity.typeSync(y),
+      );
       Expect.equals(
-          FileSystemEntityType.directory, FileSystemEntity.typeSync(x));
-      Expect.equals(FileSystemEntityType.directory,
-          FileSystemEntity.typeSync(x, followLinks: false));
+        FileSystemEntityType.notFound,
+        FileSystemEntity.typeSync(y, followLinks: false),
+      );
+      Expect.equals(
+        FileSystemEntityType.directory,
+        FileSystemEntity.typeSync(x),
+      );
+      Expect.equals(
+        FileSystemEntityType.directory,
+        FileSystemEntity.typeSync(x, followLinks: false),
+      );
       Expect.throws(() => new Link(y).targetSync());
 
       temp.deleteSync(recursive: true);
@@ -76,8 +97,9 @@ testJunctionTypeDelete() {
 }
 
 void testLinkToFile() {
-  final temp =
-      Directory.systemTemp.createTempSync('dart_windows_file_system_links');
+  final temp = Directory.systemTemp.createTempSync(
+    'dart_windows_file_system_links',
+  );
   // Create file
   File file = new File(temp.path + Platform.pathSeparator + "test-file.tmp");
   file.createSync();
@@ -99,8 +121,9 @@ void testLinkToFile() {
 }
 
 void testLinkToDirectory() {
-  final temp =
-      Directory.systemTemp.createTempSync('dart_windows_file_system_links');
+  final temp = Directory.systemTemp.createTempSync(
+    'dart_windows_file_system_links',
+  );
   // Create file
   Directory dir = Directory(temp.path + Platform.pathSeparator + "test-dir");
   dir.createSync();

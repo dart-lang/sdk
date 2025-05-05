@@ -18,14 +18,19 @@ ClassMirror findWindowsCodePageEncoder() {
   }
 
   final classes = dartIo.declarations.values
-      .where((d) =>
-          d is ClassMirror &&
-          d.simpleName.toString().contains('"_WindowsCodePageEncoder"'))
+      .where(
+        (d) =>
+            d is ClassMirror &&
+            d.simpleName.toString().contains('"_WindowsCodePageEncoder"'),
+      )
       .map((d) => d as ClassMirror)
       .toList();
 
   Expect.equals(
-      1, classes.length, "Expected exactly one _WindowsCodePageEncoder");
+    1,
+    classes.length,
+    "Expected exactly one _WindowsCodePageEncoder",
+  );
   return classes[0];
 }
 
@@ -34,11 +39,15 @@ test() {
   final encoder = winCodePageEncoder.newInstance(Symbol(""), List.empty());
   try {
     encoder.invoke(Symbol("convert"), List.of(["test"]));
-    Expect.isTrue(Platform.isWindows,
-        "expected UnsupportedError on ${Platform.operatingSystem}");
+    Expect.isTrue(
+      Platform.isWindows,
+      "expected UnsupportedError on ${Platform.operatingSystem}",
+    );
   } on UnsupportedError catch (e) {
     Expect.isFalse(
-        Platform.isWindows, "unexpected UnsupportedError on Windows: $e");
+      Platform.isWindows,
+      "unexpected UnsupportedError on Windows: $e",
+    );
   }
 }
 

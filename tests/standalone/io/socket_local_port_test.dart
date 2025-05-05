@@ -77,7 +77,11 @@ Future testNoCustomPortNoSourceAddressIPv6() async {
 
 // Core functionality
 void testCustomPort(
-    String host, int port, String sourceAddress, int sourcePort) async {
+  String host,
+  int port,
+  String sourceAddress,
+  int sourcePort,
+) async {
   var server = await ServerSocket.bind(host, port);
   server.listen((client) {
     Expect.equals(server.port, port);
@@ -86,14 +90,22 @@ void testCustomPort(
     client.destroy();
   });
 
-  Socket s = await Socket.connect(host, port,
-      sourceAddress: sourceAddress, sourcePort: sourcePort);
+  Socket s = await Socket.connect(
+    host,
+    port,
+    sourceAddress: sourceAddress,
+    sourcePort: sourcePort,
+  );
   s.destroy();
   server.close();
 }
 
 Future testCustomPortNoSourceAddress(
-    String host, int port, String expectedAddress, int sourcePort) async {
+  String host,
+  int port,
+  String expectedAddress,
+  int sourcePort,
+) async {
   Completer completer = new Completer();
   var server = await ServerSocket.bind(host, port);
 
@@ -133,7 +145,10 @@ Future testNoCustomPort(String host, int port, String sourceAddress) async {
 }
 
 Future testNoCustomPortNoSourceAddress(
-    String host, int port, String expectedAddress) async {
+  String host,
+  int port,
+  String expectedAddress,
+) async {
   Completer completer = new Completer();
   var server = await ServerSocket.bind(host, port);
   Socket.connect(host, port).then((clientSocket) {

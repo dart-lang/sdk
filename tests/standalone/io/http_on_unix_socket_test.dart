@@ -13,17 +13,23 @@ Future testHttpServer(String name) async {
   var address = InternetAddress('$sockname', type: InternetAddressType.unix);
   var httpServer = await HttpServer.bind(address, 0);
   var sub;
-  sub = httpServer.listen((HttpRequest request) {
-    request.response.write('Hello, world!');
-    request.response.close();
-    sub.cancel();
-  }, onDone: () {
-    httpServer.close();
-  });
+  sub = httpServer.listen(
+    (HttpRequest request) {
+      request.response.write('Hello, world!');
+      request.response.close();
+      sub.cancel();
+    },
+    onDone: () {
+      httpServer.close();
+    },
+  );
 
   var option = "--unix-socket $sockname";
-  var result =
-      await Process.run("curl", ["--unix-socket", "$sockname", "localhost"]);
+  var result = await Process.run("curl", [
+    "--unix-socket",
+    "$sockname",
+    "localhost",
+  ]);
   Expect.isTrue(result.stdout.toString().contains('Hello, world!'));
 }
 

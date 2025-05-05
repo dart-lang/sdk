@@ -99,11 +99,15 @@ void testFileStat(String dir) {
 
   file.setLastModifiedSync(dateTime);
   Expect.notEquals(
-      stat.modified.toString(), file.lastModifiedSync().toString());
+    stat.modified.toString(),
+    file.lastModifiedSync().toString(),
+  );
 
   file.setLastAccessedSync(dateTime);
   Expect.notEquals(
-      stat.accessed.toString(), file.lastAccessedSync().toString());
+    stat.accessed.toString(),
+    file.lastAccessedSync().toString(),
+  );
 }
 
 String _createDirectoryHelper(String currentDir, String targetDir) {
@@ -122,10 +126,14 @@ void testCreateLinkToDir(String dir, String dir2) {
   Expect.isTrue(linkPath.length > maxPath);
   Expect.isTrue(renamedPath.length > maxPath);
 
-  final targetDirectory1 =
-      _createDirectoryHelper(dir, p.join(dir2, 'a_long_directory_target1'));
-  final targetDirectory2 =
-      _createDirectoryHelper(dir, p.join(dir2, 'a_long_directory_target2'));
+  final targetDirectory1 = _createDirectoryHelper(
+    dir,
+    p.join(dir2, 'a_long_directory_target1'),
+  );
+  final targetDirectory2 = _createDirectoryHelper(
+    dir,
+    p.join(dir2, 'a_long_directory_target2'),
+  );
 
   final linkTarget1 = p.isRelative(dir2)
       ? p.relative(targetDirectory1, from: p.dirname(p.absolute(linkPath)))
@@ -140,8 +148,9 @@ void testCreateLinkToDir(String dir, String dir2) {
   Expect.isTrue(link.existsSync());
   final resolvedCreatePath = link.resolveSymbolicLinksSync();
   Expect.isTrue(
-      FileSystemEntity.identicalSync(targetDirectory1, resolvedCreatePath),
-      '${link.path} should resolve to $targetDirectory1 but resolved to $resolvedCreatePath');
+    FileSystemEntity.identicalSync(targetDirectory1, resolvedCreatePath),
+    '${link.path} should resolve to $targetDirectory1 but resolved to $resolvedCreatePath',
+  );
 
   // Rename link
   var renamedLink = link.renameSync(renamedPath);
@@ -149,15 +158,17 @@ void testCreateLinkToDir(String dir, String dir2) {
   Expect.isFalse(link.existsSync());
   final resolvedRenamePath = renamedLink.resolveSymbolicLinksSync();
   Expect.isTrue(
-      FileSystemEntity.identicalSync(targetDirectory1, resolvedRenamePath),
-      '${link.path} should resolve to $targetDirectory1 but resolved to $resolvedRenamePath');
+    FileSystemEntity.identicalSync(targetDirectory1, resolvedRenamePath),
+    '${link.path} should resolve to $targetDirectory1 but resolved to $resolvedRenamePath',
+  );
 
   // Update link target
   renamedLink.updateSync(linkTarget2);
   final resolvedUpdatedPath = renamedLink.resolveSymbolicLinksSync();
   Expect.isTrue(
-      FileSystemEntity.identicalSync(targetDirectory2, resolvedUpdatedPath),
-      '${link.path} should resolve to $targetDirectory2 but resolved to $resolvedRenamePath');
+    FileSystemEntity.identicalSync(targetDirectory2, resolvedUpdatedPath),
+    '${link.path} should resolve to $targetDirectory2 but resolved to $resolvedRenamePath',
+  );
 
   Directory(targetDirectory1).deleteSync();
   Directory(targetDirectory2).deleteSync();
@@ -194,8 +205,10 @@ void testCreateLinkToFile(String dir, String dir2) {
 
   Expect.isTrue(link.existsSync());
   final resolvedPath = link.resolveSymbolicLinksSync();
-  Expect.isTrue(FileSystemEntity.identicalSync(target, resolvedPath),
-      '${link.path} should resolve to $target but resolved to $resolvedPath');
+  Expect.isTrue(
+    FileSystemEntity.identicalSync(target, resolvedPath),
+    '${link.path} should resolve to $target but resolved to $resolvedPath',
+  );
 
   // Rename link
   var renamedLink = link.renameSync(p.join(dir, 'a_renamed_long_path_link'));

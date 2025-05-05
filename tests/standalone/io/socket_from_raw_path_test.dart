@@ -9,8 +9,11 @@ import 'dart:typed_data';
 
 import 'package:expect/expect.dart';
 
-Future testAddress(Uint8List name, String addr,
-    {InternetAddressType? type}) async {
+Future testAddress(
+  Uint8List name,
+  String addr, {
+  InternetAddressType? type,
+}) async {
   var address = InternetAddress.fromRawAddress(name, type: type);
   Expect.equals(address.address, addr);
   var server = await ServerSocket.bind(address, 0);
@@ -36,8 +39,10 @@ Future<void> testUnixAddress() async {
   try {
     final file = File('${dir.path}/$name');
     Uint8List path = Uint8List.fromList(utf8.encode(file.path));
-    var address =
-        InternetAddress.fromRawAddress(path, type: InternetAddressType.unix);
+    var address = InternetAddress.fromRawAddress(
+      path,
+      type: InternetAddressType.unix,
+    );
     Expect.isTrue(address.address.toString().endsWith(name));
 
     // Test socket

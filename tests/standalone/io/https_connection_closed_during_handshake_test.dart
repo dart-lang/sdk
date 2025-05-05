@@ -20,24 +20,30 @@ String getFilename(String path) => Platform.script.resolve(path).toFilePath();
 
 final SecurityContext serverSecurityContext = () {
   final context = SecurityContext();
-  context
-      .usePrivateKeyBytes(File(getFilename('localhost.key')).readAsBytesSync());
+  context.usePrivateKeyBytes(
+    File(getFilename('localhost.key')).readAsBytesSync(),
+  );
   context.useCertificateChainBytes(
-      File(getFilename('localhost.crt')).readAsBytesSync());
+    File(getFilename('localhost.crt')).readAsBytesSync(),
+  );
   return context;
 }();
 
 final SecurityContext clientSecurityContext = () {
   final context = SecurityContext(withTrustedRoots: true);
   context.setTrustedCertificatesBytes(
-      File(getFilename('localhost.crt')).readAsBytesSync());
+    File(getFilename('localhost.crt')).readAsBytesSync(),
+  );
   return context;
 }();
 
 void main(List<String> args) async {
   if (args.length >= 1 && args[0] == 'server') {
-    final server =
-        await SecureServerSocket.bind('localhost', 0, serverSecurityContext);
+    final server = await SecureServerSocket.bind(
+      'localhost',
+      0,
+      serverSecurityContext,
+    );
     print('ok ${server.port}');
     server.listen((socket) {
       print('server: got connection');
@@ -53,19 +59,18 @@ void main(List<String> args) async {
   final serverProcess = await Process.start(Platform.executable, [
     ...Platform.executableArguments,
     Platform.script.toFilePath(),
-    'server'
+    'server',
   ]);
   final serverPortCompleter = Completer<int>();
 
-  serverProcess.stdout
-      .transform(utf8.decoder)
-      .transform(LineSplitter())
-      .listen((line) {
-    print('server stdout: $line');
-    if (line.startsWith('ok')) {
-      serverPortCompleter.complete(int.parse(line.substring('ok'.length)));
-    }
-  });
+  serverProcess.stdout.transform(utf8.decoder).transform(LineSplitter()).listen(
+    (line) {
+      print('server stdout: $line');
+      if (line.startsWith('ok')) {
+        serverPortCompleter.complete(int.parse(line.substring('ok'.length)));
+      }
+    },
+  );
   serverProcess.stderr
       .transform(utf8.decoder)
       .transform(LineSplitter())
@@ -74,17 +79,23 @@ void main(List<String> args) async {
   int port = await serverPortCompleter.future;
 
   final errorCompleter = Completer();
-  await runZoned(() async {
-    var socket = await SecureSocket.connect('localhost', port,
-        context: clientSecurityContext);
-    socket.write(<int>[1, 2, 3]);
-  }, onError: (e) async {
-    // Even if server disconnects during later parts of handshake, since
-    // TLS v1.3 client might not notice it until attempt to communicate with
-    // the server.
-    print('thrownException: $e');
-    errorCompleter.complete(e);
-  });
+  await runZoned(
+    () async {
+      var socket = await SecureSocket.connect(
+        'localhost',
+        port,
+        context: clientSecurityContext,
+      );
+      socket.write(<int>[1, 2, 3]);
+    },
+    onError: (e) async {
+      // Even if server disconnects during later parts of handshake, since
+      // TLS v1.3 client might not notice it until attempt to communicate with
+      // the server.
+      print('thrownException: $e');
+      errorCompleter.complete(e);
+    },
+  );
   Expect.isTrue((await errorCompleter.future) is SocketException);
   await serverProcess.kill();
 

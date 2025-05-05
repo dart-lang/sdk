@@ -28,8 +28,10 @@ String localFile(path) => Platform.script.resolve(path).toFilePath();
 
 SecurityContext serverContext = new SecurityContext()
   ..useCertificateChain(localFile('certificates/server_chain.pem'))
-  ..usePrivateKey(localFile('certificates/server_key.pem'),
-      password: 'dartdart');
+  ..usePrivateKey(
+    localFile('certificates/server_key.pem'),
+    password: 'dartdart',
+  );
 
 SecurityContext clientContext = new SecurityContext()
   ..setTrustedCertificates(localFile('certificates/trusted_certs.pem'));
@@ -46,41 +48,57 @@ class SecurityConfiguration {
       ? HttpServer.bindSecure(HOST_NAME, 0, serverContext, backlog: backlog)
       : HttpServer.bind(HOST_NAME, 0, backlog: backlog);
 
-  Future<WebSocket> createClient(int port,
-          {String? user,
-          Map<String, Object>? headers,
-          String? customUserAgent}) =>
-      WebSocket.connect(
-          '${secure ? "wss" : "ws"}://${user is Null ? "" : "$user@"}$HOST_NAME:$port/',
-          headers: headers,
-          customClient: secure
-              ? (HttpClient(context: clientContext)
-                ..userAgent = customUserAgent)
-              : null);
+  Future<WebSocket> createClient(
+    int port, {
+    String? user,
+    Map<String, Object>? headers,
+    String? customUserAgent,
+  }) => WebSocket.connect(
+    '${secure ? "wss" : "ws"}://${user is Null ? "" : "$user@"}$HOST_NAME:$port/',
+    headers: headers,
+    customClient: secure
+        ? (HttpClient(context: clientContext)..userAgent = customUserAgent)
+        : null,
+  );
 
   checkCloseStatus(webSocket, closeStatus, closeReason) {
     Expect.equals(
-        closeStatus == null ? WebSocketStatus.noStatusReceived : closeStatus,
-        webSocket.closeCode);
+      closeStatus == null ? WebSocketStatus.noStatusReceived : closeStatus,
+      webSocket.closeCode,
+    );
     Expect.equals(
-        closeReason == null ? "" : closeReason, webSocket.closeReason);
+      closeReason == null ? "" : closeReason,
+      webSocket.closeReason,
+    );
   }
 
-  void testRequestResponseClientCloses(int totalConnections, int? closeStatus,
-      String? closeReason, int numberOfMessages) {
+  void testRequestResponseClientCloses(
+    int totalConnections,
+    int? closeStatus,
+    String? closeReason,
+    int numberOfMessages,
+  ) {
     assert(numberOfMessages >= 1);
 
     asyncStart();
     createServer().then((server) {
-      server.transform(new WebSocketTransformer()).listen((webSocket) {
-        asyncStart();
-        webSocket.listen(webSocket.add, onDone: () {
-          checkCloseStatus(webSocket, closeStatus, closeReason);
-          asyncEnd();
-        });
-      }, onDone: () {
-        asyncEnd();
-      });
+      server
+          .transform(new WebSocketTransformer())
+          .listen(
+            (webSocket) {
+              asyncStart();
+              webSocket.listen(
+                webSocket.add,
+                onDone: () {
+                  checkCloseStatus(webSocket, closeStatus, closeReason);
+                  asyncEnd();
+                },
+              );
+            },
+            onDone: () {
+              asyncEnd();
+            },
+          );
 
       int closeCount = 0;
       String messageText = "Hello, world!";
@@ -88,58 +106,70 @@ class SecurityConfiguration {
         asyncStart();
         createClient(server.port).then((webSocket) {
           webSocket.add(messageText);
-          webSocket.listen((message) {
-            numberOfMessages--;
-            Expect.equals(messageText, message);
+          webSocket.listen(
+            (message) {
+              numberOfMessages--;
+              Expect.equals(messageText, message);
 
-            if (numberOfMessages > 0) {
-              webSocket.add(message);
-            } else {
-              webSocket.close(closeStatus, closeReason);
-            }
-          }, onDone: () {
-            checkCloseStatus(webSocket, closeStatus, closeReason);
-            closeCount++;
-            if (closeCount == totalConnections) {
-              server.close();
-            }
-            asyncEnd();
-          });
+              if (numberOfMessages > 0) {
+                webSocket.add(message);
+              } else {
+                webSocket.close(closeStatus, closeReason);
+              }
+            },
+            onDone: () {
+              checkCloseStatus(webSocket, closeStatus, closeReason);
+              closeCount++;
+              if (closeCount == totalConnections) {
+                server.close();
+              }
+              asyncEnd();
+            },
+          );
         });
       }
     });
   }
 
   void testRequestResponseServerCloses(
-      int totalConnections, int? closeStatus, String? closeReason) {
+    int totalConnections,
+    int? closeStatus,
+    String? closeReason,
+  ) {
     createServer().then((server) {
       int closeCount = 0;
       server.transform(new WebSocketTransformer()).listen((webSocket) {
         String messageText = "Hello, world!";
         int messageCount = 0;
-        webSocket.listen((message) {
-          messageCount++;
-          if (messageCount < 10) {
-            Expect.equals(messageText, message);
-            webSocket.add(message);
-          } else {
-            webSocket.close(closeStatus, closeReason);
-          }
-        }, onDone: () {
-          checkCloseStatus(webSocket, closeStatus, closeReason);
-          closeCount++;
-          if (closeCount == totalConnections) {
-            server.close();
-          }
-        });
+        webSocket.listen(
+          (message) {
+            messageCount++;
+            if (messageCount < 10) {
+              Expect.equals(messageText, message);
+              webSocket.add(message);
+            } else {
+              webSocket.close(closeStatus, closeReason);
+            }
+          },
+          onDone: () {
+            checkCloseStatus(webSocket, closeStatus, closeReason);
+            closeCount++;
+            if (closeCount == totalConnections) {
+              server.close();
+            }
+          },
+        );
         webSocket.add(messageText);
       });
 
       for (int i = 0; i < totalConnections; i++) {
         createClient(server.port).then((webSocket) {
-          webSocket.listen(webSocket.add, onDone: () {
-            checkCloseStatus(webSocket, closeStatus, closeReason);
-          });
+          webSocket.listen(
+            webSocket.add,
+            onDone: () {
+              checkCloseStatus(webSocket, closeStatus, closeReason);
+            },
+          );
         });
       }
     });
@@ -273,12 +303,15 @@ class SecurityConfiguration {
     createServer().then((server) {
       server.listen((request) {
         WebSocketTransformer.upgrade(request).then((webSocket) {
-          webSocket.listen((_) {
-            Expect.fail("Unexpected message");
-          }, onDone: () {
-            server.close();
-            webSocket.close();
-          });
+          webSocket.listen(
+            (_) {
+              Expect.fail("Unexpected message");
+            },
+            onDone: () {
+              server.close();
+              webSocket.close();
+            },
+          );
         });
       });
 
@@ -309,47 +342,61 @@ class SecurityConfiguration {
   void testUsePOST() {
     asyncStart();
     createServer().then((server) {
-      server.transform(new WebSocketTransformer()).listen((webSocket) {
-        Expect.fail("No connection expected");
-      }, onError: (e) {
-        asyncEnd();
-      });
+      server
+          .transform(new WebSocketTransformer())
+          .listen(
+            (webSocket) {
+              Expect.fail("No connection expected");
+            },
+            onError: (e) {
+              asyncEnd();
+            },
+          );
 
       final client = HttpClient(context: secure ? clientContext : null);
       client
-          .postUrl(Uri.parse(
-              "${secure ? 'https:' : 'http:'}//$HOST_NAME:${server.port}/"))
+          .postUrl(
+            Uri.parse(
+              "${secure ? 'https:' : 'http:'}//$HOST_NAME:${server.port}/",
+            ),
+          )
           .then((request) => request.close())
           .then((response) {
-        Expect.equals(HttpStatus.badRequest, response.statusCode);
-        client.close();
-        server.close();
-      });
+            Expect.equals(HttpStatus.badRequest, response.statusCode);
+            client.close();
+            server.close();
+          });
     });
   }
 
   void testConnections(
-      int totalConnections, int closeStatus, String closeReason) {
+    int totalConnections,
+    int closeStatus,
+    String closeReason,
+  ) {
     createServer().then((server) {
       int closeCount = 0;
       server.transform(new WebSocketTransformer()).listen((webSocket) {
         String messageText = "Hello, world!";
         int messageCount = 0;
-        webSocket.listen((message) {
-          messageCount++;
-          if (messageCount < 10) {
-            Expect.equals(messageText, message);
-            webSocket.add(message);
-          } else {
-            webSocket.close(closeStatus, closeReason);
-          }
-        }, onDone: () {
-          checkCloseStatus(webSocket, closeStatus, closeReason);
-          closeCount++;
-          if (closeCount == totalConnections) {
-            server.close();
-          }
-        });
+        webSocket.listen(
+          (message) {
+            messageCount++;
+            if (messageCount < 10) {
+              Expect.equals(messageText, message);
+              webSocket.add(message);
+            } else {
+              webSocket.close(closeStatus, closeReason);
+            }
+          },
+          onDone: () {
+            checkCloseStatus(webSocket, closeStatus, closeReason);
+            closeCount++;
+            if (closeCount == totalConnections) {
+              server.close();
+            }
+          },
+        );
         webSocket.add(messageText);
       });
 
@@ -364,21 +411,24 @@ class SecurityConfiguration {
           Expect.isFalse(oncloseCalled);
           onopenCalled = true;
           Expect.equals(WebSocket.open, webSocket.readyState);
-          webSocket.listen((message) {
-            onmessageCalled++;
-            Expect.isTrue(onopenCalled);
-            Expect.isFalse(oncloseCalled);
-            Expect.equals(WebSocket.open, webSocket.readyState);
-            webSocket.add(message);
-          }, onDone: () {
-            Expect.isTrue(onopenCalled);
-            Expect.equals(10, onmessageCalled);
-            Expect.isFalse(oncloseCalled);
-            oncloseCalled = true;
-            Expect.equals(3002, webSocket.closeCode);
-            Expect.equals("Got tired", webSocket.closeReason);
-            Expect.equals(WebSocket.closed, webSocket.readyState);
-          });
+          webSocket.listen(
+            (message) {
+              onmessageCalled++;
+              Expect.isTrue(onopenCalled);
+              Expect.isFalse(oncloseCalled);
+              Expect.equals(WebSocket.open, webSocket.readyState);
+              webSocket.add(message);
+            },
+            onDone: () {
+              Expect.isTrue(onopenCalled);
+              Expect.equals(10, onmessageCalled);
+              Expect.isFalse(oncloseCalled);
+              oncloseCalled = true;
+              Expect.equals(3002, webSocket.closeCode);
+              Expect.equals("Got tired", webSocket.closeReason);
+              Expect.equals(WebSocket.closed, webSocket.readyState);
+            },
+          );
         });
       }
 
@@ -423,13 +473,15 @@ class SecurityConfiguration {
           }, onDone: completer.complete);
         });
 
-        futures.add(client
-            .openUrl("GET", Uri.parse('${baseHttpUrl}'))
-            .then((request) => request.close())
-            .then((response) {
-          response.listen((_) {});
-          Expect.equals(HttpStatus.ok, response.statusCode);
-        }));
+        futures.add(
+          client
+              .openUrl("GET", Uri.parse('${baseHttpUrl}'))
+              .then((request) => request.close())
+              .then((response) {
+                response.listen((_) {});
+                Expect.equals(HttpStatus.ok, response.statusCode);
+              }),
+        );
       }
 
       Future.wait(futures).then((_) {
@@ -445,9 +497,13 @@ class SecurityConfiguration {
     createServer().then((server) {
       server.listen((request) {
         Expect.equals(
-            'Upgrade', request.headers.value(HttpHeaders.connectionHeader));
+          'Upgrade',
+          request.headers.value(HttpHeaders.connectionHeader),
+        );
         Expect.equals(
-            'websocket', request.headers.value(HttpHeaders.upgradeHeader));
+          'websocket',
+          request.headers.value(HttpHeaders.upgradeHeader),
+        );
 
         var key = request.headers.value('Sec-WebSocket-Key');
         var digest = sha1.convert("$key$WEB_SOCKET_GUID".codeUnits);
@@ -458,21 +514,26 @@ class SecurityConfiguration {
           ..headers.add(HttpHeaders.upgradeHeader, "websocket")
           ..headers.add("Sec-WebSocket-Accept", accept);
         request.response.contentLength = 0;
-        request.response.detachSocket().then((socket) {
-          return new WebSocket.fromUpgradedSocket(socket, serverSide: true);
-        }).then((websocket) {
-          websocket.add("Hello");
-          websocket.close();
-          asyncEnd();
-        });
+        request.response
+            .detachSocket()
+            .then((socket) {
+              return new WebSocket.fromUpgradedSocket(socket, serverSide: true);
+            })
+            .then((websocket) {
+              websocket.add("Hello");
+              websocket.close();
+              asyncEnd();
+            });
       });
 
-      createClient(server.port).then((websocket) {
-        return websocket.listen((message) {
-          Expect.equals("Hello", message);
-          websocket.close();
-        }).asFuture();
-      }).then((_) => server.close());
+      createClient(server.port)
+          .then((websocket) {
+            return websocket.listen((message) {
+              Expect.equals("Hello", message);
+              websocket.close();
+            }).asFuture();
+          })
+          .then((_) => server.close());
     });
   }
 
@@ -495,17 +556,19 @@ class SecurityConfiguration {
 
       var headers = {
         'My-Header': 'my-value',
-        'My-Header-Multiple': ['my-value-1', 'my-value-2']
+        'My-Header-Multiple': ['my-value-1', 'my-value-2'],
       };
-      createClient(server.port, headers: headers).then((websocket) {
-        return websocket.listen((message) {
-          Expect.equals("Hello", message);
-          websocket.close();
-        }).asFuture();
-      }).then((_) {
-        server.close();
-        asyncEnd();
-      });
+      createClient(server.port, headers: headers)
+          .then((websocket) {
+            return websocket.listen((message) {
+              Expect.equals("Hello", message);
+              websocket.close();
+            }).asFuture();
+          })
+          .then((_) {
+            server.close();
+            asyncEnd();
+          });
     });
   }
 
@@ -521,25 +584,31 @@ class SecurityConfiguration {
         Expect.equals('Basic $auth', request.headers['Authorization']![0]);
         Expect.equals(1, request.headers['Authorization']!.length);
         WebSocketTransformer.upgrade(request).then((webSocket) {
-          webSocket.listen((_) {
-            throw 'Unexpected';
-          }, onDone: () {
-            asyncEnd();
-          });
+          webSocket.listen(
+            (_) {
+              throw 'Unexpected';
+            },
+            onDone: () {
+              asyncEnd();
+            },
+          );
           webSocket.add("Hello");
         });
       });
 
-      createClient(server.port, user: userInfo).then((websocket) {
-        return websocket.listen((message) {
-          Expect.equals("Hello", message);
-          websocket.close();
-        }).asFuture();
-      }).then((_) {
-        return server.close();
-      }).whenComplete(() {
-        asyncEnd();
-      });
+      createClient(server.port, user: userInfo)
+          .then((websocket) {
+            return websocket.listen((message) {
+              Expect.equals("Hello", message);
+              websocket.close();
+            }).asFuture();
+          })
+          .then((_) {
+            return server.close();
+          })
+          .whenComplete(() {
+            asyncEnd();
+          });
     });
   }
 
@@ -571,8 +640,9 @@ class SecurityConfiguration {
       });
       // Next line should take no effect on custom user agent value provided
       WebSocket.userAgent = 'Custom User Agent';
-      createClient(server.port, customUserAgent: 'New User Agent')
-          .then((webSocket) {
+      createClient(server.port, customUserAgent: 'New User Agent').then((
+        webSocket,
+      ) {
         webSocket.close();
       });
     });

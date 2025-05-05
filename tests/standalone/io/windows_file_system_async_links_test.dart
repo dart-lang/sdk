@@ -18,80 +18,139 @@ class FutureExpect {
   static Future listEquals(expected, Future result) =>
       result.then((value) => Expect.listEquals(expected, value));
   static Future throws(Future result) => result.then((value) {
-        throw new ExpectException(
-            "FutureExpect.throws received $value instead of an exception");
-      }, onError: (_) => null);
+    throw new ExpectException(
+      "FutureExpect.throws received $value instead of an exception",
+    );
+  }, onError: (_) => null);
 }
 
 Future testJunctionTypeDelete() {
   return Directory.systemTemp
       .createTemp('dart_windows_file_system_async_links')
       .then((temp) {
-    var x = '${temp.path}${Platform.pathSeparator}x';
-    var y = '${temp.path}${Platform.pathSeparator}y';
-    return new Directory(x)
-        .create()
-        .then((_) => new Link(y).create(x))
-        .then((_) => FutureExpect.isTrue(new Directory(y).exists()))
-        .then((_) => FutureExpect.isTrue(new Directory(x).exists()))
-        .then((_) => FutureExpect.isTrue(FileSystemEntity.isLink(y)))
-        .then((_) => FutureExpect.isFalse(FileSystemEntity.isLink(x)))
-        .then((_) => FutureExpect.isTrue(FileSystemEntity.isDirectory(y)))
-        .then((_) => FutureExpect.isTrue(FileSystemEntity.isDirectory(x)))
-        .then((_) => FutureExpect.equals(
-            FileSystemEntityType.directory, FileSystemEntity.type(y)))
-        .then((_) => FutureExpect.equals(
-            FileSystemEntityType.directory, FileSystemEntity.type(x)))
-        .then((_) => FutureExpect.equals(FileSystemEntityType.link,
-            FileSystemEntity.type(y, followLinks: false)))
-        .then((_) => FutureExpect.equals(FileSystemEntityType.directory,
-            FileSystemEntity.type(x, followLinks: false)))
-        .then((_) => FutureExpect.equals(x, new Link(y).target()))
-
-        // Test Junction pointing to a missing directory.
-        .then((_) => new Directory(x).delete())
-        .then((_) => FutureExpect.isTrue(new Link(y).exists()))
-        .then((_) => FutureExpect.isFalse(new Directory(x).exists()))
-        .then((_) => FutureExpect.isTrue(FileSystemEntity.isLink(y)))
-        .then((_) => FutureExpect.isFalse(FileSystemEntity.isLink(x)))
-        .then((_) => FutureExpect.isFalse(FileSystemEntity.isDirectory(y)))
-        .then((_) => FutureExpect.isFalse(FileSystemEntity.isDirectory(x)))
-        .then((_) => FutureExpect.equals(
-            FileSystemEntityType.notFound, FileSystemEntity.type(y)))
-        .then((_) => FutureExpect.equals(
-            FileSystemEntityType.notFound, FileSystemEntity.type(x)))
-        .then((_) => FutureExpect.equals(FileSystemEntityType.link,
-            FileSystemEntity.type(y, followLinks: false)))
-        .then((_) => FutureExpect.equals(FileSystemEntityType.notFound,
-            FileSystemEntity.type(x, followLinks: false)))
-        .then((_) => FutureExpect.equals(x, new Link(y).target()))
-
-        // Delete Junction pointing to a missing directory.
-        .then((_) => new Link(y).delete())
-        .then((_) => FutureExpect.isFalse(FileSystemEntity.isLink(y)))
-        .then((_) => FutureExpect.equals(
-            FileSystemEntityType.notFound, FileSystemEntity.type(y)))
-        .then((_) => FutureExpect.throws(new Link(y).target()))
-        .then((_) => new Directory(x).create())
-        .then((_) => new Link(y).create(x))
-        .then((_) => FutureExpect.equals(FileSystemEntityType.link,
-            FileSystemEntity.type(y, followLinks: false)))
-        .then((_) => FutureExpect.equals(FileSystemEntityType.directory,
-            FileSystemEntity.type(x, followLinks: false)))
-        .then((_) => FutureExpect.equals(x, new Link(y).target()))
-
-        // Delete Junction pointing to an existing directory.
-        .then((_) => new Directory(y).delete())
-        .then((_) => FutureExpect.equals(
-            FileSystemEntityType.notFound, FileSystemEntity.type(y)))
-        .then((_) => FutureExpect.equals(FileSystemEntityType.notFound,
-            FileSystemEntity.type(y, followLinks: false)))
-        .then(
-            (_) => FutureExpect.equals(FileSystemEntityType.directory, FileSystemEntity.type(x)))
-        .then((_) => FutureExpect.equals(FileSystemEntityType.directory, FileSystemEntity.type(x, followLinks: false)))
-        .then((_) => FutureExpect.throws(new Link(y).target()))
-        .then((_) => temp.delete(recursive: true));
-  });
+        var x = '${temp.path}${Platform.pathSeparator}x';
+        var y = '${temp.path}${Platform.pathSeparator}y';
+        return new Directory(x)
+            .create()
+            .then((_) => new Link(y).create(x))
+            .then((_) => FutureExpect.isTrue(new Directory(y).exists()))
+            .then((_) => FutureExpect.isTrue(new Directory(x).exists()))
+            .then((_) => FutureExpect.isTrue(FileSystemEntity.isLink(y)))
+            .then((_) => FutureExpect.isFalse(FileSystemEntity.isLink(x)))
+            .then((_) => FutureExpect.isTrue(FileSystemEntity.isDirectory(y)))
+            .then((_) => FutureExpect.isTrue(FileSystemEntity.isDirectory(x)))
+            .then(
+              (_) => FutureExpect.equals(
+                FileSystemEntityType.directory,
+                FileSystemEntity.type(y),
+              ),
+            )
+            .then(
+              (_) => FutureExpect.equals(
+                FileSystemEntityType.directory,
+                FileSystemEntity.type(x),
+              ),
+            )
+            .then(
+              (_) => FutureExpect.equals(
+                FileSystemEntityType.link,
+                FileSystemEntity.type(y, followLinks: false),
+              ),
+            )
+            .then(
+              (_) => FutureExpect.equals(
+                FileSystemEntityType.directory,
+                FileSystemEntity.type(x, followLinks: false),
+              ),
+            )
+            .then((_) => FutureExpect.equals(x, new Link(y).target()))
+            // Test Junction pointing to a missing directory.
+            .then((_) => new Directory(x).delete())
+            .then((_) => FutureExpect.isTrue(new Link(y).exists()))
+            .then((_) => FutureExpect.isFalse(new Directory(x).exists()))
+            .then((_) => FutureExpect.isTrue(FileSystemEntity.isLink(y)))
+            .then((_) => FutureExpect.isFalse(FileSystemEntity.isLink(x)))
+            .then((_) => FutureExpect.isFalse(FileSystemEntity.isDirectory(y)))
+            .then((_) => FutureExpect.isFalse(FileSystemEntity.isDirectory(x)))
+            .then(
+              (_) => FutureExpect.equals(
+                FileSystemEntityType.notFound,
+                FileSystemEntity.type(y),
+              ),
+            )
+            .then(
+              (_) => FutureExpect.equals(
+                FileSystemEntityType.notFound,
+                FileSystemEntity.type(x),
+              ),
+            )
+            .then(
+              (_) => FutureExpect.equals(
+                FileSystemEntityType.link,
+                FileSystemEntity.type(y, followLinks: false),
+              ),
+            )
+            .then(
+              (_) => FutureExpect.equals(
+                FileSystemEntityType.notFound,
+                FileSystemEntity.type(x, followLinks: false),
+              ),
+            )
+            .then((_) => FutureExpect.equals(x, new Link(y).target()))
+            // Delete Junction pointing to a missing directory.
+            .then((_) => new Link(y).delete())
+            .then((_) => FutureExpect.isFalse(FileSystemEntity.isLink(y)))
+            .then(
+              (_) => FutureExpect.equals(
+                FileSystemEntityType.notFound,
+                FileSystemEntity.type(y),
+              ),
+            )
+            .then((_) => FutureExpect.throws(new Link(y).target()))
+            .then((_) => new Directory(x).create())
+            .then((_) => new Link(y).create(x))
+            .then(
+              (_) => FutureExpect.equals(
+                FileSystemEntityType.link,
+                FileSystemEntity.type(y, followLinks: false),
+              ),
+            )
+            .then(
+              (_) => FutureExpect.equals(
+                FileSystemEntityType.directory,
+                FileSystemEntity.type(x, followLinks: false),
+              ),
+            )
+            .then((_) => FutureExpect.equals(x, new Link(y).target()))
+            // Delete Junction pointing to an existing directory.
+            .then((_) => new Directory(y).delete())
+            .then(
+              (_) => FutureExpect.equals(
+                FileSystemEntityType.notFound,
+                FileSystemEntity.type(y),
+              ),
+            )
+            .then(
+              (_) => FutureExpect.equals(
+                FileSystemEntityType.notFound,
+                FileSystemEntity.type(y, followLinks: false),
+              ),
+            )
+            .then(
+              (_) => FutureExpect.equals(
+                FileSystemEntityType.directory,
+                FileSystemEntity.type(x),
+              ),
+            )
+            .then(
+              (_) => FutureExpect.equals(
+                FileSystemEntityType.directory,
+                FileSystemEntity.type(x, followLinks: false),
+              ),
+            )
+            .then((_) => FutureExpect.throws(new Link(y).target()))
+            .then((_) => temp.delete(recursive: true));
+      });
 }
 
 main() {

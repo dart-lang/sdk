@@ -15,7 +15,8 @@ const String loopbackIPv4String = "127.0.0.1";
 void testArguments() {
   Expect.throws(() => RawSynchronousSocket.connectSync(null, 0));
   Expect.throws(
-      () => RawSynchronousSocket.connectSync(loopbackIPv4String, 65536));
+    () => RawSynchronousSocket.connectSync(loopbackIPv4String, 65536),
+  );
   Expect.throws(() => RawSynchronousSocket.connectSync(loopbackIPv4String, -1));
 }
 
@@ -46,8 +47,10 @@ void testInvalidConnect() {
 void testSimpleConnect() {
   asyncStart();
   RawServerSocket.bind(InternetAddress.loopbackIPv4, 0).then((server) {
-    var socket =
-        RawSynchronousSocket.connectSync(loopbackIPv4String, server.port);
+    var socket = RawSynchronousSocket.connectSync(
+      loopbackIPv4String,
+      server.port,
+    );
     server.listen((serverSocket) {
       Expect.equals(socket.address, serverSocket.remoteAddress);
       Expect.equals(socket.port, serverSocket.remotePort);
@@ -64,8 +67,10 @@ void testServerListenAfterConnect() {
   asyncStart();
   RawServerSocket.bind(InternetAddress.loopbackIPv4, 0).then((server) {
     Expect.isTrue(server.port > 0);
-    var client =
-        RawSynchronousSocket.connectSync(loopbackIPv4String, server.port);
+    var client = RawSynchronousSocket.connectSync(
+      loopbackIPv4String,
+      server.port,
+    );
     server.listen((socket) {
       client.closeSync();
       server.close();
@@ -88,7 +93,7 @@ enum EchoServerTypes {
   // The port used to communicate with an isolate.
   ISOLATE_SEND_PORT,
   // The port of the newly created echo server.
-  SERVER_PORT
+  SERVER_PORT,
 }
 
 List<int> createTestData() {
@@ -121,7 +126,7 @@ Future echoServer(var sendPort) async {
     ReceivePort receivePort = new ReceivePort();
     Map response = {
       EchoServerTypes.ISOLATE_SEND_PORT: receivePort.sendPort,
-      EchoServerTypes.SERVER_PORT: server.port
+      EchoServerTypes.SERVER_PORT: server.port,
     };
     sendPort.send(response);
     Map limits = await receivePort.first;
@@ -131,62 +136,71 @@ Future echoServer(var sendPort) async {
     int connection_count = limits[EchoServerTypes.CONNECTION_COUNT] ?? 1;
     int connections = 0;
     sendPort = limits[EchoServerTypes.ISOLATE_SEND_PORT];
-    server.listen((client) {
-      int bytesRead = 0;
-      int bytesWritten = 0;
-      bool closedEventReceived = false;
-      List<int> data = new List<int>.filled(length, 0);
-      client.writeEventsEnabled = false;
-      client.listen((event) {
-        switch (event) {
-          case RawSocketEvent.read:
-            Expect.isTrue(bytesWritten == 0);
-            Expect.isTrue(client.available() > 0);
-            var buffer = client.read(client.available())!;
-            data.setRange(bytesRead, bytesRead + buffer.length, buffer);
-            bytesRead += buffer.length;
-            // Once we've read all the data, we can echo it back. Otherwise,
-            // keep waiting for more bytes.
-            if (bytesRead >= length) {
-              verifyTestData(data, start, end);
-              client.writeEventsEnabled = true;
+    server.listen(
+      (client) {
+        int bytesRead = 0;
+        int bytesWritten = 0;
+        bool closedEventReceived = false;
+        List<int> data = new List<int>.filled(length, 0);
+        client.writeEventsEnabled = false;
+        client.listen(
+          (event) {
+            switch (event) {
+              case RawSocketEvent.read:
+                Expect.isTrue(bytesWritten == 0);
+                Expect.isTrue(client.available() > 0);
+                var buffer = client.read(client.available())!;
+                data.setRange(bytesRead, bytesRead + buffer.length, buffer);
+                bytesRead += buffer.length;
+                // Once we've read all the data, we can echo it back. Otherwise,
+                // keep waiting for more bytes.
+                if (bytesRead >= length) {
+                  verifyTestData(data, start, end);
+                  client.writeEventsEnabled = true;
+                }
+                break;
+              case RawSocketEvent.write:
+                Expect.isFalse(client.writeEventsEnabled);
+                bytesWritten += client.write(
+                  data,
+                  bytesWritten,
+                  data.length - bytesWritten,
+                );
+                if (bytesWritten < length) {
+                  client.writeEventsEnabled = true;
+                } else if (bytesWritten == length) {
+                  // Close the socket for writing from the server since we're done
+                  // writing to this socket. The connection is closed completely
+                  // after the client closes the socket for reading from the server.
+                  client.shutdown(SocketDirection.send);
+                }
+                break;
+              case RawSocketEvent.readClosed:
+                client.close();
+                break;
+              case RawSocketEvent.closed:
+                Expect.isFalse(closedEventReceived);
+                closedEventReceived = true;
+                break;
+              default:
+                throw "Unexpected event $event";
             }
-            break;
-          case RawSocketEvent.write:
-            Expect.isFalse(client.writeEventsEnabled);
-            bytesWritten +=
-                client.write(data, bytesWritten, data.length - bytesWritten);
-            if (bytesWritten < length) {
-              client.writeEventsEnabled = true;
-            } else if (bytesWritten == length) {
-              // Close the socket for writing from the server since we're done
-              // writing to this socket. The connection is closed completely
-              // after the client closes the socket for reading from the server.
-              client.shutdown(SocketDirection.send);
+          },
+          onDone: () {
+            Expect.isTrue(closedEventReceived);
+            connections++;
+            if (connections >= connection_count) {
+              server.close();
             }
-            break;
-          case RawSocketEvent.readClosed:
-            client.close();
-            break;
-          case RawSocketEvent.closed:
-            Expect.isFalse(closedEventReceived);
-            closedEventReceived = true;
-            break;
-          default:
-            throw "Unexpected event $event";
-        }
-      }, onDone: () {
-        Expect.isTrue(closedEventReceived);
-        connections++;
-        if (connections >= connection_count) {
-          server.close();
-        }
-      });
-    }, onDone: () {
-      // Let the client know we're shutting down then kill the isolate.
-      sendPort.send(null);
-      Isolate.current.kill();
-    });
+          },
+        );
+      },
+      onDone: () {
+        // Let the client know we're shutting down then kill the isolate.
+        sendPort.send(null);
+        Isolate.current.kill();
+      },
+    );
   });
 }
 
@@ -213,13 +227,15 @@ Future testSimpleReadWrite({bool? dropReads}) async {
   Map limits = {
     EchoServerTypes.OFFSET_START: 0,
     EchoServerTypes.OFFSET_END: messageSize,
-    EchoServerTypes.ISOLATE_SEND_PORT: receivePort.sendPort
+    EchoServerTypes.ISOLATE_SEND_PORT: receivePort.sendPort,
   };
   sendPort.send(limits);
 
   try {
     var socket = RawSynchronousSocket.connectSync(
-        loopbackIPv4String, serverInternetPort);
+      loopbackIPv4String,
+      serverInternetPort,
+    );
     List<int> data = createTestData();
     socket.writeFromSync(data);
     List<int> result = socket.readSync(data.length)!;
@@ -257,13 +273,15 @@ Future testPartialRead() async {
   Map limits = {
     EchoServerTypes.OFFSET_START: 0,
     EchoServerTypes.OFFSET_END: 1000,
-    EchoServerTypes.ISOLATE_SEND_PORT: receivePort.sendPort
+    EchoServerTypes.ISOLATE_SEND_PORT: receivePort.sendPort,
   };
   sendPort.send(limits);
 
   try {
     var socket = RawSynchronousSocket.connectSync(
-        loopbackIPv4String, serverInternetPort);
+      loopbackIPv4String,
+      serverInternetPort,
+    );
     int half_length = (data.length / 2).toInt();
 
     // Send the full data list to the server.
@@ -315,12 +333,14 @@ Future testPartialWrite() async {
   Map limits = {
     EchoServerTypes.OFFSET_START: startOffset,
     EchoServerTypes.OFFSET_END: endOffset,
-    EchoServerTypes.ISOLATE_SEND_PORT: receivePort.sendPort
+    EchoServerTypes.ISOLATE_SEND_PORT: receivePort.sendPort,
   };
   sendPort.send(limits);
   try {
     var socket = RawSynchronousSocket.connectSync(
-        loopbackIPv4String, serverInternetPort);
+      loopbackIPv4String,
+      serverInternetPort,
+    );
     List<int> data = createTestData();
 
     // Write a subset of data to the server.
@@ -369,40 +389,54 @@ Future testShutdown() async {
     EchoServerTypes.OFFSET_END: data.length,
     EchoServerTypes.ISOLATE_SEND_PORT: receivePort.sendPort,
     // Tell the server to shutdown after 3 sockets disconnect.
-    EchoServerTypes.CONNECTION_COUNT: 3
+    EchoServerTypes.CONNECTION_COUNT: 3,
   };
   sendPort.send(limits);
 
   try {
     var socket = RawSynchronousSocket.connectSync(
-        loopbackIPv4String, serverInternetPort);
+      loopbackIPv4String,
+      serverInternetPort,
+    );
 
     // Close from both directions. Shouldn't be able to read/write to the
     // socket.
     socket.shutdown(SocketDirection.both);
     Expect.throws(
-        () => socket.writeFromSync(data), (e) => e is SocketException);
+      () => socket.writeFromSync(data),
+      (e) => e is SocketException,
+    );
     Expect.throws(
-        () => socket.readSync(data.length), (e) => e is SocketException);
+      () => socket.readSync(data.length),
+      (e) => e is SocketException,
+    );
     socket.closeSync();
 
     // Close the socket for reading then try and perform a read. This should
     // cause a SocketException.
     socket = RawSynchronousSocket.connectSync(
-        loopbackIPv4String, serverInternetPort);
+      loopbackIPv4String,
+      serverInternetPort,
+    );
     socket.shutdown(SocketDirection.receive);
     // Throws exception when the socket is closed for RECEIVE.
     Expect.throws(
-        () => socket.readSync(data.length), (e) => e is SocketException);
+      () => socket.readSync(data.length),
+      (e) => e is SocketException,
+    );
     socket.closeSync();
 
     // Close the socket for writing and try to do a write. This should cause an
     // OSError to be throw as the pipe is closed for writing.
     socket = RawSynchronousSocket.connectSync(
-        loopbackIPv4String, serverInternetPort);
+      loopbackIPv4String,
+      serverInternetPort,
+    );
     socket.shutdown(SocketDirection.send);
     Expect.throws(
-        () => socket.writeFromSync(data), (e) => e is SocketException);
+      () => socket.writeFromSync(data),
+      (e) => e is SocketException,
+    );
     socket.closeSync();
   } catch (e, stack) {
     print("Echo test failed in client.");
@@ -422,21 +456,26 @@ void testInvalidReadWriteOperations() {
   RawServerSocket.bind(InternetAddress.loopbackIPv4, 0).then((server) {
     server.listen((socket) {});
     List<int> data = createTestData();
-    var socket =
-        RawSynchronousSocket.connectSync(loopbackIPv4String, server.port);
+    var socket = RawSynchronousSocket.connectSync(
+      loopbackIPv4String,
+      server.port,
+    );
 
     // Invalid writeFromSync invocations
     Expect.throwsRangeError(() => socket.writeFromSync(data, data.length + 1));
     Expect.throwsRangeError(
-        () => socket.writeFromSync(data, 0, data.length + 1));
+      () => socket.writeFromSync(data, 0, data.length + 1),
+    );
     Expect.throwsRangeError(() => socket.writeFromSync(data, 1, 0));
 
     // Invalid readIntoSync invocations
     List<int> buffer = new List<int>.filled(10, 0);
     Expect.throwsRangeError(
-        () => socket.readIntoSync(buffer, buffer.length + 1));
+      () => socket.readIntoSync(buffer, buffer.length + 1),
+    );
     Expect.throwsRangeError(
-        () => socket.readIntoSync(buffer, 0, buffer.length + 1));
+      () => socket.readIntoSync(buffer, 0, buffer.length + 1),
+    );
     Expect.throwsRangeError(() => socket.readIntoSync(buffer, 1, 0));
 
     // Invalid readSync invocation
@@ -454,8 +493,10 @@ void testClosedError() {
     server.listen((socket) {
       socket.close();
     });
-    var socket =
-        RawSynchronousSocket.connectSync(loopbackIPv4String, server.port);
+    var socket = RawSynchronousSocket.connectSync(
+      loopbackIPv4String,
+      server.port,
+    );
     server.close();
     socket.closeSync();
     Expect.throws(() => socket.remotePort, (e) => e is SocketException);

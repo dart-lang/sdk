@@ -12,10 +12,24 @@ var _parseCookieDate = Testing$HttpDate.test$_parseCookieDate;
 void testParseHttpCookieDate() {
   Expect.throws(() => _parseCookieDate(""));
 
-  test(int year, int month, int day, int hours, int minutes, int seconds,
-      String formatted) {
-    DateTime date =
-        new DateTime.utc(year, month, day, hours, minutes, seconds, 0);
+  test(
+    int year,
+    int month,
+    int day,
+    int hours,
+    int minutes,
+    int seconds,
+    String formatted,
+  ) {
+    DateTime date = new DateTime.utc(
+      year,
+      month,
+      day,
+      hours,
+      minutes,
+      seconds,
+      0,
+    );
     Expect.equals(date, _parseCookieDate(formatted));
   }
 

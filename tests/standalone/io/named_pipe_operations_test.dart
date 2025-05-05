@@ -17,12 +17,13 @@ startProcess(Directory dir, String fname, String script, String result) async {
   file.writeAsString(script);
   StringBuffer output = new StringBuffer();
   Process process = await Process.start(
-      Platform.executable,
-      []
-        ..addAll(Platform.executableArguments)
-        ..add('--sound-null-safety')
-        ..add('--verbosity=warning')
-        ..add(file.path));
+    Platform.executable,
+    []
+      ..addAll(Platform.executableArguments)
+      ..add('--sound-null-safety')
+      ..add('--verbosity=warning')
+      ..add(file.path),
+  );
   bool stdinWriteFailed = false;
   process.stdout.transform(utf8.decoder).listen(output.write);
   process.stderr.transform(utf8.decoder).listen((data) {
@@ -58,7 +59,8 @@ main() async {
 
   Directory directory = Directory.systemTemp.createTempSync('named_pipe');
 
-  final String delScript = '''
+  final String delScript =
+      '''
     import "dart:io";
     main() {
       try {
@@ -72,7 +74,8 @@ main() async {
     }
   ''';
 
-  final String renameScript = '''
+  final String renameScript =
+      '''
     import "dart:io";
     main() {
       try {
@@ -86,7 +89,8 @@ main() async {
     }
   ''';
 
-  final String copyScript = '''
+  final String copyScript =
+      '''
     import "dart:io";
     main() {
       try {
@@ -110,7 +114,11 @@ main() async {
 
   await startProcess(directory, 'delscript', delScript, "Cannot delete file");
   await startProcess(
-      directory, 'renamescript', renameScript, "Cannot rename file");
+    directory,
+    'renamescript',
+    renameScript,
+    "Cannot rename file",
+  );
   await startProcess(directory, 'copyscript', copyScript, "Cannot copy file");
 
   directory.deleteSync(recursive: true);

@@ -5,8 +5,9 @@
 import "dart:io";
 import "dart:isolate";
 
-final bool isAppJitTrainingRun =
-    Platform.executableArguments.any((arg) => arg == '--snapshot-kind=app-jit');
+final bool isAppJitTrainingRun = Platform.executableArguments.any(
+  (arg) => arg == '--snapshot-kind=app-jit',
+);
 
 child(msg) {
   // This should work even though the parent isolate is blocked and won't

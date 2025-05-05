@@ -19,7 +19,8 @@ Future<void> main() async {
 
   // /usr/local/Cellar/dart/2.8.0-dev.20.0/bin/dart -> $DART_SDK/bin/dart
   Directory.current = a;
-  final linkLocation = '${d.path}/usr/local/bin/Cellar/dart/2.8.0-dev.20.0/bin/dart';
+  final linkLocation =
+      '${d.path}/usr/local/bin/Cellar/dart/2.8.0-dev.20.0/bin/dart';
   final link = Link(linkLocation);
   link.createSync(exePath, recursive: true);
 

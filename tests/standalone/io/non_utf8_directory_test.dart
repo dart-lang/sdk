@@ -13,8 +13,9 @@ Future main() async {
   var syncDir;
 
   test('Non-UTF8 Directory Listing', () async {
-    final tmp =
-        await Directory.systemTemp.createTemp('non_utf8_directory_test_async');
+    final tmp = await Directory.systemTemp.createTemp(
+      'non_utf8_directory_test_async',
+    );
     try {
       final rawPath = new Uint8List.fromList([182]);
       asyncDir = new Directory.fromRawPath(rawPath);
@@ -51,8 +52,9 @@ Future main() async {
   });
 
   test('Non-UTF8 Directory Sync Listing', () {
-    final tmp =
-        Directory.systemTemp.createTempSync('non_utf8_directory_test_sync');
+    final tmp = Directory.systemTemp.createTempSync(
+      'non_utf8_directory_test_sync',
+    );
     try {
       final rawPath = new Uint8List.fromList([182]);
       syncDir = new Directory.fromRawPath(rawPath);

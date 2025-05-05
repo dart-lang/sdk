@@ -31,11 +31,14 @@ void testFromUri() {
 
 void testFromUriUnsupported() {
   Expect.throwsUnsupportedError(
-      () => new File.fromUri(Uri.parse('http://localhost:8080/index.html')));
+    () => new File.fromUri(Uri.parse('http://localhost:8080/index.html')),
+  );
   Expect.throwsUnsupportedError(
-      () => new File.fromUri(Uri.parse('ftp://localhost/tmp/xxx')));
+    () => new File.fromUri(Uri.parse('ftp://localhost/tmp/xxx')),
+  );
   Expect.throwsUnsupportedError(
-      () => new File.fromUri(Uri.parse('name#fragment')));
+    () => new File.fromUri(Uri.parse('name#fragment')),
+  );
 }
 
 void main() {

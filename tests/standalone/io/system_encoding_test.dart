@@ -38,11 +38,15 @@ main() {
     // On Windows the default Windows code page cannot encode these
     // Unicode characters and the ? character is used.
     Expect.listEquals(
-        systemEncoding.encode('\u1234\u5678\u9abc'), '???'.codeUnits);
+      systemEncoding.encode('\u1234\u5678\u9abc'),
+      '???'.codeUnits,
+    );
   } else {
     // On all systems except for Windows UTF-8 is used as the system
     // encoding.
-    Expect.listEquals(systemEncoding.encode('\u1234\u5678\u9abc'),
-        utf8.encode('\u1234\u5678\u9abc'));
+    Expect.listEquals(
+      systemEncoding.encode('\u1234\u5678\u9abc'),
+      utf8.encode('\u1234\u5678\u9abc'),
+    );
   }
 }

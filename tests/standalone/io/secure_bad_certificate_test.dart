@@ -21,35 +21,51 @@ String localFile(path) => Platform.script.resolve(path).toFilePath();
 
 SecurityContext serverContext = new SecurityContext()
   ..useCertificateChain(localFile('certificates/server_chain.pem'))
-  ..usePrivateKey(localFile('certificates/server_key.pem'),
-      password: 'dartdart');
+  ..usePrivateKey(
+    localFile('certificates/server_key.pem'),
+    password: 'dartdart',
+  );
 
 SecurityContext badServerContext = new SecurityContext()
   ..useCertificateChain(localFile('certificates/bad_server_chain.pem'))
-  ..usePrivateKey(localFile('certificates/bad_server_key.pem'),
-      password: 'dartdart');
+  ..usePrivateKey(
+    localFile('certificates/bad_server_key.pem'),
+    password: 'dartdart',
+  );
 
 class CustomException {}
 
 main() async {
   var HOST = (await InternetAddress.lookup(HOST_NAME)).first;
   var server = await SecureServerSocket.bind(HOST_NAME, 0, serverContext);
-  server.listen((SecureSocket socket) {
-    socket.listen((_) {}, onDone: () {
-      socket.close();
-    });
-  }, onError: (e) {
-    if (e is! HandshakeException) throw e;
-  });
+  server.listen(
+    (SecureSocket socket) {
+      socket.listen(
+        (_) {},
+        onDone: () {
+          socket.close();
+        },
+      );
+    },
+    onError: (e) {
+      if (e is! HandshakeException) throw e;
+    },
+  );
 
   var badServer = await SecureServerSocket.bind(HOST_NAME, 0, badServerContext);
-  badServer.listen((SecureSocket socket) {
-    socket.listen((_) {}, onDone: () {
-      socket.close();
-    });
-  }, onError: (e) {
-    if (e is! HandshakeException) throw e;
-  });
+  badServer.listen(
+    (SecureSocket socket) {
+      socket.listen(
+        (_) {},
+        onDone: () {
+          socket.close();
+        },
+      );
+    },
+    onError: (e) {
+      if (e is! HandshakeException) throw e;
+    },
+  );
 
   SecurityContext goodContext = new SecurityContext()
     ..setTrustedCertificates(localFile('certificates/trusted_certs.pem'));
@@ -76,7 +92,11 @@ main() async {
 }
 
 Future runClient(
-    int port, SecurityContext context, callbackReturns, result) async {
+  int port,
+  SecurityContext context,
+  callbackReturns,
+  result,
+) async {
   bool badCertificateCallback(X509Certificate certificate) {
     Expect.isNotNull(certificate.subject);
     Expect.isNotNull(certificate.issuer);
@@ -87,8 +107,12 @@ Future runClient(
   }
 
   try {
-    var socket = await SecureSocket.connect(HOST_NAME, port,
-        context: context, onBadCertificate: badCertificateCallback);
+    var socket = await SecureSocket.connect(
+      HOST_NAME,
+      port,
+      context: context,
+      onBadCertificate: badCertificateCallback,
+    );
     Expect.equals('pass', result); // Is rethrown below
     await socket.close();
   } catch (error) {

@@ -21,7 +21,8 @@ main() async {
 
   Directory dir = Directory.systemTemp.createTempSync('named_pipe');
   final String stdinPipePath = '/dev/fd/0';
-  final String script = '''
+  final String script =
+      '''
     import "dart:io";
     main() {
       FileStat fileStat = FileStat.statSync("$stdinPipePath");

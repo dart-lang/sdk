@@ -24,15 +24,18 @@ void main() {
     });
     Socket.connect("127.0.0.1", server.port).then((socket) {
       bool onDoneCalled = false;
-      socket.listen((_) {
-        Expect.fail("Unexpected data");
-      }, onDone: () {
-        Expect.isFalse(onDoneCalled);
-        onDoneCalled = true;
-        socket.close();
-        server.close();
-        asyncEnd();
-      });
+      socket.listen(
+        (_) {
+          Expect.fail("Unexpected data");
+        },
+        onDone: () {
+          Expect.isFalse(onDoneCalled);
+          onDoneCalled = true;
+          socket.close();
+          server.close();
+          asyncEnd();
+        },
+      );
     });
   });
 }

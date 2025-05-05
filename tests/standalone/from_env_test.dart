@@ -13,12 +13,16 @@ import "package:expect/expect.dart";
 main() {
   // User string entry, const.
   Expect.isTrue(const bool.hasEnvironment("testFlag"));
-  Expect.equals("testValue",
-      const String.fromEnvironment("testFlag", defaultValue: "nonce"));
+  Expect.equals(
+    "testValue",
+    const String.fromEnvironment("testFlag", defaultValue: "nonce"),
+  );
   // User string entry, runtime.
   Expect.isTrue(bool.hasEnvironment("testFlag"));
   Expect.equals(
-      "testValue", String.fromEnvironment("testFlag", defaultValue: "nonce"));
+    "testValue",
+    String.fromEnvironment("testFlag", defaultValue: "nonce"),
+  );
 
   // User number entry, const.
   Expect.isTrue(const bool.hasEnvironment("numFlag"));
@@ -33,7 +37,9 @@ main() {
   Expect.isTrue(const bool.hasEnvironment("boolFlag"));
   Expect.equals("false", const String.fromEnvironment("boolFlag"));
   Expect.equals(
-      false, const bool.fromEnvironment("boolFlag", defaultValue: true));
+    false,
+    const bool.fromEnvironment("boolFlag", defaultValue: true),
+  );
   // User bool entry, runtime.
   Expect.isTrue(bool.hasEnvironment("boolFlag"));
   Expect.equals("false", String.fromEnvironment("boolFlag"));
@@ -43,7 +49,9 @@ main() {
   Expect.isFalse(const bool.hasEnvironment("noEntry"));
   Expect.equals("", const String.fromEnvironment("noEntry"));
   Expect.equals(
-      "nonce", const String.fromEnvironment("noEntry", defaultValue: "nonce"));
+    "nonce",
+    const String.fromEnvironment("noEntry", defaultValue: "nonce"),
+  );
   Expect.equals(0, const int.fromEnvironment("noEntry"));
   Expect.equals(42, const int.fromEnvironment("noEntry", defaultValue: 42));
   Expect.isFalse(const bool.fromEnvironment("noEntry"));
@@ -52,7 +60,9 @@ main() {
   Expect.isFalse(bool.hasEnvironment("noEntry"));
   Expect.equals("", String.fromEnvironment("noEntry"));
   Expect.equals(
-      "nonce", String.fromEnvironment("noEntry", defaultValue: "nonce"));
+    "nonce",
+    String.fromEnvironment("noEntry", defaultValue: "nonce"),
+  );
   Expect.equals(0, int.fromEnvironment("noEntry"));
   Expect.equals(42, int.fromEnvironment("noEntry", defaultValue: 42));
   Expect.isFalse(bool.fromEnvironment("noEntry"));
@@ -60,57 +70,77 @@ main() {
 
   // General platform library entry, const.
   Expect.isTrue(const bool.hasEnvironment("dart.library.core"));
-  Expect.equals("true",
-      const String.fromEnvironment("dart.library.core", defaultValue: "nonce"));
+  Expect.equals(
+    "true",
+    const String.fromEnvironment("dart.library.core", defaultValue: "nonce"),
+  );
   Expect.isTrue(
-      const bool.fromEnvironment("dart.library.core", defaultValue: false));
+    const bool.fromEnvironment("dart.library.core", defaultValue: false),
+  );
   // General platform library entry, runtime.
   Expect.isTrue(bool.hasEnvironment("dart.library.core"));
-  Expect.equals("true",
-      String.fromEnvironment("dart.library.core", defaultValue: "nonce"));
+  Expect.equals(
+    "true",
+    String.fromEnvironment("dart.library.core", defaultValue: "nonce"),
+  );
   Expect.isTrue(bool.fromEnvironment("dart.library.core", defaultValue: false));
 
   // Standalone VM-specific library, const.
   Expect.isTrue(const bool.hasEnvironment("dart.library.io"));
-  Expect.equals("true",
-      const String.fromEnvironment("dart.library.io", defaultValue: "nonce"));
+  Expect.equals(
+    "true",
+    const String.fromEnvironment("dart.library.io", defaultValue: "nonce"),
+  );
   Expect.isTrue(
-      const bool.fromEnvironment("dart.library.io", defaultValue: false));
+    const bool.fromEnvironment("dart.library.io", defaultValue: false),
+  );
   // Standalone VM-specific library, runtime.
   Expect.isTrue(bool.hasEnvironment("dart.library.io"));
   Expect.equals(
-      "true", String.fromEnvironment("dart.library.io", defaultValue: "nonce"));
+    "true",
+    String.fromEnvironment("dart.library.io", defaultValue: "nonce"),
+  );
   Expect.isTrue(bool.fromEnvironment("dart.library.io", defaultValue: false));
 
   // Web-specific library, not available here, const.
   Expect.isFalse(const bool.hasEnvironment("dart.library.html"));
   Expect.equals("", const String.fromEnvironment("dart.library.html"));
-  Expect.equals("nonce",
-      const String.fromEnvironment("dart.library.html", defaultValue: "nonce"));
+  Expect.equals(
+    "nonce",
+    const String.fromEnvironment("dart.library.html", defaultValue: "nonce"),
+  );
   Expect.isFalse(const bool.fromEnvironment("dart.library.html"));
   Expect.isTrue(
-      const bool.fromEnvironment("dart.library.html", defaultValue: true));
+    const bool.fromEnvironment("dart.library.html", defaultValue: true),
+  );
   // Web-specific library, not available here, runtime.
   Expect.isFalse(bool.hasEnvironment("dart.library.html"));
   Expect.equals("", String.fromEnvironment("dart.library.html"));
-  Expect.equals("nonce",
-      String.fromEnvironment("dart.library.html", defaultValue: "nonce"));
+  Expect.equals(
+    "nonce",
+    String.fromEnvironment("dart.library.html", defaultValue: "nonce"),
+  );
   Expect.isFalse(bool.fromEnvironment("dart.library.html"));
   Expect.isTrue(bool.fromEnvironment("dart.library.html", defaultValue: true));
 
   // Non-existing library, const.
   Expect.isFalse(const bool.hasEnvironment("dart.library.not"));
   Expect.equals("", const String.fromEnvironment("dart.library.not"));
-  Expect.equals("nonce",
-      const String.fromEnvironment("dart.library.not", defaultValue: "nonce"));
+  Expect.equals(
+    "nonce",
+    const String.fromEnvironment("dart.library.not", defaultValue: "nonce"),
+  );
   Expect.isFalse(const bool.fromEnvironment("dart.library.not"));
   Expect.isTrue(
-      const bool.fromEnvironment("dart.library.not", defaultValue: true));
+    const bool.fromEnvironment("dart.library.not", defaultValue: true),
+  );
   // Non-existing library, runtime.
   Expect.isFalse(bool.hasEnvironment("dart.library.not"));
   Expect.equals("", String.fromEnvironment("dart.library.not"));
-  Expect.equals("nonce",
-      String.fromEnvironment("dart.library.not", defaultValue: "nonce"));
+  Expect.equals(
+    "nonce",
+    String.fromEnvironment("dart.library.not", defaultValue: "nonce"),
+  );
   Expect.isFalse(bool.fromEnvironment("dart.library.not"));
   Expect.isTrue(bool.fromEnvironment("dart.library.not", defaultValue: true));
 }

@@ -46,14 +46,17 @@ void testPing(int totalConnections) {
     for (int i = 0; i < totalConnections; i++) {
       WebSocket.connect('ws://localhost:${server.port}').then((webSocket) {
         webSocket.pingInterval = const Duration(milliseconds: 100);
-        webSocket.listen((message) {
-          Expect.fail("unexpected message");
-        }, onDone: () {
-          closeCount++;
-          if (closeCount == totalConnections) {
-            server.close();
-          }
-        });
+        webSocket.listen(
+          (message) {
+            Expect.fail("unexpected message");
+          },
+          onDone: () {
+            closeCount++;
+            if (closeCount == totalConnections) {
+              server.close();
+            }
+          },
+        );
       });
     }
   });
@@ -65,17 +68,25 @@ void testPingCancelledOnClose() {
         .transform(new WebSocketTransformer())
         .listen((webSocket) => webSocket.drain());
 
-    Testing$_WebSocketImpl.connect('ws://localhost:${server.port}', null, null)
-        .then((webSocket) {
+    Testing$_WebSocketImpl.connect(
+      'ws://localhost:${server.port}',
+      null,
+      null,
+    ).then((webSocket) {
       Expect.type<_WebSocketImpl>(webSocket);
 
       webSocket.pingInterval = const Duration(seconds: 100);
-      webSocket.listen((message) {
-        Expect.fail("unexpected message");
-      }, onDone: () {
-        Expect.isFalse((webSocket as _WebSocketImpl).test$_pingTimer?.isActive);
-        server.close();
-      });
+      webSocket.listen(
+        (message) {
+          Expect.fail("unexpected message");
+        },
+        onDone: () {
+          Expect.isFalse(
+            (webSocket as _WebSocketImpl).test$_pingTimer?.isActive,
+          );
+          server.close();
+        },
+      );
 
       webSocket.close();
     });

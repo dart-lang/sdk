@@ -18,8 +18,9 @@ testEmptyProtocol() {
         websocket.close();
       });
     });
-    WebSocket.connect("ws://127.0.0.1:${server.port}/", protocols: [])
-        .then((client) {
+    WebSocket.connect("ws://127.0.0.1:${server.port}/", protocols: []).then((
+      client,
+    ) {
       Expect.isNull(client.protocol);
       client.close();
       server.close();
@@ -35,14 +36,17 @@ testProtocol(List<String> protocols, String used) {
 
   HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen((request) {
-      WebSocketTransformer.upgrade(request, protocolSelector: selector)
-          .then((websocket) {
+      WebSocketTransformer.upgrade(request, protocolSelector: selector).then((
+        websocket,
+      ) {
         Expect.equals(used, websocket.protocol);
         websocket.close();
       });
     });
-    WebSocket.connect("ws://127.0.0.1:${server.port}/", protocols: protocols)
-        .then((client) {
+    WebSocket.connect(
+      "ws://127.0.0.1:${server.port}/",
+      protocols: protocols,
+    ).then((client) {
       Expect.equals(used, client.protocol);
       client.close();
       server.close();
@@ -59,18 +63,25 @@ testProtocolHandler() {
       }
 
       WebSocketTransformer.upgrade(request, protocolSelector: selector).then(
-          (websocket) {
+        (websocket) {
+          Expect.fail('error expected');
+        },
+        onError: (error) {
+          Expect.equals('error', error);
+        },
+      );
+    });
+    WebSocket.connect(
+      "ws://127.0.0.1:${server.port}/",
+      protocols: ["v1.example.com"],
+    ).then(
+      (client) {
         Expect.fail('error expected');
-      }, onError: (error) {
-        Expect.equals('error', error);
-      });
-    });
-    WebSocket.connect("ws://127.0.0.1:${server.port}/",
-        protocols: ["v1.example.com"]).then((client) {
-      Expect.fail('error expected');
-    }, onError: (error) {
-      server.close();
-    });
+      },
+      onError: (error) {
+        server.close();
+      },
+    );
   });
 
   // Test returning another protocol.
@@ -78,18 +89,25 @@ testProtocolHandler() {
     server.listen((request) {
       selector(List<String> receivedProtocols) => "v2.example.com";
       WebSocketTransformer.upgrade(request, protocolSelector: selector).then(
-          (websocket) {
+        (websocket) {
+          Expect.fail('error expected');
+        },
+        onError: (error) {
+          Expect.isTrue(error is WebSocketException);
+        },
+      );
+    });
+    WebSocket.connect(
+      "ws://127.0.0.1:${server.port}/",
+      protocols: ["v1.example.com"],
+    ).then(
+      (client) {
         Expect.fail('error expected');
-      }, onError: (error) {
-        Expect.isTrue(error is WebSocketException);
-      });
-    });
-    WebSocket.connect("ws://127.0.0.1:${server.port}/",
-        protocols: ["v1.example.com"]).then((client) {
-      Expect.fail('error expected');
-    }, onError: (error) {
-      server.close();
-    });
+      },
+      onError: (error) {
+        server.close();
+      },
+    );
   });
 }
 

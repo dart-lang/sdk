@@ -8,10 +8,5 @@ void main() {
   final client = HttpClient();
   client.connectionTimeout = Duration.zero;
   // Should not throw a type error.
-  client.openUrl(
-    'get',
-    Uri.parse(
-      'https://localhost/',
-    ),
-  );
+  client.openUrl('get', Uri.parse('https://localhost/'));
 }

@@ -22,8 +22,10 @@ String localFile(path) => Platform.script.resolve(path).toFilePath();
 
 SecurityContext serverContext = new SecurityContext()
   ..useCertificateChain(localFile('certificates/server_chain.pem'))
-  ..usePrivateKey(localFile('certificates/server_key.pem'),
-      password: 'dartdart');
+  ..usePrivateKey(
+    localFile('certificates/server_key.pem'),
+    password: 'dartdart',
+  );
 
 SecurityContext clientContext = new SecurityContext()
   ..setTrustedCertificates(localFile('certificates/trusted_certs.pem'));
@@ -33,33 +35,46 @@ void testCloseOneEnd(String toClose) {
   Completer serverDone = new Completer();
   Completer serverEndDone = new Completer();
   Completer clientEndDone = new Completer();
-  Future.wait([serverDone.future, serverEndDone.future, clientEndDone.future])
-      .then((_) {
+  Future.wait([
+    serverDone.future,
+    serverEndDone.future,
+    clientEndDone.future,
+  ]).then((_) {
     asyncEnd();
   });
   SecureServerSocket.bind(HOST, 0, serverContext).then((server) {
-    server.listen((serverConnection) {
-      serverConnection.listen((data) {
-        Expect.fail("No data should be received by server");
-      }, onDone: () {
-        serverConnection.close();
-        serverEndDone.complete(null);
-        server.close();
-      });
-      if (toClose == "server") {
-        serverConnection.close();
-      }
-    }, onDone: () {
-      serverDone.complete(null);
-    });
-    SecureSocket.connect(HOST, server.port, context: clientContext)
-        .then((clientConnection) {
-      clientConnection.listen((data) {
-        Expect.fail("No data should be received by client");
-      }, onDone: () {
-        clientConnection.close();
-        clientEndDone.complete(null);
-      });
+    server.listen(
+      (serverConnection) {
+        serverConnection.listen(
+          (data) {
+            Expect.fail("No data should be received by server");
+          },
+          onDone: () {
+            serverConnection.close();
+            serverEndDone.complete(null);
+            server.close();
+          },
+        );
+        if (toClose == "server") {
+          serverConnection.close();
+        }
+      },
+      onDone: () {
+        serverDone.complete(null);
+      },
+    );
+    SecureSocket.connect(HOST, server.port, context: clientContext).then((
+      clientConnection,
+    ) {
+      clientConnection.listen(
+        (data) {
+          Expect.fail("No data should be received by client");
+        },
+        onDone: () {
+          clientConnection.close();
+          clientEndDone.complete(null);
+        },
+      );
       if (toClose == "client") {
         clientConnection.close();
       }
@@ -70,8 +85,11 @@ void testCloseOneEnd(String toClose) {
 void testCloseBothEnds() {
   asyncStart();
   SecureServerSocket.bind(HOST, 0, serverContext).then((server) {
-    var clientEndFuture =
-        SecureSocket.connect(HOST, server.port, context: clientContext);
+    var clientEndFuture = SecureSocket.connect(
+      HOST,
+      server.port,
+      context: clientContext,
+    );
     server.listen((serverEnd) {
       clientEndFuture.then((clientEnd) {
         clientEnd.destroy();
@@ -90,8 +108,12 @@ testPauseServerSocket() {
 
   asyncStart();
 
-  SecureServerSocket.bind(HOST, 0, serverContext, backlog: 2 * socketCount)
-      .then((server) {
+  SecureServerSocket.bind(
+    HOST,
+    0,
+    serverContext,
+    backlog: 2 * socketCount,
+  ).then((server) {
     Expect.isTrue(server.port > 0);
     var subscription;
     subscription = server.listen((connection) {
@@ -108,8 +130,9 @@ testPauseServerSocket() {
     subscription.pause();
     var connectCount = 0;
     for (int i = 0; i < socketCount; i++) {
-      SecureSocket.connect(HOST, server.port, context: clientContext)
-          .then((connection) {
+      SecureSocket.connect(HOST, server.port, context: clientContext).then((
+        connection,
+      ) {
         connection.close();
       });
     }
@@ -117,8 +140,9 @@ testPauseServerSocket() {
       subscription.resume();
       resumed = true;
       for (int i = 0; i < socketCount; i++) {
-        SecureSocket.connect(HOST, server.port, context: clientContext)
-            .then((connection) {
+        SecureSocket.connect(HOST, server.port, context: clientContext).then((
+          connection,
+        ) {
           connection.close();
         });
       }
@@ -149,8 +173,9 @@ testCloseServer() {
     });
 
     for (int i = 0; i < socketCount; i++) {
-      SecureSocket.connect(HOST, server.port, context: clientContext)
-          .then((connection) {
+      SecureSocket.connect(HOST, server.port, context: clientContext).then((
+        connection,
+      ) {
         ends.add(connection);
         checkDone();
       });

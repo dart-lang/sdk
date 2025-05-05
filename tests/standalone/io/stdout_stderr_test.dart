@@ -13,21 +13,23 @@ import "dart:io";
 /// return the commands stdout as a list of bytes.
 List<int> runTest(String lineTerminatorMode, String encoding, String command) {
   final result = Process.runSync(
-      Platform.executable,
-      []
-        ..addAll(Platform.executableArguments)
-        ..add('--verbosity=warning')
-        ..add(Platform.script
-            .resolve('stdout_stderr_test_script.dart')
-            .toFilePath())
-        ..add('--eol=$lineTerminatorMode')
-        ..add('--encoding=$encoding')
-        ..add(command),
-      stdoutEncoding: null);
+    Platform.executable,
+    []
+      ..addAll(Platform.executableArguments)
+      ..add('--verbosity=warning')
+      ..add(
+        Platform.script.resolve('stdout_stderr_test_script.dart').toFilePath(),
+      )
+      ..add('--eol=$lineTerminatorMode')
+      ..add('--encoding=$encoding')
+      ..add(command),
+    stdoutEncoding: null,
+  );
 
   if (result.exitCode != 0) {
     throw AssertionError(
-        'unexpected exit code for command $command: ${result.stderr}');
+      'unexpected exit code for command $command: ${result.stderr}',
+    );
   }
   return result.stdout;
 }
@@ -93,33 +95,51 @@ void testStringInternalLineFeeds() {
   final expectedWin = [108, 49, ...winEol, 108, 50, ...winEol, 108, 51];
 
   Expect.listEquals(
-      expectedPosix, runTest("unix", "ascii", "string-internal-linefeeds"));
+    expectedPosix,
+    runTest("unix", "ascii", "string-internal-linefeeds"),
+  );
   Expect.listEquals(
-      expectedWin, runTest("windows", "ascii", "string-internal-linefeeds"));
+    expectedWin,
+    runTest("windows", "ascii", "string-internal-linefeeds"),
+  );
   Expect.listEquals(
-      expectedPosix, runTest("default", "ascii", "string-internal-linefeeds"));
+    expectedPosix,
+    runTest("default", "ascii", "string-internal-linefeeds"),
+  );
 }
 
 void testStringCarriageReturns() {
   // write("l1\rl2\rl3\r")
   final expected = [108, 49, 13, 108, 50, 13, 108, 51, 13];
   Expect.listEquals(
-      expected, runTest("unix", "ascii", "string-internal-carriagereturns"));
+    expected,
+    runTest("unix", "ascii", "string-internal-carriagereturns"),
+  );
   Expect.listEquals(
-      expected, runTest("windows", "ascii", "string-internal-carriagereturns"));
+    expected,
+    runTest("windows", "ascii", "string-internal-carriagereturns"),
+  );
   Expect.listEquals(
-      expected, runTest("default", "ascii", "string-internal-carriagereturns"));
+    expected,
+    runTest("default", "ascii", "string-internal-carriagereturns"),
+  );
 }
 
 void testStringCarriageReturnLinefeeds() {
   // ""l1\r\nl2\r\nl3\r\n""
   final expected = [108, 49, ...winEol, 108, 50, ...winEol, 108, 51, ...winEol];
-  Expect.listEquals(expected,
-      runTest("unix", "ascii", "string-internal-carriagereturn-linefeeds"));
-  Expect.listEquals(expected,
-      runTest("windows", "ascii", "string-internal-carriagereturn-linefeeds"));
-  Expect.listEquals(expected,
-      runTest("default", "ascii", "string-internal-carriagereturn-linefeeds"));
+  Expect.listEquals(
+    expected,
+    runTest("unix", "ascii", "string-internal-carriagereturn-linefeeds"),
+  );
+  Expect.listEquals(
+    expected,
+    runTest("windows", "ascii", "string-internal-carriagereturn-linefeeds"),
+  );
+  Expect.listEquals(
+    expected,
+    runTest("default", "ascii", "string-internal-carriagereturn-linefeeds"),
+  );
 }
 
 void testStringCarriageReturnLinefeedsSeperateWrite() {
@@ -127,17 +147,25 @@ void testStringCarriageReturnLinefeedsSeperateWrite() {
   // write("\nl2");
   final expected = [108, 49, ...winEol, 108, 50];
   Expect.listEquals(
-      expected,
-      runTest(
-          "unix", "ascii", "string-carriagereturn-linefeed-seperate-write"));
+    expected,
+    runTest("unix", "ascii", "string-carriagereturn-linefeed-seperate-write"),
+  );
   Expect.listEquals(
-      expected,
-      runTest(
-          "windows", "ascii", "string-carriagereturn-linefeed-seperate-write"));
+    expected,
+    runTest(
+      "windows",
+      "ascii",
+      "string-carriagereturn-linefeed-seperate-write",
+    ),
+  );
   Expect.listEquals(
-      expected,
-      runTest(
-          "default", "ascii", "string-carriagereturn-linefeed-seperate-write"));
+    expected,
+    runTest(
+      "default",
+      "ascii",
+      "string-carriagereturn-linefeed-seperate-write",
+    ),
+  );
 }
 
 void testStringCarriageReturnFollowedByWriteln() {
@@ -147,11 +175,17 @@ void testStringCarriageReturnFollowedByWriteln() {
   final expectedWin = [108, 49, 13, ...winEol];
 
   Expect.listEquals(
-      expectedPosix, runTest("unix", "ascii", "string-carriagereturn-writeln"));
-  Expect.listEquals(expectedWin,
-      runTest("windows", "ascii", "string-carriagereturn-writeln"));
-  Expect.listEquals(expectedPosix,
-      runTest("default", "ascii", "string-carriagereturn-writeln"));
+    expectedPosix,
+    runTest("unix", "ascii", "string-carriagereturn-writeln"),
+  );
+  Expect.listEquals(
+    expectedWin,
+    runTest("windows", "ascii", "string-carriagereturn-writeln"),
+  );
+  Expect.listEquals(
+    expectedPosix,
+    runTest("default", "ascii", "string-carriagereturn-writeln"),
+  );
 }
 
 void testWriteCharCodeLineFeed() {
@@ -161,11 +195,17 @@ void testWriteCharCodeLineFeed() {
   final expectedWin = [108, 49, ...winEol];
 
   Expect.listEquals(
-      expectedPosix, runTest("unix", "ascii", "write-char-code-linefeed"));
+    expectedPosix,
+    runTest("unix", "ascii", "write-char-code-linefeed"),
+  );
   Expect.listEquals(
-      expectedWin, runTest("windows", "ascii", "write-char-code-linefeed"));
+    expectedWin,
+    runTest("windows", "ascii", "write-char-code-linefeed"),
+  );
   Expect.listEquals(
-      expectedPosix, runTest("default", "ascii", "write-char-code-linefeed"));
+    expectedPosix,
+    runTest("default", "ascii", "write-char-code-linefeed"),
+  );
 }
 
 void testWriteCharCodeLineFeedFollowingCarriageReturn() {
@@ -174,17 +214,25 @@ void testWriteCharCodeLineFeedFollowingCarriageReturn() {
   final expected = [108, 49, ...winEol];
 
   Expect.listEquals(
-      expected,
-      runTest(
-          "unix", "ascii", "write-char-code-linefeed-after-carriagereturn"));
+    expected,
+    runTest("unix", "ascii", "write-char-code-linefeed-after-carriagereturn"),
+  );
   Expect.listEquals(
-      expected,
-      runTest(
-          "windows", "ascii", "write-char-code-linefeed-after-carriagereturn"));
+    expected,
+    runTest(
+      "windows",
+      "ascii",
+      "write-char-code-linefeed-after-carriagereturn",
+    ),
+  );
   Expect.listEquals(
-      expected,
-      runTest(
-          "default", "ascii", "write-char-code-linefeed-after-carriagereturn"));
+    expected,
+    runTest(
+      "default",
+      "ascii",
+      "write-char-code-linefeed-after-carriagereturn",
+    ),
+  );
 }
 
 void testInvalidLineTerminator() {

@@ -28,11 +28,11 @@ Future sendReceive(SendPort port, message) {
 
 class SocketClose {
   SocketClose.start(this._mode, this._done)
-      : _readBytes = 0,
-        _dataEvents = 0,
-        _closeEvents = 0,
-        _errorEvents = 0,
-        _iterations = 0 {
+    : _readBytes = 0,
+      _dataEvents = 0,
+      _closeEvents = 0,
+      _errorEvents = 0,
+      _iterations = 0 {
     initialize();
   }
 
@@ -99,9 +99,11 @@ class SocketClose {
     }
 
     void connectHandler(socket) {
-      socket.listen(dataHandler,
-          onDone: () => closeHandler(socket),
-          onError: (error) => errorHandler(socket));
+      socket.listen(
+        dataHandler,
+        onDone: () => closeHandler(socket),
+        onError: (error) => errorHandler(socket),
+      );
 
       void writeHello() {
         socket.write("Hello");

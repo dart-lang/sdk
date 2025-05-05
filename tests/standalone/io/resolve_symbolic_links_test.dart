@@ -16,85 +16,126 @@ main() {
   // All of these tests test that resolveSymbolicLinks gives a path
   // that points to the same place as the original, and that it removes
   // all links, .., and . segments, and that it produces an absolute path.
-  asyncTest(() => testFile(
-      join(testsDir, 'standalone', 'io', 'resolve_symbolic_links_test.dart')));
-  asyncTest(() => testFile(join(testsDir, 'standalone', 'io', '..', 'io',
-      'resolve_symbolic_links_test.dart')));
+  asyncTest(
+    () => testFile(
+      join(testsDir, 'standalone', 'io', 'resolve_symbolic_links_test.dart'),
+    ),
+  );
+  asyncTest(
+    () => testFile(
+      join(
+        testsDir,
+        'standalone',
+        'io',
+        '..',
+        'io',
+        'resolve_symbolic_links_test.dart',
+      ),
+    ),
+  );
 
   asyncTest(() => testDir(join(testsDir, 'standalone', 'io')));
   asyncTest(() => testDir(join(testsDir, 'lib', '..', 'standalone', 'io')));
   // Test a relative path.
   if (Platform.isWindows) {
-    asyncTest(() => testFile(join('\\\\?\\$testsDir', 'standalone', 'io',
-        'resolve_symbolic_links_test.dart')));
+    asyncTest(
+      () => testFile(
+        join(
+          '\\\\?\\$testsDir',
+          'standalone',
+          'io',
+          'resolve_symbolic_links_test.dart',
+        ),
+      ),
+    );
     asyncTest(() => testDir('\\\\?\\$testsDir'));
   }
-  asyncTest(() => Directory.systemTemp
-          .createTemp('dart_resolve_symbolic_links')
-          .then((tempDir) {
-        String temp = tempDir.path;
-        return makeEntities(temp)
-            .then((_) => Future.wait([
-                  testFile(join(temp, 'dir1', 'file1')),
-                  testFile(join(temp, 'link1', 'file2')),
-                  testDir(join(temp, 'dir1', 'dir2', '..', '.', '..', 'dir1')),
-                  testDir(join(temp, 'dir1', 'dir2', '..', '.', '..', 'dir1')),
-                  testLink(join(temp, 'link1')),
-                  testDir('.')
-                ]))
-            .then((_) {
-          if (Platform.isWindows) {
-            // Windows applies '..' to a link without resolving the link first.
-            return Future.wait([
-              testFile(join(
-                  temp, 'dir1', '..', 'link1', '..', 'dir1', 'dir2', 'file2')),
-              testDir(join(temp, 'dir1', '..', 'link1', '..', 'dir1')),
-              testLink(join(temp, 'link1', '..', 'link1'))
-            ]);
-          } else {
-            // Non-Windows platforms resolve the link before adding the '..'.
+  asyncTest(
+    () => Directory.systemTemp.createTemp('dart_resolve_symbolic_links').then((
+      tempDir,
+    ) {
+      String temp = tempDir.path;
+      return makeEntities(temp)
+          .then(
+            (_) => Future.wait([
+              testFile(join(temp, 'dir1', 'file1')),
+              testFile(join(temp, 'link1', 'file2')),
+              testDir(join(temp, 'dir1', 'dir2', '..', '.', '..', 'dir1')),
+              testDir(join(temp, 'dir1', 'dir2', '..', '.', '..', 'dir1')),
+              testLink(join(temp, 'link1')),
+              testDir('.'),
+            ]),
+          )
+          .then((_) {
+            if (Platform.isWindows) {
+              // Windows applies '..' to a link without resolving the link first.
+              return Future.wait([
+                testFile(
+                  join(
+                    temp,
+                    'dir1',
+                    '..',
+                    'link1',
+                    '..',
+                    'dir1',
+                    'dir2',
+                    'file2',
+                  ),
+                ),
+                testDir(join(temp, 'dir1', '..', 'link1', '..', 'dir1')),
+                testLink(join(temp, 'link1', '..', 'link1')),
+              ]);
+            } else {
+              // Non-Windows platforms resolve the link before adding the '..'.
+              return Future.wait([
+                testFile(
+                  join(temp, 'dir1', '..', 'link1', '..', 'dir2', 'file2'),
+                ),
+                testDir(join(temp, 'dir1', '..', 'link1', '..', 'dir2')),
+                testLink(join(temp, 'link1', '..', '..', 'link1')),
+              ]);
+            }
+          })
+          .then((_) {
+            Directory.current = temp;
             return Future.wait([
               testFile(
-                  join(temp, 'dir1', '..', 'link1', '..', 'dir2', 'file2')),
-              testDir(join(temp, 'dir1', '..', 'link1', '..', 'dir2')),
-              testLink(join(temp, 'link1', '..', '..', 'link1'))
-            ]);
-          }
-        }).then((_) {
-          Directory.current = temp;
-          return Future.wait([
-            testFile('dir1/dir2/file2'), // Test forward slashes on Windows too.
-            testFile('link1/file2'),
-            testFile(join('dir1', '..', 'dir1', '.', 'file1')),
-            testDir('.'),
-            testLink('link1')
-          ]);
-        }).then((_) {
-          Directory.current = 'link1';
-          if (Platform.isWindows) {
-            return Future.wait([
-              testFile('file2'),
-              // Windows applies '..' to a link without resolving the link first.
-              testFile('..\\dir1\\file1'),
-              testLink('.'),
-              testDir('..'),
-              testLink('..\\link1')
-            ]);
-          } else {
-            return Future.wait([
-              testFile('file2'),
-              // On non-Windows the link is changed to dir1/dir2 before .. happens.
-              testFile('../dir2/file2'),
+                'dir1/dir2/file2',
+              ), // Test forward slashes on Windows too.
+              testFile('link1/file2'),
+              testFile(join('dir1', '..', 'dir1', '.', 'file1')),
               testDir('.'),
-              testDir('..'),
-              testLink('../../link1')
+              testLink('link1'),
             ]);
-          }
-        }).whenComplete(() {
-          Directory.current = testsDir;
-          tempDir.delete(recursive: true);
-        });
-      }));
+          })
+          .then((_) {
+            Directory.current = 'link1';
+            if (Platform.isWindows) {
+              return Future.wait([
+                testFile('file2'),
+                // Windows applies '..' to a link without resolving the link first.
+                testFile('..\\dir1\\file1'),
+                testLink('.'),
+                testDir('..'),
+                testLink('..\\link1'),
+              ]);
+            } else {
+              return Future.wait([
+                testFile('file2'),
+                // On non-Windows the link is changed to dir1/dir2 before .. happens.
+                testFile('../dir2/file2'),
+                testDir('.'),
+                testDir('..'),
+                testLink('../../link1'),
+              ]);
+            }
+          })
+          .whenComplete(() {
+            Directory.current = testsDir;
+            tempDir.delete(recursive: true);
+          });
+    }),
+  );
 
   asyncTest(testNonExistantPath);
   asyncTest(testLinkTargetTypeChangedAfterCreation);
@@ -105,8 +146,9 @@ Future makeEntities(String temp) {
       .create(recursive: true)
       .then((_) => new File(join(temp, 'dir1', 'dir2', 'file2')).create())
       .then((_) => new File(join(temp, 'dir1', 'file1')).create())
-      .then((_) =>
-          new Link(join(temp, 'link1')).create(join(temp, 'dir1', 'dir2')));
+      .then(
+        (_) => new Link(join(temp, 'link1')).create(join(temp, 'dir1', 'dir2')),
+      );
 }
 
 Future testFile(String name) {
@@ -127,8 +169,12 @@ Future testFile(String name) {
 }
 
 Future testDir(String name) {
-  Expect.isTrue(FileSystemEntity.identicalSync(
-      name, new Directory(name).resolveSymbolicLinksSync()));
+  Expect.isTrue(
+    FileSystemEntity.identicalSync(
+      name,
+      new Directory(name).resolveSymbolicLinksSync(),
+    ),
+  );
   return new Directory(name).resolveSymbolicLinks().then((String resolved) {
     Expect.isTrue(FileSystemEntity.identicalSync(name, resolved));
     Expect.isTrue(isAbsolute(resolved));
@@ -140,10 +186,18 @@ Future testDir(String name) {
 }
 
 Future testLink(String name) {
-  Expect.isFalse(FileSystemEntity.identicalSync(
-      name, new Link(name).resolveSymbolicLinksSync()));
-  Expect.isTrue(FileSystemEntity.identicalSync(
-      new Link(name).targetSync(), new Link(name).resolveSymbolicLinksSync()));
+  Expect.isFalse(
+    FileSystemEntity.identicalSync(
+      name,
+      new Link(name).resolveSymbolicLinksSync(),
+    ),
+  );
+  Expect.isTrue(
+    FileSystemEntity.identicalSync(
+      new Link(name).targetSync(),
+      new Link(name).resolveSymbolicLinksSync(),
+    ),
+  );
   return new Link(name).resolveSymbolicLinks().then((String resolved) {
     Expect.isFalse(FileSystemEntity.identicalSync(name, resolved));
     Expect.isTrue(isAbsolute(resolved));
@@ -171,25 +225,35 @@ Future testLinkTargetTypeChangedAfterCreation() async {
   // 2. create a link to that file
   // 3. replace the file with a directory
   // 4. attempt to resolve the link
-  final tmp =
-      await Directory.systemTemp.createTemp('dart_resolve_symbolic_links');
+  final tmp = await Directory.systemTemp.createTemp(
+    'dart_resolve_symbolic_links',
+  );
   final tmpPath = tmp.absolute.path;
   final filePath = join(tmpPath, "file");
   final linkPath = join(tmpPath, "link");
   await File(filePath).create();
   await Link(linkPath).create(filePath);
 
-  Expect.isTrue(FileSystemEntity.identicalSync(
-      filePath, await Directory(linkPath).resolveSymbolicLinks()));
+  Expect.isTrue(
+    FileSystemEntity.identicalSync(
+      filePath,
+      await Directory(linkPath).resolveSymbolicLinks(),
+    ),
+  );
 
   await File(filePath).delete();
   await Directory(filePath).create();
 
   if (Platform.isWindows) {
     await asyncExpectThrows<PathAccessException>(
-        Directory(linkPath).resolveSymbolicLinks());
+      Directory(linkPath).resolveSymbolicLinks(),
+    );
   } else {
-    Expect.isTrue(await FileSystemEntity.identical(
-        filePath, await Directory(linkPath).resolveSymbolicLinks()));
+    Expect.isTrue(
+      await FileSystemEntity.identical(
+        filePath,
+        await Directory(linkPath).resolveSymbolicLinks(),
+      ),
+    );
   }
 }

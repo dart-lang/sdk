@@ -17,14 +17,11 @@ Future<void> runTest(int length) async {
   }
   final digest = sha1.convert(bytes);
 
-  final Process proc = await Process.start(
-    Platform.executable,
-    <String>[
-      ...Platform.executableArguments,
-      Platform.script.toFilePath(),
-      'receiver',
-    ],
-  );
+  final Process proc = await Process.start(Platform.executable, <String>[
+    ...Platform.executableArguments,
+    Platform.script.toFilePath(),
+    'receiver',
+  ]);
 
   proc.stdin.add(bytes);
   final result = proc.stdout.transform(utf8.decoder).join();
@@ -44,10 +41,11 @@ void main(List<String> arguments) async {
     // Read [stdin] and respond with `got(bytes,sha1digest)`.
     var gotBytes = 0;
     late Digest digest;
-    final sha1Sink = sha1
-        .startChunkedConversion(ChunkedConversionSink.withCallback((result) {
-      digest = result.first;
-    }));
+    final sha1Sink = sha1.startChunkedConversion(
+      ChunkedConversionSink.withCallback((result) {
+        digest = result.first;
+      }),
+    );
 
     await stdin.listen((chunk) {
       gotBytes += chunk.length;
