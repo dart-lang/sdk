@@ -414,7 +414,7 @@
         "timeout": 240
       }
     },
-    "dart2wasm-asserts-(linux|mac|win)-(d8|jsshell|jsc|chrome|firefox)": {
+    "dart2wasm-asserts-(linux|mac|win)-(d8|jsshell|jsc|chrome|firefox|safari)": {
       "options": {
         "host-asserts": true,
         "enable-asserts": true,
@@ -424,7 +424,7 @@
         "timeout": 60
       }
     },
-    "dart2wasm-(linux|mac|win)-(d8|jsshell|jsc|chrome|firefox)": {
+    "dart2wasm-(linux|mac|win)-(d8|jsshell|jsc|chrome|firefox|safari)": {
       "options": {
         "host-asserts": true,
         "dart2wasm-options": [
@@ -434,7 +434,7 @@
         "timeout": 60
       }
     },
-    "dart2wasm-(linux|mac|win)-optimized-(d8|jsshell|jsc|chrome|firefox)": {
+    "dart2wasm-(linux|mac|win)-optimized-(d8|jsshell|jsc|chrome|firefox|safari)": {
       "options": {
         "dart2wasm-options": [
           "-O1",
@@ -445,7 +445,7 @@
         "timeout": 120
       }
     },
-    "dart2wasm-asserts-minified-(linux|mac|win)-(d8|jsshell|jsc|chrome|firefox)": {
+    "dart2wasm-asserts-minified-(linux|mac|win)-(d8|jsshell|jsc|chrome|firefox|safari)": {
       "options": {
         "dart2wasm-options": [
           "--minify"
@@ -456,7 +456,7 @@
         "timeout": 120
       }
     },
-    "dart2wasm-(linux|mac|win)-jscm-(d8|jsshell|jsc|chrome|firefox)": {
+    "dart2wasm-(linux|mac|win)-jscm-(d8|jsshell|jsc|chrome|firefox|safari)": {
       "options": {
         "dart2wasm-options": [
           "-O0",
