@@ -229,16 +229,16 @@ class AnalysisErrorTest {
 @reflectiveTest
 class EnumTest {
   void test_AnalysisErrorSeverity() {
-    EnumTester<engine.ErrorSeverity, AnalysisErrorSeverity>().run(
-      (engine.ErrorSeverity engineErrorSeverity) =>
-          AnalysisErrorSeverity.values.byName(engineErrorSeverity.name),
-      exceptions: {engine.ErrorSeverity.NONE: null},
+    EnumTester<engine.DiagnosticSeverity, AnalysisErrorSeverity>().run(
+      (engineSeverity) =>
+          AnalysisErrorSeverity.values.byName(engineSeverity.name),
+      exceptions: {engine.DiagnosticSeverity.NONE: null},
     );
   }
 
   void test_AnalysisErrorType() {
     EnumTester<engine.DiagnosticType, AnalysisErrorType>().run(
-      (engine.DiagnosticType engineErrorType) =>
+      (engineErrorType) =>
           AnalysisErrorType.values.byName(engineErrorType.name),
     );
   }
@@ -391,7 +391,7 @@ class MockDiagnosticCode implements engine.DiagnosticCode {
   engine.DiagnosticType type;
 
   @override
-  engine.ErrorSeverity errorSeverity;
+  engine.DiagnosticSeverity errorSeverity;
 
   @override
   String name;
@@ -401,7 +401,7 @@ class MockDiagnosticCode implements engine.DiagnosticCode {
 
   MockDiagnosticCode({
     this.type = engine.DiagnosticType.COMPILE_TIME_ERROR,
-    this.errorSeverity = engine.ErrorSeverity.ERROR,
+    this.errorSeverity = engine.DiagnosticSeverity.ERROR,
     this.name = 'TEST_ERROR',
     this.url,
   });

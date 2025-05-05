@@ -17,6 +17,8 @@ export 'package:_fe_analyzer_shared/src/base/errors.dart'
         DiagnosticSeverity,
         DiagnosticType,
         ErrorCode,
+        // Continue exporting the deleted element until it is removed.
+        // ignore: deprecated_member_use
         ErrorSeverity,
         // Continue exporting the deleted element until it is removed.
         // ignore: deprecated_member_use

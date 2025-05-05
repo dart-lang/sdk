@@ -112,7 +112,7 @@ List<T> mapEngineErrors<T>(
   T Function(
     engine.AnalysisResultWithErrors result,
     engine.Diagnostic diagnostic, [
-    engine.ErrorSeverity errorSeverity,
+    engine.DiagnosticSeverity errorSeverity,
   ])
   constructor,
 ) {
@@ -137,19 +137,20 @@ List<T> mapEngineErrors<T>(
 
 /// Construct based on error information from the analyzer engine.
 ///
-/// If an [errorSeverity] is specified, it will override the one in [error].
+/// If an [diagnosticSeverity] is specified, it will override the one in
+/// [diagnostic].
 AnalysisError newAnalysisError_fromEngine(
   engine.AnalysisResultWithErrors result,
-  engine.Diagnostic error, [
-  engine.ErrorSeverity? errorSeverity,
+  engine.Diagnostic diagnostic, [
+  engine.DiagnosticSeverity? diagnosticSeverity,
 ]) {
-  var errorCode = error.errorCode;
+  var errorCode = diagnostic.errorCode;
   // prepare location
   Location location;
   {
-    var file = error.source.fullName;
-    var offset = error.offset;
-    var length = error.length;
+    var file = diagnostic.source.fullName;
+    var offset = diagnostic.offset;
+    var length = diagnostic.length;
     var lineInfo = result.lineInfo;
 
     var startLocation = lineInfo.getLocation(offset);
@@ -172,21 +173,21 @@ AnalysisError newAnalysisError_fromEngine(
   }
 
   // Default to the error's severity if none is specified.
-  errorSeverity ??= errorCode.errorSeverity;
+  diagnosticSeverity ??= errorCode.errorSeverity;
 
   // done
-  var severity = AnalysisErrorSeverity.values.byName(errorSeverity.name);
+  var severity = AnalysisErrorSeverity.values.byName(diagnosticSeverity.name);
   var type = AnalysisErrorType.values.byName(errorCode.type.name);
-  var message = error.message;
+  var message = diagnostic.message;
   var code = errorCode.name.toLowerCase();
   List<DiagnosticMessage>? contextMessages;
-  if (error.contextMessages.isNotEmpty) {
+  if (diagnostic.contextMessages.isNotEmpty) {
     contextMessages =
-        error.contextMessages
+        diagnostic.contextMessages
             .map((message) => newDiagnosticMessage(result, message))
             .toList();
   }
-  var correction = error.correctionMessage;
+  var correction = diagnostic.correctionMessage;
   var url = errorCode.url;
   return AnalysisError(
     severity,

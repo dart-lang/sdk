@@ -129,7 +129,8 @@ abstract class ErrorCode {
 
 /// The severity of a [DiagnosticCode].
 @AnalyzerPublicApi(message: 'exported by package:analyzer/error/error.dart')
-typedef DiagnosticSeverity = ErrorSeverity;
+@Deprecated("Use 'DiagnosticSeverity' instead.")
+typedef ErrorSeverity = DiagnosticSeverity;
 
 /**
  * The severity of an [ErrorCode].
@@ -138,32 +139,39 @@ typedef DiagnosticSeverity = ErrorSeverity;
  * the type alias, [DiagnosticSeverity].
  */
 @AnalyzerPublicApi(message: 'exported by package:analyzer/error/error.dart')
-class ErrorSeverity implements Comparable<ErrorSeverity> {
+class DiagnosticSeverity implements Comparable<DiagnosticSeverity> {
   /**
    * The severity representing a non-error. This is never used for any error
    * code, but is useful for clients.
    */
-  static const ErrorSeverity NONE = const ErrorSeverity('NONE', 0, " ", "none");
+  static const DiagnosticSeverity NONE =
+      const DiagnosticSeverity('NONE', 0, " ", "none");
 
   /**
    * The severity representing an informational level analysis issue.
    */
-  static const ErrorSeverity INFO = const ErrorSeverity('INFO', 1, "I", "info");
+  static const DiagnosticSeverity INFO =
+      const DiagnosticSeverity('INFO', 1, "I", "info");
 
   /**
    * The severity representing a warning. Warnings can become errors if the
    * `-Werror` command line flag is specified.
    */
-  static const ErrorSeverity WARNING =
-      const ErrorSeverity('WARNING', 2, "W", "warning");
+  static const DiagnosticSeverity WARNING =
+      const DiagnosticSeverity('WARNING', 2, "W", "warning");
 
   /**
    * The severity representing an error.
    */
-  static const ErrorSeverity ERROR =
-      const ErrorSeverity('ERROR', 3, "E", "error");
+  static const DiagnosticSeverity ERROR =
+      const DiagnosticSeverity('ERROR', 3, "E", "error");
 
-  static const List<ErrorSeverity> values = const [NONE, INFO, WARNING, ERROR];
+  static const List<DiagnosticSeverity> values = const [
+    NONE,
+    INFO,
+    WARNING,
+    ERROR
+  ];
 
   final String name;
 
@@ -179,19 +187,19 @@ class ErrorSeverity implements Comparable<ErrorSeverity> {
    */
   final String displayName;
 
-  const ErrorSeverity(
+  const DiagnosticSeverity(
       this.name, this.ordinal, this.machineCode, this.displayName);
 
   @override
   int get hashCode => ordinal;
 
   @override
-  int compareTo(ErrorSeverity other) => ordinal - other.ordinal;
+  int compareTo(DiagnosticSeverity other) => ordinal - other.ordinal;
 
   /**
    * Return the severity constant that represents the greatest severity.
    */
-  ErrorSeverity max(ErrorSeverity severity) =>
+  DiagnosticSeverity max(DiagnosticSeverity severity) =>
       this.ordinal >= severity.ordinal ? this : severity;
 
   @override

@@ -33,7 +33,7 @@ import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analysis_server_plugin/src/correction/performance.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -1394,12 +1394,12 @@ class LspServerContextManagerCallbacks
 
   bool _shouldSendError(protocol.AnalysisError error) {
     // Non-TODOs are always shown.
-    if (error.type.name != DiagnosticType.TODO.name) {
+    if (error.type.name != engine.DiagnosticType.TODO.name) {
       return true;
     }
 
     // TODOs that are upgraded from INFO are always shown.
-    if (error.severity.name != ErrorSeverity.INFO.name) {
+    if (error.severity.name != engine.DiagnosticSeverity.INFO.name) {
       return true;
     }
 
