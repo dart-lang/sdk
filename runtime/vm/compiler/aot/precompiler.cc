@@ -1821,7 +1821,7 @@ static void AddNamesToFunctionsTable(Zone* zone,
   AddNameToFunctionsTable(zone, table, fname, function);
 
   *dyn_function = function.ptr();
-  if (kernel::NeedsDynamicInvocationForwarder(function)) {
+  if (function.NeedsDynamicInvocationForwarder()) {
     *mangled_name = function.name();
     *mangled_name =
         Function::CreateDynamicInvocationForwarderName(*mangled_name);

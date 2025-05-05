@@ -206,12 +206,6 @@ void ReadParameterCovariance(const Function& function,
                              BitVector* is_covariant,
                              BitVector* is_generic_covariant_impl);
 
-// Returns true if the given function needs dynamic invocation forwarder:
-// that is if any of the arguments require checking on the dynamic
-// call-site: if function has no parameters or has only covariant parameters
-// as such function already checks all of its parameters.
-bool NeedsDynamicInvocationForwarder(const Function& function);
-
 ProcedureAttributesMetadata ProcedureAttributesOf(const Function& function,
                                                   Zone* zone);
 

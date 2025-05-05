@@ -3271,6 +3271,7 @@ class Function : public Object {
 
 #if defined(DART_DYNAMIC_MODULES)
   void AttachBytecode(const Bytecode& bytecode) const;
+  void ClearBytecode() const;
   inline BytecodePtr GetBytecode() const;
   static inline BytecodePtr GetBytecode(FunctionPtr function);
   inline bool HasBytecode() const;
@@ -4098,6 +4099,12 @@ class Function : public Object {
       const String& mangled_name) const;
 
   FunctionPtr GetDynamicInvocationForwarder(const String& mangled_name) const;
+
+  // Returns true if this function needs dynamic invocation forwarder:
+  // that is if any of the arguments require checking on the dynamic
+  // call-site: if function has no parameters or has only covariant parameters
+  // as such function already checks all of its parameters.
+  bool NeedsDynamicInvocationForwarder() const;
 
   // Fills in [is_covariant] and [is_generic_covariant_impl] vectors
   // according to covariance attributes of function parameters.
