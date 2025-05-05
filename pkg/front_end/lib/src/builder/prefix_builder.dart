@@ -77,8 +77,9 @@ class PrefixBuilder extends BuilderImpl implements LookupResult {
 
     bool isSetter = isMappedAsSetter(member);
 
+    LookupResult? existingResult = _prefixNameSpace.lookupLocalMember(name);
     Builder? existing =
-        _prefixNameSpace.lookupLocalMember(name, setter: isSetter);
+        isSetter ? existingResult?.setable : existingResult?.getable;
     Builder result;
     if (existing != null) {
       result = computeAmbiguousDeclarationForImport(

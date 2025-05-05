@@ -206,7 +206,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         fieldIsLateWithLowering: false, isExternal: false);
 
     Builder? customValuesDeclaration =
-        nameSpace.lookupLocalMember("values", setter: false);
+        nameSpace.lookupLocalMember("values")?.getable;
     if (customValuesDeclaration != null) {
       // Retrieve the earliest declaration for error reporting.
       while (customValuesDeclaration?.next != null) {
@@ -224,8 +224,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
       "hashCode",
       "=="
     ]) {
-      Builder? customIndexDeclaration = nameSpace
-          .lookupLocalMember(restrictedInstanceMemberName, setter: false);
+      Builder? customIndexDeclaration =
+          nameSpace.lookupLocalMember(restrictedInstanceMemberName)?.getable;
       Builder? invalidDeclaration;
       if (customIndexDeclaration is PropertyBuilder &&
           !customIndexDeclaration.hasAbstractGetter &&

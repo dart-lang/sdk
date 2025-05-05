@@ -39,6 +39,7 @@ import '../base/import_chains.dart';
 import '../base/instrumentation.dart' show Instrumentation;
 import '../base/loader.dart' show Loader, untranslatableUriScheme;
 import '../base/local_scope.dart';
+import '../base/lookup_result.dart';
 import '../base/problems.dart' show internalProblem;
 import '../base/scope.dart';
 import '../base/ticker.dart' show Ticker;
@@ -2585,10 +2586,10 @@ severity: $severity
 
   void _checkMainMethods(
       SourceLibraryBuilder libraryBuilder, DartType listOfString) {
-    Builder? mainBuilder =
-        libraryBuilder.exportNameSpace.lookupLocalMember('main', setter: false);
-    mainBuilder ??=
-        libraryBuilder.exportNameSpace.lookupLocalMember('main', setter: true);
+    LookupResult? result =
+        libraryBuilder.exportNameSpace.lookupLocalMember('main');
+    Builder? mainBuilder = result?.getable;
+    mainBuilder ??= result?.setable;
     if (mainBuilder is MemberBuilder) {
       if (mainBuilder is InvalidTypeDeclarationBuilder) {
         // This is an ambiguous export, skip the check.

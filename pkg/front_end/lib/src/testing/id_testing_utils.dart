@@ -4,6 +4,7 @@
 
 import 'package:kernel/ast.dart';
 
+import '../base/lookup_result.dart';
 import '../base/messages.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
@@ -162,7 +163,8 @@ ClassBuilder? lookupClassBuilder(
       compilerResult, cls.enclosingLibrary,
       required: required)!;
   ClassBuilder? clsBuilder = libraryBuilder.libraryNameSpace
-      .lookupLocalMember(cls.name, setter: false) as ClassBuilder?;
+      .lookupLocalMember(cls.name)
+      ?.getable as ClassBuilder?;
   if (clsBuilder == null && required) {
     throw new ArgumentError("ClassBuilder for $cls not found.");
   }
@@ -222,8 +224,11 @@ MemberBuilder? lookupClassMemberBuilder(InternalCompilerResult compilerResult,
     if (member is Constructor || member is Procedure && member.isFactory) {
       memberBuilder = classBuilder.nameSpace.lookupConstructor(memberName);
     } else {
-      memberBuilder = classBuilder.nameSpace.lookupLocalMember(memberName,
-          setter: member is Procedure && member.isSetter) as MemberBuilder?;
+      bool isSetter = member is Procedure && member.isSetter;
+      LookupResult? result =
+          classBuilder.nameSpace.lookupLocalMember(memberName);
+      memberBuilder =
+          (isSetter ? result?.setable : result?.getable) as MemberBuilder?;
     }
   }
   if (memberBuilder == null && required) {
@@ -282,9 +287,11 @@ MemberBuilder? lookupMemberBuilder(
     LibraryBuilder libraryBuilder = lookupLibraryBuilder(
         compilerResult, member.enclosingLibrary,
         required: required)!;
-    memberBuilder = libraryBuilder.libraryNameSpace.lookupLocalMember(
-        member.name.text,
-        setter: member is Procedure && member.isSetter) as MemberBuilder?;
+    bool isSetter = member is Procedure && member.isSetter;
+    LookupResult? result =
+        libraryBuilder.libraryNameSpace.lookupLocalMember(member.name.text);
+    memberBuilder =
+        (isSetter ? result?.setable : result?.getable) as MemberBuilder?;
   }
   if (memberBuilder == null && required) {
     throw new ArgumentError("MemberBuilder for $member not found.");
@@ -305,8 +312,11 @@ MemberBuilder? lookupExtensionMemberBuilder(
       lookupExtensionBuilder(compilerResult, extension, required: required);
   MemberBuilder? memberBuilder;
   if (extensionBuilder != null) {
-    memberBuilder = extensionBuilder.nameSpace
-        .lookupLocalMember(memberName, setter: isSetter) as MemberBuilder?;
+    bool isSetter = member is Procedure && member.isSetter;
+    LookupResult? result =
+        extensionBuilder.nameSpace.lookupLocalMember(memberName);
+    memberBuilder =
+        (isSetter ? result?.setable : result?.getable) as MemberBuilder?;
   }
   if (memberBuilder == null && required) {
     throw new ArgumentError("MemberBuilder for $member not found.");
@@ -333,8 +343,11 @@ MemberBuilder? lookupExtensionTypeMemberBuilder(
       memberBuilder =
           extensionTypeBuilder.nameSpace.lookupConstructor(memberName);
     } else {
-      memberBuilder = extensionTypeBuilder.nameSpace
-          .lookupLocalMember(memberName, setter: isSetter) as MemberBuilder?;
+      bool isSetter = member is Procedure && member.isSetter;
+      LookupResult? result =
+          extensionTypeBuilder.nameSpace.lookupLocalMember(memberName);
+      memberBuilder =
+          (isSetter ? result?.setable : result?.getable) as MemberBuilder?;
     }
   }
   if (memberBuilder == null && required) {

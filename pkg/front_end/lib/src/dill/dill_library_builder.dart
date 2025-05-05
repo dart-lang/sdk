@@ -213,17 +213,17 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
 
   @override
   void becomeCoreLibrary() {
-    if (libraryNameSpace.lookupLocalMember("dynamic", setter: false) == null) {
+    if (libraryNameSpace.lookupLocalMember("dynamic")?.getable == null) {
       _addBuilder("dynamic",
           new DynamicTypeDeclarationBuilder(const DynamicType(), this, -1));
     }
-    if (libraryNameSpace.lookupLocalMember("Never", setter: false) == null) {
+    if (libraryNameSpace.lookupLocalMember("Never")?.getable == null) {
       _addBuilder(
           "Never",
           new NeverTypeDeclarationBuilder(
               const NeverType.nonNullable(), this, -1));
     }
-    assert(libraryNameSpace.lookupLocalMember("Null", setter: false) != null,
+    assert(libraryNameSpace.lookupLocalMember("Null")?.getable != null,
         "No class 'Null' found in dart:core.");
   }
 
@@ -370,11 +370,13 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
         assert(
             name == 'dynamic', "Unexpected export name for 'dynamic': '$name'");
         declaration = loader.coreLibrary.exportNameSpace
-            .lookupLocalMember(name, setter: false)!;
+            .lookupLocalMember(name)!
+            .getable!;
       } else if (messageText == exportNeverSentinel) {
         assert(name == 'Never', "Unexpected export name for 'Never': '$name'");
         declaration = loader.coreLibrary.exportNameSpace
-            .lookupLocalMember(name, setter: false)!;
+            .lookupLocalMember(name)!
+            .getable!;
       } else {
         Message message = templateUnspecified.withArguments(messageText);
         if (!suppressFinalizationErrors) {
@@ -445,12 +447,12 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
             "No reference for source declaration of $node.");
         if (isSetter) {
           declaration =
-              library.exportNameSpace.lookupLocalMember(name, setter: true)!;
+              library.exportNameSpace.lookupLocalMember(name)!.setable!;
           exportNameSpace.addLocalMember(name, declaration as MemberBuilder,
               setter: true);
         } else {
           declaration =
-              library.exportNameSpace.lookupLocalMember(name, setter: false)!;
+              library.exportNameSpace.lookupLocalMember(name)!.getable!;
           exportNameSpace.addLocalMember(name, declaration, setter: false);
         }
       }

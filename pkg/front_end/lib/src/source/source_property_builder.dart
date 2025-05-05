@@ -294,8 +294,8 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
     if (!isClassMember) {
       // Getter/setter type conflict for class members is handled in the class
       // hierarchy builder.
-      setterBuilder = nameSpace.lookupLocalMember(name, setter: true)
-          as SourcePropertyBuilder?;
+      setterBuilder =
+          nameSpace.lookupLocalMember(name)?.setable as SourcePropertyBuilder?;
     }
     _introductoryField?.checkFieldTypes(
         library, typeEnvironment, setterBuilder);
@@ -510,7 +510,7 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   static DartType getSetterType(SourcePropertyBuilder setterBuilder,
       {required List<TypeParameter>? getterExtensionTypeParameters}) {
     DartType setterType;
-    Procedure procedure = setterBuilder.writeTarget as Procedure;
+    Member member = setterBuilder.writeTarget!;
     if (setterBuilder.isExtensionInstanceMember ||
         setterBuilder.isExtensionTypeInstanceMember) {
       // An extension instance setter
@@ -525,6 +525,7 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
       //
       // Similarly for extension type instance setters.
       //
+      Procedure procedure = member as Procedure;
       setterType = procedure.function.positionalParameters[1].type;
       if (getterExtensionTypeParameters != null &&
           getterExtensionTypeParameters.isNotEmpty) {
@@ -540,7 +541,7 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
         ]).substituteType(setterType);
       }
     } else {
-      setterType = procedure.setterType;
+      setterType = member.setterType;
     }
     return setterType;
   }

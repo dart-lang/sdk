@@ -99,6 +99,7 @@ import 'compiler_context.dart' show CompilerContext;
 import 'hybrid_file_system.dart' show HybridFileSystem;
 import 'incremental_serializer.dart' show IncrementalSerializer;
 import 'library_graph.dart' show LibraryGraph;
+import 'lookup_result.dart';
 import 'ticker.dart' show Ticker;
 import 'uri_translator.dart' show UriTranslator;
 import 'uris.dart' show dartCore, getPartUri;
@@ -656,8 +657,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     sb.writeln('Mismatch on ${sourceLibraryBuilder.importUri}:');
     sourceLibraryBuilder.exportNameSpace
         .forEachLocalMember((String name, Builder sourceBuilder) {
-      Builder? dillBuilder = dillLibraryBuilder.exportNameSpace
-          .lookupLocalMember(name, setter: false);
+      Builder? dillBuilder =
+          dillLibraryBuilder.exportNameSpace.lookupLocalMember(name)?.getable;
       if (dillBuilder == null) {
         if ((name == 'dynamic' || name == 'Never') &&
             sourceLibraryBuilder.importUri == dartCore) {
@@ -672,8 +673,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     });
     dillLibraryBuilder.exportNameSpace
         .forEachLocalMember((String name, Builder dillBuilder) {
-      Builder? sourceBuilder = sourceLibraryBuilder.exportNameSpace
-          .lookupLocalMember(name, setter: false);
+      Builder? sourceBuilder =
+          sourceLibraryBuilder.exportNameSpace.lookupLocalMember(name)?.getable;
       if (sourceBuilder == null) {
         sb.writeln('No source builder for ${name}: $dillBuilder');
         isEquivalent = false;
@@ -681,8 +682,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     });
     sourceLibraryBuilder.exportNameSpace
         .forEachLocalSetter((String name, Builder sourceBuilder) {
-      Builder? dillBuilder = dillLibraryBuilder.exportNameSpace
-          .lookupLocalMember(name, setter: true);
+      Builder? dillBuilder =
+          dillLibraryBuilder.exportNameSpace.lookupLocalMember(name)?.setable;
       if (dillBuilder == null) {
         sb.writeln('No dill builder for ${name}=: $sourceBuilder');
         isEquivalent = false;
@@ -690,11 +691,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     });
     dillLibraryBuilder.exportNameSpace
         .forEachLocalSetter((String name, Builder dillBuilder) {
-      Builder? sourceBuilder = sourceLibraryBuilder.exportNameSpace
-          .lookupLocalMember(name, setter: true);
+      LookupResult? result =
+          sourceLibraryBuilder.exportNameSpace.lookupLocalMember(name);
+      Builder? sourceBuilder = result?.setable;
       if (sourceBuilder == null) {
-        sourceBuilder = sourceLibraryBuilder.exportNameSpace
-            .lookupLocalMember(name, setter: false);
+        sourceBuilder = result?.getable;
         if (sourceBuilder is PropertyBuilder && sourceBuilder.hasSetter) {
           // Assignable fields can be lowered into a getter and setter.
           return;
@@ -1778,7 +1779,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       Class? cls;
       if (className != null) {
         Builder? scopeMember = libraryBuilder.libraryNameSpace
-            .lookupLocalMember(className, setter: false);
+            .lookupLocalMember(className)
+            ?.getable;
         if (scopeMember is ClassBuilder) {
           cls = scopeMember.cls;
         } else {
@@ -1794,7 +1796,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           String beforeDot = methodName.substring(0, indexOfDot);
           String afterDot = methodName.substring(indexOfDot + 1);
           Builder? builder = libraryBuilder.libraryNameSpace
-              .lookupLocalMember(beforeDot, setter: false);
+              .lookupLocalMember(beforeDot)
+              ?.getable;
           extensionName = beforeDot;
           if (builder is ExtensionBuilder) {
             extension = builder.extension;

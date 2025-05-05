@@ -230,11 +230,9 @@ mixin DillOperatorBuilderMixin implements DillMemberBuilder, MethodBuilder {
   bool get isOperator => true;
 
   @override
-  // Coverage-ignore(suite): Not run.
   Builder get getable => this;
 
   @override
-  // Coverage-ignore(suite): Not run.
   Builder? get setable => null;
 
   @override

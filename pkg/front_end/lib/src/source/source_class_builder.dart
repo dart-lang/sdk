@@ -20,6 +20,7 @@ import 'package:kernel/type_algebra.dart'
         updateBoundNullabilities;
 import 'package:kernel/type_environment.dart';
 
+import '../base/lookup_result.dart';
 import '../base/messages.dart';
 import '../base/modifiers.dart';
 import '../base/name_space.dart';
@@ -772,8 +773,8 @@ class SourceClassBuilder extends ClassBuilderImpl
 
       if (hasEnumSuperinterface && cls != underscoreEnumClass) {
         // Instance members named `values` are restricted.
-        Builder? customValuesDeclaration =
-            nameSpace.lookupLocalMember("values", setter: false);
+        LookupResult? result = nameSpace.lookupLocalMember("values");
+        Builder? customValuesDeclaration = result?.getable;
         if (customValuesDeclaration != null &&
             !customValuesDeclaration.isStatic) {
           // Retrieve the earliest declaration for error reporting.
@@ -788,8 +789,7 @@ class SourceClassBuilder extends ClassBuilderImpl
               customValuesDeclaration.fullNameForErrors.length,
               fileUri);
         }
-        customValuesDeclaration =
-            nameSpace.lookupLocalMember("values", setter: true);
+        customValuesDeclaration = result?.setable;
         if (customValuesDeclaration != null &&
             !customValuesDeclaration.isStatic) {
           // Retrieve the earliest declaration for error reporting.
@@ -817,7 +817,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         // operator == are restricted.
         for (String restrictedMemberName in restrictedNames) {
           Builder? member =
-              nameSpace.lookupLocalMember(restrictedMemberName, setter: false);
+              nameSpace.lookupLocalMember(restrictedMemberName)?.getable;
           if (member is MemberBuilder &&
               (member is PropertyBuilder && !member.hasAbstractGetter ||
                   member is MethodBuilder && !member.isAbstract)) {

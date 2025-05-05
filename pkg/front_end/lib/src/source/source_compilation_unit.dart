@@ -968,8 +968,9 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       required Builder builder,
       required int charOffset}) {
     bool isSetter = isMappedAsSetter(builder);
-    Builder? existing =
-        _importNameSpace.lookupLocalMember(name, setter: isSetter);
+    LookupResult? result = _importNameSpace.lookupLocalMember(name);
+
+    Builder? existing = isSetter ? result?.setable : result?.getable;
     if (existing != null) {
       if (existing != builder) {
         _importNameSpace.addLocalMember(
@@ -1134,9 +1135,9 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   @override
   bool addPrefixFragment(
       String name, PrefixFragment prefixFragment, int charOffset) {
-    Builder? existing = prefixNameSpace.lookupLocalMember(name, setter: false);
+    Builder? existing = prefixNameSpace.lookupLocalMember(name)?.getable;
     existing ??=
-        libraryBuilder.libraryNameSpace.lookupLocalMember(name, setter: false);
+        libraryBuilder.libraryNameSpace.lookupLocalMember(name)?.getable;
     if (existing is PrefixBuilder) {
       assert(existing.next is! PrefixBuilder);
       int? deferredFileOffset;
