@@ -7,7 +7,11 @@ import 'dart:typed_data';
 import 'package:expect/expect.dart';
 
 void testIterableFunctions<T extends num>(
-    List<T> list, T first, T last, T zero) {
+  List<T> list,
+  T first,
+  T last,
+  T zero,
+) {
   assert(list.length > 0);
 
   Expect.equals(first, list.first);
@@ -20,13 +24,16 @@ void testIterableFunctions<T extends num>(
   } else {
     Expect.throwsStateError(() => list.single);
     bool isFirst = true;
-    Expect.equals(first, list.singleWhere((x) {
-      if (isFirst) {
-        isFirst = false;
-        return true;
-      }
-      return false;
-    }));
+    Expect.equals(
+      first,
+      list.singleWhere((x) {
+        if (isFirst) {
+          isFirst = false;
+          return true;
+        }
+        return false;
+      }),
+    );
   }
   Expect.isFalse(list.isEmpty);
 
@@ -80,9 +87,12 @@ void testIterableFunctions<T extends num>(
     var reduceResult = zero + 1;
     Expect.equals(list.length, list.reduce((x, y) => ++reduceResult as T));
   } else {
-    Expect.equals(first, list.reduce((x, y) {
-      throw "should not be called";
-    }));
+    Expect.equals(
+      first,
+      list.reduce((x, y) {
+        throw "should not be called";
+      }),
+    );
   }
 
   Expect.isTrue(list.skip(list.length).isEmpty);
@@ -120,10 +130,11 @@ void emptyChecks<T extends num>(List<T> list, T zero) {
   Expect.listEquals([], list.expand((x) => []).toList());
   Expect.listEquals([], list.expand((x) => [x, x]).toList());
   Expect.listEquals(
-      [],
-      list.expand((x) {
-        throw "should not be reached";
-      }).toList());
+    [],
+    list.expand((x) {
+      throw "should not be reached";
+    }).toList(),
+  );
   Expect.listEquals([], list.fold([], (result, x) => result..add(x)));
   Expect.equals(list.toList().join("*"), list.join("*"));
   Expect.listEquals(list, list.map((x) => x).toList());
