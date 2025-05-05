@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
@@ -15,6 +14,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_event.dart' as driver_events;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/fine/requirements.dart';
 import 'package:analyzer/src/lint/linter.dart';
@@ -6255,6 +6255,11 @@ void f() {
         A: <null>
       package:test/a.dart
         A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedMethods
+            c2: <null>
     interfaces
       package:test/a.dart
         A
@@ -6501,6 +6506,11 @@ class A {
         A: <null>
       package:test/a.dart
         A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedMethods
+            c2: <null>
     interfaces
       package:test/a.dart
         A
@@ -6576,6 +6586,11 @@ class B extends A {
       package:test/a.dart
         A: #M0
         named: <null>
+    instances
+      package:test/test.dart
+        B
+          requestedMethods
+            noSuchMethod: <null>
     interfaces
       package:test/a.dart
         A
@@ -6651,6 +6666,11 @@ class A {
       package:test/a.dart
         A: #M0
         named: <null>
+    instances
+      package:test/test.dart
+        B
+          requestedMethods
+            noSuchMethod: <null>
     interfaces
       package:test/a.dart
         A
@@ -7253,6 +7273,14 @@ void f (B b) {
     topLevels
       dart:core
         int: #M4
+    instances
+      package:test/test.dart
+        A
+          requestedMethods
+            noSuchMethod: <null>
+        B
+          requestedMethods
+            noSuchMethod: <null>
 [status] idle
 ''',
       updateFiles: () {
@@ -7299,6 +7327,14 @@ void f (B b) {
     topLevels
       dart:core
         String: #M6
+    instances
+      package:test/test.dart
+        A
+          requestedMethods
+            noSuchMethod: <null>
+        B
+          requestedMethods
+            noSuchMethod: <null>
 [status] idle
 ''',
     );
@@ -8182,6 +8218,11 @@ void f(A a) {
         A: <null>
       package:test/a.dart
         A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedMethods
+            foo: <null>
     interfaces
       package:test/a.dart
         A
@@ -8883,6 +8924,14 @@ void f (B b) {
     topLevels
       dart:core
         int: #M4
+    instances
+      package:test/test.dart
+        A
+          requestedMethods
+            noSuchMethod: <null>
+        B
+          requestedMethods
+            noSuchMethod: <null>
 [status] idle
 ''',
       updateFiles: () {
@@ -8929,6 +8978,14 @@ void f (B b) {
     topLevels
       dart:core
         String: #M6
+    instances
+      package:test/test.dart
+        A
+          requestedMethods
+            noSuchMethod: <null>
+        B
+          requestedMethods
+            noSuchMethod: <null>
 [status] idle
 ''',
     );
@@ -8986,6 +9043,14 @@ void f(B b) {
     topLevels
       dart:core
         int: #M4
+    instances
+      package:test/test.dart
+        A
+          requestedMethods
+            noSuchMethod: <null>
+        B
+          requestedMethods
+            noSuchMethod: <null>
 [status] idle
 ''',
       updateFiles: () {
@@ -9030,6 +9095,14 @@ void f(B b) {
     topLevels
       dart:core
         double: #M6
+    instances
+      package:test/test.dart
+        A
+          requestedMethods
+            noSuchMethod: <null>
+        B
+          requestedMethods
+            noSuchMethod: <null>
 [status] idle
 ''',
     );
@@ -9098,6 +9171,11 @@ void f(B b) {
         B: <null>
       package:test/a.dart
         B: #M0
+    instances
+      package:test/test.dart
+        A
+          requestedMethods
+            noSuchMethod: <null>
 [status] idle
 ''',
       updateFiles: () {
@@ -9150,6 +9228,16 @@ void f(B b) {
         B: <null>
       package:test/a.dart
         B: #M0
+    instances
+      package:test/a.dart
+        B
+          requestedMethods
+            _foo: <null>
+      package:test/test.dart
+        A
+          requestedMethods
+            _foo: <null>
+            noSuchMethod: <null>
 [status] idle
 ''',
     );
@@ -9253,6 +9341,11 @@ class A {}
         A: <null>
       package:test/a.dart
         A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedMethods
+            foo: <null>
     interfaces
       package:test/a.dart
         A
@@ -9557,6 +9650,12 @@ void f(A a) {
         A: <null>
       package:test/a.dart
         A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedMethods
+            foo: <null>
+            foo=: <null>
     interfaces
       package:test/a.dart
         A
@@ -10107,6 +10206,14 @@ void f (B b) {
     topLevels
       dart:core
         int: #M4
+    instances
+      package:test/test.dart
+        A
+          requestedMethods
+            noSuchMethod: <null>
+        B
+          requestedMethods
+            noSuchMethod: <null>
 [status] idle
 ''',
       updateFiles: () {
@@ -10153,6 +10260,14 @@ void f (B b) {
     topLevels
       dart:core
         String: #M6
+    instances
+      package:test/test.dart
+        A
+          requestedMethods
+            noSuchMethod: <null>
+        B
+          requestedMethods
+            noSuchMethod: <null>
 [status] idle
 ''',
     );
@@ -10270,6 +10385,12 @@ class A {}
         A: <null>
       package:test/a.dart
         A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedMethods
+            foo: <null>
+            foo=: <null>
     interfaces
       package:test/a.dart
         A
@@ -10404,6 +10525,678 @@ class A {
         A
           methods
             foo=: #M4
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_static_getter() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  static int get foo {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.foo;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M3
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedMethods
+            foo: #M1
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: <null>
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  static double get foo {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M4
+  requirements
+    topLevels
+      dart:core
+        double: #M5
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  instanceMethodIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    methodName: foo
+    expectedId: #M1
+    actualId: #M4
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedMethods
+            foo: #M4
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: <null>
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_static_getter_notUsed() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  static int get foo {}
+  static int get bar {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.foo;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.getter: #M1
+          foo.getter: #M2
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M4
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedMethods
+            foo: #M2
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: <null>
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  static int get foo {}
+  static double get bar {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.getter: #M5
+          foo.getter: #M2
+  requirements
+    topLevels
+      dart:core
+        double: #M6
+        int: #M3
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_static_method() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  static int foo() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.foo();
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M3
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedMethods
+            foo: #M1
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: <null>
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  static double foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M4
+  requirements
+    topLevels
+      dart:core
+        double: #M5
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  instanceMethodIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    methodName: foo
+    expectedId: #M1
+    actualId: #M4
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedMethods
+            foo: #M4
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: <null>
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_static_method_notUsed() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  static int foo() {}
+  static int bar() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.foo();
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.method: #M1
+          foo.method: #M2
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M4
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedMethods
+            foo: #M2
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: <null>
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  static int foo() {}
+  static double bar() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.method: #M5
+          foo.method: #M2
+  requirements
+    topLevels
+      dart:core
+        double: #M6
+        int: #M3
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_static_setter() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  static set foo(int _) {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.foo = 0;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M3
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedMethods
+            foo=: #M1
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  static set foo(double _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M4
+  requirements
+    topLevels
+      dart:core
+        double: #M5
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  instanceMethodIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    methodName: foo=
+    expectedId: #M1
+    actualId: #M4
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedMethods
+            foo=: #M4
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_static_setter_notUsed() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  static set foo(int _) {}
+  static set bar(int _) {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.foo = 0;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.setter: #M1
+          foo.setter: #M2
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M4
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedMethods
+            foo=: #M2
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  static set foo(int _) {}
+  static set bar(double _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.setter: #M5
+          foo.setter: #M2
+  requirements
+    topLevels
+      dart:core
+        double: #M6
+        int: #M3
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
 [status] idle
 ''',
     );
@@ -12496,6 +13289,11 @@ void f(A a) {
         A: <null>
       package:test/a.dart
         A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedMethods
+            foo: <null>
     interfaces
       package:test/a.dart
         A
@@ -12945,6 +13743,11 @@ mixin A {}
         A: <null>
       package:test/a.dart
         A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedMethods
+            foo: <null>
     interfaces
       package:test/a.dart
         A
@@ -13249,6 +14052,12 @@ void f(A a) {
         A: <null>
       package:test/a.dart
         A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedMethods
+            foo: <null>
+            foo=: <null>
     interfaces
       package:test/a.dart
         A
@@ -13573,6 +14382,12 @@ mixin A {}
         A: <null>
       package:test/a.dart
         A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedMethods
+            foo: <null>
+            foo=: <null>
     interfaces
       package:test/a.dart
         A

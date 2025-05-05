@@ -450,7 +450,7 @@ class OptionsTest extends BaseTest {
     );
     expect(
       processorFor(assignment_of_do_not_store).severity,
-      ErrorSeverity.ERROR,
+      DiagnosticSeverity.ERROR,
     );
     expect(
       bulletToDash(outSink),

@@ -21,6 +21,7 @@ import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -562,11 +563,11 @@ class BulkFixProcessor {
 
   /// Filters errors to only those that are in [_codes] and are not filtered out
   /// in analysis_options.
-  Iterable<AnalysisError> _filterErrors(
+  Iterable<Diagnostic> _filterDiagnostics(
     AnalysisOptions analysisOptions,
-    List<AnalysisError> originalErrors,
+    List<Diagnostic> originalDiagnostics,
   ) sync* {
-    var errors = originalErrors.toList();
+    var errors = originalDiagnostics.toList();
     errors.sort((a, b) => a.offset.compareTo(b.offset));
     for (var error in errors) {
       if (_codes != null &&
@@ -610,7 +611,7 @@ class BulkFixProcessor {
     var analysisOptions = unitResult.session.analysisContext
         .getAnalysisOptionsForFile(unitResult.file);
 
-    DartFixContext fixContext(AnalysisError diagnostic) {
+    DartFixContext fixContext(Diagnostic diagnostic) {
       return DartFixContext(
         instrumentationService: _instrumentationService,
         workspace: _workspace,
@@ -621,7 +622,7 @@ class BulkFixProcessor {
       );
     }
 
-    CorrectionProducerContext correctionContext(AnalysisError diagnostic) {
+    CorrectionProducerContext correctionContext(Diagnostic diagnostic) {
       return CorrectionProducerContext.createResolved(
         libraryResult: libraryResult,
         unitResult: unitResult,
@@ -636,9 +637,9 @@ class BulkFixProcessor {
     //
     // Attempt to apply the fixes that aren't related to directives.
     //
-    for (var error in _filterErrors(analysisOptions, unitResult.errors)) {
+    for (var error in _filterDiagnostics(analysisOptions, unitResult.errors)) {
       var context = fixContext(error);
-      await _fixSingleError(context, libraryResult, unitResult, error);
+      await _fixSingleDiagnostic(context, libraryResult, unitResult, error);
       if (isCancelled || (stopAfterFirst && changeMap.hasFixes)) {
         return;
       }
@@ -652,19 +653,22 @@ class BulkFixProcessor {
       return;
     }
 
-    AnalysisError? directivesOrderingError;
-    var unusedImportErrors = <AnalysisError>[];
-    for (var error in _filterErrors(analysisOptions, unitResult.errors)) {
-      var errorCode = error.errorCode;
+    Diagnostic? directivesOrderingError;
+    var unusedImportDiagnostics = <Diagnostic>[];
+    for (var diagnostic in _filterDiagnostics(
+      analysisOptions,
+      unitResult.errors,
+    )) {
+      var errorCode = diagnostic.errorCode;
       if (errorCode is LintCode) {
         if (DirectivesOrdering.allCodes.contains(errorCode)) {
-          directivesOrderingError = error;
+          directivesOrderingError = diagnostic;
           break;
         }
       } else if (errorCode == WarningCode.DUPLICATE_IMPORT ||
           errorCode == HintCode.UNNECESSARY_IMPORT ||
           errorCode == WarningCode.UNUSED_IMPORT) {
-        unusedImportErrors.add(error);
+        unusedImportDiagnostics.add(diagnostic);
       }
     }
     if (directivesOrderingError != null) {
@@ -680,7 +684,7 @@ class BulkFixProcessor {
         return;
       }
     } else {
-      for (var error in unusedImportErrors) {
+      for (var error in unusedImportDiagnostics) {
         var context = correctionContext(error);
         await _generateFix(
           context,
@@ -696,13 +700,13 @@ class BulkFixProcessor {
 
   Future<void> _fixErrorsInParsedLibrary(
     ParsedLibraryResult parsedLibrary,
-    List<AnalysisError> errors, {
+    List<Diagnostic> diagnostics, {
     required bool stopAfterFirst,
   }) async {
     for (var unitResult in parsedLibrary.units) {
       var analysisOptions = parsedLibrary.session.analysisContext
           .getAnalysisOptionsForFile(unitResult.file);
-      for (var error in _filterErrors(analysisOptions, errors)) {
+      for (var error in _filterDiagnostics(analysisOptions, diagnostics)) {
         await _fixSingleParseError(parsedLibrary, unitResult, error);
         if (isCancelled || (stopAfterFirst && changeMap.hasFixes)) {
           return;
@@ -714,11 +718,11 @@ class BulkFixProcessor {
   /// Uses the change [builder] and the [fixContext] to create a fix for the
   /// given [diagnostic] in the compilation unit associated with the analysis
   /// [unitResult].
-  Future<void> _fixSingleError(
+  Future<void> _fixSingleDiagnostic(
     DartFixContext fixContext,
     ResolvedLibraryResult libraryResult,
     ResolvedUnitResult unitResult,
-    AnalysisError diagnostic,
+    Diagnostic diagnostic,
   ) async {
     var context = CorrectionProducerContext.createResolved(
       libraryResult: libraryResult,
@@ -783,7 +787,7 @@ class BulkFixProcessor {
   Future<void> _fixSingleParseError(
     ParsedLibraryResult libraryResult,
     ParsedUnitResult unitResult,
-    AnalysisError diagnostic,
+    Diagnostic diagnostic,
   ) async {
     var context = CorrectionProducerContext.createParsed(
       libraryResult: libraryResult,
@@ -882,7 +886,10 @@ class BulkFixProcessor {
 
     var analysisOptions = errorsResult.session.analysisContext
         .getAnalysisOptionsForFile(errorsResult.file);
-    var filteredErrors = _filterErrors(analysisOptions, errorsResult.errors);
+    var filteredErrors = _filterDiagnostics(
+      analysisOptions,
+      errorsResult.errors,
+    );
     return filteredErrors.any(_isFixableError);
   }
 
@@ -1001,9 +1008,9 @@ class BulkFixProcessor {
     });
   }
 
-  /// Returns whether [error] is something that might be fixable.
-  static bool _isFixableError(AnalysisError error) {
-    var errorCode = error.errorCode;
+  /// Returns whether [diagnostic] is something that might be fixable.
+  static bool _isFixableError(Diagnostic diagnostic) {
+    var errorCode = diagnostic.errorCode;
 
     // Special cases that can be bulk fixed by this class but not by
     // FixProcessor.

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:linter/src/lint_names.dart';
@@ -364,7 +364,7 @@ class AddMissingSwitchCasesTest_SwitchStatement extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.ADD_MISSING_SWITCH_CASES;
 
-  bool Function(AnalysisError) get _filter {
+  bool Function(Diagnostic) get _filter {
     var hasError = false;
     return (error) {
       if (!hasError &&

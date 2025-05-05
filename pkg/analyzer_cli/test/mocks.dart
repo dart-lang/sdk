@@ -72,7 +72,7 @@ class MockErrorCode implements ErrorCode {
   DiagnosticType type;
 
   @override
-  ErrorSeverity errorSeverity;
+  DiagnosticSeverity errorSeverity;
 
   @override
   String name;

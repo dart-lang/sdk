@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
@@ -23,8 +23,8 @@ abstract class DartFixesRequest implements FixesRequest {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FixCollector {
-  /// Record a new [change] (fix) associated with the given [error].
-  void addFix(AnalysisError error, PrioritizedSourceChange change);
+  /// Records a new [change] (fix) associated with the given [diagnostic].
+  void addFix(Diagnostic diagnostic, PrioritizedSourceChange change);
 }
 
 /// An object used to produce fixes.
@@ -43,7 +43,7 @@ abstract class FixContributor {
 abstract class FixesRequest {
   /// The analysis error to be fixed, or `null` if the error has not been
   /// determined.
-  List<AnalysisError> get errorsToFix;
+  List<Diagnostic> get errorsToFix;
 
   /// Return the offset within the source for which fixes are being requested.
   int get offset;

@@ -108,10 +108,10 @@ String? getReturnTypeString(engine.Element element) {
 /// Translates engine errors through the ErrorProcessor.
 List<T> mapEngineErrors<T>(
   engine.AnalysisResultWithErrors result,
-  List<engine.AnalysisError> errors,
+  List<engine.Diagnostic> diagnostics,
   T Function(
     engine.AnalysisResultWithErrors result,
-    engine.AnalysisError error, [
+    engine.Diagnostic diagnostic, [
     engine.ErrorSeverity errorSeverity,
   ])
   constructor,
@@ -119,17 +119,17 @@ List<T> mapEngineErrors<T>(
   var analysisOptions = result.session.analysisContext
       .getAnalysisOptionsForFile(result.file);
   var serverErrors = <T>[];
-  for (var error in errors) {
-    var processor = ErrorProcessor.getProcessor(analysisOptions, error);
+  for (var diagnostic in diagnostics) {
+    var processor = ErrorProcessor.getProcessor(analysisOptions, diagnostic);
     if (processor != null) {
       var severity = processor.severity;
       // Errors with null severity are filtered out.
       if (severity != null) {
         // Specified severities override.
-        serverErrors.add(constructor(result, error, severity));
+        serverErrors.add(constructor(result, diagnostic, severity));
       }
     } else {
-      serverErrors.add(constructor(result, error));
+      serverErrors.add(constructor(result, diagnostic));
     }
   }
   return serverErrors;
@@ -140,7 +140,7 @@ List<T> mapEngineErrors<T>(
 /// If an [errorSeverity] is specified, it will override the one in [error].
 AnalysisError newAnalysisError_fromEngine(
   engine.AnalysisResultWithErrors result,
-  engine.AnalysisError error, [
+  engine.Diagnostic error, [
   engine.ErrorSeverity? errorSeverity,
 ]) {
   var errorCode = error.errorCode;

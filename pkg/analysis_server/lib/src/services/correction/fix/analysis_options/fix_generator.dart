@@ -13,6 +13,7 @@ import 'package:analysis_server/src/utilities/yaml_node_locator.dart';
 import 'package:analysis_server_plugin/edit/fix/fix.dart';
 import 'package:analysis_server_plugin/src/correction/change_workspace.dart';
 import 'package:analyzer/dart/analysis/session.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -41,7 +42,7 @@ class AnalysisOptionsFixGenerator {
   /// The resource provider used to access the file system.
   final ResourceProvider resourceProvider;
 
-  final AnalysisError error;
+  final Diagnostic error;
 
   final int errorOffset;
 

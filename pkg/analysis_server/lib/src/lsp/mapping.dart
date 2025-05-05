@@ -25,6 +25,7 @@ import 'package:analysis_server/src/services/snippets/snippet.dart';
 import 'package:analysis_server/src/utilities/extensions/string.dart';
 import 'package:analyzer/dart/analysis/results.dart' as server;
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart' as server;
 import 'package:analyzer/error/error.dart' as server;
 import 'package:analyzer/source/line_info.dart' as server;
 import 'package:analyzer/source/line_info.dart';
@@ -1375,14 +1376,14 @@ lsp.CompletionItem toCompletionItem(
 lsp.Diagnostic toDiagnostic(
   ClientUriConverter uriConverter,
   server.ResolvedUnitResult result,
-  server.AnalysisError error, {
+  server.Diagnostic diagnostic, {
   required Set<lsp.DiagnosticTag> supportedTags,
   required bool clientSupportsCodeDescription,
 }) {
   return pluginToDiagnostic(
     uriConverter,
     (_) => result.lineInfo,
-    server.newAnalysisError_fromEngine(result, error),
+    server.newAnalysisError_fromEngine(result, diagnostic),
     supportedTags: supportedTags,
     clientSupportsCodeDescription: clientSupportsCodeDescription,
   );

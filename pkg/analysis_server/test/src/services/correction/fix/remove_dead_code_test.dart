@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -1162,10 +1162,10 @@ void f(int i, int j) => i;
 
   /// Error filter ignoring warnings that frequently occur in conjunction with
   /// code that is dead due to sound flow analysis.
-  bool _ignoreNullSafetyWarnings(AnalysisError error) =>
+  bool _ignoreNullSafetyWarnings(Diagnostic diagnostic) =>
       !const {
         'DEAD_NULL_AWARE_EXPRESSION',
         'INVALID_NULL_AWARE_OPERATOR',
         'UNNECESSARY_NULL_COMPARISON',
-      }.contains(error.errorCode.name);
+      }.contains(diagnostic.errorCode.name);
 }

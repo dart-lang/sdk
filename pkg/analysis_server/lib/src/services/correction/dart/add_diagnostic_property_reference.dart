@@ -8,6 +8,7 @@ import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
 import 'package:analyzer/utilities/extensions/ast.dart';
@@ -322,11 +323,11 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
     }
   }
 
-  /// Returns a list of all the [AnalysisError]s of type
+  /// Returns a list of all the [Diagnostic]s of type
   /// [LinterLintCode.diagnostic_describe_all_properties] for the given
   /// [declaration].
-  List<AnalysisError> _getAllDiagnosticsInClass(ClassDeclaration declaration) {
-    var propertyErrors = <AnalysisError>[];
+  List<Diagnostic> _getAllDiagnosticsInClass(ClassDeclaration declaration) {
+    var propertyDiagnostics = <Diagnostic>[];
     var startOffset = declaration.offset;
     var endOffset = startOffset + declaration.length;
     for (var error in unitResult.errors) {
@@ -335,11 +336,11 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
           errorCode == LinterLintCode.diagnostic_describe_all_properties &&
           error.offset > startOffset &&
           error.offset < endOffset) {
-        propertyErrors.add(error);
+        propertyDiagnostics.add(error);
       }
     }
 
-    return propertyErrors;
+    return propertyDiagnostics;
   }
 
   /// Computes the information for the property at the given [node].

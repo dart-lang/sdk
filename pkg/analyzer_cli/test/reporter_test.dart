@@ -47,7 +47,7 @@ void main() {
       test('error', () async {
         var error = mockResult(
           DiagnosticType.SYNTACTIC_ERROR,
-          ErrorSeverity.ERROR,
+          DiagnosticSeverity.ERROR,
         );
         await reporter.formatErrors([error]);
         reporter.flush();
@@ -59,7 +59,7 @@ void main() {
       });
 
       test('hint', () async {
-        var error = mockResult(DiagnosticType.HINT, ErrorSeverity.INFO);
+        var error = mockResult(DiagnosticType.HINT, DiagnosticSeverity.INFO);
         await reporter.formatErrors([error]);
         reporter.flush();
 
@@ -70,7 +70,7 @@ void main() {
       });
 
       test('stats', () async {
-        var error = mockResult(DiagnosticType.HINT, ErrorSeverity.INFO);
+        var error = mockResult(DiagnosticType.HINT, DiagnosticSeverity.INFO);
         await reporter.formatErrors([error]);
         reporter.flush();
         stats.print(out);
@@ -90,7 +90,7 @@ void main() {
       test('error', () async {
         var error = mockResult(
           DiagnosticType.SYNTACTIC_ERROR,
-          ErrorSeverity.ERROR,
+          DiagnosticSeverity.ERROR,
         );
         await reporter.formatErrors([error]);
         reporter.flush();
@@ -109,7 +109,7 @@ void main() {
   });
 }
 
-ErrorsResultImpl mockResult(DiagnosticType type, ErrorSeverity severity) {
+ErrorsResultImpl mockResult(DiagnosticType type, DiagnosticSeverity severity) {
   // ErrorInfo
   var location = CharacterLocation(3, 3);
   var lineInfo = MockLineInfo(defaultLocation: location);

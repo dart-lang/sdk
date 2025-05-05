@@ -7,6 +7,7 @@ import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -146,7 +147,7 @@ abstract class _RemoveConst extends ParsedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var diagnostic = this.diagnostic;
-    if (diagnostic is! AnalysisError) {
+    if (diagnostic is! Diagnostic) {
       return;
     }
 
@@ -227,7 +228,7 @@ abstract class _RemoveConst extends ParsedCorrectionProducer {
     // In the case of a `const class` declaration, the `const` keyword is
     // not part of the class so we have to use the diagnostic offset.
     var diagnostic = this.diagnostic;
-    if (diagnostic is! AnalysisError) return;
+    if (diagnostic is! Diagnostic) return;
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addDeletion(
@@ -242,7 +243,7 @@ abstract class _RemoveConst extends ParsedCorrectionProducer {
   }
 }
 
-extension on AnalysisError {
+extension on Diagnostic {
   int get end => offset + length;
 
   bool isWithin(AstNode node) {
@@ -258,7 +259,7 @@ extension on AstNode {
 
 extension on List<AstNode> {
   ({List<AstNode> nodesWithDiagnostic, List<AstNode> constNodes})
-  withErrorCodeIn(List<AnalysisError> diagnostics) {
+  withErrorCodeIn(List<Diagnostic> diagnostics) {
     if (diagnostics.isEmpty) {
       return (constNodes: toList(), nodesWithDiagnostic: const []);
     }
@@ -279,8 +280,8 @@ extension on List<AstNode> {
   }
 }
 
-extension on List<AnalysisError> {
-  List<AnalysisError> whereCodeIn(List<DiagnosticCode> codes) =>
+extension on List<Diagnostic> {
+  List<Diagnostic> whereCodeIn(List<DiagnosticCode> codes) =>
       where((c) => codes.contains(c.errorCode)).toList();
 }
 

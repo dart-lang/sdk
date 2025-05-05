@@ -7,7 +7,7 @@ import 'package:analysis_server_plugin/edit/fix/fix.dart';
 import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
 import 'package:analysis_server_plugin/src/correction/fix_processor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -16,15 +16,15 @@ import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/services/top_level_declarations.dart';
 
 class CiderErrorFixes {
-  final AnalysisError error;
+  final Diagnostic diagnostic;
 
-  /// The fixes for the [error], might be empty.
+  /// The fixes for the [diagnostic], might be empty.
   final List<Fix> fixes;
 
   final LineInfo lineInfo;
 
   CiderErrorFixes({
-    required this.error,
+    required this.diagnostic,
     required this.fixes,
     required this.lineInfo,
   });
@@ -61,7 +61,11 @@ class CiderFixesComputer {
           fixes.sort(Fix.compareFixes);
 
           result.add(
-            CiderErrorFixes(error: error, fixes: fixes, lineInfo: lineInfo),
+            CiderErrorFixes(
+              diagnostic: error,
+              fixes: fixes,
+              lineInfo: lineInfo,
+            ),
           );
         }
       }

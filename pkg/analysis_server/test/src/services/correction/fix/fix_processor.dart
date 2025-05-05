@@ -10,6 +10,7 @@ import 'package:analysis_server_plugin/src/correction/change_workspace.dart';
 import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
 import 'package:analysis_server_plugin/src/correction/fix_in_file_processor.dart';
 import 'package:analysis_server_plugin/src/correction/fix_processor.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
@@ -25,7 +26,7 @@ import '../../../../utils/test_instrumentation_service.dart';
 
 export 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 
-typedef ErrorFilter = bool Function(AnalysisError error);
+typedef ErrorFilter = bool Function(Diagnostic diagnostic);
 
 abstract class BaseFixProcessorTest extends AbstractSingleUnitTest {
   /// The source change associated with the fix that was found.
@@ -43,7 +44,7 @@ abstract class BaseFixProcessorTest extends AbstractSingleUnitTest {
   /// using the [errorFilter] to filter out errors that should be ignored, and
   /// expecting that there is a single remaining error. The error filter should
   /// return `true` if the error should not be ignored.
-  Future<AnalysisError> _findErrorToFix({ErrorFilter? errorFilter}) async {
+  Future<Diagnostic> _findErrorToFix({ErrorFilter? errorFilter}) async {
     var errors = testAnalysisResult.errors;
     if (errorFilter != null) {
       if (errors.length == 1) {
@@ -64,7 +65,7 @@ abstract class BaseFixProcessorTest extends AbstractSingleUnitTest {
     return errors[0];
   }
 
-  Future<AnalysisError> _findErrorToFixOfType(DiagnosticCode code) async {
+  Future<Diagnostic> _findErrorToFixOfType(DiagnosticCode code) async {
     var errors = testAnalysisResult.errors;
     for (var error in errors) {
       if (error.errorCode == code) {
@@ -271,9 +272,9 @@ abstract class FixInFileProcessorTest extends BaseFixProcessorTest {
     useLineEndingsForPlatform = true;
   }
 
-  /// Computes fixes for the given [error] in [testUnit].
+  /// Computes fixes for the given [diagnostic] in [testUnit].
   Future<List<Fix>> _computeFixes(
-    AnalysisError error, {
+    Diagnostic diagnostic, {
     Set<String>? alreadyCalculated,
   }) async {
     var libraryResult = testLibraryResult;
@@ -285,7 +286,7 @@ abstract class FixInFileProcessorTest extends BaseFixProcessorTest {
       workspace: await workspace,
       libraryResult: libraryResult,
       unitResult: testAnalysisResult,
-      error: error,
+      error: diagnostic,
     );
 
     var fixes =
@@ -472,7 +473,7 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
     useLineEndingsForPlatform = true;
   }
 
-  /// Computes fixes, verifies that there is a fix for the given [error] of
+  /// Computes fixes, verifies that there is a fix for the given [diagnostic] of
   /// the appropriate kind, and returns the fix.
   ///
   /// If a [matchFixMessage] is passed, then the kind as well as the fix message
@@ -481,13 +482,13 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
   /// If [expectedNumberOfFixesForKind] is non-null, then the number of fixes
   /// for [kind] is verified to be [expectedNumberOfFixesForKind].
   Future<Fix> _assertHasFix(
-    AnalysisError error, {
+    Diagnostic diagnostic, {
     int? expectedNumberOfFixesForKind,
     String? matchFixMessage,
     bool allowFixAllFixes = false,
   }) async {
     // Compute the fixes for this AnalysisError
-    var fixes = await _computeFixes(error);
+    var fixes = await _computeFixes(diagnostic);
 
     if (expectedNumberOfFixesForKind != null) {
       _assertNumberOfFixesForKind(fixes, expectedNumberOfFixesForKind);
@@ -518,7 +519,7 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
     for (var fix in fixes) {
       if (!allowFixAllFixes && fix.isFixAllFix()) {
         fail(
-          'A fix-all fix was found for the error: $error '
+          'A fix-all fix was found for the error: $diagnostic '
           'in the computed set of fixes:\n${fixes.join('\n')}',
         );
       } else if (fix.kind == kind) {
@@ -531,9 +532,9 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
     return foundFix;
   }
 
-  /// Computes fixes and verifies that there is a fix for the given [error] of
-  /// the appropriate kind.
-  Future<Fix> _assertHasFixAllFix(AnalysisError error) async {
+  /// Computes fixes and verifies that there is a fix for the given [diagnostic]
+  /// of the appropriate kind.
+  Future<Fix> _assertHasFixAllFix(Diagnostic diagnostic) async {
     if (!kind.canBeAppliedTogether()) {
       fail(
         'Expected to find and return fix-all FixKind for $kind, '
@@ -542,7 +543,7 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
     }
 
     // Compute the fixes for the error.
-    var fixes = await _computeFixes(error);
+    var fixes = await _computeFixes(diagnostic);
 
     // Assert that there exists such a fix in the list.
     Fix? foundFix;
@@ -554,7 +555,7 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
     }
     if (foundFix == null) {
       fail(
-        'No fix-all fix was found for the error: $error '
+        'No fix-all fix was found for the error: $diagnostic '
         'in the computed set of fixes:\n${fixes.join('\n')}',
       );
     }
@@ -562,22 +563,22 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
   }
 
   /// Computes fixes and verifies that there are [expectedNumberOfFixesForKind]
-  /// fixes for the given [error] of the appropriate kind, and that the messages
+  /// fixes for the given [diagnostic] of the appropriate kind, and that the messages
   /// of the fixes are equal to [matchFixMessages].
   Future<void> _assertHasFixes(
-    AnalysisError error, {
+    Diagnostic diagnostic, {
     required int expectedNumberOfFixesForKind,
     required List<String> matchFixMessages,
   }) async {
-    // Compute the fixes for this AnalysisError
-    var fixes = await _computeFixes(error);
+    // Compute the fixes for this Diagnostic.
+    var fixes = await _computeFixes(diagnostic);
     _assertNumberOfFixesForKind(fixes, expectedNumberOfFixesForKind);
     var actualFixMessages = [for (var fix in fixes) fix.change.message];
     expect(actualFixMessages, containsAllInOrder(matchFixMessages));
   }
 
-  Future<void> _assertNoFix(AnalysisError error) async {
-    var fixes = await _computeFixes(error);
+  Future<void> _assertNoFix(Diagnostic diagnostic) async {
+    var fixes = await _computeFixes(diagnostic);
     for (var fix in fixes) {
       if (fix.kind == kind) {
         fail('Unexpected fix $kind in\n${fixes.join('\n')}');
@@ -585,14 +586,14 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
     }
   }
 
-  Future<void> _assertNoFixAllFix(AnalysisError error) async {
+  Future<void> _assertNoFixAllFix(Diagnostic diagnostic) async {
     if (!kind.canBeAppliedTogether()) {
       fail(
         'Expected to find and return fix-all FixKind for $kind, '
         'but kind.canBeAppliedTogether is ${kind.canBeAppliedTogether}',
       );
     }
-    var fixes = await _computeFixes(error);
+    var fixes = await _computeFixes(diagnostic);
     for (var fix in fixes) {
       if (fix.kind == kind && fix.isFixAllFix()) {
         fail('Unexpected fix $kind in\n${fixes.join('\n')}');
@@ -614,8 +615,8 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
     }
   }
 
-  /// Computes fixes for the given [error] in [testUnit].
-  Future<List<Fix>> _computeFixes(AnalysisError error) async {
+  /// Computes fixes for the given [diagnostic] in [testUnit].
+  Future<List<Fix>> _computeFixes(Diagnostic diagnostic) async {
     var libraryResult = testLibraryResult;
     if (libraryResult == null) {
       return const [];
@@ -625,7 +626,7 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
       workspace: await workspace,
       libraryResult: libraryResult,
       unitResult: testAnalysisResult,
-      error: error,
+      error: diagnostic,
     );
     return await computeFixes(context);
   }

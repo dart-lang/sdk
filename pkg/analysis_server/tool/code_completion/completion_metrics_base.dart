@@ -9,7 +9,6 @@ import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/error/error.dart' as err;
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
@@ -160,7 +159,7 @@ abstract class CompletionMetricsComputer {
 
   /// Given some [ResolvedUnitResult] returns the first error of high severity
   /// if such an error exists, `null` otherwise.
-  static err.AnalysisError? getFirstErrorOrNull(
+  static Diagnostic? getFirstErrorOrNull(
     ResolvedUnitResult resolvedUnitResult,
   ) {
     for (var error in resolvedUnitResult.errors) {

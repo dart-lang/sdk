@@ -9,6 +9,7 @@ import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -67,7 +68,7 @@ class AddMissingRequiredArgument extends ResolvedCorrectionProducer {
     }
 
     var diagnostic = this.diagnostic;
-    if (diagnostic is! AnalysisError) {
+    if (diagnostic is! Diagnostic) {
       return;
     }
 
@@ -185,8 +186,8 @@ extension<T> on Iterable<T> {
   }
 }
 
-extension on AnalysisError {
-  bool sameRangeAs(AnalysisError other) {
+extension on Diagnostic {
+  bool sameRangeAs(Diagnostic other) {
     return offset == other.offset && length == other.length;
   }
 }

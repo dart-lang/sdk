@@ -9,6 +9,7 @@ import 'package:analysis_server/src/protocol_server.dart'
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart' as engine;
+import 'package:analyzer/diagnostic/diagnostic.dart' as engine;
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/source/line_info.dart' as engine;
@@ -325,7 +326,7 @@ class EnumTester<EngineEnum, ApiEnum> {
   }
 }
 
-class MockAnalysisError implements engine.AnalysisError {
+class MockAnalysisError implements engine.Diagnostic {
   final MockSource? _source;
   final engine.DiagnosticCode? _diagnosticCode;
   final int? _offset;
@@ -438,7 +439,7 @@ class _ResolvedUnitResultImplMock implements engine.ResolvedUnitResultImpl {
   final engine.LineInfo lineInfo;
 
   @override
-  final List<engine.AnalysisError> errors;
+  final List<engine.Diagnostic> errors;
 
   _ResolvedUnitResultImplMock({required this.lineInfo, required this.errors});
 
