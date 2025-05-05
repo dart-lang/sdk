@@ -172,26 +172,36 @@ lsp.WorkspaceEdit createPlainWorkspaceEdit(
   LspClientCapabilities clientCapabilities,
   List<server.SourceFileEdit> edits, {
   ChangeAnnotations annotateChanges = ChangeAnnotations.none,
+  String? filePath,
+  LineInfo? lineInfo,
 }) {
   return toWorkspaceEdit(
     annotateChanges: annotateChanges,
     clientCapabilities,
-    edits
-        .map(
-          (e) => FileEditInformation(
-            analysisServer.getVersionedDocumentIdentifier(e.file),
-            // If we expect to create the file, `server.getLineInfo()` won't
-            // provide a LineInfo so create one from empty contents.
-            e.fileStamp == -1
-                ? LineInfo.fromContent('')
-                : analysisServer.getLineInfo(e.file)!,
-            e.edits,
-            // `fileStamp == 1` is used by the server to indicate the file needs
-            // creating.
-            newFile: e.fileStamp == -1,
-          ),
-        )
-        .toList(),
+    edits.map((e) {
+      // If we don't expet to create the file use the passed line info if any
+      // and it matches the given file.
+      // If we expect to create the file, `server.getLineInfo()` won't
+      // provide a LineInfo so create one from empty contents.
+      LineInfo pickedLineInfo;
+      if (e.fileStamp == -1) {
+        pickedLineInfo = LineInfo.fromContent('');
+      } else {
+        if (filePath != null && lineInfo != null && filePath == e.file) {
+          pickedLineInfo = lineInfo;
+        } else {
+          pickedLineInfo = analysisServer.getLineInfo(e.file)!;
+        }
+      }
+      return FileEditInformation(
+        analysisServer.getVersionedDocumentIdentifier(e.file),
+        pickedLineInfo,
+        e.edits,
+        // `fileStamp == 1` is used by the server to indicate the file needs
+        // creating.
+        newFile: e.fileStamp == -1,
+      );
+    }).toList(),
   );
 }
 
@@ -263,6 +273,8 @@ lsp.WorkspaceEdit createWorkspaceEdit(
       clientCapabilities,
       change.edits,
       annotateChanges: annotateChanges,
+      filePath: filePath,
+      lineInfo: lineInfo,
     );
   }
 
