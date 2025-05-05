@@ -177,7 +177,7 @@ template("aot_snapshot") {
     output_prefix = "lib"
     output_extension = ""
 
-    if (current_os == "mac" || current_os == "ios") {
+    if (current_os == "mac" || current_os == "ios" || current_os == "watchos") {
       output_extension = "dylib"
     } else if (current_os == "win") {
       output_extension = "dll"
