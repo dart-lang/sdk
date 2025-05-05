@@ -302,10 +302,6 @@ abstract class FixInFileProcessorTest extends BaseFixProcessorTest {
 abstract class FixProcessorErrorCodeTest extends FixProcessorTest {
   /// The diagnostic code being tested.
   DiagnosticCode get diagnosticCode;
-
-  ErrorFilter get diagnosticCodeFilter => (AnalysisError e) {
-    return e.errorCode == diagnosticCode;
-  };
 }
 
 /// A base class defining support for writing fix processor tests that are

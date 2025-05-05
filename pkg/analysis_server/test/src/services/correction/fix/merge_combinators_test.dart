@@ -554,6 +554,10 @@ import 'other.dart' show FutureOr, Completer, Timer;
 }
 
 abstract class _MergeCombinatorTest extends FixProcessorErrorCodeTest {
+  bool diagnosticCodeFilter(AnalysisError e) {
+    return e.errorCode == diagnosticCode;
+  }
+
   @override
   void setUp() {
     super.setUp();
