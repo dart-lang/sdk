@@ -4481,16 +4481,31 @@ abstract class InstanceElementImpl2 extends ElementImpl2
 
   @override
   GetterElementImpl? getGetter2(String name) {
+    globalResultRequirements?.record_instanceElement_getGetter(
+      element: this,
+      name: name,
+    );
+
     return getters2.firstWhereOrNull((e) => e.name3 == name);
   }
 
   @override
   MethodElementImpl2? getMethod2(String name) {
+    globalResultRequirements?.record_instanceElement_getMethod(
+      element: this,
+      name: name,
+    );
+
     return methods2.firstWhereOrNull((e) => e.lookupName == name);
   }
 
   @override
   SetterElementImpl? getSetter2(String name) {
+    globalResultRequirements?.record_instanceElement_getSetter(
+      element: this,
+      name: name,
+    );
+
     return setters2.firstWhereOrNull((e) => e.name3 == name);
   }
 

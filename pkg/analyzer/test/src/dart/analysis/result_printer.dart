@@ -47,7 +47,8 @@ class BundleRequirementsPrinter {
     sink.writelnWithIndent('requirements');
     sink.withIndent(() {
       _writeTopLevels(requirements);
-      _writeInterfaces(requirements);
+      _writeInstanceItems(requirements);
+      _writeInterfaceItems(requirements);
       _writeExportRequirements(requirements);
     });
   }
@@ -83,7 +84,30 @@ class BundleRequirementsPrinter {
     });
   }
 
-  void _writeInterfaces(RequirementsManifest requirements) {
+  void _writeInstanceItems(RequirementsManifest requirements) {
+    var libEntries = requirements.instances.sorted;
+
+    libEntries.removeWhere((entry) {
+      var ignored = configuration.requirements.ignoredLibraries;
+      return ignored.contains(entry.key);
+    });
+
+    sink.writeElements('instances', libEntries, (libEntry) {
+      var interfaceEntries = libEntry.value.sorted;
+      sink.writeElements('${libEntry.key}', interfaceEntries, (instanceEntry) {
+        sink.writelnWithIndent(instanceEntry.key.asString);
+        sink.withIndent(() {
+          sink.writeElements(
+            'requestedMethods',
+            instanceEntry.value.requestedMethods.sorted,
+            _writeNamedId,
+          );
+        });
+      });
+    });
+  }
+
+  void _writeInterfaceItems(RequirementsManifest requirements) {
     var libEntries = requirements.interfaces.sorted;
 
     libEntries.removeWhere((entry) {
