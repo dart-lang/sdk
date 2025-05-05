@@ -68,8 +68,12 @@ class MirrorsReader extends MirrorsVisitor {
     errors.add(new ReadError(errorTag, exception, stackTrace));
   }
 
-  visitUnsupported(var receiver, String tag, UnsupportedError? exception,
-      StackTrace stackTrace) {
+  visitUnsupported(
+    var receiver,
+    String tag,
+    UnsupportedError? exception,
+    StackTrace stackTrace,
+  ) {
     if (verbose) print('visitUnsupported:$receiver.$tag:$exception');
     if (!expectUnsupported(receiver, tag, exception) &&
         !allowUnsupported(receiver, tag, exception)) {
@@ -79,13 +83,17 @@ class MirrorsReader extends MirrorsVisitor {
 
   /// Override to specify that access is expected to be unsupported.
   bool expectUnsupported(
-          var receiver, String tag, UnsupportedError? exception) =>
-      false;
+    var receiver,
+    String tag,
+    UnsupportedError? exception,
+  ) => false;
 
   /// Override to allow unsupported access.
   bool allowUnsupported(
-          var receiver, String tag, UnsupportedError? exception) =>
-      false;
+    var receiver,
+    String tag,
+    UnsupportedError? exception,
+  ) => false;
 
   /// Evaluates the function [f]. Subclasses can override this to handle
   /// specific exceptions.
@@ -150,8 +158,11 @@ class MirrorsReader extends MirrorsVisitor {
   visitClassMirror(ClassMirror mirror) {
     super.visitClassMirror(mirror);
     visit(mirror, 'declarations', () => mirror.declarations);
-    bool hasReflectedType =
-        visit(mirror, 'hasReflectedType', () => mirror.hasReflectedType);
+    bool hasReflectedType = visit(
+      mirror,
+      'hasReflectedType',
+      () => mirror.hasReflectedType,
+    );
     visit(mirror, 'instanceMembers', () => mirror.instanceMembers);
     visit(mirror, 'mixin', () => mirror.mixin);
     if (hasReflectedType) {
@@ -182,8 +193,11 @@ class MirrorsReader extends MirrorsVisitor {
 
   visitInstanceMirror(InstanceMirror mirror) {
     super.visitInstanceMirror(mirror);
-    bool hasReflectee =
-        visit(mirror, 'hasReflectee', () => mirror.hasReflectee);
+    bool hasReflectee = visit(
+      mirror,
+      'hasReflectee',
+      () => mirror.hasReflectee,
+    );
     if (hasReflectee) {
       visit(mirror, 'reflectee', () => mirror.reflectee);
     }
@@ -203,12 +217,18 @@ class MirrorsReader extends MirrorsVisitor {
     visit(mirror, 'isConstConstructor', () => mirror.isConstConstructor);
     visit(mirror, 'isConstructor', () => mirror.isConstructor);
     visit(mirror, 'isFactoryConstructor', () => mirror.isFactoryConstructor);
-    visit(mirror, 'isGenerativeConstructor',
-        () => mirror.isGenerativeConstructor);
+    visit(
+      mirror,
+      'isGenerativeConstructor',
+      () => mirror.isGenerativeConstructor,
+    );
     visit(mirror, 'isGetter', () => mirror.isGetter);
     visit(mirror, 'isOperator', () => mirror.isOperator);
-    visit(mirror, 'isRedirectingConstructor',
-        () => mirror.isRedirectingConstructor);
+    visit(
+      mirror,
+      'isRedirectingConstructor',
+      () => mirror.isRedirectingConstructor,
+    );
     visit(mirror, 'isRegularMethod', () => mirror.isRegularMethod);
     visit(mirror, 'isSetter', () => mirror.isSetter);
     visit(mirror, 'isStatic', () => mirror.isStatic);
@@ -220,8 +240,11 @@ class MirrorsReader extends MirrorsVisitor {
 
   visitParameterMirror(ParameterMirror mirror) {
     super.visitParameterMirror(mirror);
-    bool hasDefaultValue =
-        visit(mirror, 'hasDefaultValue', () => mirror.hasDefaultValue);
+    bool hasDefaultValue = visit(
+      mirror,
+      'hasDefaultValue',
+      () => mirror.hasDefaultValue,
+    );
     if (hasDefaultValue) {
       visit(mirror, 'defaultValue', () => mirror.defaultValue);
     }

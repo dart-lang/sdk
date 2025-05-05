@@ -24,11 +24,17 @@ class C<S, @metadata T> {
 // We only check for a suffix of the uri because the test might be run from
 // any number of absolute paths.
 expectLocation(
-    DeclarationMirror mirror, String uriSuffix, int line, int column) {
+  DeclarationMirror mirror,
+  String uriSuffix,
+  int line,
+  int column,
+) {
   SourceLocation location = mirror.location!;
   Uri uri = location.sourceUri;
   Expect.isTrue(
-      uri.toString().endsWith(uriSuffix), "Expected suffix $uriSuffix in $uri");
+    uri.toString().endsWith(uriSuffix),
+    "Expected suffix $uriSuffix in $uri",
+  );
   Expect.equals(line, location.line, "line");
   Expect.equals(column, location.column, "column");
 }
@@ -50,8 +56,16 @@ main() {
 
   // Libraries.
   expectLocation(reflectClass(C).owner!, mainSuffix, 5, 1);
-  expectLocation(reflectClass(ClassInLibraryWithoutDeclaration).owner!,
-      "library_without_declaration.dart", 1, 1);
-  expectLocation(reflectClass(ClassInLibraryWithAnnotatedDeclaration).owner!,
-      "library_with_annotated_declaration.dart", 5, 1);
+  expectLocation(
+    reflectClass(ClassInLibraryWithoutDeclaration).owner!,
+    "library_without_declaration.dart",
+    1,
+    1,
+  );
+  expectLocation(
+    reflectClass(ClassInLibraryWithAnnotatedDeclaration).owner!,
+    "library_with_annotated_declaration.dart",
+    5,
+    1,
+  );
 }

@@ -61,7 +61,8 @@ void main() {
   expect(RETURN_TYPES, returnTypes);
 }
 
-const String OPERATORS = '{'
+const String OPERATORS =
+    '{'
     '%: Method(s(%) in s(Foo)), '
     '&: Method(s(&) in s(Foo)), '
     '*: Method(s(*) in s(Foo)), '
@@ -92,7 +93,8 @@ const String INT = 'Class(s(int) in s(dart.core), top-level)';
 
 const String BOOL = 'Class(s(bool) in s(dart.core), top-level)';
 
-const String PARAMETERS = '{'
+const String PARAMETERS =
+    '{'
     '%: [Parameter(s(a) in s(%), type = $FOO)], '
     '&: [Parameter(s(a) in s(&), type = $FOO)], '
     '*: [Parameter(s(a) in s(*), type = $FOO)], '
@@ -116,7 +118,8 @@ const String PARAMETERS = '{'
     '~/: [Parameter(s(a) in s(~/), type = $FOO)]'
     '}';
 
-const String RETURN_TYPES = '{'
+const String RETURN_TYPES =
+    '{'
     '%: $FOO, '
     '&: $FOO, '
     '*: $FOO, '

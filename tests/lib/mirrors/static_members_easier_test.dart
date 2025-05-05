@@ -26,6 +26,8 @@ main() {
     #staticMethod,
   ], selectKeys(cm.staticMembers, (dm) => true));
 
-  Expect.setEquals([#staticVariable, const Symbol('staticVariable=')],
-      selectKeys(cm.staticMembers, (dynamic dm) => dm.isSynthetic));
+  Expect.setEquals([
+    #staticVariable,
+    const Symbol('staticVariable='),
+  ], selectKeys(cm.staticMembers, (dynamic dm) => dm.isSynthetic));
 }

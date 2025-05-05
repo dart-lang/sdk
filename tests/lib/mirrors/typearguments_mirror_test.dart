@@ -36,39 +36,53 @@ main() {
   var cm3 = reflect(new Bar<List<String>, Set<String>>()).type;
 
   expect(
-      '[Class(s(List) in s(dart.core), top-level),'
-      ' Class(s(Set) in s(dart.core), top-level)]',
-      cm.typeArguments);
+    '[Class(s(List) in s(dart.core), top-level),'
+    ' Class(s(Set) in s(dart.core), top-level)]',
+    cm.typeArguments,
+  );
   expect(
-      '[Class(s(List) in s(dart.core), top-level),'
-      ' Class(s(Set) in s(dart.core), top-level)]',
-      cm1.typeArguments);
+    '[Class(s(List) in s(dart.core), top-level),'
+    ' Class(s(Set) in s(dart.core), top-level)]',
+    cm1.typeArguments,
+  );
   expect(
-      '[Class(s(List) in s(dart.core), top-level),'
-      ' Class(s(Set) in s(dart.core), top-level)]',
-      cm2.typeArguments);
+    '[Class(s(List) in s(dart.core), top-level),'
+    ' Class(s(Set) in s(dart.core), top-level)]',
+    cm2.typeArguments,
+  );
   expect(
-      '[Class(s(List) in s(dart.core), top-level),'
-      ' Class(s(Set) in s(dart.core), top-level)]',
-      cm3.typeArguments);
+    '[Class(s(List) in s(dart.core), top-level),'
+    ' Class(s(Set) in s(dart.core), top-level)]',
+    cm3.typeArguments,
+  );
 
-  expect('[Class(s(String) in s(dart.core), top-level)]',
-      cm1.typeArguments[1].typeArguments);
-  expect('[Class(s(String) in s(dart.core), top-level)]',
-      cm2.typeArguments[0].typeArguments);
-  expect('[Class(s(String) in s(dart.core), top-level)]',
-      cm3.typeArguments[0].typeArguments);
-  expect('[Class(s(String) in s(dart.core), top-level)]',
-      cm3.typeArguments[1].typeArguments);
+  expect(
+    '[Class(s(String) in s(dart.core), top-level)]',
+    cm1.typeArguments[1].typeArguments,
+  );
+  expect(
+    '[Class(s(String) in s(dart.core), top-level)]',
+    cm2.typeArguments[0].typeArguments,
+  );
+  expect(
+    '[Class(s(String) in s(dart.core), top-level)]',
+    cm3.typeArguments[0].typeArguments,
+  );
+  expect(
+    '[Class(s(String) in s(dart.core), top-level)]',
+    cm3.typeArguments[1].typeArguments,
+  );
 
   var cm4 = reflect(new Bar<Bar<List, Set>, String>()).type;
 
   expect(
-      '[Class(s(Bar) in s(lib), top-level),'
-      ' Class(s(String) in s(dart.core), top-level)]',
-      cm4.typeArguments);
+    '[Class(s(Bar) in s(lib), top-level),'
+    ' Class(s(String) in s(dart.core), top-level)]',
+    cm4.typeArguments,
+  );
   expect(
-      '[Class(s(List) in s(dart.core), top-level), '
-      'Class(s(Set) in s(dart.core), top-level)]',
-      cm4.typeArguments[0].typeArguments);
+    '[Class(s(List) in s(dart.core), top-level), '
+    'Class(s(Set) in s(dart.core), top-level)]',
+    cm4.typeArguments[0].typeArguments,
+  );
 }

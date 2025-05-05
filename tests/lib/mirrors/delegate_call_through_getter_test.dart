@@ -19,9 +19,12 @@ class FakeFunctionNSM {
 class C {
   get fakeFunctionCall => new FakeFunctionCall();
   get fakeFunctionNSM => new FakeFunctionNSM();
-  get closure => (x, y) => '2 $this $x $y';
-  get closureOpt => (x, y, [z, w]) => '3 $this $x $y $z $w';
-  get closureNamed => (x, y, {z, w}) => '4 $this $x $y $z $w';
+  get closure =>
+      (x, y) => '2 $this $x $y';
+  get closureOpt =>
+      (x, y, [z, w]) => '3 $this $x $y $z $w';
+  get closureNamed =>
+      (x, y, {z, w}) => '4 $this $x $y $z $w';
   get notAClosure => 'Not a closure';
   noSuchMethod(msg) => 'DNU';
 

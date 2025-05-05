@@ -21,12 +21,15 @@ main() {
   MethodMirror foo1 = cm.declarations[#foo1] as MethodMirror;
   expect('Method(s(foo1) in s(C), abstract)', foo1);
   expect(
-      'Parameter(s(x) in s(foo1), optional, named, type = Class(s(int) in s(dart.core), top-level))',
-      foo1.parameters[0]);
+    'Parameter(s(x) in s(foo1), optional, named, type = Class(s(int) in s(dart.core), top-level))',
+    foo1.parameters[0],
+  );
   expect(
-      'Parameter(s(y) in s(foo1), optional, named, type = Class(s(int) in s(dart.core), top-level))',
-      foo1.parameters[1]);
+    'Parameter(s(y) in s(foo1), optional, named, type = Class(s(int) in s(dart.core), top-level))',
+    foo1.parameters[1],
+  );
   expect(
-      'Parameter(s(z) in s(foo1), optional, named, type = Class(s(int) in s(dart.core), top-level))',
-      foo1.parameters[2]);
+    'Parameter(s(z) in s(foo1), optional, named, type = Class(s(int) in s(dart.core), top-level))',
+    foo1.parameters[2],
+  );
 }

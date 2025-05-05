@@ -36,9 +36,10 @@ main() {
   Expect.equals(reflectClass(String), mm.returnType);
   pm = mm.parameters.single;
   expect(
-      'Parameter(s(instanceField) in s(instanceField=), final,'
-      ' type = Class(s(String) in s(dart.core), top-level))',
-      pm);
+    'Parameter(s(instanceField) in s(instanceField=), final,'
+    ' type = Class(s(String) in s(dart.core), top-level))',
+    pm,
+  );
 
   mm = cm.instanceMembers[#finalInstanceField] as MethodMirror;
   expect('Method(s(finalInstanceField) in s(C), synthetic, getter)', mm);
@@ -57,9 +58,10 @@ main() {
   Expect.equals(reflectClass(bool), mm.returnType);
   pm = mm.parameters.single;
   expect(
-      'Parameter(s(staticField) in s(staticField=), final,'
-      ' type = Class(s(bool) in s(dart.core), top-level))',
-      pm);
+    'Parameter(s(staticField) in s(staticField=), final,'
+    ' type = Class(s(bool) in s(dart.core), top-level))',
+    pm,
+  );
 
   mm = cm.staticMembers[#finalStaticField] as MethodMirror;
   expect('Method(s(finalStaticField) in s(C), synthetic, static, getter)', mm);
