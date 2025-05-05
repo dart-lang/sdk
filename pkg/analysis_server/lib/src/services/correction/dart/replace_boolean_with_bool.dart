@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -25,7 +25,7 @@ class ReplaceBooleanWithBool extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var analysisError = diagnostic;
-    if (analysisError is! AnalysisError) {
+    if (analysisError is! Diagnostic) {
       return;
     }
 

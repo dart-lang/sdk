@@ -7,7 +7,7 @@ import 'dart:math' as math;
 import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
@@ -24,7 +24,7 @@ class ImportOrganizer {
 
   final CompilationUnit unit;
 
-  final List<AnalysisError> errors;
+  final List<Diagnostic> errors;
 
   final bool removeUnused;
 

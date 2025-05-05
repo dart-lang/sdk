@@ -76,23 +76,23 @@ class ExpectedError {
     this.expectedContextMessages = const <ExpectedContextMessage>[],
   });
 
-  /// Return `true` if the [error] matches this description of what the state
-  /// of the [error] is expected to be.
-  bool matches(AnalysisError error) {
-    if (error.offset != offset ||
-        error.length != length ||
-        error.errorCode != code) {
+  /// Return `true` if the [diagnostic] matches this description of what the state
+  /// of the [diagnostic] is expected to be.
+  bool matches(Diagnostic diagnostic) {
+    if (diagnostic.offset != offset ||
+        diagnostic.length != length ||
+        diagnostic.errorCode != code) {
       return false;
     }
-    if (message != null && error.message != message) {
+    if (message != null && diagnostic.message != message) {
       return false;
     }
     var messageContains = this.messageContains;
     if (messageContains != null &&
-        error.message.contains(messageContains) != true) {
+        diagnostic.message.contains(messageContains) != true) {
       return false;
     }
-    var contextMessages = error.contextMessages.toList();
+    var contextMessages = diagnostic.contextMessages.toList();
     contextMessages.sort((first, second) {
       var result = first.filePath.compareTo(second.filePath);
       if (result != 0) {
@@ -120,7 +120,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
   final bool checkRanges;
 
   /// A list containing the errors that were collected.
-  final List<AnalysisError> _errors = <AnalysisError>[];
+  final List<Diagnostic> _errors = <Diagnostic>[];
 
   /// A table mapping sources to the line information for the source.
   final Map<Source, LineInfo> _lineInfoMap = <Source, LineInfo>{};
@@ -129,13 +129,13 @@ class GatheringErrorListener implements AnalysisErrorListener {
   GatheringErrorListener({this.checkRanges = true});
 
   /// Return the errors that were collected.
-  List<AnalysisError> get errors => _errors;
+  List<Diagnostic> get errors => _errors;
 
   /// Return `true` if at least one error has been gathered.
   bool get hasErrors => _errors.isNotEmpty;
 
   /// Add the given [errors] to this listener.
-  void addAll(List<AnalysisError> errors) {
+  void addAll(List<Diagnostic> errors) {
     for (var error in errors) {
       onError(error);
     }
@@ -269,10 +269,10 @@ class GatheringErrorListener implements AnalysisErrorListener {
     //
     // Compute the actual number of each type of error.
     //
-    var errorsByCode = <DiagnosticCode, List<AnalysisError>>{};
+    var errorsByCode = <DiagnosticCode, List<Diagnostic>>{};
     for (var error in _errors) {
       errorsByCode
-          .putIfAbsent(error.errorCode, () => <AnalysisError>[])
+          .putIfAbsent(error.errorCode, () => <Diagnostic>[])
           .add(error);
     }
     //
@@ -303,10 +303,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
     // Check that there are no more errors in the actual-errors map,
     // otherwise record message.
     //
-    errorsByCode.forEach((
-      DiagnosticCode code,
-      List<AnalysisError> actualErrors,
-    ) {
+    errorsByCode.forEach((code, actualErrors) {
       var actualCount = actualErrors.length;
       if (buffer.length == 0) {
         buffer.write('Expected ');
@@ -387,7 +384,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
   }
 
   @override
-  void onError(AnalysisError error) {
+  void onError(Diagnostic error) {
     _errors.add(error);
   }
 

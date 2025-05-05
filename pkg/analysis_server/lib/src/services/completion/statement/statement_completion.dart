@@ -15,7 +15,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/error/error.dart' as engine;
+import 'package:analyzer/diagnostic/diagnostic.dart' as engine;
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
@@ -146,7 +146,7 @@ class StatementCompletionProcessor {
   // have to test.
   StatementCompletion? completion;
   SourceChange change = SourceChange('statement-completion');
-  List<engine.AnalysisError> errors = [];
+  List<engine.Diagnostic> diagnostics = [];
   final Map<String, LinkedEditGroup> linkedPositionGroups =
       <String, LinkedEditGroup>{};
   Position? exitPosition;
@@ -190,14 +190,14 @@ class StatementCompletionProcessor {
     for (var error in statementContext.resolveResult.errors) {
       if (error.offset >= node.offset && error.offset <= node.end) {
         if (error.errorCode is! HintCode && error.errorCode is! WarningCode) {
-          errors.add(error);
+          diagnostics.add(error);
         }
       }
     }
 
     _checkExpressions(node);
     if (node is Statement) {
-      if (errors.isEmpty) {
+      if (diagnostics.isEmpty) {
         if (_complete_ifStatement(node) ||
             _complete_forStatement2(node) ||
             _complete_whileStatement(node) ||
@@ -219,7 +219,7 @@ class StatementCompletionProcessor {
         }
       }
     } else if (node is Declaration) {
-      if (errors.isNotEmpty) {
+      if (diagnostics.isNotEmpty) {
         if (_complete_classDeclaration(node) ||
             _complete_variableDeclaration(node) ||
             _complete_simpleSemicolon(node) ||
@@ -401,7 +401,7 @@ class StatementCompletionProcessor {
     if (node is! ClassDeclaration) {
       return false;
     }
-    if (node.leftBracket.isSynthetic && errors.length == 1) {
+    if (node.leftBracket.isSynthetic && diagnostics.length == 1) {
       // The space before the left brace is assumed to exist, even if it does not.
       var sb = SourceBuilder(file, node.end - 1);
       sb.append(' ');
@@ -434,7 +434,7 @@ class StatementCompletionProcessor {
     }
     var previousInsertions = _lengthOfInsertions();
     var delta = 0;
-    if (errors.isNotEmpty) {
+    if (diagnostics.isNotEmpty) {
       var error = _findError(
         ParserErrorCode.EXPECTED_TOKEN,
         partialMatch: "';'",
@@ -724,7 +724,7 @@ class StatementCompletionProcessor {
     } else if (body is Block) {
       if (body.rightBracket.end <= selectionOffset) {
         // emptyInitializersAfterBody
-        errors = []; // Ignore errors; they are for previous statement.
+        diagnostics = []; // Ignore errors; they are for previous statement.
         return false; // If cursor is after closing brace just add newline.
       }
     }
@@ -965,7 +965,7 @@ class StatementCompletionProcessor {
 
   bool _complete_simpleEnter() {
     int offset;
-    if (errors.isNotEmpty) {
+    if (diagnostics.isNotEmpty) {
       offset = selectionOffset;
     } else {
       var indent = utils.getLinePrefix(selectionOffset);
@@ -978,7 +978,7 @@ class StatementCompletionProcessor {
   }
 
   bool _complete_simpleSemicolon(AstNode node) {
-    if (errors.length != 1) {
+    if (diagnostics.length != 1) {
       return false;
     }
     var error = _findError(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "';'");
@@ -1170,11 +1170,8 @@ class StatementCompletionProcessor {
     );
   }
 
-  engine.AnalysisError? _findError(
-    DiagnosticCode code, {
-    Pattern? partialMatch,
-  }) {
-    return errors.firstWhereOrNull(
+  engine.Diagnostic? _findError(DiagnosticCode code, {Pattern? partialMatch}) {
+    return diagnostics.firstWhereOrNull(
       (err) =>
           err.errorCode == code &&
           (partialMatch == null ? true : err.message.contains(partialMatch)),
@@ -1279,7 +1276,7 @@ class StatementCompletionProcessor {
   void _removeError(DiagnosticCode diagnosticCode, {Pattern? partialMatch}) {
     var error = _findError(diagnosticCode, partialMatch: partialMatch);
     if (error != null) {
-      errors.remove(error);
+      diagnostics.remove(error);
     }
   }
 

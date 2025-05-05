@@ -15,6 +15,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -722,7 +723,7 @@ class ImportLibrary extends MultiCorrectionProducer {
   Future<Set<String>> _otherUnresolvedNames(String? prefix, String name) async {
     var errorsForThisFix = _codesWhereThisIsValid;
     var errors =
-        <AnalysisError, List<MultiProducerGenerator>>{}..addEntries(
+        <Diagnostic, List<MultiProducerGenerator>>{}..addEntries(
           unitResult.errors.map((error) {
             if (error == diagnostic) return null;
             var generators = errorsForThisFix[error.errorCode];

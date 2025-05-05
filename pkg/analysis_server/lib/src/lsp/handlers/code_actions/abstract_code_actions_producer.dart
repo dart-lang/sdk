@@ -13,7 +13,7 @@ import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/request_handler_mixin.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/session.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart' as engine;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/results.dart' as engine;
@@ -90,17 +90,17 @@ abstract class AbstractCodeActionsProducer
     );
   }
 
-  /// Create an LSP [Diagnostic] for [error].
+  /// Create an LSP [Diagnostic] for [diagnostic].
   @protected
   Diagnostic createDiagnostic(
     LineInfo lineInfo,
     engine.ErrorsResultImpl result,
-    AnalysisError error,
+    engine.Diagnostic diagnostic,
   ) {
     return pluginToDiagnostic(
       server.uriConverter,
       (_) => lineInfo,
-      protocol.newAnalysisError_fromEngine(result, error),
+      protocol.newAnalysisError_fromEngine(result, diagnostic),
       supportedTags: supportedDiagnosticTags,
       clientSupportsCodeDescription: supportsCodeDescription,
     );
@@ -157,7 +157,7 @@ abstract class AbstractCodeActionsProducer
   engine.ErrorsResultImpl createResult(
     AnalysisSession session,
     LineInfo lineInfo,
-    List<AnalysisError> errors,
+    List<engine.Diagnostic> diagnostics,
   ) {
     return engine.ErrorsResultImpl(
       session: session,
@@ -167,7 +167,7 @@ abstract class AbstractCodeActionsProducer
       lineInfo: lineInfo,
       isLibrary: true,
       isPart: false,
-      errors: errors,
+      errors: diagnostics,
       analysisOptions: analysisOptions,
     );
   }

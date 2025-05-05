@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/source.dart';
@@ -24,7 +25,7 @@ class LinterRuleOptionsValidatorTest {
 
   late ErrorReporter reporter;
 
-  List<AnalysisError> get errors => recorder.errors;
+  List<Diagnostic> get errors => recorder.errors;
 
   LinterRuleOptionsValidator get validator => LinterRuleOptionsValidator();
 
@@ -72,10 +73,7 @@ linter:
   void validate(String source, List<DiagnosticCode> expected) {
     var options = AnalysisOptionsProvider().getOptionsFromString(source);
     validator.validate(reporter, options);
-    expect(
-      errors.map((AnalysisError e) => e.errorCode),
-      unorderedEquals(expected),
-    );
+    expect(errors.map((e) => e.errorCode), unorderedEquals(expected));
   }
 }
 

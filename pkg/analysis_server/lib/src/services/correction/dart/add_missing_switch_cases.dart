@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/generated/exhaustiveness.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
@@ -28,7 +28,7 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
     var node = this.node;
 
     var diagnostic = this.diagnostic;
-    if (diagnostic is! AnalysisError) {
+    if (diagnostic is! Diagnostic) {
       return;
     }
 

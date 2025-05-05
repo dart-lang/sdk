@@ -10,7 +10,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.g.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
@@ -79,10 +79,10 @@ abstract class LegacyHandler {
   /// Handle the [request].
   Future<void> handle();
 
-  /// Return the number of syntactic errors in the list of [errors].
-  int numberOfSyntacticErrors(List<AnalysisError> errors) {
+  /// Return the number of syntactic errors in the list of [diagnostics].
+  int numberOfSyntacticErrors(List<Diagnostic> diagnostics) {
     var numScanParseErrors = 0;
-    for (var error in errors) {
+    for (var error in diagnostics) {
       if (error.errorCode is ScannerErrorCode ||
           error.errorCode is ParserErrorCode) {
         numScanParseErrors++;

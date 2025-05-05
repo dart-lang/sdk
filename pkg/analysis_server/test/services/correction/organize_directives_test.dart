@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/organize_imports.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
 import 'package:test/test.dart';
@@ -19,7 +19,7 @@ void main() {
 
 @reflectiveTest
 class OrganizeDirectivesTest extends AbstractSingleUnitTest {
-  late List<AnalysisError> testErrors;
+  late List<Diagnostic> testErrors;
 
   @override
   void setUp() {
