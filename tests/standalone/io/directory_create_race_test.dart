@@ -27,7 +27,7 @@ void testCreateRecursiveRace() {
     d.create(recursive: true),
     d.create(recursive: true),
     d.create(recursive: true),
-    d.create(recursive: true)
+    d.create(recursive: true),
   ]).then((_) {
     Expect.isTrue(new Directory('${temp.path}/a').existsSync());
     Expect.isTrue(new Directory('${temp.path}/a/b').existsSync());

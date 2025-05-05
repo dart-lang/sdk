@@ -16,7 +16,8 @@ main() {
   var localePattern = RegExp(r"([A-Za-z]{2,4}([_-][A-Za-z]{2})?)|(C\.)");
   var localeName = Platform.localeName;
   Expect.isNotNull(
-      localePattern.matchAsPrefix(localeName),
-      "Platform.localeName: ${localeName} does not match "
-      "${localePattern.pattern}");
+    localePattern.matchAsPrefix(localeName),
+    "Platform.localeName: ${localeName} does not match "
+    "${localePattern.pattern}",
+  );
 }

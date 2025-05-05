@@ -18,15 +18,18 @@ String localFile(path) => Platform.script.resolve(path).toFilePath();
 
 SecurityContext serverContext = new SecurityContext()
   ..useCertificateChain(localFile('certificates/server_chain.pem'))
-  ..usePrivateKey(localFile('certificates/server_key.pem'),
-      password: 'dartdart');
+  ..usePrivateKey(
+    localFile('certificates/server_key.pem'),
+    password: 'dartdart',
+  );
 
 SecurityContext clientContext = new SecurityContext()
   ..setTrustedCertificates(localFile('certificates/trusted_certs.pem'));
 
 // 10 KiB of i%256 data.
-Uint8List DATA =
-    new Uint8List.fromList(new List.generate(10 * 1024, (i) => i % 256));
+Uint8List DATA = new Uint8List.fromList(
+  new List.generate(10 * 1024, (i) => i % 256),
+);
 
 Future<SecureServerSocket> startServer() {
   return SecureServerSocket.bind("localhost", 0, serverContext).then((server) {
@@ -50,37 +53,44 @@ main() async {
       ..close();
   });
 
-  var socket = await RawSecureSocket.connect("localhost", server.port,
-      context: clientContext);
+  var socket = await RawSecureSocket.connect(
+    "localhost",
+    server.port,
+    context: clientContext,
+  );
   List<int> body = <int>[];
   // Close our end, since we're not sending data.
   socket.shutdown(SocketDirection.send);
 
-  socket.listen((RawSocketEvent event) {
-    switch (event) {
-      case RawSocketEvent.read:
-        // NOTE: We have a very low prime number here. The internal
-        // ring buffers will not have a size of 3. This means that
-        // we'll reach the point where we would like to read 1/2 bytes
-        // at the end and then wrap around and read the next 2/1 bytes.
-        // [This will ensure we trigger the bug.]
-        body.addAll(socket.read(3)!);
-        break;
-      case RawSocketEvent.write:
-        break;
-      case RawSocketEvent.readClosed:
-        break;
-      default:
-        throw "Unexpected event $event";
-    }
-  }, onError: (e, _) {
-    Expect.fail('Unexpected error: $e');
-  }, onDone: () {
-    Expect.equals(body.length, DATA.length);
-    for (int i = 0; i < body.length; i++) {
-      Expect.equals(body[i], DATA[i]);
-    }
-    server.close();
-    asyncEnd();
-  });
+  socket.listen(
+    (RawSocketEvent event) {
+      switch (event) {
+        case RawSocketEvent.read:
+          // NOTE: We have a very low prime number here. The internal
+          // ring buffers will not have a size of 3. This means that
+          // we'll reach the point where we would like to read 1/2 bytes
+          // at the end and then wrap around and read the next 2/1 bytes.
+          // [This will ensure we trigger the bug.]
+          body.addAll(socket.read(3)!);
+          break;
+        case RawSocketEvent.write:
+          break;
+        case RawSocketEvent.readClosed:
+          break;
+        default:
+          throw "Unexpected event $event";
+      }
+    },
+    onError: (e, _) {
+      Expect.fail('Unexpected error: $e');
+    },
+    onDone: () {
+      Expect.equals(body.length, DATA.length);
+      for (int i = 0; i < body.length; i++) {
+        Expect.equals(body[i], DATA[i]);
+      }
+      server.close();
+      asyncEnd();
+    },
+  );
 }

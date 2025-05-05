@@ -21,16 +21,22 @@ String getSessionId(List<Cookie> cookies) {
   return id!;
 }
 
-Future<String> connectGetSession(HttpClient client, int port,
-    [String? session]) {
-  return client.get("127.0.0.1", port, "/").then((request) {
-    if (session != null) {
-      request.cookies.add(new Cookie(SESSION_ID, session));
-    }
-    return request.close();
-  }).then((response) {
-    return response.fold(getSessionId(response.cookies), (v, _) => v);
-  });
+Future<String> connectGetSession(
+  HttpClient client,
+  int port, [
+  String? session,
+]) {
+  return client
+      .get("127.0.0.1", port, "/")
+      .then((request) {
+        if (session != null) {
+          request.cookies.add(new Cookie(SESSION_ID, session));
+        }
+        return request.close();
+      })
+      .then((response) {
+        return response.fold(getSessionId(response.cookies), (v, _) => v);
+      });
 }
 
 void testSessions(int sessionCount) {
@@ -44,15 +50,19 @@ void testSessions(int sessionCount) {
 
     var futures = <Future>[];
     for (int i = 0; i < sessionCount; i++) {
-      futures.add(connectGetSession(client, server.port).then((session) {
-        Expect.isNotNull(session);
-        Expect.isTrue(sessions.contains(session));
-        return connectGetSession(client, server.port, session).then((session2) {
-          Expect.equals(session2, session);
-          Expect.isTrue(sessions.contains(session2));
-          return session2;
-        });
-      }));
+      futures.add(
+        connectGetSession(client, server.port).then((session) {
+          Expect.isNotNull(session);
+          Expect.isTrue(sessions.contains(session));
+          return connectGetSession(client, server.port, session).then((
+            session2,
+          ) {
+            Expect.equals(session2, session);
+            Expect.isTrue(sessions.contains(session2));
+            return session2;
+          });
+        }),
+      );
     }
     Future.wait(futures).then((clientSessions) {
       Expect.equals(sessions.length, sessionCount);
@@ -85,11 +95,12 @@ void testTimeout(int sessionCount) {
       Future.wait(timeouts).then((_) {
         futures = <Future>[];
         for (var id in clientSessions) {
-          futures
-              .add(connectGetSession(client, server.port, id).then((session) {
-            Expect.isNotNull(session);
-            Expect.notEquals(id, session);
-          }));
+          futures.add(
+            connectGetSession(client, server.port, id).then((session) {
+              Expect.isNotNull(session);
+              Expect.notEquals(id, session);
+            }),
+          );
         }
         Future.wait(futures).then((_) {
           server.close();
@@ -127,23 +138,32 @@ void testSessionsData() {
         .get("127.0.0.1", server.port, "/")
         .then((request) => request.close())
         .then((response) {
-      response.listen((_) {}, onDone: () {
-        var id = getSessionId(response.cookies);
-        Expect.isNotNull(id);
-        client.get("127.0.0.1", server.port, "/").then((request) {
-          request.cookies.add(new Cookie(SESSION_ID, id));
-          return request.close();
-        }).then((response) {
-          response.listen((_) {}, onDone: () {
-            Expect.isTrue(firstHit);
-            Expect.isTrue(secondHit);
-            Expect.equals(id, getSessionId(response.cookies));
-            server.close();
-            client.close();
-          });
+          response.listen(
+            (_) {},
+            onDone: () {
+              var id = getSessionId(response.cookies);
+              Expect.isNotNull(id);
+              client
+                  .get("127.0.0.1", server.port, "/")
+                  .then((request) {
+                    request.cookies.add(new Cookie(SESSION_ID, id));
+                    return request.close();
+                  })
+                  .then((response) {
+                    response.listen(
+                      (_) {},
+                      onDone: () {
+                        Expect.isTrue(firstHit);
+                        Expect.isTrue(secondHit);
+                        Expect.equals(id, getSessionId(response.cookies));
+                        server.close();
+                        client.close();
+                      },
+                    );
+                  });
+            },
+          );
         });
-      });
-    });
   });
 }
 
@@ -170,22 +190,31 @@ void testSessionsDestroy() {
         .get("127.0.0.1", server.port, "/")
         .then((request) => request.close())
         .then((response) {
-      response.listen((_) {}, onDone: () {
-        var id = getSessionId(response.cookies);
-        Expect.isNotNull(id);
-        client.get("127.0.0.1", server.port, "/").then((request) {
-          request.cookies.add(new Cookie(SESSION_ID, id));
-          return request.close();
-        }).then((response) {
-          response.listen((_) {}, onDone: () {
-            Expect.isTrue(firstHit);
-            Expect.notEquals(id, getSessionId(response.cookies));
-            server.close();
-            client.close();
-          });
+          response.listen(
+            (_) {},
+            onDone: () {
+              var id = getSessionId(response.cookies);
+              Expect.isNotNull(id);
+              client
+                  .get("127.0.0.1", server.port, "/")
+                  .then((request) {
+                    request.cookies.add(new Cookie(SESSION_ID, id));
+                    return request.close();
+                  })
+                  .then((response) {
+                    response.listen(
+                      (_) {},
+                      onDone: () {
+                        Expect.isTrue(firstHit);
+                        Expect.notEquals(id, getSessionId(response.cookies));
+                        server.close();
+                        client.close();
+                      },
+                    );
+                  });
+            },
+          );
         });
-      });
-    });
   });
 }
 

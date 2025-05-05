@@ -7,8 +7,12 @@ import "dart:io";
 import "process_test_util.dart";
 
 test(args) {
-  var future = Process.start(Platform.executable,
-      []..addAll(Platform.executableArguments)..addAll(args));
+  var future = Process.start(
+    Platform.executable,
+    []
+      ..addAll(Platform.executableArguments)
+      ..addAll(args),
+  );
   future.then((process) {
     process.exitCode.then((exitCode) {
       Expect.equals(0, exitCode);
@@ -21,11 +25,13 @@ test(args) {
 
 main() {
   // Get the Dart script file which checks arguments.
-  var scriptFile =
-      new File("tests/standalone/io/process_check_arguments_script.dart");
+  var scriptFile = new File(
+    "tests/standalone/io/process_check_arguments_script.dart",
+  );
   if (!scriptFile.existsSync()) {
-    scriptFile =
-        new File("../tests/standalone/io/process_check_arguments_script.dart");
+    scriptFile = new File(
+      "../tests/standalone/io/process_check_arguments_script.dart",
+    );
   }
   test([scriptFile.path, '3', '0', 'a']);
   test([scriptFile.path, '3', '0', 'a b']);

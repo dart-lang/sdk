@@ -25,7 +25,8 @@ Future<void> testFormatException() async {
   final client = HttpClient()..userAgent = 'Bob’s browser';
   try {
     await asyncExpectThrows<FormatException>(
-        client.open("CONNECT", "127.0.0.1", server.port, "/"));
+      client.open("CONNECT", "127.0.0.1", server.port, "/"),
+    );
   } finally {
     client.close(force: true);
     server.close();

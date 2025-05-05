@@ -17,13 +17,47 @@ void testHostAndPort() {
         Expect.equals(clientSocket.remotePort, socket.port);
         Expect.equals(socket.remoteAddress.address, "::1");
         Expect.equals(socket.remoteAddress.type, InternetAddressType.IPv6);
-        Expect.listEquals(socket.remoteAddress.rawAddress,
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]);
+        Expect.listEquals(socket.remoteAddress.rawAddress, [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+        ]);
         Expect.equals(clientSocket.remoteAddress.address, "::1");
         Expect.equals(
-            clientSocket.remoteAddress.type, InternetAddressType.IPv6);
-        Expect.listEquals(clientSocket.remoteAddress.rawAddress,
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]);
+          clientSocket.remoteAddress.type,
+          InternetAddressType.IPv6,
+        );
+        Expect.listEquals(clientSocket.remoteAddress.rawAddress, [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+        ]);
         socket.destroy();
         clientSocket.destroy();
         server.close();
@@ -33,8 +67,24 @@ void testHostAndPort() {
 }
 
 Future<void> testRawAddress() async {
-  var list =
-      Uint8List.fromList([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]);
+  var list = Uint8List.fromList([
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+  ]);
   var addr = '::1';
   var address = InternetAddress.fromRawAddress(list);
   Expect.equals(address.address, addr);

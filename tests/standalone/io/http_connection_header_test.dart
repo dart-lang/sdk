@@ -15,19 +15,30 @@ void setConnectionHeaders(HttpHeaders headers) {
 }
 
 void checkExpectedConnectionHeaders(
-    HttpHeaders headers, bool persistentConnection) {
+  HttpHeaders headers,
+  bool persistentConnection,
+) {
   Expect.equals("some-value1", headers.value("My-Connection-Header1"));
   Expect.equals("some-value2", headers.value("My-Connection-Header2"));
-  Expect.isTrue(headers[HttpHeaders.connectionHeader]!
-      .any((value) => value.toLowerCase() == "my-connection-header1"));
-  Expect.isTrue(headers[HttpHeaders.connectionHeader]!
-      .any((value) => value.toLowerCase() == "my-connection-header2"));
+  Expect.isTrue(
+    headers[HttpHeaders.connectionHeader]!.any(
+      (value) => value.toLowerCase() == "my-connection-header1",
+    ),
+  );
+  Expect.isTrue(
+    headers[HttpHeaders.connectionHeader]!.any(
+      (value) => value.toLowerCase() == "my-connection-header2",
+    ),
+  );
   if (persistentConnection) {
     Expect.equals(2, headers[HttpHeaders.connectionHeader]!.length);
   } else {
     Expect.equals(3, headers[HttpHeaders.connectionHeader]!.length);
-    Expect.isTrue(headers[HttpHeaders.connectionHeader]!
-        .any((value) => value.toLowerCase() == "close"));
+    Expect.isTrue(
+      headers[HttpHeaders.connectionHeader]!.any(
+        (value) => value.toLowerCase() == "close",
+      ),
+    );
   }
 }
 
@@ -37,9 +48,13 @@ void test(int totalConnections, bool clientPersistentConnection) {
       // Check expected request.
       Expect.equals(clientPersistentConnection, request.persistentConnection);
       Expect.equals(
-          clientPersistentConnection, request.response.persistentConnection);
+        clientPersistentConnection,
+        request.response.persistentConnection,
+      );
       checkExpectedConnectionHeaders(
-          request.headers, request.persistentConnection);
+        request.headers,
+        request.persistentConnection,
+      );
 
       // Generate response. If the client signaled non-persistent
       // connection the server should not need to set it.
@@ -56,21 +71,27 @@ void test(int totalConnections, bool clientPersistentConnection) {
       client
           .get("127.0.0.1", server.port, "/")
           .then((HttpClientRequest request) {
-        setConnectionHeaders(request.headers);
-        request.persistentConnection = clientPersistentConnection;
-        return request.close();
-      }).then((HttpClientResponse response) {
-        Expect.isFalse(response.persistentConnection);
-        checkExpectedConnectionHeaders(
-            response.headers, response.persistentConnection);
-        response.listen((_) {}, onDone: () {
-          count++;
-          if (count == totalConnections) {
-            client.close();
-            server.close();
-          }
-        });
-      });
+            setConnectionHeaders(request.headers);
+            request.persistentConnection = clientPersistentConnection;
+            return request.close();
+          })
+          .then((HttpClientResponse response) {
+            Expect.isFalse(response.persistentConnection);
+            checkExpectedConnectionHeaders(
+              response.headers,
+              response.persistentConnection,
+            );
+            response.listen(
+              (_) {},
+              onDone: () {
+                count++;
+                if (count == totalConnections) {
+                  client.close();
+                  server.close();
+                }
+              },
+            );
+          });
     }
   });
 }

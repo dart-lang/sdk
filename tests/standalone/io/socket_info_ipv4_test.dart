@@ -17,9 +17,15 @@ void testHostAndPort() {
         Expect.listEquals(socket.remoteAddress.rawAddress, [127, 0, 0, 1]);
         Expect.equals(clientSocket.remoteAddress.address, "127.0.0.1");
         Expect.equals(
-            clientSocket.remoteAddress.type, InternetAddressType.IPv4);
-        Expect.listEquals(
-            clientSocket.remoteAddress.rawAddress, [127, 0, 0, 1]);
+          clientSocket.remoteAddress.type,
+          InternetAddressType.IPv4,
+        );
+        Expect.listEquals(clientSocket.remoteAddress.rawAddress, [
+          127,
+          0,
+          0,
+          1,
+        ]);
         socket.destroy();
         clientSocket.destroy();
         server.close();

@@ -43,21 +43,28 @@ void verifyEvents(List<FileSystemEvent> events, String anotherFilePath) {
   // [subdirPath] and then overwrite `anotherFilePath` with it.
   Expect.isTrue(events[0] is FileSystemCreateEvent);
   Expect.isTrue(
-      events[1] is FileSystemModifyEvent && events[1].path == events[0].path);
+    events[1] is FileSystemModifyEvent && events[1].path == events[0].path,
+  );
   Expect.isTrue(
-      events[2] is FileSystemModifyEvent && events[2].path == events[0].path);
-  Expect.isTrue(events[3] is FileSystemMoveEvent &&
-      events[3].path == events[0].path &&
-      (events[3] as FileSystemMoveEvent).destination == anotherFilePath);
+    events[2] is FileSystemModifyEvent && events[2].path == events[0].path,
+  );
+  Expect.isTrue(
+    events[3] is FileSystemMoveEvent &&
+        events[3].path == events[0].path &&
+        (events[3] as FileSystemMoveEvent).destination == anotherFilePath,
+  );
   // File(anotherFilePath).deleteSync();
   Expect.isTrue(
-      events[4] is FileSystemDeleteEvent && events[4].path == anotherFilePath);
+    events[4] is FileSystemDeleteEvent && events[4].path == anotherFilePath,
+  );
   // f.renameSync(anotherFilePath);
   Expect.isTrue(
-      events[5] is FileSystemCreateEvent && events[5].path == anotherFilePath);
+    events[5] is FileSystemCreateEvent && events[5].path == anotherFilePath,
+  );
   // File(anotherFilePath).deleteSync();
   Expect.isTrue(
-      events[6] is FileSystemDeleteEvent && events[6].path == anotherFilePath);
+    events[6] is FileSystemDeleteEvent && events[6].path == anotherFilePath,
+  );
 }
 
 // Convert `C:\x\y\z` to `\\localhost\C$\x\y\z`.

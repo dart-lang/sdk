@@ -18,9 +18,10 @@ class FutureExpect {
   static Future listEquals(expected, Future result) =>
       result.then((value) => Expect.listEquals(expected, value));
   static Future throws(Future result) => result.then((value) {
-        throw new ExpectException(
-            "FutureExpect.throws received $value instead of an exception");
-      }, onError: (_) => null);
+    throw new ExpectException(
+      "FutureExpect.throws received $value instead of an exception",
+    );
+  }, onError: (_) => null);
 }
 
 Future testFileExistsCreate() {
@@ -34,14 +35,30 @@ Future testFileExistsCreate() {
         .then((_) => FutureExpect.isFalse(new File(x).exists()))
         .then((_) => FutureExpect.isTrue(FileSystemEntity.isLink(y)))
         .then((_) => FutureExpect.isFalse(FileSystemEntity.isLink(x)))
-        .then((_) => FutureExpect.equals(
-            FileSystemEntityType.notFound, FileSystemEntity.type(y)))
-        .then((_) => FutureExpect.equals(
-            FileSystemEntityType.notFound, FileSystemEntity.type(x)))
-        .then((_) => FutureExpect.equals(FileSystemEntityType.link,
-            FileSystemEntity.type(y, followLinks: false)))
-        .then((_) => FutureExpect.equals(FileSystemEntityType.notFound,
-            FileSystemEntity.type(x, followLinks: false)))
+        .then(
+          (_) => FutureExpect.equals(
+            FileSystemEntityType.notFound,
+            FileSystemEntity.type(y),
+          ),
+        )
+        .then(
+          (_) => FutureExpect.equals(
+            FileSystemEntityType.notFound,
+            FileSystemEntity.type(x),
+          ),
+        )
+        .then(
+          (_) => FutureExpect.equals(
+            FileSystemEntityType.link,
+            FileSystemEntity.type(y, followLinks: false),
+          ),
+        )
+        .then(
+          (_) => FutureExpect.equals(
+            FileSystemEntityType.notFound,
+            FileSystemEntity.type(x, followLinks: false),
+          ),
+        )
         .then((_) => FutureExpect.equals(x, new Link(y).target()))
         .then((_) => new File(y).create())
         .then((yFile) => Expect.equals(y, yFile.path))
@@ -51,14 +68,30 @@ Future testFileExistsCreate() {
         .then((_) => FutureExpect.isFalse(FileSystemEntity.isLink(x)))
         .then((_) => FutureExpect.isTrue(FileSystemEntity.isFile(y)))
         .then((_) => FutureExpect.isTrue(FileSystemEntity.isFile(x)))
-        .then((_) => FutureExpect.equals(
-            FileSystemEntityType.file, FileSystemEntity.type(y)))
-        .then((_) => FutureExpect.equals(
-            FileSystemEntityType.file, FileSystemEntity.type(x)))
-        .then((_) => FutureExpect.equals(FileSystemEntityType.link,
-            FileSystemEntity.type(y, followLinks: false)))
-        .then((_) => FutureExpect.equals(FileSystemEntityType.file,
-            FileSystemEntity.type(x, followLinks: false)))
+        .then(
+          (_) => FutureExpect.equals(
+            FileSystemEntityType.file,
+            FileSystemEntity.type(y),
+          ),
+        )
+        .then(
+          (_) => FutureExpect.equals(
+            FileSystemEntityType.file,
+            FileSystemEntity.type(x),
+          ),
+        )
+        .then(
+          (_) => FutureExpect.equals(
+            FileSystemEntityType.link,
+            FileSystemEntity.type(y, followLinks: false),
+          ),
+        )
+        .then(
+          (_) => FutureExpect.equals(
+            FileSystemEntityType.file,
+            FileSystemEntity.type(x, followLinks: false),
+          ),
+        )
         .then((_) => FutureExpect.equals(x, new Link(y).target()))
         .then((_) => new File(x).delete())
         .then((xDeletedFile) => Expect.equals(x, xDeletedFile.path))
@@ -68,22 +101,46 @@ Future testFileExistsCreate() {
         .then((_) => FutureExpect.isFalse(FileSystemEntity.isLink(x)))
         .then((_) => FutureExpect.isTrue(FileSystemEntity.isDirectory(y)))
         .then((_) => FutureExpect.isTrue(FileSystemEntity.isDirectory(x)))
-        .then((_) => FutureExpect.equals(
-            FileSystemEntityType.directory, FileSystemEntity.type(y)))
-        .then((_) => FutureExpect.equals(
-            FileSystemEntityType.directory, FileSystemEntity.type(x)))
-        .then((_) => FutureExpect.equals(FileSystemEntityType.link,
-            FileSystemEntity.type(y, followLinks: false)))
-        .then((_) => FutureExpect.equals(FileSystemEntityType.directory,
-            FileSystemEntity.type(x, followLinks: false)))
+        .then(
+          (_) => FutureExpect.equals(
+            FileSystemEntityType.directory,
+            FileSystemEntity.type(y),
+          ),
+        )
+        .then(
+          (_) => FutureExpect.equals(
+            FileSystemEntityType.directory,
+            FileSystemEntity.type(x),
+          ),
+        )
+        .then(
+          (_) => FutureExpect.equals(
+            FileSystemEntityType.link,
+            FileSystemEntity.type(y, followLinks: false),
+          ),
+        )
+        .then(
+          (_) => FutureExpect.equals(
+            FileSystemEntityType.directory,
+            FileSystemEntity.type(x, followLinks: false),
+          ),
+        )
         .then((_) => FutureExpect.equals(x, new Link(y).target()))
         .then((_) => new Link(y).delete())
         .then((_) => FutureExpect.isFalse(FileSystemEntity.isLink(y)))
         .then((_) => FutureExpect.isFalse(FileSystemEntity.isLink(x)))
-        .then((_) => FutureExpect.equals(
-            FileSystemEntityType.notFound, FileSystemEntity.type(y)))
         .then(
-            (_) => FutureExpect.equals(FileSystemEntityType.directory, FileSystemEntity.type(x)))
+          (_) => FutureExpect.equals(
+            FileSystemEntityType.notFound,
+            FileSystemEntity.type(y),
+          ),
+        )
+        .then(
+          (_) => FutureExpect.equals(
+            FileSystemEntityType.directory,
+            FileSystemEntity.type(x),
+          ),
+        )
         .then((_) => FutureExpect.throws(new Link(y).target()))
         .then((_) => temp.delete(recursive: true));
   });
@@ -119,8 +176,10 @@ Future testFileWriteRead() {
     return new File(x)
         .create()
         .then((_) => new Link(y).create(x))
-        .then((_) =>
-            (new File(y).openWrite(mode: FileMode.write)..add(data)).close())
+        .then(
+          (_) =>
+              (new File(y).openWrite(mode: FileMode.write)..add(data)).close(),
+        )
         .then((_) => FutureExpect.listEquals(data, new File(y).readAsBytes()))
         .then((_) => FutureExpect.listEquals(data, new File(x).readAsBytes()))
         .then((_) => temp.delete(recursive: true));
@@ -142,9 +201,9 @@ Future testDirectoryExistsCreate() {
 
 Future testDirectoryDelete() {
   return Directory.systemTemp.createTemp('dart_file_system_async').then((temp) {
-    return Directory.systemTemp
-        .createTemp('dart_file_system_async')
-        .then((temp2) {
+    return Directory.systemTemp.createTemp('dart_file_system_async').then((
+      temp2,
+    ) {
       var y = '${temp.path}${Platform.pathSeparator}y';
       var x = '${temp2.path}${Platform.pathSeparator}x';
       var link = new Directory(y);
@@ -170,25 +229,30 @@ Future testDirectoryDelete() {
 
 Future testDirectoryListing() {
   return Directory.systemTemp.createTemp('dart_file_system_async').then((temp) {
-    return Directory.systemTemp
-        .createTemp('dart_file_system_async_links')
-        .then((temp2) {
-      var sep = Platform.pathSeparator;
-      var y = '${temp.path}${sep}y';
-      var x = '${temp2.path}${sep}x';
-      return new File(x)
-          .create()
-          .then((_) => new Link(y).create(temp2.path))
-          .then((_) =>
-              temp.list(recursive: true).singleWhere((entry) => entry is File))
-          .then((file) => Expect.isTrue(file.path.endsWith('$y${sep}x')))
-          .then((_) => temp
-              .list(recursive: true)
-              .singleWhere((entry) => entry is Directory))
-          .then((dir) => Expect.isTrue(dir.path.endsWith('y')))
-          .then((_) => temp.delete(recursive: true))
-          .then((_) => temp2.delete(recursive: true));
-    });
+    return Directory.systemTemp.createTemp('dart_file_system_async_links').then(
+      (temp2) {
+        var sep = Platform.pathSeparator;
+        var y = '${temp.path}${sep}y';
+        var x = '${temp2.path}${sep}x';
+        return new File(x)
+            .create()
+            .then((_) => new Link(y).create(temp2.path))
+            .then(
+              (_) => temp
+                  .list(recursive: true)
+                  .singleWhere((entry) => entry is File),
+            )
+            .then((file) => Expect.isTrue(file.path.endsWith('$y${sep}x')))
+            .then(
+              (_) => temp
+                  .list(recursive: true)
+                  .singleWhere((entry) => entry is Directory),
+            )
+            .then((dir) => Expect.isTrue(dir.path.endsWith('y')))
+            .then((_) => temp.delete(recursive: true))
+            .then((_) => temp2.delete(recursive: true));
+      },
+    );
   });
 }
 
@@ -202,18 +266,20 @@ Future testDirectoryListingBrokenLink() {
     return new File(x)
         .create()
         .then((_) => new Link(link).create(doesNotExist))
-        .then((_) => temp.list(recursive: true).forEach((entity) {
-              if (entity is File) {
-                Expect.isFalse(sawFile);
-                sawFile = true;
-                Expect.isTrue(entity.path.endsWith(x));
-              } else {
-                Expect.isTrue(entity is Link);
-                Expect.isFalse(sawLink);
-                sawLink = true;
-                Expect.isTrue(entity.path.endsWith(link));
-              }
-            }))
+        .then(
+          (_) => temp.list(recursive: true).forEach((entity) {
+            if (entity is File) {
+              Expect.isFalse(sawFile);
+              sawFile = true;
+              Expect.isTrue(entity.path.endsWith(x));
+            } else {
+              Expect.isTrue(entity is Link);
+              Expect.isFalse(sawLink);
+              sawLink = true;
+              Expect.isTrue(entity.path.endsWith(link));
+            }
+          }),
+        )
         .then((_) => temp.delete(recursive: true));
   });
 }

@@ -32,8 +32,10 @@ String localFile(path) => Platform.script.resolve(path).toFilePath();
 
 SecurityContext serverContext = new SecurityContext()
   ..useCertificateChain(localFile('certificates/server_chain.pem'))
-  ..usePrivateKey(localFile('certificates/server_key.pem'),
-      password: 'dartdart');
+  ..usePrivateKey(
+    localFile('certificates/server_key.pem'),
+    password: 'dartdart',
+  );
 
 SecurityContext clientContext = new SecurityContext()
   ..setTrustedCertificates(localFile('certificates/trusted_certs.pem'));
@@ -41,29 +43,32 @@ SecurityContext clientContext = new SecurityContext()
 Future<SecureServerSocket> startServer() {
   return SecureServerSocket.bind(HOST, 0, serverContext).then((server) {
     server.listen((SecureSocket client) {
-      client.fold<List<int>>(
-          <int>[], (message, data) => message..addAll(data)).then((message) {
-        String received = new String.fromCharCodes(message);
-        Expect.isTrue(received.contains("Hello from client "));
-        String name = received.substring(received.indexOf("client ") + 7);
-        client.write("Welcome, client $name");
-        client.close();
-      });
+      client
+          .fold<List<int>>(<int>[], (message, data) => message..addAll(data))
+          .then((message) {
+            String received = new String.fromCharCodes(message);
+            Expect.isTrue(received.contains("Hello from client "));
+            String name = received.substring(received.indexOf("client ") + 7);
+            client.write("Welcome, client $name");
+            client.close();
+          });
     });
     return server;
   });
 }
 
 Future testClient(server, name) {
-  return SecureSocket.connect(HOST, server.port, context: clientContext)
-      .then((socket) {
+  return SecureSocket.connect(HOST, server.port, context: clientContext).then((
+    socket,
+  ) {
     socket.write("Hello from client $name");
     socket.close();
-    return socket.fold<List<int>>(
-        <int>[], (message, data) => message..addAll(data)).then((message) {
-      Expect.listEquals("Welcome, client $name".codeUnits, message);
-      return server;
-    });
+    return socket
+        .fold<List<int>>(<int>[], (message, data) => message..addAll(data))
+        .then((message) {
+          Expect.listEquals("Welcome, client $name".codeUnits, message);
+          return server;
+        });
   });
 }
 
@@ -79,11 +84,16 @@ Future runTests() {
   Duration delay = const Duration(milliseconds: 0);
   Duration delay_between_connections = const Duration(milliseconds: 300);
   return startServer()
-      .then((server) => Future.wait(
-              ['able', 'baker', 'charlie', 'dozen', 'elapse'].map((name) {
+      .then(
+        (server) => Future.wait(
+          ['able', 'baker', 'charlie', 'dozen', 'elapse'].map((name) {
             delay += delay_between_connections;
-            return new Future.delayed(delay, () => server)
-                .then((server) => testClient(server, name));
-          })))
+            return new Future.delayed(
+              delay,
+              () => server,
+            ).then((server) => testClient(server, name));
+          }),
+        ),
+      )
       .then((servers) => servers.first.close());
 }

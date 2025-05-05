@@ -1684,7 +1684,8 @@ class FileTest {
   }
 
   static void testRename({required bool targetExists}) {
-    lift(Function f) => (futureValue) => futureValue.then((value) => f(value));
+    lift(Function f) =>
+        (futureValue) => futureValue.then((value) => f(value));
     asyncTestStarted();
 
     String source = join(tempDirectory.path, 'rename_${targetExists}_source');

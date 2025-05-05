@@ -60,8 +60,11 @@ main() async {
       var chunks = [];
       var backing = new Uint8List(chunkSize * chunkCount);
       for (var i = 0; i < chunkCount; i++) {
-        var chunk =
-            new Uint8List.view(backing.buffer, i * chunkSize, chunkSize);
+        var chunk = new Uint8List.view(
+          backing.buffer,
+          i * chunkSize,
+          chunkSize,
+        );
         chunks.add(chunk);
       }
       viewTime = await timeWrite(file, chunks);
@@ -73,8 +76,11 @@ main() async {
       var chunks = [];
       var backing = new Uint8List(chunkSize * chunkCount);
       for (var i = 0; i < chunkCount; i++) {
-        var chunk = new Uint8List.view(backing.buffer, i * chunkSize, chunkSize)
-            .asUnmodifiableView();
+        var chunk = new Uint8List.view(
+          backing.buffer,
+          i * chunkSize,
+          chunkSize,
+        ).asUnmodifiableView();
         chunks.add(chunk);
       }
       unmodifiableViewTime = await timeWrite(file, chunks);

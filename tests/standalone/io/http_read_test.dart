@@ -28,7 +28,7 @@ class IsolatedHttpServer {
         // Send chunked encoding message to the server.
         port.send([
           new IsolatedHttpServerCommand.chunkedEncoding(),
-          _statusPort.sendPort
+          _statusPort.sendPort,
         ]);
       }
 
@@ -47,8 +47,10 @@ class IsolatedHttpServer {
 
   void shutdown() {
     // Send server stop message to the server.
-    _serverPort
-        .send([new IsolatedHttpServerCommand.stop(), _statusPort.sendPort]);
+    _serverPort.send([
+      new IsolatedHttpServerCommand.stop(),
+      _statusPort.sendPort,
+    ]);
     _statusPort.close();
   }
 
@@ -173,29 +175,35 @@ void testRead(bool chunkedEncoding) {
     int count = 0;
     HttpClient httpClient = new HttpClient();
     void sendRequest() {
-      httpClient.post("127.0.0.1", port, "/echo").then((request) {
-        if (chunkedEncoding) {
-          request.write(data.substring(0, 10));
-          request.write(data.substring(10, data.length));
-        } else {
-          request.contentLength = data.length;
-          request.add(data.codeUnits);
-        }
-        return request.close();
-      }).then((response) {
-        Expect.equals(HttpStatus.ok, response.statusCode);
-        List<int> body = <int>[];
-        response.listen(body.addAll, onDone: () {
-          Expect.equals(data, new String.fromCharCodes(body));
-          count++;
-          if (count < kMessageCount) {
-            sendRequest();
-          } else {
-            httpClient.close();
-            server.shutdown();
-          }
-        });
-      });
+      httpClient
+          .post("127.0.0.1", port, "/echo")
+          .then((request) {
+            if (chunkedEncoding) {
+              request.write(data.substring(0, 10));
+              request.write(data.substring(10, data.length));
+            } else {
+              request.contentLength = data.length;
+              request.add(data.codeUnits);
+            }
+            return request.close();
+          })
+          .then((response) {
+            Expect.equals(HttpStatus.ok, response.statusCode);
+            List<int> body = <int>[];
+            response.listen(
+              body.addAll,
+              onDone: () {
+                Expect.equals(data, new String.fromCharCodes(body));
+                count++;
+                if (count < kMessageCount) {
+                  sendRequest();
+                } else {
+                  httpClient.close();
+                  server.shutdown();
+                }
+              },
+            );
+          });
     }
 
     sendRequest();

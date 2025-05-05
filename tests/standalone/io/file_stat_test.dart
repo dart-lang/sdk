@@ -44,9 +44,11 @@ void testStat() {
     Expect.equals(FileSystemEntityType.directory, directoryStatDirect.type);
     if (Platform.operatingSystem != 'windows') {
       Expect.isTrue(
-          directoryStat.modified.compareTo(directoryStat.accessed) < 0);
+        directoryStat.modified.compareTo(directoryStat.accessed) < 0,
+      );
       Expect.isTrue(
-          directoryStat.changed.compareTo(directoryStat.accessed) < 0);
+        directoryStat.changed.compareTo(directoryStat.accessed) < 0,
+      );
     }
     Expect.equals(7 << 6, directoryStat.mode & (7 << 6)); // Includes +urwx.
 
@@ -64,63 +66,87 @@ Future testStatAsync() {
   return Directory.systemTemp.createTemp('dart_file_stat').then((directory) {
     File file = new File(join(directory.path, "file"));
     return FileStat.stat(file.path)
-        .then((fileStat) =>
-            Expect.equals(FileSystemEntityType.notFound, fileStat.type))
+        .then(
+          (fileStat) =>
+              Expect.equals(FileSystemEntityType.notFound, fileStat.type),
+        )
         .then((_) => file.stat())
-        .then((fileStat) =>
-            Expect.equals(FileSystemEntityType.notFound, fileStat.type))
+        .then(
+          (fileStat) =>
+              Expect.equals(FileSystemEntityType.notFound, fileStat.type),
+        )
         .then((_) => file.writeAsString("Dart IO library test of FileStat"))
         .then((_) => new Future.delayed(const Duration(seconds: 2)))
         .then((_) => file.readAsString())
         .then((_) => directory.list().last)
         .then((_) => FileStat.stat(file.path))
         .then((FileStat fileStat) {
-      Expect.equals(FileSystemEntityType.file, fileStat.type);
-      Expect.equals(32, fileStat.size);
-      if (Platform.operatingSystem != 'windows') {
-        Expect.isTrue(fileStat.modified.compareTo(fileStat.accessed) < 0);
-        Expect.isTrue(fileStat.changed.compareTo(fileStat.accessed) < 0);
-      }
-      Expect.equals(6 << 6, fileStat.mode & (6 << 6)); // Mode includes +urw.
-      return file.stat();
-    }).then((FileStat fileStat) {
-      Expect.equals(FileSystemEntityType.file, fileStat.type);
-      Expect.equals(32, fileStat.size);
-      if (Platform.operatingSystem != 'windows') {
-        Expect.isTrue(fileStat.modified.compareTo(fileStat.accessed) < 0);
-        Expect.isTrue(fileStat.changed.compareTo(fileStat.accessed) < 0);
-      }
-      Expect.equals(6 << 6, fileStat.mode & (6 << 6)); // Mode includes +urw.
-      return FileStat.stat(directory.path);
-    }).then((FileStat directoryStat) {
-      Expect.equals(FileSystemEntityType.directory, directoryStat.type);
-      if (Platform.operatingSystem != 'windows') {
-        Expect.isTrue(
-            directoryStat.modified.compareTo(directoryStat.accessed) < 0);
-        Expect.isTrue(
-            directoryStat.changed.compareTo(directoryStat.accessed) < 0);
-      }
-      Expect.equals(7 << 6, directoryStat.mode & (7 << 6)); // Includes +urwx.
-      return directory.stat();
-    }).then((FileStat directoryStat) {
-      Expect.equals(FileSystemEntityType.directory, directoryStat.type);
-      if (Platform.operatingSystem != 'windows') {
-        Expect.isTrue(
-            directoryStat.modified.compareTo(directoryStat.accessed) < 0);
-        Expect.isTrue(
-            directoryStat.changed.compareTo(directoryStat.accessed) < 0);
-      }
-      Expect.equals(7 << 6, directoryStat.mode & (7 << 6)); // Includes +urwx.
-      return new Link(directory.path).stat();
-    }).then((FileStat linkStat) {
-      Expect.equals(FileSystemEntityType.directory, linkStat.type);
-      if (Platform.operatingSystem != 'windows') {
-        Expect.isTrue(linkStat.modified.compareTo(linkStat.accessed) < 0);
-        Expect.isTrue(linkStat.changed.compareTo(linkStat.accessed) < 0);
-      }
-      Expect.equals(7 << 6, linkStat.mode & (7 << 6)); // Includes +urwx.
-      return directory.delete(recursive: true);
-    });
+          Expect.equals(FileSystemEntityType.file, fileStat.type);
+          Expect.equals(32, fileStat.size);
+          if (Platform.operatingSystem != 'windows') {
+            Expect.isTrue(fileStat.modified.compareTo(fileStat.accessed) < 0);
+            Expect.isTrue(fileStat.changed.compareTo(fileStat.accessed) < 0);
+          }
+          Expect.equals(
+            6 << 6,
+            fileStat.mode & (6 << 6),
+          ); // Mode includes +urw.
+          return file.stat();
+        })
+        .then((FileStat fileStat) {
+          Expect.equals(FileSystemEntityType.file, fileStat.type);
+          Expect.equals(32, fileStat.size);
+          if (Platform.operatingSystem != 'windows') {
+            Expect.isTrue(fileStat.modified.compareTo(fileStat.accessed) < 0);
+            Expect.isTrue(fileStat.changed.compareTo(fileStat.accessed) < 0);
+          }
+          Expect.equals(
+            6 << 6,
+            fileStat.mode & (6 << 6),
+          ); // Mode includes +urw.
+          return FileStat.stat(directory.path);
+        })
+        .then((FileStat directoryStat) {
+          Expect.equals(FileSystemEntityType.directory, directoryStat.type);
+          if (Platform.operatingSystem != 'windows') {
+            Expect.isTrue(
+              directoryStat.modified.compareTo(directoryStat.accessed) < 0,
+            );
+            Expect.isTrue(
+              directoryStat.changed.compareTo(directoryStat.accessed) < 0,
+            );
+          }
+          Expect.equals(
+            7 << 6,
+            directoryStat.mode & (7 << 6),
+          ); // Includes +urwx.
+          return directory.stat();
+        })
+        .then((FileStat directoryStat) {
+          Expect.equals(FileSystemEntityType.directory, directoryStat.type);
+          if (Platform.operatingSystem != 'windows') {
+            Expect.isTrue(
+              directoryStat.modified.compareTo(directoryStat.accessed) < 0,
+            );
+            Expect.isTrue(
+              directoryStat.changed.compareTo(directoryStat.accessed) < 0,
+            );
+          }
+          Expect.equals(
+            7 << 6,
+            directoryStat.mode & (7 << 6),
+          ); // Includes +urwx.
+          return new Link(directory.path).stat();
+        })
+        .then((FileStat linkStat) {
+          Expect.equals(FileSystemEntityType.directory, linkStat.type);
+          if (Platform.operatingSystem != 'windows') {
+            Expect.isTrue(linkStat.modified.compareTo(linkStat.accessed) < 0);
+            Expect.isTrue(linkStat.changed.compareTo(linkStat.accessed) < 0);
+          }
+          Expect.equals(7 << 6, linkStat.mode & (7 << 6)); // Includes +urwx.
+          return directory.delete(recursive: true);
+        });
   });
 }
 
