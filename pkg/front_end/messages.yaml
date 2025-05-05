@@ -7468,3 +7468,10 @@ DotShorthandsUndefinedInvocation:
     void main() {
       C c = .foo();
     }
+
+ConstEvalNullAwareAccess:
+  problemMessage: "Null-aware property access can't be used in a constant expression."
+  analyzerCode: CONST_EVAL_NULL_AWARE_ACCESS
+  script: |
+    const String? s = null;
+    const c = s?.length;

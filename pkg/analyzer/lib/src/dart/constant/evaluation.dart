@@ -1289,6 +1289,13 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
         return prefixResult;
       }
 
+      if (node.isNullAware) {
+        return InvalidConstant.forEntity(
+          entity: node,
+          diagnosticCode: CompileTimeErrorCode.CONST_EVAL_NULL_AWARE_ACCESS,
+        );
+      }
+
       var propertyAccessResult = _evaluatePropertyAccess(
         prefixResult,
         node.propertyName,

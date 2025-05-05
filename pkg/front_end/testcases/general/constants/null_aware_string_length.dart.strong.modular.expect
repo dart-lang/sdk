@@ -1,0 +1,17 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/constants/null_aware_string_length.dart:6:17: Error: Null-aware property access can't be used in a constant expression.
+// const int? c = s?.length; // Error in the analyzer, no error in CFE
+//                 ^
+//
+import self as self;
+import "dart:core" as core;
+
+static const field core::String? s = #C1;
+static const field core::int? c = #C1;
+
+constants  {
+  #C1 = null
+}
