@@ -1167,7 +1167,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
 
 /// The encoding of an extension type declaration representation field.
 class RepresentationFieldEncoding implements FieldEncoding {
-  final FieldFragment _fragment;
+  final PrimaryConstructorFieldFragment _fragment;
 
   late Procedure _getter;
   DartType? _type;
@@ -1219,12 +1219,12 @@ class RepresentationFieldEncoding implements FieldEncoding {
         fileUri: _fragment.fileUri, reference: references.fieldGetterReference)
       ..stubKind = ProcedureStubKind.RepresentationField
       ..fileOffset = _fragment.nameOffset
-      ..fileEndOffset = _fragment.endOffset;
+      ..fileEndOffset = _fragment.nameOffset;
     nameScheme
         .getFieldMemberName(FieldNameType.RepresentationField, _fragment.name,
             isSynthesized: true)
         .attachMember(_getter);
-    _getter..isConst = _fragment.modifiers.isConst;
+    _getter..isConst = false;
     _getter
       ..isStatic = false
       ..isExtensionMember = false

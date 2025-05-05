@@ -1045,6 +1045,7 @@ void _checkAugmentation(
       case MethodFragment():
       case PrimaryConstructorFragment():
       case SetterFragment():
+      case PrimaryConstructorFieldFragment():
         if (fragmentName.inLibrary) {
           message = fragmentName.inPatch
               ? templateUnmatchedPatchLibraryMember
@@ -1102,6 +1103,7 @@ _PreBuilder _createPreBuilder(_FragmentName fragmentName) {
     case PrimaryConstructorFragment():
       return new _ConstructorPreBuilder(fragmentName);
     case FieldFragment():
+    case PrimaryConstructorFieldFragment():
       return new _PropertyPreBuilder.forField(fragmentName);
     case GetterFragment():
       return new _PropertyPreBuilder.forGetter(fragmentName);
@@ -1328,6 +1330,21 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
           inLibrary: declarationBuilder == null,
         );
         addFragment(fragmentName);
+      case PrimaryConstructorFieldFragment():
+        _FragmentName fragmentName = new _FragmentName(
+          _FragmentKind.Property,
+          fragment,
+          fileUri: fragment.fileUri,
+          name: fragment.name,
+          nameOffset: fragment.nameOffset,
+          nameLength: fragment.name.length,
+          isAugment: false,
+          propertyKind: _PropertyKind.FinalField,
+          isStatic: false,
+          inPatch: fragment.enclosingDeclaration.isPatch,
+          inLibrary: false,
+        );
+        addFragment(fragmentName);
       case GetterFragment():
         _FragmentName fragmentName = new _FragmentName(
           _FragmentKind.Property,
@@ -1437,6 +1454,17 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
             loader: loader,
             enclosingLibraryBuilder: enclosingLibraryBuilder,
             declarationBuilder: declarationBuilder,
+            unboundNominalParameters: unboundNominalParameters,
+            indexedLibrary: indexedLibrary,
+            containerType: containerType,
+            indexedContainer: indexedContainer,
+            containerName: containerName));
+      case PrimaryConstructorFieldFragment():
+        builders.add(_createPrimaryConstructorFieldBuilder(fragment,
+            problemReporting: problemReporting,
+            loader: loader,
+            enclosingLibraryBuilder: enclosingLibraryBuilder,
+            declarationBuilder: declarationBuilder!,
             unboundNominalParameters: unboundNominalParameters,
             indexedLibrary: indexedLibrary,
             containerType: containerType,
@@ -1768,7 +1796,7 @@ abstract class DeclarationFragmentImpl implements DeclarationFragment {
 
   DeclarationBuilder get builder;
 
-  void addPrimaryConstructorField(FieldFragment fragment) {
+  void addPrimaryConstructorField(PrimaryConstructorFieldFragment fragment) {
     throw new UnsupportedError(
         "Unexpected primary constructor field in $this.");
   }
@@ -2398,9 +2426,9 @@ _AddBuilder _createExtensionTypeBuilder(ExtensionTypeFragment fragment,
     required IndexedLibrary? indexedLibrary}) {
   IndexedContainer? indexedContainer =
       indexedLibrary?.lookupIndexedExtensionTypeDeclaration(fragment.name);
-  List<FieldFragment> primaryConstructorFields =
+  List<PrimaryConstructorFieldFragment> primaryConstructorFields =
       fragment.primaryConstructorFields;
-  FieldFragment? representationFieldFragment;
+  PrimaryConstructorFieldFragment? representationFieldFragment;
   if (primaryConstructorFields.isNotEmpty) {
     representationFieldFragment = primaryConstructorFields.first;
   }
@@ -2468,7 +2496,7 @@ _AddBuilder _createFieldBuilder(FieldFragment fragment,
       fieldIsLateWithLowering: fieldIsLateWithLowering,
       isExternal: fragment.modifiers.isExternal);
 
-  FieldDeclarationImpl declaration = new FieldDeclarationImpl(fragment);
+  RegularFieldDeclaration declaration = new RegularFieldDeclaration(fragment);
   SourcePropertyBuilder propertyBuilder = new SourcePropertyBuilder.forField(
       fileUri: fragment.fileUri,
       fileOffset: fragment.nameOffset,
@@ -2494,6 +2522,62 @@ _AddBuilder _createFieldBuilder(FieldFragment fragment,
       fragment.name, propertyBuilder, fragment.fileUri, fragment.nameOffset,
       inPatch: fragment.enclosingDeclaration?.isPatch ??
           fragment.enclosingCompilationUnit.isPatch);
+}
+
+_AddBuilder _createPrimaryConstructorFieldBuilder(
+    PrimaryConstructorFieldFragment fragment,
+    {required ProblemReporting problemReporting,
+    required SourceLoader loader,
+    required SourceLibraryBuilder enclosingLibraryBuilder,
+    required DeclarationBuilder declarationBuilder,
+    required List<NominalParameterBuilder> unboundNominalParameters,
+    required IndexedLibrary? indexedLibrary,
+    required ContainerType containerType,
+    required IndexedContainer? indexedContainer,
+    required ContainerName? containerName}) {
+  String name = fragment.name;
+
+  final bool isInstanceMember = true;
+
+  PropertyEncodingStrategy propertyEncodingStrategy =
+      new PropertyEncodingStrategy(declarationBuilder,
+          isInstanceMember: isInstanceMember);
+
+  NameScheme nameScheme = new NameScheme(
+      isInstanceMember: isInstanceMember,
+      containerName: containerName,
+      containerType: containerType,
+      libraryName: indexedLibrary != null
+          ? new LibraryName(indexedLibrary.reference)
+          : enclosingLibraryBuilder.libraryName);
+  indexedContainer ??= indexedLibrary;
+
+  FieldReference references = new FieldReference(
+      name, nameScheme, indexedContainer,
+      fieldIsLateWithLowering: false, isExternal: false);
+
+  PrimaryConstructorFieldDeclaration declaration =
+      new PrimaryConstructorFieldDeclaration(fragment);
+  SourcePropertyBuilder propertyBuilder = new SourcePropertyBuilder.forField(
+      fileUri: fragment.fileUri,
+      fileOffset: fragment.nameOffset,
+      name: name,
+      libraryBuilder: enclosingLibraryBuilder,
+      declarationBuilder: declarationBuilder,
+      nameScheme: nameScheme,
+      fieldDeclaration: declaration,
+      getterDeclaration: declaration,
+      setterDeclaration: null,
+      modifiers: Modifiers.Final,
+      references: references);
+  fragment.builder = propertyBuilder;
+  declaration.createEncoding(propertyBuilder);
+  declaration.createGetterEncoding(problemReporting, propertyBuilder,
+      propertyEncodingStrategy, unboundNominalParameters);
+  references.registerReference(loader, propertyBuilder);
+  return new _AddBuilder(
+      fragment.name, propertyBuilder, fragment.fileUri, fragment.nameOffset,
+      inPatch: fragment.enclosingDeclaration.isPatch);
 }
 
 _AddBuilder _createGetterBuilder(

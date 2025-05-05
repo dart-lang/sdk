@@ -5,17 +5,36 @@
 part of '../fragment.dart';
 
 class FieldFragmentBodyBuilderContext extends BodyBuilderContext {
+  final SourcePropertyBuilder _builder;
   final FieldFragmentDeclaration _declaration;
-  final FieldFragment _fragment;
 
-  FieldFragmentBodyBuilderContext(
-      this._declaration,
-      this._fragment,
-      SourceLibraryBuilder libraryBuilder,
-      DeclarationBuilder? declarationBuilder,
-      {required bool isDeclarationInstanceMember})
-      : super(libraryBuilder, declarationBuilder,
-            isDeclarationInstanceMember: isDeclarationInstanceMember);
+  @override
+  final bool isLateField;
+
+  @override
+  final bool isAbstractField;
+
+  @override
+  final bool isExternalField;
+
+  final int _nameOffset;
+
+  final int _nameLength;
+
+  final bool _isConst;
+
+  FieldFragmentBodyBuilderContext(this._builder, this._declaration,
+      {required this.isLateField,
+      required this.isAbstractField,
+      required this.isExternalField,
+      required int nameOffset,
+      required int nameLength,
+      required bool isConst})
+      : this._nameOffset = nameOffset,
+        this._nameLength = nameLength,
+        this._isConst = isConst,
+        super(_builder.libraryBuilder, _builder.declarationBuilder,
+            isDeclarationInstanceMember: _builder.isDeclarationInstanceMember);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -26,25 +45,16 @@ class FieldFragmentBodyBuilderContext extends BodyBuilderContext {
   }
 
   @override
-  bool get isLateField => _fragment.modifiers.isLate;
-
-  @override
-  bool get isAbstractField => _fragment.modifiers.isAbstract;
-
-  @override
-  bool get isExternalField => _fragment.modifiers.isExternal;
+  // Coverage-ignore(suite): Not run.
+  int get memberNameOffset => _nameOffset;
 
   @override
   // Coverage-ignore(suite): Not run.
-  int get memberNameOffset => _fragment.nameOffset;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  int get memberNameLength => _fragment.name.length;
+  int get memberNameLength => _nameLength;
 
   @override
   InstanceTypeParameterAccessState get instanceTypeParameterAccessState {
-    if (_fragment.builder.isExtensionMember && !isExternalField) {
+    if (_builder.isExtensionMember && !isExternalField) {
       return InstanceTypeParameterAccessState.Invalid;
     } else {
       return super.instanceTypeParameterAccessState;
@@ -59,15 +69,15 @@ class FieldFragmentBodyBuilderContext extends BodyBuilderContext {
   @override
   // Coverage-ignore(suite): Not run.
   AugmentSuperTarget? get augmentSuperTarget {
-    if (_fragment.builder.isAugmentation) {
-      return _fragment.builder.augmentSuperTarget;
+    if (_builder.isAugmentation) {
+      return _builder.augmentSuperTarget;
     }
     return null;
   }
 
   @override
   ConstantContext get constantContext {
-    return _fragment.modifiers.isConst
+    return _isConst
         ? ConstantContext.inferred
         : !_declaration.isStatic && declarationDeclaresConstConstructor
             ? ConstantContext.required
