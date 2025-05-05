@@ -26,6 +26,7 @@ import '../api_prototype/experimental_flags.dart';
 import '../base/combinator.dart' show CombinatorBuilder;
 import '../base/export.dart' show Export;
 import '../base/import.dart' show Import;
+import '../base/lookup_result.dart';
 import '../base/messages.dart';
 import '../base/name_space.dart';
 import '../base/problems.dart' show unexpected, unhandled;
@@ -745,19 +746,19 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void becomeCoreLibrary() {
     assert(checkState(required: [SourceLibraryBuilderState.nameSpaceBuilt]));
 
-    if (libraryNameSpace.lookupLocalMember("dynamic", setter: false) == null) {
+    if (libraryNameSpace.lookupLocalMember("dynamic")?.getable == null) {
       libraryNameSpace.addLocalMember("dynamic",
           new DynamicTypeDeclarationBuilder(const DynamicType(), this, -1),
           setter: false);
     }
-    if (libraryNameSpace.lookupLocalMember("Never", setter: false) == null) {
+    if (libraryNameSpace.lookupLocalMember("Never")?.getable == null) {
       libraryNameSpace.addLocalMember(
           "Never",
           new NeverTypeDeclarationBuilder(
               const NeverType.nonNullable(), this, -1),
           setter: false);
     }
-    assert(libraryNameSpace.lookupLocalMember("Null", setter: false) != null,
+    assert(libraryNameSpace.lookupLocalMember("Null")?.getable != null,
         "No class 'Null' found in dart:core.");
   }
 

@@ -23,9 +23,6 @@ class FieldFragment implements Fragment {
 
   final bool isTopLevel;
   final Modifiers modifiers;
-  // TODO(johnniwinther): Create separate fragment for primary constructor
-  // fields.
-  final bool isPrimaryConstructorField;
 
   final LookupScope enclosingScope;
 
@@ -46,7 +43,6 @@ class FieldFragment implements Fragment {
     required this.type,
     required this.isTopLevel,
     required this.modifiers,
-    required this.isPrimaryConstructorField,
     required this.enclosingScope,
     required this.enclosingDeclaration,
     required this.enclosingCompilationUnit,

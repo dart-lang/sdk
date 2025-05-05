@@ -34,15 +34,18 @@ main() {
   TypedefMirror transformOfR =
       (reflectClass(C).declarations[#transformOfR] as VariableMirror).type
           as TypedefMirror;
-  TypedefMirror transformOfDouble = (reflect(new C<double>())
-          .type
-          .declarations[#transformOfR] as VariableMirror)
-      .type as TypedefMirror;
+  TypedefMirror transformOfDouble =
+      (reflect(new C<double>()).type.declarations[#transformOfR]
+                  as VariableMirror)
+              .type
+          as TypedefMirror;
 
-  TypeVariableMirror tFromGenericPredicate =
-      reflectTypeDeclaration(GenericPredicate).typeVariables[0];
-  TypeVariableMirror sFromGenericTransform =
-      reflectTypeDeclaration(GenericTransform).typeVariables[0];
+  TypeVariableMirror tFromGenericPredicate = reflectTypeDeclaration(
+    GenericPredicate,
+  ).typeVariables[0];
+  TypeVariableMirror sFromGenericTransform = reflectTypeDeclaration(
+    GenericTransform,
+  ).typeVariables[0];
   TypeVariableMirror rFromC = reflectClass(C).typeVariables[0];
 
   // Typedefs.
@@ -63,7 +66,8 @@ main() {
   typeArguments(transformOfDouble, [reflectClass(double)]);
 
   Expect.isTrue(
-      reflectTypeDeclaration(NonGenericPredicate).isOriginalDeclaration);
+    reflectTypeDeclaration(NonGenericPredicate).isOriginalDeclaration,
+  );
   Expect.isTrue(reflectTypeDeclaration(GenericPredicate).isOriginalDeclaration);
   Expect.isTrue(reflectTypeDeclaration(GenericTransform).isOriginalDeclaration);
   Expect.isFalse(predicateOfNum.isOriginalDeclaration);
@@ -89,38 +93,56 @@ main() {
   typeArguments(transformOfDouble.referent, []);
 
   // Function types are always non-generic. Only the typedef is generic.
-  Expect.isTrue(reflectTypeDeclaration(NonGenericPredicate)
-      .referent
-      .isOriginalDeclaration);
   Expect.isTrue(
-      reflectTypeDeclaration(GenericPredicate).referent.isOriginalDeclaration);
+    reflectTypeDeclaration(NonGenericPredicate).referent.isOriginalDeclaration,
+  );
   Expect.isTrue(
-      reflectTypeDeclaration(GenericTransform).referent.isOriginalDeclaration);
+    reflectTypeDeclaration(GenericPredicate).referent.isOriginalDeclaration,
+  );
+  Expect.isTrue(
+    reflectTypeDeclaration(GenericTransform).referent.isOriginalDeclaration,
+  );
   Expect.isTrue(predicateOfNum.referent.isOriginalDeclaration);
   Expect.isTrue(transformOfString.referent.isOriginalDeclaration);
   Expect.isTrue(transformOfR.referent.isOriginalDeclaration);
   Expect.isTrue(transformOfDouble.referent.isOriginalDeclaration);
 
-  Expect.equals(reflectClass(num),
-      reflectTypeDeclaration(NonGenericPredicate).referent.parameters[0].type);
-  Expect.equals(tFromGenericPredicate,
-      reflectTypeDeclaration(GenericPredicate).referent.parameters[0].type);
-  Expect.equals(sFromGenericTransform,
-      reflectTypeDeclaration(GenericTransform).referent.parameters[0].type);
+  Expect.equals(
+    reflectClass(num),
+    reflectTypeDeclaration(NonGenericPredicate).referent.parameters[0].type,
+  );
+  Expect.equals(
+    tFromGenericPredicate,
+    reflectTypeDeclaration(GenericPredicate).referent.parameters[0].type,
+  );
+  Expect.equals(
+    sFromGenericTransform,
+    reflectTypeDeclaration(GenericTransform).referent.parameters[0].type,
+  );
 
   Expect.equals(reflectClass(num), predicateOfNum.referent.parameters[0].type);
   Expect.equals(
-      reflectClass(String), transformOfString.referent.parameters[0].type);
+    reflectClass(String),
+    transformOfString.referent.parameters[0].type,
+  );
   Expect.equals(rFromC, transformOfR.referent.parameters[0].type);
   Expect.equals(
-      reflectClass(double), transformOfDouble.referent.parameters[0].type);
+    reflectClass(double),
+    transformOfDouble.referent.parameters[0].type,
+  );
 
-  Expect.equals(reflectClass(bool),
-      reflectTypeDeclaration(NonGenericPredicate).referent.returnType);
-  Expect.equals(reflectClass(bool),
-      reflectTypeDeclaration(GenericPredicate).referent.returnType);
-  Expect.equals(sFromGenericTransform,
-      reflectTypeDeclaration(GenericTransform).referent.returnType);
+  Expect.equals(
+    reflectClass(bool),
+    reflectTypeDeclaration(NonGenericPredicate).referent.returnType,
+  );
+  Expect.equals(
+    reflectClass(bool),
+    reflectTypeDeclaration(GenericPredicate).referent.returnType,
+  );
+  Expect.equals(
+    sFromGenericTransform,
+    reflectTypeDeclaration(GenericTransform).referent.returnType,
+  );
   Expect.equals(reflectClass(bool), predicateOfNum.referent.returnType);
   Expect.equals(reflectClass(String), transformOfString.referent.returnType);
   Expect.equals(rFromC, transformOfR.referent.returnType);

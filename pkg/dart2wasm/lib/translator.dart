@@ -1803,7 +1803,7 @@ class Translator with KernelNodes {
       return false;
     }
 
-    if (!options.requireJsStringBuiltin || hasUnpairedSurrogate(s)) {
+    if (hasUnpairedSurrogate(s)) {
       // Unpaired surrogates can't be encoded as UTF-8, import them from JS
       // runtime.
       final i = internalizedStringsForJSRuntime.length;

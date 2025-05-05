@@ -134,6 +134,8 @@ import 'create_no_such_method_test.dart' as create_no_such_method;
 import 'create_parameter_test.dart' as create_parameter;
 import 'create_setter_test.dart' as create_setter;
 import 'data_driven/test_all.dart' as data_driven;
+import 'deduplicating_still_offers_several_all_in_file_options_test.dart'
+    as deduplicating_still_offers_several_all_in_file_options;
 import 'directives_ordering_test.dart' as directives_ordering;
 import 'extend_class_for_mixin_test.dart' as extend_class_for_mixin;
 import 'extract_local_variable_test.dart' as extract_local_variable;
@@ -428,6 +430,7 @@ void main() {
     create_no_such_method.main();
     create_setter.main();
     data_driven.main();
+    deduplicating_still_offers_several_all_in_file_options.main();
     directives_ordering.main();
     extend_class_for_mixin.main();
     extract_local_variable.main();

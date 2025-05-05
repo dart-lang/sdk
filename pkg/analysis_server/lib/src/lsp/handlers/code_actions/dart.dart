@@ -38,6 +38,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
   Range range;
   final OptionalVersionedTextDocumentIdentifier docIdentifier;
   final CodeActionTriggerKind? triggerKind;
+  final bool willBeDeduplicated;
 
   DartCodeActionsProducer(
     super.server,
@@ -53,6 +54,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
     required super.capabilities,
     required super.analysisOptions,
     required this.triggerKind,
+    required this.willBeDeduplicated,
   });
 
   @override
@@ -190,6 +192,10 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
     var codeActions = <CodeActionWithPriority>[];
 
     try {
+      // If deduplicating the result only do the expensive "fix all in file"
+      // calculation when we haven't before.
+      Set<String>? skipAlreadyCalculatedIfNonNull =
+          willBeDeduplicated ? {} : null;
       var workspace = DartChangeWorkspace(await server.currentSessions);
       for (var error in unitResult.errors) {
         // Return fixes for any part of the line where a diagnostic is.
@@ -215,6 +221,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
         var fixes = await computeFixes(
           context,
           performance: performanceTracker,
+          skipAlreadyCalculatedIfNonNull: skipAlreadyCalculatedIfNonNull,
         );
 
         if (performance != null) {

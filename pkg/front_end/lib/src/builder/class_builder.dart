@@ -195,7 +195,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   @override
   Builder? lookupLocalMember(String name,
       {bool setter = false, bool required = false}) {
-    Builder? builder = nameSpace.lookupLocalMember(name, setter: setter);
+    LookupResult? result = nameSpace.lookupLocalMember(name);
+    Builder? builder = setter ? result?.setable : result?.getable;
     if (required && builder == null) {
       internalProblem(
           templateInternalProblemNotFoundIn.withArguments(

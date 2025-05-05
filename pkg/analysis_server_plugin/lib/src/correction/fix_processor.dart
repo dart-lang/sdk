@@ -14,10 +14,13 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 
 Future<List<Fix>> computeFixes(DartFixContext context,
-    {FixPerformance? performance}) async {
+    {FixPerformance? performance,
+    Set<String>? skipAlreadyCalculatedIfNonNull}) async {
   return [
     ...await FixProcessor(context, performance: performance).compute(),
-    ...await FixInFileProcessor(context).compute(),
+    ...await FixInFileProcessor(context,
+            alreadyCalculated: skipAlreadyCalculatedIfNonNull)
+        .compute(),
   ];
 }
 

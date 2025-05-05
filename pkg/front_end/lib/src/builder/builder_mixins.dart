@@ -65,7 +65,8 @@ mixin DeclarationBuilderMixin implements IDeclarationBuilder {
       {bool setter = false, bool required = false}) {
     // TODO(johnniwinther): Support augmented on extensions/extension type
     //  declarations.
-    Builder? builder = nameSpace.lookupLocalMember(name, setter: setter);
+    LookupResult? result = nameSpace.lookupLocalMember(name);
+    Builder? builder = setter ? result?.setable : result?.getable;
     if (required && builder == null) {
       internalProblem(
           templateInternalProblemNotFoundIn.withArguments(

@@ -53,9 +53,13 @@ testInstanceReflective() {
   Expect.equals('7, 8', im.invoke(#fakeFunctionNSM, [7, 8]).reflectee);
   Expect.equals('2 C 9 10', im.invoke(#closure, [9, 10]).reflectee);
   Expect.equals(
-      '3 C 11 12 13 null', im.invoke(#closureOpt, [11, 12, 13]).reflectee);
-  Expect.equals('4 C 14 15 null 16',
-      im.invoke(#closureNamed, [14, 15], {#w: 16}).reflectee);
+    '3 C 11 12 13 null',
+    im.invoke(#closureOpt, [11, 12, 13]).reflectee,
+  );
+  Expect.equals(
+    '4 C 14 15 null 16',
+    im.invoke(#closureNamed, [14, 15], {#w: 16}).reflectee,
+  );
   Expect.equals('DNU', im.invoke(#doesNotExist, [17, 18]).reflectee);
   Expect.throwsNoSuchMethodError(() => im.invoke(#closure, ['wrong arity']));
   Expect.throwsNoSuchMethodError(() => im.invoke(#notAClosure, []));
@@ -85,9 +89,13 @@ testClassReflective() {
   Expect.equals('7, 8', cm.invoke(#fakeFunctionNSM, [7, 8]).reflectee);
   Expect.equals('2 9 10', cm.invoke(#closure, [9, 10]).reflectee);
   Expect.equals(
-      '3 11 12 13 null', cm.invoke(#closureOpt, [11, 12, 13]).reflectee);
-  Expect.equals('4 14 15 null 16',
-      cm.invoke(#closureNamed, [14, 15], {#w: 16}).reflectee);
+    '3 11 12 13 null',
+    cm.invoke(#closureOpt, [11, 12, 13]).reflectee,
+  );
+  Expect.equals(
+    '4 14 15 null 16',
+    cm.invoke(#closureNamed, [14, 15], {#w: 16}).reflectee,
+  );
   Expect.throwsNoSuchMethodError(() => cm.invoke(#closure, ['wrong arity']));
 }
 
@@ -113,9 +121,13 @@ testLibraryReflective() {
   Expect.equals('7, 8', lm.invoke(#fakeFunctionNSM, [7, 8]).reflectee);
   Expect.equals('2 9 10', lm.invoke(#closure, [9, 10]).reflectee);
   Expect.equals(
-      '3 11 12 13 null', lm.invoke(#closureOpt, [11, 12, 13]).reflectee);
-  Expect.equals('4 14 15 null 16',
-      lm.invoke(#closureNamed, [14, 15], {#w: 16}).reflectee);
+    '3 11 12 13 null',
+    lm.invoke(#closureOpt, [11, 12, 13]).reflectee,
+  );
+  Expect.equals(
+    '4 14 15 null 16',
+    lm.invoke(#closureNamed, [14, 15], {#w: 16}).reflectee,
+  );
   Expect.throwsNoSuchMethodError(() => lm.invoke(#closure, ['wrong arity']));
 }
 

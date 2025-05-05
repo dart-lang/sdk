@@ -1,0 +1,3 @@
+const String? s = null;
+
+const int? c = s?.length;

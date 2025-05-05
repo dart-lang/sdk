@@ -342,6 +342,7 @@ Future<CompilationResult> compileToModule(
   final jsRuntime = isDynamicSubmodule
       ? jsRuntimeFinalizer.generateDynamicSubmodule(
           translator.functions.translatedProcedures,
+          translator.options.requireJsStringBuiltin,
           translator.internalizedStringsForJSRuntime)
       : jsRuntimeFinalizer.generate(
           translator.functions.translatedProcedures,

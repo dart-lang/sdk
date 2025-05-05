@@ -39,7 +39,9 @@ testPrivateWrongLibrary() {
   var c = new C();
   var im = reflect(c);
   var selector = MirrorSystem.getSymbol(
-      '_field', reflectClass(Mirror).owner as LibraryMirror);
+    '_field',
+    reflectClass(Mirror).owner as LibraryMirror,
+  );
 
   for (int i = 0; i < (2 * optimizationThreshold); i++) {
     Expect.throwsNoSuchMethodError(() => im.getField(selector));

@@ -89,7 +89,7 @@ class Superclass<S> {
 
   Superclass.inheritedGenerativeConstructor(this.inheritedInstanceVariable);
   Superclass.inheritedRedirectingConstructor(x)
-      : this.inheritedGenerativeConstructor(x * 2);
+    : this.inheritedGenerativeConstructor(x * 2);
   factory Superclass.inheritedNormalFactory(y) =>
       new Superclass.inheritedRedirectingConstructor(y * 3);
   factory Superclass.inheritedRedirectingFactory(z) =
@@ -97,7 +97,7 @@ class Superclass<S> {
 
   Superclass._inheritedGenerativeConstructor(this._inheritedInstanceVariable);
   Superclass._inheritedRedirectingConstructor(x)
-      : this._inheritedGenerativeConstructor(x * 2);
+    : this._inheritedGenerativeConstructor(x * 2);
   factory Superclass._inheritedNormalFactory(y) =>
       new Superclass._inheritedRedirectingConstructor(y * 3);
   factory Superclass._inheritedRedirectingFactory(z) =
@@ -132,13 +132,13 @@ abstract class Class<C> extends Superclass<C>
   static _staticMethod() => null;
 
   Class.generativeConstructor(this.instanceVariable)
-      : super.inheritedGenerativeConstructor(0);
+    : super.inheritedGenerativeConstructor(0);
   Class.redirectingConstructor(x) : this.generativeConstructor(x * 2);
   factory Class.normalFactory(y) => new ConcreteClass(y * 3);
   factory Class.redirectingFactory(z) = Class<C>.normalFactory;
 
   Class._generativeConstructor(this._instanceVariable)
-      : super._inheritedGenerativeConstructor(0);
+    : super._inheritedGenerativeConstructor(0);
   Class._redirectingConstructor(x) : this._generativeConstructor(x * 2);
   factory Class._normalFactory(y) => new ConcreteClass(y * 3);
   factory Class._redirectingFactory(z) = Class<C>._normalFactory;

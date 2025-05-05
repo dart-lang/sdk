@@ -6,6 +6,9 @@
 // "mixin", "mixin class" or the test should be left at 2.19.
 // @dart=2.19
 
+// Don't let the formatter change the location of things.
+// dart format off
+
 library test.class_location;
 
 import "dart:mirrors";
@@ -52,21 +55,21 @@ main() {
   String otherSuffix = 'class_mirror_location_other.dart';
 
   // This file.
-  expectLocation(reflectClass(ClassInMainFile), mainSuffix, 12, 1);
-  expectLocation(reflectClass(SpaceIndentedInMainFile), mainSuffix, 13, 3);
-  expectLocation(reflectClass(TabIndentedInMainFile), mainSuffix, 14, 2);
-  expectLocation(reflectClass(AbstractClass), mainSuffix, 16, 1);
-  expectLocation(reflectType(Predicate), mainSuffix, 17, 1);
-  expectLocation(reflectClass(MA), mainSuffix, 21, 1);
-  expectLocation(reflectClass(MA2), mainSuffix, 22, 1);
-  expectLocation(reflectClass(WithMetadata), mainSuffix, 26, 1);
-  expectLocation(reflectClass(Enum), mainSuffix, 29, 1);
-  expectLocation(reflectClass(AnnotatedEnum), mainSuffix, 31, 1);
+  expectLocation(reflectClass(ClassInMainFile), mainSuffix, 19, 1);
+  expectLocation(reflectClass(SpaceIndentedInMainFile), mainSuffix, 20, 3);
+  expectLocation(reflectClass(TabIndentedInMainFile), mainSuffix, 21, 2);
+  expectLocation(reflectClass(AbstractClass), mainSuffix, 23, 1);
+  expectLocation(reflectType(Predicate), mainSuffix, 24, 1);
+  expectLocation(reflectClass(MA), mainSuffix, 28, 1);
+  expectLocation(reflectClass(MA2), mainSuffix, 29, 1);
+  expectLocation(reflectClass(WithMetadata), mainSuffix, 34, 1);
+  expectLocation(reflectClass(Enum), mainSuffix, 36, 1);
+  expectLocation(reflectClass(AnnotatedEnum), mainSuffix, 39, 1);
 
   // Another part.
-  expectLocation(reflectClass(ClassInOtherFile), otherSuffix, 7, 1);
-  expectLocation(reflectClass(SpaceIndentedInOtherFile), otherSuffix, 9, 3);
-  expectLocation(reflectClass(TabIndentedInOtherFile), otherSuffix, 11, 2);
+  expectLocation(reflectClass(ClassInOtherFile), otherSuffix, 14, 1);
+  expectLocation(reflectClass(SpaceIndentedInOtherFile), otherSuffix, 16, 3);
+  expectLocation(reflectClass(TabIndentedInOtherFile), otherSuffix, 18, 2);
 
   // Synthetic classes.
   Expect.isNull(reflectClass(MA).superclass!.location);

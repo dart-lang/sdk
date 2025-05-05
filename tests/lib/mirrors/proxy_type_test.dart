@@ -56,10 +56,11 @@ class CarolCaretaker implements Carol {
   CarolCaretaker(this._carol, this._gate);
 
   foo() {
-    if (!_gate()) throw new NoSuchMethodError.withInvocation(
-      this,
-      Invocation.method(#foo, [], {}),
-    );
+    if (!_gate())
+      throw new NoSuchMethodError.withInvocation(
+        this,
+        Invocation.method(#foo, [], {}),
+      );
     return _carol.foo();
   }
 
@@ -73,8 +74,10 @@ main() {
 
   Alice alice2 = new Alice();
   alice2.sayFooAttenuated();
-  Expect.throwsNoSuchMethodError(() => alice2.sayBar(),
-      'Authority should have been attenuated');
+  Expect.throwsNoSuchMethodError(
+    () => alice2.sayBar(),
+    'Authority should have been attenuated',
+  );
 
   // At the base level, a caretaker for a Carol masquerades as a Carol.
   CarolCaretaker caretaker = new CarolCaretaker(new Carol(), () => true);

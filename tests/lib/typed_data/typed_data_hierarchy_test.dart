@@ -16,11 +16,14 @@ void testClampedList() {
   Expect.isTrue(inscrutable(new Uint8List(1)) is Uint8List);
 
   Expect.isFalse(
-      new Uint8ClampedList(1) is Uint8List,
-      'Uint8ClampedList should not be a subtype of Uint8List '
-      'in optimizable test');
-  Expect.isFalse(inscrutable(new Uint8ClampedList(1)) is Uint8List,
-      'Uint8ClampedList should not be a subtype of Uint8List in dynamic test');
+    new Uint8ClampedList(1) is Uint8List,
+    'Uint8ClampedList should not be a subtype of Uint8List '
+    'in optimizable test',
+  );
+  Expect.isFalse(
+    inscrutable(new Uint8ClampedList(1)) is Uint8List,
+    'Uint8ClampedList should not be a subtype of Uint8List in dynamic test',
+  );
 }
 
 void implementsTypedData() {

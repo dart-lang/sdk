@@ -76,7 +76,7 @@ class SourceExtensionTypeDeclarationBuilder
 
   final ExtensionTypeFragment _introductory;
 
-  FieldFragment? _representationFieldFragment;
+  PrimaryConstructorFieldFragment? _representationFieldFragment;
 
   final IndexedContainer? indexedContainer;
 
@@ -92,7 +92,7 @@ class SourceExtensionTypeDeclarationBuilder
       required int endOffset,
       required ExtensionTypeFragment fragment,
       required this.indexedContainer,
-      required FieldFragment? representationFieldFragment})
+      required PrimaryConstructorFieldFragment? representationFieldFragment})
       : parent = enclosingLibraryBuilder,
         fileOffset = nameOffset,
         _modifiers = fragment.modifiers,

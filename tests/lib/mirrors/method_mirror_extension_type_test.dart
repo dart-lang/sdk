@@ -27,7 +27,10 @@ checkIsExtensionTypeMember(closure, kind, simpleName) {
   var methodMirror = closureMirror.function;
   Expect.equals(Symbol(simpleName), methodMirror.simpleName);
   Expect.equals(
-      kind, methodMirror.isExtensionTypeMember, "isExtensionTypeMember");
+    kind,
+    methodMirror.isExtensionTypeMember,
+    "isExtensionTypeMember",
+  );
 }
 
 String? getExtensionTypeName(sym) {
@@ -46,21 +49,34 @@ void testExtensionTypeMembers(sym, mirror) {
     final methodMirror = mirror as MethodMirror;
     if (extensionTypeName != null) {
       Expect.equals(
-          true, methodMirror.isExtensionTypeMember, "isExtensionTypeMember");
+        true,
+        methodMirror.isExtensionTypeMember,
+        "isExtensionTypeMember",
+      );
       Expect.isTrue(
-          methodMirror.simpleName.toString().contains('$extensionTypeName.'));
+        methodMirror.simpleName.toString().contains('$extensionTypeName.'),
+      );
     } else {
       Expect.equals(
-          false, methodMirror.isExtensionTypeMember, "isExtensionTypeMember");
+        false,
+        methodMirror.isExtensionTypeMember,
+        "isExtensionTypeMember",
+      );
     }
   } else if (mirror is VariableMirror) {
     var variableMirror = mirror as VariableMirror;
     if (extensionTypeName != null) {
       Expect.equals(
-          true, variableMirror.isExtensionTypeMember, "isExtensionTypeMember");
+        true,
+        variableMirror.isExtensionTypeMember,
+        "isExtensionTypeMember",
+      );
     } else {
       Expect.equals(
-          false, variableMirror.isExtensionTypeMember, "isExtensionTypeMember");
+        false,
+        variableMirror.isExtensionTypeMember,
+        "isExtensionTypeMember",
+      );
     }
   }
 }

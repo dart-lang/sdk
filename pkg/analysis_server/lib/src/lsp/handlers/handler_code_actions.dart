@@ -180,6 +180,7 @@ class CodeActionHandler
               capabilities: capabilities,
               triggerKind: params.context.triggerKind,
               analysisOptions: analysisOptions,
+              willBeDeduplicated: true,
             ),
           if (isPubspec)
             PubspecCodeActionsProducer(

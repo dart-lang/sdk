@@ -20,9 +20,11 @@ main() {
       tails++;
     }
   }
-  print("Heads: $heads\n"
-      "Tails: $tails\n"
-      "Ratio: ${heads / tails}\n");
+  print(
+    "Heads: $heads\n"
+    "Tails: $tails\n"
+    "Ratio: ${heads / tails}\n",
+  );
   Expect.approxEquals(1.0, heads / tails, 0.1);
 
   heads = 0;
@@ -35,9 +37,11 @@ main() {
       tails++;
     }
   }
-  print("Heads: $heads\n"
-      "Tails: $tails\n"
-      "Ratio: ${heads / tails}\n");
+  print(
+    "Heads: $heads\n"
+    "Tails: $tails\n"
+    "Ratio: ${heads / tails}\n",
+  );
   Expect.approxEquals(1.0, heads / tails, 0.1);
 
   // A sequence of newly allocated Random number generators should have fair
@@ -52,8 +56,10 @@ main() {
       tails++;
     }
   }
-  print("Heads: $heads\n"
-      "Tails: $tails\n"
-      "Ratio: ${heads / tails}\n");
+  print(
+    "Heads: $heads\n"
+    "Tails: $tails\n"
+    "Ratio: ${heads / tails}\n",
+  );
   Expect.approxEquals(1.0, heads / tails, 0.1);
 }

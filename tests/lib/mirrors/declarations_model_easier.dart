@@ -40,7 +40,7 @@ class Superclass<S> {
 
   Superclass.inheritedGenerativeConstructor(this.inheritedInstanceVariable);
   Superclass.inheritedRedirectingConstructor(x)
-      : this.inheritedGenerativeConstructor(x * 2);
+    : this.inheritedGenerativeConstructor(x * 2);
   factory Superclass.inheritedNormalFactory(y) =>
       new Superclass.inheritedRedirectingConstructor(y * 3);
   factory Superclass.inheritedRedirectingFactory(z) =
@@ -63,7 +63,7 @@ abstract class Class<C> extends Superclass<C> implements Interface<C> {
   static staticMethod() => null;
 
   Class.generativeConstructor(this.instanceVariable)
-      : super.inheritedGenerativeConstructor(0);
+    : super.inheritedGenerativeConstructor(0);
   Class.redirectingConstructor(x) : this.generativeConstructor(x * 2);
   factory Class.normalFactory(y) => new ConcreteClass(y * 3);
   factory Class.redirectingFactory(z) = Class<C>.normalFactory;

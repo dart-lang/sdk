@@ -15,6 +15,9 @@ main() {
   var superclass = cls.superclass;
   Expect.isNotNull(superclass, 'Failed to obtain superclass of MyClass.');
   Expect.equals(
-      reflectClass(Object), superclass, 'Superclass of MyClass is not Object.');
+    reflectClass(Object),
+    superclass,
+    'Superclass of MyClass is not Object.',
+  );
   Expect.isNull(superclass!.superclass, 'Superclass of Object is not null.');
 }

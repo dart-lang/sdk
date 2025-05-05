@@ -128,7 +128,7 @@ abstract class FieldDeclaration {
   shared.Expression? get initializerExpression;
 }
 
-class FieldDeclarationImpl
+class RegularFieldDeclaration
     with FieldDeclarationMixin
     implements
         FieldDeclaration,
@@ -149,7 +149,7 @@ class FieldDeclarationImpl
   /// building them twice as part of the non-outline build.
   bool hasBodyBeenBuilt = false;
 
-  FieldDeclarationImpl(this._fragment) {
+  RegularFieldDeclaration(this._fragment) {
     _fragment.declaration = this;
   }
 
@@ -194,8 +194,7 @@ class FieldDeclarationImpl
 
   @override
   bool get isExtensionTypeDeclaredInstanceField =>
-      builder.isExtensionTypeInstanceMember &&
-      !_fragment.isPrimaryConstructorField;
+      builder.isExtensionTypeInstanceMember;
 
   @override
   bool get isFinal => _fragment.modifiers.isFinal;
@@ -404,9 +403,13 @@ class FieldDeclarationImpl
 
   @override
   BodyBuilderContext createBodyBuilderContext() {
-    return new FieldFragmentBodyBuilderContext(
-        this, _fragment, builder.libraryBuilder, builder.declarationBuilder,
-        isDeclarationInstanceMember: builder.isDeclarationInstanceMember);
+    return new FieldFragmentBodyBuilderContext(builder, this,
+        isLateField: _fragment.modifiers.isLate,
+        isAbstractField: _fragment.modifiers.isAbstract,
+        isExternalField: _fragment.modifiers.isExternal,
+        nameOffset: _fragment.nameOffset,
+        nameLength: _fragment.name.length,
+        isConst: _fragment.modifiers.isConst);
   }
 
   void createEncoding(SourcePropertyBuilder builder) {
@@ -430,20 +433,16 @@ class FieldDeclarationImpl
           isAbstract: isAbstract,
           isExternal: isExternal);
     } else if (isExtensionTypeMember && isInstanceMember) {
-      if (_fragment.isPrimaryConstructorField) {
-        _encoding = new RepresentationFieldEncoding(_fragment);
-      } else {
-        // Field on a extension type. Encode as abstract.
-        // TODO(johnniwinther): Should we have an erroneous flag on such
-        // members?
-        _encoding = new AbstractOrExternalFieldEncoding(_fragment,
-            isExtensionInstanceMember: isExtensionMember && isInstanceMember,
-            isExtensionTypeInstanceMember:
-                isExtensionTypeMember && isInstanceMember,
-            isAbstract: true,
-            isExternal: false,
-            isForcedExtension: true);
-      }
+      // Field on a extension type. Encode as abstract.
+      // TODO(johnniwinther): Should we have an erroneous flag on such
+      // members?
+      _encoding = new AbstractOrExternalFieldEncoding(_fragment,
+          isExtensionInstanceMember: isExtensionMember && isInstanceMember,
+          isExtensionTypeInstanceMember:
+              isExtensionTypeMember && isInstanceMember,
+          isAbstract: true,
+          isExternal: false,
+          isForcedExtension: true);
     } else if (isLate &&
         libraryBuilder.loader.target.backendTarget.isLateFieldLoweringEnabled(
             hasInitializer: hasInitializer,

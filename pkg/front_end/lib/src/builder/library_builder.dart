@@ -11,6 +11,7 @@ import '../api_prototype/experimental_flags.dart';
 import '../base/combinator.dart' show CombinatorBuilder;
 import '../base/export.dart' show Export;
 import '../base/loader.dart' show Loader;
+import '../base/lookup_result.dart';
 import '../base/messages.dart'
     show
         FormattedMessage,
@@ -518,8 +519,7 @@ abstract class LibraryBuilderImpl extends BuilderImpl
     Builder? preferred;
     Uri? uri;
     Uri? otherUri;
-    if (libraryNameSpace.lookupLocalMember(name, setter: false) ==
-        declaration) {
+    if (libraryNameSpace.lookupLocalMember(name)?.getable == declaration) {
       return declaration;
     } else {
       uri = computeLibraryUri(declaration);
@@ -560,12 +560,18 @@ abstract class LibraryBuilderImpl extends BuilderImpl
     if (name.startsWith("_")) return false;
     if (member is PrefixBuilder) return false;
     bool isSetter = isMappedAsSetter(member);
-    Builder? existing =
-        exportNameSpace.lookupLocalMember(name, setter: isSetter);
+    LookupResult? result = exportNameSpace.lookupLocalMember(name);
+    Builder? existing = isSetter ? result?.setable : result?.getable;
     if (existing == member) {
       return false;
     } else {
-      if (existing != null) {
+      if (member is MemberBuilder && member.isConflictingSetter) {
+        // TODO(johnniwinther): Remove this case when getables and setables are
+        //  contained in the same map in the name space.
+        exportNameSpace.addLocalMember(name, member, setter: isSetter);
+        return true;
+      } else if (existing != null) {
+        exportNameSpace.lookupLocalMember(name);
         Builder result = _computeAmbiguousDeclarationForExport(
             name, existing, member,
             uriOffset: uriOffset);
@@ -590,7 +596,8 @@ abstract class LibraryBuilderImpl extends BuilderImpl
           null);
     }
     Builder? cls = (bypassLibraryPrivacy ? libraryNameSpace : exportNameSpace)
-        .lookupLocalMember(className, setter: false);
+        .lookupLocalMember(className)
+        ?.getable;
     if (cls is TypeAliasBuilder) {
       // Coverage-ignore-block(suite): Not run.
       TypeAliasBuilder aliasBuilder = cls;
@@ -626,7 +633,7 @@ abstract class LibraryBuilderImpl extends BuilderImpl
 
   @override
   Builder? lookupLocalMember(String name, {bool required = false}) {
-    Builder? builder = libraryNameSpace.lookupLocalMember(name, setter: false);
+    Builder? builder = libraryNameSpace.lookupLocalMember(name)?.getable;
     if (required && builder == null) {
       internalProblem(
           templateInternalProblemNotFoundIn.withArguments(

@@ -18,7 +18,7 @@ class ExtensionTypeFragment extends DeclarationFragmentImpl
   late final int startOffset;
   late final int endOffset;
 
-  final List<FieldFragment> primaryConstructorFields = [];
+  final List<PrimaryConstructorFieldFragment> primaryConstructorFields = [];
 
   SourceExtensionTypeDeclarationBuilder? _builder;
 
@@ -54,7 +54,7 @@ class ExtensionTypeFragment extends DeclarationFragmentImpl
       modifiers.isAugment;
 
   @override
-  void addPrimaryConstructorField(FieldFragment fragment) {
+  void addPrimaryConstructorField(PrimaryConstructorFieldFragment fragment) {
     primaryConstructorFields.add(fragment);
   }
 

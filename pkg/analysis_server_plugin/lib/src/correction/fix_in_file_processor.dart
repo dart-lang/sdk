@@ -15,18 +15,42 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 /// Computer for Dart "fix all in file" fixes.
 final class FixInFileProcessor {
   final DartFixContext _fixContext;
+  final Set<String>? alreadyCalculated;
 
-  FixInFileProcessor(this._fixContext);
+  /// If passing [alreadyCalculated] a result will only be calculated if one
+  /// hasn't been calculated already (for a similar situation). If calculating
+  /// the Set will be ammended with this information.
+  /// If not passing [alreadyCalculated] the calculation will always be
+  /// performed.
+  FixInFileProcessor(this._fixContext, {this.alreadyCalculated});
 
   Future<List<Fix>> compute() async {
     var error = _fixContext.error;
+
+    var generators = _getGenerators(error.errorCode);
+
+    String getAlreadyCalculatedValue(ProducerGenerator generator) {
+      return '${generator.hashCode}|${error.errorCode.name}';
+    }
+
+    // Remove generators for which we've already calculated and we were asked to
+    // skip calculating again. Do this before filtering the errors as there's
+    // like many more errors than generators.
+    if (alreadyCalculated != null) {
+      generators = generators
+          .where((generator) => !alreadyCalculated!
+              .contains(getAlreadyCalculatedValue(generator)))
+          .toList(growable: false);
+    }
+    if (generators.isEmpty) {
+      return const <Fix>[];
+    }
+
     var errors = _fixContext.unitResult.errors
         .where((e) => error.errorCode.name == e.errorCode.name);
     if (errors.length < 2) {
       return const <Fix>[];
     }
-
-    var generators = _getGenerators(error.errorCode);
 
     var fixes = <Fix>[];
     for (var generator in generators) {
@@ -72,6 +96,9 @@ final class FixInFileProcessor {
             fixes.add(Fix(kind: fixKind, change: sourceChange));
           }
         }
+
+        // Remember that we calculated this.
+        alreadyCalculated?.add(getAlreadyCalculatedValue(generator));
       }
     }
     return fixes;

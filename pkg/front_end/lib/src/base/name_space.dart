@@ -17,16 +17,24 @@ abstract class NameSpace {
   /// Adds [builder] to the extensions in this name space.
   void addExtension(ExtensionBuilder builder);
 
-  /// Returns the [LookupResult] for the [Builder]s of the given [name] in
-  /// the name space.
+  /// Returns the [LookupResult] for the [Builder]s of the given [name] in the
+  /// name space.
   ///
   /// If [staticOnly] is `true`, instance members are not returned.
+  ///
+  /// If the [Builder]s are duplicates, an [AmbiguousBuilder] is created for
+  /// the access, using the [fileUri] and [fileOffset].
   LookupResult? lookupLocal(String name,
       {required Uri fileUri,
       required int fileOffset,
       required bool staticOnly});
 
-  Builder? lookupLocalMember(String name, {required bool setter});
+  /// Returns the [LookupResult] for the [Builder]s of the given [name] in the
+  /// name space.
+  ///
+  /// The returned [LookupResult] contains the [Builder]s directly mapped in the
+  /// name space without any filtering or processed of duplicates.
+  LookupResult? lookupLocalMember(String name);
 
   void forEachLocalMember(void Function(String name, Builder member) f);
 
@@ -187,65 +195,16 @@ class NameSpaceImpl implements NameSpace {
       required bool staticOnly}) {
     Builder? getable = _getables?[name];
     Builder? setable = _setables?[name];
-    if (getable != null) {
-      if (getable.next != null) {
-        getable = new AmbiguousBuilder(name, getable, fileOffset, fileUri);
-      }
-      if (staticOnly && getable.isDeclarationInstanceMember) {
-        getable = null;
-      }
-    }
-    if (setable != null) {
-      if (setable.next != null) {
-        AmbiguousBuilder ambiguousBuilder =
-            setable = new AmbiguousBuilder(name, setable, fileOffset, fileUri);
-        Builder firstSetable = ambiguousBuilder.getFirstDeclaration();
-        if (firstSetable is MemberBuilder && firstSetable.isConflictingSetter) {
-          setable = null;
-        }
-      } else if (setable is MemberBuilder && setable.isConflictingSetter) {
-        setable = null;
-      }
-      if (setable != null &&
-          staticOnly &&
-          setable.isDeclarationInstanceMember) {
-        setable = null;
-      }
-    }
-
-    if (getable is LookupResult) {
-      if (setable == null) {
-        return getable as LookupResult;
-      } else {
-        assert(getable != setable,
-            "Unexpected getable $getable and setable $setable.");
-        assert(
-            (getable as LookupResult).setable == null,
-            "Unexpected setable ${(getable as LookupResult).setable} from "
-            "getable $getable and setable $setable.");
-        return new GetableSetableResult(getable!, setable);
-      }
-    } else if (setable is LookupResult) {
-      if (getable == null) {
-        return setable as LookupResult;
-      } else {
-        assert(getable != setable,
-            "Unexpected getable $getable and setable $setable.");
-        assert(
-            (setable as LookupResult).getable == null,
-            "Unexpected getable ${(setable as LookupResult).getable} from "
-            "setable $setable and getable $getable.");
-        return new GetableSetableResult(getable, setable!);
-      }
-    } else {
-      return LookupResult.fromBuilders(getable, setable);
-    }
+    return LookupResult.createProcessedResult(getable, setable,
+        name: name,
+        fileUri: fileUri,
+        fileOffset: fileOffset,
+        staticOnly: staticOnly);
   }
 
   @override
-  Builder? lookupLocalMember(String name, {required bool setter}) {
-    Map<String, Builder>? map = setter ? _setables : _getables;
-    return map?[name];
+  LookupResult? lookupLocalMember(String name) {
+    return LookupResult.createResult(_getables?[name], _setables?[name]);
   }
 
   @override

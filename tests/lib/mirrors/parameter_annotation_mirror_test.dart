@@ -15,7 +15,9 @@ class Foo {
   Foo(@ParameterAnnotation("vogel") p) {}
   Foo.named(@ParameterAnnotation("hamster") p) {}
   Foo.named2(
-      @ParameterAnnotation("hamster") p, @ParameterAnnotation("wurm") p2) {}
+    @ParameterAnnotation("hamster") p,
+    @ParameterAnnotation("wurm") p2,
+  ) {}
 
   f1(@ParameterAnnotation("hest") p) {}
   f2(@ParameterAnnotation("hest") @ParameterAnnotation("fisk") p) {}
@@ -28,18 +30,26 @@ class Foo {
 }
 
 expectAnnotations(
-    Type type, Symbol method, int parameterIndex, List<String> expectedValues) {
+  Type type,
+  Symbol method,
+  int parameterIndex,
+  List<String> expectedValues,
+) {
   MethodMirror mirror = reflectClass(type).declarations[method] as MethodMirror;
   ParameterMirror parameter = mirror.parameters[parameterIndex];
   List<InstanceMirror> annotations = parameter.metadata;
-  Expect.equals(annotations.length, expectedValues.length,
-      "wrong number of parameter annotations");
+  Expect.equals(
+    annotations.length,
+    expectedValues.length,
+    "wrong number of parameter annotations",
+  );
   for (int i = 0; i < annotations.length; i++) {
     Expect.equals(
-        expectedValues[i],
-        annotations[i].reflectee.value,
-        "annotation #$i of parameter #$parameterIndex "
-        "of $type.$method.");
+      expectedValues[i],
+      annotations[i].reflectee.value,
+      "annotation #$i of parameter #$parameterIndex "
+      "of $type.$method.",
+    );
   }
 }
 

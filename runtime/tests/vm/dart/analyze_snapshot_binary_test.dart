@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ffi';
 import 'dart:async';
 
 import 'package:expect/expect.dart';
@@ -11,6 +12,10 @@ import 'package:native_stack_traces/elf.dart';
 import 'package:path/path.dart' as path;
 
 import 'use_flag_test_helper.dart';
+
+const int headerSize = 8;
+final int compressedWordSize =
+    sizeOf<Pointer>() == 8 && !Platform.executable.contains('64C') ? 8 : 4;
 
 // Used to ensure we don't have multiple equivalent calls to test.
 final _seenDescriptions = <String>{};
@@ -23,7 +28,8 @@ Future<void> testAOT(
   bool stripFlag = false,
   bool disassemble = false,
 }) async {
-  if (const bool.fromEnvironment('dart.vm.product') && disassemble) {
+  const isProduct = const bool.fromEnvironment('dart.vm.product');
+  if (isProduct && disassemble) {
     Expect.isFalse(disassemble, 'no use of disassembler in PRODUCT mode');
   }
 
@@ -196,6 +202,156 @@ Future<void> testAOT(
       implementedInterfaces[mySubClassId]!.single,
     );
 
+    // Ensure instance fields of classes are reported.
+    final baseClass =
+        objects[classnames.entries
+            .singleWhere((e) => e.value == 'FieldTestBase')
+            .key];
+    final subClass =
+        objects[classnames.entries
+            .singleWhere((e) => e.value == 'FieldTestSub')
+            .key];
+    final baseFieldIds = baseClass['fields'];
+    final baseFields = [for (final int id in baseFieldIds) objects[id]];
+    final baseSlots = baseClass['instance_slots'];
+    final subFieldIds = subClass['fields'];
+    final subFields = [for (final int id in subFieldIds) objects[id]];
+    final subSlots = subClass['instance_slots'];
+
+    // We have:
+    //   class Base {
+    //     static int baseS = int.parse('1');
+    //     int base0;
+    //     double base1;
+    //     Object? base2;
+    //     Float32x4 base3;
+    //     Float64x2 base4;
+    //   }
+    //
+    // This static field is never tree shaken.
+    expectField(baseFields[0], name: 'baseS', flags: ['static']);
+    if (isProduct) {
+      // Most [Field] objests are tree shaken.
+      Expect.equals(1, baseFields.length);
+
+      int slotOffset = 0;
+      slotOffset += expectUnknown8Bytes(
+        baseSlots.skip(slotOffset),
+        offsetReferences: 0,
+        offsetBytes: 0,
+      );
+      slotOffset += expectUnknown8Bytes(
+        baseSlots.skip(slotOffset),
+        offsetReferences: 0,
+        offsetBytes: 8,
+      );
+      slotOffset += expectUnknownReference(
+        baseSlots.skip(slotOffset),
+        offsetReferences: 0,
+        offsetBytes: 16,
+      );
+      slotOffset += expectUnknown16Bytes(
+        baseSlots.skip(slotOffset),
+        offsetReferences: 1,
+        offsetBytes: 16,
+      );
+      slotOffset += expectUnknown16Bytes(
+        baseSlots.skip(slotOffset),
+        offsetReferences: 1,
+        offsetBytes: 32,
+      );
+    } else {
+      // We don't tree shake [Field] objects in non-product builds.
+      Expect.equals(6, baseFields.length);
+      expectField(
+        baseFields[1],
+        name: 'base0',
+        isReference: false,
+        unboxedType: 'int',
+      );
+      expectField(
+        baseFields[2],
+        name: 'base1',
+        isReference: false,
+        unboxedType: 'double',
+      );
+      expectField(baseFields[3], name: 'base2');
+      expectField(
+        baseFields[4],
+        name: 'base3',
+        isReference: false,
+        unboxedType: 'Float32x4',
+      );
+      expectField(
+        baseFields[5],
+        name: 'base4',
+        isReference: false,
+        unboxedType: 'Float64x2',
+      );
+      int slotOffset = 0;
+      slotOffset += expectInstanceSlot(
+        baseSlots[slotOffset],
+        offsetReferences: 0,
+        offsetBytes: 0,
+        isReference: false,
+        fieldId: baseFieldIds[1],
+      );
+      slotOffset += expectInstanceSlot(
+        baseSlots[slotOffset],
+        offsetReferences: 0,
+        offsetBytes: 8,
+        isReference: false,
+        fieldId: baseFieldIds[2],
+      );
+      slotOffset += expectInstanceSlot(
+        baseSlots[slotOffset],
+        offsetReferences: 0,
+        offsetBytes: 16,
+        fieldId: baseFieldIds[3],
+      );
+      slotOffset += expectInstanceSlot(
+        baseSlots[slotOffset],
+        offsetReferences: 1,
+        offsetBytes: 16,
+        isReference: false,
+        fieldId: baseFieldIds[4],
+      );
+      slotOffset += expectInstanceSlot(
+        baseSlots[slotOffset],
+        offsetReferences: 1,
+        offsetBytes: 32,
+        isReference: false,
+        fieldId: baseFieldIds[5],
+      );
+    }
+    // We have:
+    //   class Sub<T> extends Base{
+    //     late int subL1 = int.parse('1');
+    //     late final double subL2 = double.parse('1.2');
+    //   }
+    // These late instance fields are never tree shaken.
+    expectField(subFields[0], name: 'subL1', flags: ['late']);
+    expectField(subFields[1], name: 'subL2', flags: ['final', 'late']);
+    expectTypeArgumentsSlot(
+      subSlots[0],
+      offsetReferences: 1,
+      offsetBytes: 8 + 8 + 16 + 16,
+    );
+    expectSlot(
+      subSlots[1],
+      offsetReferences: 2,
+      offsetBytes: 8 + 8 + 16 + 16,
+      type: 'instance_field',
+      fieldId: subFieldIds[0],
+    );
+    expectSlot(
+      subSlots[2],
+      offsetReferences: 3,
+      offsetBytes: 8 + 8 + 16 + 16,
+      type: 'instance_field',
+      fieldId: subFieldIds[1],
+    );
+
     Expect.isTrue(
       analyzerJson['metadata'].containsKey('analyzer_version'),
       'snapshot analyzer version must be reported',
@@ -205,6 +361,136 @@ Future<void> testAOT(
       'invalid snapshot analyzer version',
     );
   });
+}
+
+void expectField(
+  Map fieldJson, {
+  required String name,
+  List<String> flags = const [],
+  bool isReference = true,
+  String? unboxedType,
+}) {
+  Expect.equals(name, fieldJson['name']);
+  Expect.equals(isReference, fieldJson['is_reference']);
+  Expect.listEquals(flags, fieldJson['flags']);
+  if (unboxedType != null) {
+    Expect.equals(unboxedType, fieldJson['unboxed_type']);
+  } else {
+    Expect.isFalse(fieldJson.containsKey('unboxed_type'));
+  }
+}
+
+void expectSlot(
+  Map slotJson, {
+  required int offsetReferences,
+  required int offsetBytes,
+  required String type,
+  bool isReference = true,
+  int? fieldId,
+}) {
+  Expect.equals(type, slotJson['slot_type']);
+  if (fieldId != null) {
+    Expect.equals(fieldId, slotJson['field']);
+  } else {
+    Expect.isFalse(slotJson.containsKey('field'));
+  }
+  final int offset =
+      headerSize + offsetReferences * compressedWordSize + offsetBytes;
+  Expect.equals(offset, slotJson['offset']);
+  Expect.equals(isReference, slotJson['is_reference']);
+}
+
+int expectInstanceSlot(
+  Map slotJson, {
+  required int offsetReferences,
+  required int offsetBytes,
+  bool isReference = true,
+  int? fieldId,
+}) {
+  expectSlot(
+    slotJson,
+    isReference: isReference,
+    fieldId: fieldId,
+    offsetReferences: offsetReferences,
+    offsetBytes: offsetBytes,
+    type: 'instance_field',
+  );
+  return 1;
+}
+
+int expectUnknownReference(
+  Map slotJson, {
+  required int offsetReferences,
+  required int offsetBytes,
+}) {
+  expectSlot(
+    slotJson,
+    offsetReferences: offsetReferences,
+    offsetBytes: offsetBytes,
+    type: 'unknown_slot',
+  );
+  return 1;
+}
+
+int expectTypeArgumentsSlot(
+  Map slotJson, {
+  required int offsetReferences,
+  required int offsetBytes,
+}) {
+  expectSlot(
+    slotJson,
+    offsetReferences: offsetReferences,
+    offsetBytes: offsetBytes,
+    type: 'type_arguments_field',
+  );
+  return 1;
+}
+
+int expectUnknown8Bytes(
+  Iterable<Map> slotJson, {
+  required int offsetReferences,
+  required int offsetBytes,
+}) {
+  final it = slotJson.iterator;
+  Expect.isTrue(it.moveNext());
+  expectSlot(
+    it.current,
+    isReference: false,
+    offsetReferences: offsetReferences,
+    offsetBytes: offsetBytes,
+    type: 'unknown_slot',
+  );
+  if (compressedWordSize == 8) {
+    return 1;
+  }
+  Expect.isTrue(it.moveNext());
+  expectSlot(
+    it.current,
+    isReference: false,
+    offsetReferences: offsetReferences,
+    offsetBytes: offsetBytes + compressedWordSize,
+    type: 'unknown_slot',
+  );
+  return 2;
+}
+
+int expectUnknown16Bytes(
+  Iterable<Map> slotJson, {
+  required int offsetReferences,
+  required int offsetBytes,
+}) {
+  int slots = 0;
+  slots += expectUnknown8Bytes(
+    slotJson,
+    offsetReferences: offsetReferences,
+    offsetBytes: offsetBytes,
+  );
+  slots += expectUnknown8Bytes(
+    slotJson.skip(slots),
+    offsetReferences: offsetReferences,
+    offsetBytes: offsetBytes + 8,
+  );
+  return slots;
 }
 
 main() async {
@@ -222,7 +508,7 @@ main() async {
 
   await withTempDir('analyze_snapshot_binary', (String tempDir) async {
     // We only need to generate the dill file once for all JIT tests.
-    final _thisTestPath = path.join(
+    final thisTestPath = path.join(
       sdkDir,
       'runtime',
       'tests',
@@ -245,7 +531,7 @@ main() async {
       ),
       '-o',
       aotDillPath,
-      _thisTestPath,
+      thisTestPath,
     ]);
 
     // Just as a reminder for AOT tests:
