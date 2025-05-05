@@ -339,6 +339,8 @@ def GetBuildConf(mode, arch, conf_os=None, sanitizer=None):
         os_fragment = conf_os.title()
         if (conf_os == 'ios_simulator'):
             os_fragment = 'IosSim'
+        if (conf_os == 'watchos_simulator'):
+            os_fragment = 'WatchosSim'
         return '{}{}{}'.format(GetBuildMode(mode), os_fragment, arch.upper())
 
     # Ask for a cross build if the host and target architectures don't match.

@@ -104,6 +104,14 @@ config("dart_os_config") {
   } else if (target_os == "ios") {
     defines += [ "DART_TARGET_OS_MACOS" ]
     defines += [ "DART_TARGET_OS_MACOS_IOS" ]
+  } else if (target_os == "watchos") {
+    defines += [ "DART_TARGET_OS_MACOS" ]
+
+    # This doesn't look entirely correct, but so far it looks
+    # sufficient and allows to add watchOS support with less changes.
+    # If we need to differentiate iOS and watchOS targets later, we'll
+    # change this.
+    defines += [ "DART_TARGET_OS_MACOS_IOS" ]
   } else if (target_os == "linux") {
     defines += [ "DART_TARGET_OS_LINUX" ]
   } else if (target_os == "mac") {
@@ -317,7 +325,10 @@ source_set("dart_api") {
 
 library_for_all_configs("libdart") {
   target_type = dart_component_kind
-  extra_nonproduct_deps = [ "vm:libprotozero" ]
+  extra_nonproduct_deps = []
+  if (dart_support_perfetto) {
+    extra_nonproduct_deps += [ "vm:libprotozero" ]
+  }
   extra_deps = [
     ":generate_version_cc_file",
     "../third_party/double-conversion/src:libdouble_conversion",

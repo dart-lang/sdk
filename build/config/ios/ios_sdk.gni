@@ -6,17 +6,20 @@ import("//build/toolchain/rbe.gni")
 
 declare_args() {
   # SDK path to use. When empty this will use the default SDK based on the
-  # value of use_ios_simulator.
+  # value of use_simulator.
   ios_sdk_path = ""
 
   # Set to true when targeting a simulator build on iOS. False means that the
   # target is for running on the device. The default value is to use the
   # Simulator except when targeting GYP's Xcode builds (for compat with the
   # existing GYP build).
-  use_ios_simulator = false
+  use_simulator = false
 
   # Minimum supported version of the iOS SDK.
   ios_sdk_min = "12.0"
+
+  # Minimum supported version of the watchOS SDK.
+  watchos_sdk_min = "11.0"
 
   # The path to the iOS device SDK.
   ios_device_sdk_path = ""
@@ -24,10 +27,20 @@ declare_args() {
   # The path to the iOS simulator SDK.
   ios_simulator_sdk_path = ""
 
+  # The path to the watchOS device SDK.
+  watchos_device_sdk_path = ""
+
+  # The path to the watchOS simulator SDK.
+  watchos_simulator_sdk_path = ""
+
   ios_enable_relative_sdk_path = use_rbe
 }
 
 if (ios_sdk_path == "") {
+  if (is_watchos) {
+    ios_sdk_min = watchos_sdk_min
+  }
+
   _find_sdk_args = [
     "--print_sdk_path",
     ios_sdk_min,
@@ -42,25 +55,44 @@ if (ios_sdk_path == "") {
     ]
   }
 
-  if (use_ios_simulator && ios_simulator_sdk_path == "") {
-    _find_sdk_args += [ "--platform=iphone_simulator" ]
-    _find_sdk_result =
-        exec_script("//build/mac/find_sdk.py", _find_sdk_args, "list lines")
-    ios_simulator_sdk_path = _find_sdk_result[0]
+  platform = "iphone"
+  if (is_watchos) {
+    platform = "watch"
+  }
+  if (use_simulator) {
+    platform = "${platform}_simulator"
   }
 
-  if (!use_ios_simulator && ios_device_sdk_path == "") {
-    _find_sdk_args += [ "--platform=iphone" ]
-    _find_sdk_result =
-        exec_script("//build/mac/find_sdk.py", _find_sdk_args, "list lines")
-    ios_device_sdk_path = _find_sdk_result[0]
-  }
+  _find_sdk_args += [ "--platform=$platform" ]
+  _find_sdk_result =
+      exec_script("//build/mac/find_sdk.py", _find_sdk_args, "list lines")
+  platform_sdk_path = _find_sdk_result[0]
 
-  if (use_ios_simulator) {
-    assert(ios_simulator_sdk_path != "")
-    ios_sdk_path = ios_simulator_sdk_path
-  } else {
-    assert(ios_device_sdk_path != "")
-    ios_sdk_path = ios_device_sdk_path
+  if (use_simulator && is_watchos) {
+    # watchos_simulator
+    if (watchos_simulator_sdk_path != "") {
+      platform_sdk_path = watchos_simulator_sdk_path
+    }
+    ios_sdk_path = platform_sdk_path
+    ios_sdk_min = watchos_sdk_min
+  } else if (!use_simulator && is_watchos) {
+    # watchos
+    if (watchos_device_sdk_path != "") {
+      platform_sdk_path = watchos_device_sdk_path
+    }
+    ios_sdk_path = platform_sdk_path
+    ios_sdk_min = watchos_sdk_min
+  } else if (use_simulator && !is_watchos) {
+    # ios_simulator
+    if (ios_simulator_sdk_path != "") {
+      platform_sdk_path = ios_simulator_sdk_path
+    }
+    ios_sdk_path = platform_sdk_path
+  } else if (!use_simulator && !is_watchos) {
+    # ios
+    if (ios_device_sdk_path != "") {
+      platform_sdk_path = ios_device_sdk_path
+    }
+    ios_sdk_path = platform_sdk_path
   }
 }
