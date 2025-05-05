@@ -1439,14 +1439,18 @@
           "name": "vm tests",
           "arguments": [
             "-nvm-${sanitizer}-${system}-${mode}-${arch}",
-            "ffi"
-          ]
+            "ffi",
+            "standalone"
+          ],
+          "fileset": "vm",
+          "shards": 1
         },
         {
           "name": "vm tests",
           "arguments": [
             "-nvm-aot-${sanitizer}-${system}-${mode}-${arch}",
-            "ffi"
+            "ffi",
+            "standalone"
           ]
         }
       ]
