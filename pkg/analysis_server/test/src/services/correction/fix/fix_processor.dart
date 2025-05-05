@@ -222,6 +222,18 @@ abstract class FixInFileProcessorTest extends BaseFixProcessorTest {
     expect(resultCode, expected);
   }
 
+  Future<List<Fix>> getFixesForAllErrors(Set<String>? alreadyCalculated) async {
+    var errors = testAnalysisResult.errors;
+    expect(errors, isNotEmpty);
+    List<Fix> fixes = [];
+    for (var error in errors) {
+      fixes.addAll(
+        await _computeFixes(error, alreadyCalculated: alreadyCalculated),
+      );
+    }
+    return fixes;
+  }
+
   Future<List<Fix>> getFixesForFirst(ErrorFilter test) async {
     var errors = testAnalysisResult.errors.where(test);
     expect(errors, isNotEmpty);
@@ -260,7 +272,10 @@ abstract class FixInFileProcessorTest extends BaseFixProcessorTest {
   }
 
   /// Computes fixes for the given [error] in [testUnit].
-  Future<List<Fix>> _computeFixes(AnalysisError error) async {
+  Future<List<Fix>> _computeFixes(
+    AnalysisError error, {
+    Set<String>? alreadyCalculated,
+  }) async {
     var libraryResult = testLibraryResult;
     if (libraryResult == null) {
       return const [];
@@ -273,7 +288,11 @@ abstract class FixInFileProcessorTest extends BaseFixProcessorTest {
       error: error,
     );
 
-    var fixes = await FixInFileProcessor(context).compute();
+    var fixes =
+        await FixInFileProcessor(
+          context,
+          alreadyCalculated: alreadyCalculated,
+        ).compute();
     return fixes;
   }
 }
