@@ -2,13 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include <cstddef>
+#include <cstdint>
 #include <map>
 #include <set>
 #include <sstream>
+#include <vector>
 
 #include "include/analyze_snapshot_api.h"
 #include "vm/compiler/runtime_api.h"
+#include "vm/dart.h"
 #include "vm/dart_api_impl.h"
+#include "vm/globals.h"
 #include "vm/json_writer.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -50,7 +55,10 @@ class FieldVisitor : public ObjectPointerVisitor {
 class SnapshotAnalyzer {
  public:
   explicit SnapshotAnalyzer(const Dart_SnapshotAnalyzerInformation& info)
-      : info_(info) {}
+      : info_(info),
+        class_fields_(IsolateGroup::Current()->class_table()->NumCids()),
+        top_level_class_fields_(
+            IsolateGroup::Current()->class_table()->NumTopLevelCids()) {}
 
   // Saves JSON format snapshot information in the output character buffer.
   void DumpSnapshotInformation(char** buffer, intptr_t* buffer_length);
@@ -59,6 +67,8 @@ class SnapshotAnalyzer {
   void DumpLibrary(const Library& library);
   void DumpArray(const Array& array, const char* name);
   void DumpClass(const Class& klass);
+  void DumpClassInstanceSlots(const Class& klass,
+                              const std::vector<const Field*>& fields);
   void DumpFunction(const Function& function);
   void DumpCode(const Code& code);
   void DumpField(const Field& field);
@@ -73,6 +83,9 @@ class SnapshotAnalyzer {
   intptr_t GetObjectId(ObjectPtr obj) { return heap_->GetObjectId(obj); }
 
   const Dart_SnapshotAnalyzerInformation& info_;
+  std::vector<std::vector<const Field*>> class_fields_;
+  std::vector<std::vector<const Field*>> top_level_class_fields_;
+
   JSONWriter js_;
   Thread* thread_;
   Heap* heap_;
@@ -97,6 +110,13 @@ void SnapshotAnalyzer::DumpArray(const Array& array, const char* name) {
 void SnapshotAnalyzer::DumpClass(const Class& klass) {
   js_.PrintProperty("type", "Class");
 
+  auto& class_fields =
+      klass.IsTopLevel() ? top_level_class_fields_ : class_fields_;
+  const auto& fields =
+      class_fields[klass.IsTopLevel()
+                       ? ClassTable::IndexFromTopLevelCid(klass.id())
+                       : klass.id()];
+
   js_.PrintProperty("class_id", klass.id());
   js_.PrintProperty("name", String::Handle(klass.Name()).ToCString());
   js_.PrintProperty("super_class", GetObjectId(klass.SuperClass()));
@@ -104,12 +124,24 @@ void SnapshotAnalyzer::DumpClass(const Class& klass) {
   Zone* zone = thread_->zone();
   Array& array = Array::Handle(zone);
 
-  // To avoid depending on layout of VM internal classes we don't use
-  //   js_.PrintProperty("fields", GetObjectId(heap, klass.fields());
-  // here and instead iterate and refer to them manually.
-  array = klass.fields();
-  if (!array.IsNull()) {
-    DumpArray(array, "fields");
+  // We use [fields] instead of [Class.fields()] as a [Field] object may not
+  // appear in [Class.fields()] but may still be available (e.g. for
+  // `LateInitizializationError`) so we can include all fields of the class we
+  // found.
+  js_.OpenArray("fields");
+  for (uintptr_t i = 0; i < fields.size(); ++i) {
+    js_.PrintValue64(GetObjectId(fields[i]->ptr()));
+  }
+  js_.CloseArray();
+
+  // Here we write information about every slot in an instance. Even if there's
+  // no corresponding [Field] object, we will write out an entry describing the
+  // slot (e.g. whether it's boxed or not, ...)
+  //
+  // So this information is always available, whereas the "fields" above only
+  // writes non-tree shaken [Field] obejcts.
+  if (!klass.IsTopLevel()) {
+    DumpClassInstanceSlots(klass, fields);
   }
 
   array = klass.functions();
@@ -126,6 +158,94 @@ void SnapshotAnalyzer::DumpClass(const Class& klass) {
   if (!library.IsNull()) {
     js_.PrintProperty("library", GetObjectId(klass.library()));
   }
+}
+
+void SnapshotAnalyzer::DumpClassInstanceSlots(
+    const Class& klass,
+    const std::vector<const Field*>& fields) {
+  const auto& super_class = Class::Handle(klass.SuperClass());
+  auto& field = Field::Handle();
+  auto& type = AbstractType::Handle();
+  auto class_table = thread_->isolate_group()->class_table();
+
+  const auto bitmap = class_table->GetUnboxedFieldsMapAt(klass.id());
+
+  const intptr_t start_offset = super_class.IsNull()
+                                    ? Instance::NextFieldOffset()
+                                    : super_class.host_next_field_offset();
+  const intptr_t end_offset = klass.host_next_field_offset();
+
+  js_.OpenArray("instance_slots");
+  intptr_t offset = start_offset;
+  while (offset < end_offset) {
+    const bool is_reference = !bitmap.Get(offset / kCompressedWordSize);
+
+    js_.OpenObject();
+    js_.PrintProperty("offset", offset);
+    js_.PrintPropertyBool("is_reference", is_reference);
+
+    if (offset == klass.host_type_arguments_field_offset()) {
+      RELEASE_ASSERT(is_reference);
+      js_.PrintProperty("slot_type", "type_arguments_field");
+      js_.CloseObject();
+      offset += kCompressedWordSize;
+      continue;
+    }
+
+    // Try to see if the corresponding [Field] object was not tree shaken.
+    bool found = false;
+    for (uintptr_t i = 0; i < fields.size(); ++i) {
+      field = fields[i]->ptr();
+      if (field.is_static()) continue;
+      if (field.HostOffset() == offset) {
+        found = true;
+        break;
+      }
+    }
+    if (found) {
+      type = field.type();
+
+      intptr_t slots = 0;
+      if (field.is_unboxed()) {
+        if (type.IsDoubleType()) {
+          slots = sizeof(double) / kCompressedWordSize;
+        } else if (type.IsIntType()) {
+          slots = sizeof(int64_t) / kCompressedWordSize;
+        } else if (type.IsFloat32x4Type()) {
+          slots = sizeof(simd128_value_t) / kCompressedWordSize;
+        } else if (type.IsFloat64x2Type()) {
+          slots = sizeof(simd128_value_t) / kCompressedWordSize;
+        } else {
+          // Rare: Could be that the field type isn't telling us the unboxed
+          // type but field is still unboxed (e.g. `dynamic` field which TFA
+          // inferred to be of certain type).
+          //
+          // In this case we treat it as unknown field below (as we don't know
+          // it's size).
+          slots = -1;
+        }
+      } else {
+        slots = 1;
+      }
+      if (!field.is_unboxed() || slots > 0) {
+        js_.PrintProperty("slot_type", "instance_field");
+        js_.PrintProperty64("field", GetObjectId(field.ptr()));
+        js_.CloseObject();
+        offset += slots * kCompressedWordSize;
+        continue;
+      }
+    }
+
+    // This slot is either an unknown reference field or part of an unknown
+    // unboxed field (64-bit integer/double or 128-bit float32x4/float64x2).
+    // We cannot know the size or type of the unboxed field as the [Field]
+    // object was tree shaken.
+    js_.PrintProperty("slot_type", "unknown_slot");
+    js_.CloseObject();
+
+    offset += kCompressedWordSize;
+  }
+  js_.CloseArray();
 }
 
 void SnapshotAnalyzer::DumpFunction(const Function& function) {
@@ -165,8 +285,11 @@ void SnapshotAnalyzer::DumpCode(const Code& code) {
 }
 
 void SnapshotAnalyzer::DumpField(const Field& field) {
+  const auto& name = String::Handle(field.name());
+  const auto& type = AbstractType::Handle(field.type());
+
   js_.PrintProperty("type", "Field");
-  js_.PrintProperty("name", String::Handle(field.name()).ToCString());
+  js_.PrintProperty("name", name.ToCString());
   js_.PrintProperty64("type_class", GetObjectId(field.type()));
   if (field.is_static()) {
     js_.PrintProperty("instance", GetObjectId(field.StaticValue()));
@@ -175,6 +298,34 @@ void SnapshotAnalyzer::DumpField(const Field& field) {
     js_.PrintProperty("initializer_function",
                       GetObjectId(field.InitializerFunction()));
   }
+
+  js_.PrintPropertyBool("is_reference", !field.is_unboxed());
+  if (field.is_unboxed()) {
+    const char* unboxed_type = nullptr;
+    if (type.IsDoubleType()) {
+      unboxed_type = "double";
+    } else if (type.IsIntType()) {
+      unboxed_type = "int";
+    } else if (type.IsFloat32x4Type()) {
+      unboxed_type = "Float32x4";
+    } else if (type.IsFloat64x2Type()) {
+      unboxed_type = "Float64x2";
+    } else {
+      unboxed_type = "unknown";
+    }
+    js_.PrintProperty("unboxed_type", unboxed_type);
+  }
+
+  js_.OpenArray("flags");
+  if (field.is_final()) js_.PrintValue("final");
+  if (field.is_static()) {
+    js_.PrintValue("static");
+    if (field.is_shared()) js_.PrintValue("shared");
+  }
+  if (field.is_instance()) {
+    if (field.is_late()) js_.PrintValue("late");
+  }
+  js_.CloseArray();
 }
 
 void SnapshotAnalyzer::DumpString(const String& string) {
@@ -231,6 +382,8 @@ void SnapshotAnalyzer::DumpObjectPool(const ObjectPool& pool) {
 
 void SnapshotAnalyzer::DumpInterestingObjects() {
   Zone* zone = thread_->zone();
+  auto class_table = thread_->isolate_group()->class_table();
+  class_table->NumCids();
 
   heap_->ResetObjectIdTable();
   std::vector<const Object*> discovered_objects;
@@ -270,6 +423,27 @@ void SnapshotAnalyzer::DumpInterestingObjects() {
       if (!class_table->HasValidClassAt(cid)) continue;
       object = class_table->At(cid);
       handle_object(object.ptr());
+    }
+  }
+
+  // Sometimes we have [Field] objects for fields but they are not available
+  // from [Class.fields] (e.g. late final fields where the slow path uses
+  // [Field] from object pool to throw a nice error).
+  //
+  // So we manually look for all [Field]s and associate them with classes
+  // instead of relying on the [Class.fields] array.
+  auto& owner = Class::Handle();
+  for (uintptr_t i = 0; i < discovered_objects.size(); ++i) {
+    const Object& object = *discovered_objects[i];
+    if (object.IsField()) {
+      const auto& field = Field::Cast(object);
+      owner = field.Owner();
+      auto& array =
+          owner.IsTopLevel() ? top_level_class_fields_ : class_fields_;
+      const intptr_t index = owner.IsTopLevel()
+                                 ? ClassTable::IndexFromTopLevelCid(owner.id())
+                                 : owner.id();
+      array[index].push_back(&field);
     }
   }
 
