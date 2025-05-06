@@ -1894,7 +1894,6 @@ class AnalysisDriver {
     signature.addUint32List(_saltForResolution);
     if (file.workspacePackage case PubPackage pubPackage) {
       signature.addString(pubPackage.pubspecContent ?? '');
-      signature.addString(pubPackage.analyzerUseNewElementsContent ?? '');
     }
     signature.addString(library.file.uriStr);
     signature.addString(library.libraryCycle.apiSignature);
