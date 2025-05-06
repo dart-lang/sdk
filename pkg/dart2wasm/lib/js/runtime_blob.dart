@@ -76,7 +76,7 @@ class CompiledApp {
         return;
       }
 
-      throw "Unable to print message: " + js;
+      throw "Unable to print message: " + value;
     }
 
     // A special symbol attached to functions that wrap Dart functions.
@@ -165,7 +165,7 @@ const jsStringPolyfill = {
         return result;
       },
       "intoCharCodeArray": (s, a, start) => {
-        if (s == '') return 0;
+        if (s === '') return 0;
 
         const write = dartInstance.exports.$wasmI16ArraySet;
         for (var i = 0; i < s.length; ++i) {

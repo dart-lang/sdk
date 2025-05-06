@@ -40,6 +40,9 @@ abstract class _Specializer {
   /// Whether this config is associated with a constructor or factory.
   bool get isConstructor;
 
+  /// Whether this is a setter where there's no return value.
+  bool get isSetter;
+
   /// The parameters that determine arity of the interop procedure that is
   /// created from this config.
   List<VariableDeclaration> get parameters;
@@ -61,15 +64,17 @@ abstract class _Specializer {
     final callArguments =
         firstParameterIsObject ? parameterNames.sublist(1) : parameterNames;
     final callArgumentsString = callArguments.join(',');
-    final functionParameters = firstParameterIsObject
+    String functionParameters = firstParameterIsObject
         ? '$object${callArguments.isEmpty ? '' : ',$callArgumentsString'}'
         : callArgumentsString;
     final body = bodyString(object, callArguments);
+
     if (parametersNeedParens(parameterNames)) {
-      return '($functionParameters) => $body';
-    } else {
-      return '$functionParameters => $body';
+      functionParameters = '($functionParameters)';
     }
+    return isSetter
+        ? '$functionParameters => { $body }'
+        : '$functionParameters => $body';
   }
 
   /// Returns an [Expression] representing the specialization of a given
@@ -162,6 +167,9 @@ class _ConstructorSpecializer extends _ProcedureSpecializer {
   bool get isConstructor => true;
 
   @override
+  bool get isSetter => false;
+
+  @override
   String bodyString(String object, List<String> callArguments) =>
       "new $jsString(${callArguments.join(',')})";
 }
@@ -171,6 +179,9 @@ class _GetterSpecializer extends _ProcedureSpecializer {
 
   @override
   bool get isConstructor => false;
+
+  @override
+  bool get isSetter => false;
 
   @override
   String bodyString(String object, List<String> callArguments) =>
@@ -184,6 +195,9 @@ class _SetterSpecializer extends _ProcedureSpecializer {
   bool get isConstructor => false;
 
   @override
+  bool get isSetter => true;
+
+  @override
   String bodyString(String object, List<String> callArguments) =>
       '$object.$jsString = ${callArguments[0]}';
 }
@@ -193,6 +207,9 @@ class _MethodSpecializer extends _ProcedureSpecializer {
 
   @override
   bool get isConstructor => false;
+
+  @override
+  bool get isSetter => false;
 
   @override
   String bodyString(String object, List<String> callArguments) =>
@@ -206,14 +223,19 @@ class _OperatorSpecializer extends _ProcedureSpecializer {
   bool get isConstructor => false;
 
   @override
+  bool get isSetter => switch (jsString) {
+        '[]' => false,
+        '[]=' => true,
+        _ => throw UnimplementedError(
+            'External operator $jsString is unsupported for static interop. '
+            'Please file a request in the SDK if you want it to be supported.')
+      };
+
+  @override
   String bodyString(String object, List<String> callArguments) {
-    return switch (jsString) {
-      '[]' => '$object[${callArguments[0]}]',
-      '[]=' => '$object[${callArguments[0]}] = ${callArguments[1]}',
-      _ => throw UnimplementedError(
-          'External operator $jsString is unsupported for static interop. '
-          'Please file a request in the SDK if you want it to be supported.')
-    };
+    return isSetter
+        ? '$object[${callArguments[0]}] = ${callArguments[1]}'
+        : '$object[${callArguments[0]}]';
   }
 }
 
@@ -271,6 +293,9 @@ class _ConstructorInvocationSpecializer
   bool get isConstructor => true;
 
   @override
+  bool get isSetter => false;
+
+  @override
   String bodyString(String object, List<String> callArguments) =>
       "new $jsString(${callArguments.join(',')})";
 }
@@ -281,6 +306,9 @@ class _MethodInvocationSpecializer extends _PositionalInvocationSpecializer {
 
   @override
   bool get isConstructor => false;
+
+  @override
+  bool get isSetter => false;
 
   @override
   String bodyString(String object, List<String> callArguments) =>
@@ -296,6 +324,9 @@ class _ObjectLiteralSpecializer extends _InvocationSpecializer {
 
   @override
   bool get isConstructor => true;
+
+  @override
+  bool get isSetter => false;
 
   @override
   List<VariableDeclaration> get parameters {
