@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -131,9 +131,9 @@ class AnalysisDriver_LintTest extends PubPackageResolutionTest
     assertErrorsInResult([]);
   }
 
-  void _assertHasLintReported(List<AnalysisError> errors, String name) {
+  void _assertHasLintReported(List<Diagnostic> diagnostics, String name) {
     var matching =
-        errors.where((element) {
+        diagnostics.where((element) {
           var errorCode = element.errorCode;
           return errorCode is LintCode && errorCode.name == name;
         }).toList();

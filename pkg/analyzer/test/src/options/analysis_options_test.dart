@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/analysis_options.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
@@ -105,7 +106,7 @@ analyzer:
     var processors = analysisOptions.errorProcessors;
     expect(processors, hasLength(1));
 
-    var warning = AnalysisError.tmp(
+    var warning = Diagnostic.tmp(
       source: TestSource(),
       offset: 0,
       length: 1,
@@ -130,7 +131,7 @@ analyzer:
     var processors = analysisOptions.errorProcessors;
     expect(processors, hasLength(1));
 
-    var warning = AnalysisError.tmp(
+    var warning = Diagnostic.tmp(
       source: TestSource(),
       offset: 0,
       length: 1,
@@ -155,7 +156,7 @@ analyzer:
     var processors = analysisOptions.errorProcessors;
     expect(processors, hasLength(1));
 
-    var error = AnalysisError.tmp(
+    var error = Diagnostic.tmp(
       source: TestSource(),
       offset: 0,
       length: 1,
@@ -181,7 +182,7 @@ analyzer:
     var processors = analysisOptions.errorProcessors;
     expect(processors, hasLength(1));
 
-    var warning = AnalysisError.tmp(
+    var warning = Diagnostic.tmp(
       source: TestSource(),
       offset: 0,
       length: 1,

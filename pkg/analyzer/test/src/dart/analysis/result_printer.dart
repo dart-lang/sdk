@@ -7,7 +7,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/dart/analysis/driver_event.dart' as events;
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
@@ -176,15 +176,15 @@ class DriverEventsPrinter {
     }
   }
 
-  void _writeAnalysisError(AnalysisError e) {
-    sink.writelnWithIndent('${e.offset} +${e.length} ${e.errorCode.name}');
-  }
-
   void _writeCannotReuseLinkedBundle(events.CannotReuseLinkedBundle event) {
     sink.writelnWithIndent('[operation] cannotReuseLinkedBundle');
     sink.withIndent(() {
       _writeRequirementFailure(event.failure);
     });
+  }
+
+  void _writeDiagnostic(Diagnostic d) {
+    sink.writelnWithIndent('${d.offset} +${d.length} ${d.errorCode.name}');
   }
 
   void _writeErrorsEvent(GetErrorsEvent event) {
@@ -218,7 +218,7 @@ class DriverEventsPrinter {
             sink.writeln('---');
           }
 
-          sink.writeElements('errors', result.errors, _writeAnalysisError);
+          sink.writeElements('errors', result.errors, _writeDiagnostic);
         });
       default:
         throw UnimplementedError('${result.runtimeType}');
@@ -1276,8 +1276,8 @@ class ResolvedUnitResultPrinter {
     }
   }
 
-  void _writeAnalysisError(AnalysisError e) {
-    sink.writelnWithIndent('${e.offset} +${e.length} ${e.errorCode.name}');
+  void _writeDiagnostic(Diagnostic d) {
+    sink.writelnWithIndent('${d.offset} +${d.length} ${d.errorCode.name}');
   }
 
   void _writeResolvedUnitResult(ResolvedUnitResultImpl result) {
@@ -1313,7 +1313,7 @@ class ResolvedUnitResultPrinter {
         sink.writeln('---');
       }
 
-      sink.writeElements('errors', result.errors, _writeAnalysisError);
+      sink.writeElements('errors', result.errors, _writeDiagnostic);
 
       var nodeToWrite = configuration.nodeSelector(result);
       if (nodeToWrite != null) {

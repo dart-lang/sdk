@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/analysis_options.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
@@ -16,7 +17,7 @@ import '../generated/test_support.dart';
 import '../src/util/yaml_test.dart';
 
 main() {
-  AnalysisError invalid_assignment = AnalysisError.tmp(
+  Diagnostic invalid_assignment = Diagnostic.tmp(
     source: TestSource(),
     offset: 0,
     length: 1,
@@ -27,7 +28,7 @@ main() {
     ],
   );
 
-  AnalysisError assignment_of_do_not_store = AnalysisError.tmp(
+  Diagnostic assignment_of_do_not_store = Diagnostic.tmp(
     source: TestSource(),
     offset: 0,
     length: 1,
@@ -37,7 +38,7 @@ main() {
     ],
   );
 
-  AnalysisError unused_local_variable = AnalysisError.tmp(
+  Diagnostic unused_local_variable = Diagnostic.tmp(
     source: TestSource(),
     offset: 0,
     length: 1,
@@ -47,7 +48,7 @@ main() {
     ],
   );
 
-  AnalysisError use_of_void_result = AnalysisError.tmp(
+  Diagnostic use_of_void_result = Diagnostic.tmp(
     source: TestSource(),
     offset: 0,
     length: 1,
@@ -56,7 +57,7 @@ main() {
 
   // We in-line a lint code here in order to avoid adding a dependency on the
   // linter package.
-  AnalysisError annotate_overrides = AnalysisError.tmp(
+  Diagnostic annotate_overrides = Diagnostic.tmp(
     source: TestSource(),
     offset: 0,
     length: 1,
@@ -188,7 +189,7 @@ class _TestContext {
     );
   }
 
-  ErrorProcessor? getProcessor(AnalysisError error) {
-    return ErrorProcessor.getProcessor(analysisOptions, error);
+  ErrorProcessor? getProcessor(Diagnostic diagnostic) {
+    return ErrorProcessor.getProcessor(analysisOptions, diagnostic);
   }
 }

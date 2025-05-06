@@ -14,7 +14,6 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart' hide Annotation;
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
@@ -165,16 +164,16 @@ Future<TestResult<T>> runTestForConfig<T>(
         result.errors.where((e) => e.severity == Severity.error).toList();
     if (errors.isNotEmpty) {
       if (dataComputer.supportsErrors) {
-        var errorMap = <int, List<AnalysisError>>{};
+        var diagnosticMap = <int, List<Diagnostic>>{};
         for (var error in errors) {
           var offset = error.offset;
           if (offset == 0 || offset < 0) {
             // Position errors without offset in the begin of the file.
             offset = 0;
           }
-          (errorMap[offset] ??= <AnalysisError>[]).add(error);
+          (diagnosticMap[offset] ??= <Diagnostic>[]).add(error);
         }
-        errorMap.forEach((offset, errors) {
+        diagnosticMap.forEach((offset, errors) {
           var id = NodeId(offset, IdKind.error);
           var data = dataComputer.computeErrorData(
             config,
@@ -188,7 +187,7 @@ Future<TestResult<T>> runTestForConfig<T>(
           }
         });
       } else {
-        String formatError(AnalysisError e) {
+        String formatError(Diagnostic e) {
           var locationInfo = result.unit.lineInfo.getLocation(e.offset);
           return '$locationInfo: ${e.errorCode}: ${e.message}';
         }
@@ -337,12 +336,12 @@ abstract class DataComputer<T> {
   /// state, so this testing feature is opt-in.
   bool get supportsErrors => false;
 
-  /// Returns data corresponding to [errors].
+  /// Returns data corresponding to [diagnostics].
   T? computeErrorData(
     TestConfig config,
     TestingData testingData,
     Id id,
-    List<AnalysisError> errors,
+    List<Diagnostic> diagnostics,
   ) => null;
 
   /// Computes a data mapping for [unit].

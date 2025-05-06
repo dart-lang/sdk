@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/manifest/manifest_validator.dart';
@@ -438,17 +439,17 @@ class ManifestValidatorTest with ResourceProviderMixin {
 
   /// Assert that when the validator is used on the given [content] the
   /// [expectedCodes] are produced.
-  void assertErrors(String content, List<DiagnosticCode> expectedCodes) {
-    List<AnalysisError> errors = validator.validate(content, true);
+  void assertDiagnostics(String content, List<DiagnosticCode> expectedCodes) {
+    List<Diagnostic> diagnostics = validator.validate(content, true);
     GatheringErrorListener listener = GatheringErrorListener();
-    listener.addAll(errors);
+    listener.addAll(diagnostics);
     listener.assertErrorsWithCodes(expectedCodes);
   }
 
   /// Assert that when the validator is used on the given [content] no errors
   /// are produced.
   void assertNoErrors(String content) {
-    assertErrors(content, []);
+    assertDiagnostics(content, []);
   }
 
   void setUp() {
@@ -458,7 +459,7 @@ class ManifestValidatorTest with ResourceProviderMixin {
   }
 
   test_cameraPermissions_error() {
-    assertErrors(
+    assertDiagnostics(
       '''
 <manifest
      xmlns:android="http://schemas.android.com/apk/res/android">
@@ -483,7 +484,7 @@ class ManifestValidatorTest with ResourceProviderMixin {
   }
 
   test_featureNotSupported_error() {
-    assertErrors(
+    assertDiagnostics(
       '''
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android">
@@ -495,7 +496,7 @@ class ManifestValidatorTest with ResourceProviderMixin {
   }
 
   test_hardwareNotSupported_error() {
-    assertErrors(
+    assertDiagnostics(
       '''
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android">
@@ -508,7 +509,7 @@ class ManifestValidatorTest with ResourceProviderMixin {
   }
 
   test_no_errors() {
-    assertErrors('''
+    assertDiagnostics('''
 <manifest
      xmlns:android="http://schemas.android.com/apk/res/android">
   <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
@@ -521,7 +522,7 @@ class ManifestValidatorTest with ResourceProviderMixin {
   }
 
   test_noTouchScreen_error() {
-    assertErrors(
+    assertDiagnostics(
       '''
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android">
@@ -532,7 +533,7 @@ class ManifestValidatorTest with ResourceProviderMixin {
   }
 
   test_resizeableactivity_error() {
-    assertErrors(
+    assertDiagnostics(
       '''
 <manifest
      xmlns:android="http://schemas.android.com/apk/res/android">
@@ -550,7 +551,7 @@ class ManifestValidatorTest with ResourceProviderMixin {
   }
 
   test_screenOrientation_error() {
-    assertErrors(
+    assertDiagnostics(
       '''
 <manifest
      xmlns:android="http://schemas.android.com/apk/res/android">
@@ -568,7 +569,7 @@ class ManifestValidatorTest with ResourceProviderMixin {
   }
 
   test_touchScreenNotSupported_error() {
-    assertErrors(
+    assertDiagnostics(
       '''
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android">
