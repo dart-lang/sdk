@@ -20,7 +20,7 @@ library;
 
 import "package:analyzer/error/error.dart";
 
-class CompileTimeErrorCode extends ErrorCode {
+class CompileTimeErrorCode extends DiagnosticCode {
   ///  No parameters.
   static const CompileTimeErrorCode
   ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER = CompileTimeErrorCode(
@@ -6087,7 +6087,7 @@ class CompileTimeErrorCode extends ErrorCode {
   DiagnosticType get type => DiagnosticType.COMPILE_TIME_ERROR;
 }
 
-class StaticWarningCode extends ErrorCode {
+class StaticWarningCode extends DiagnosticCode {
   ///  No parameters.
   static const StaticWarningCode DEAD_NULL_AWARE_EXPRESSION = StaticWarningCode(
     'DEAD_NULL_AWARE_EXPRESSION',
@@ -6216,7 +6216,7 @@ class StaticWarningCode extends ErrorCode {
   DiagnosticType get type => DiagnosticType.STATIC_WARNING;
 }
 
-class WarningCode extends ErrorCode {
+class WarningCode extends DiagnosticCode {
   ///  Parameters:
   ///  0: the name of the actual argument type
   ///  1: the name of the expected function return type

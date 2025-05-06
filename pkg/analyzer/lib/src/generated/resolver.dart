@@ -579,9 +579,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         }
       }
 
-      ErrorCode errorCode;
+      DiagnosticCode diagnosticCode;
       if (typeSystem.isPotentiallyNonNullable(returnType)) {
-        errorCode = CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY;
+        diagnosticCode = CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY;
       } else {
         var returnTypeBase = typeSystem.futureOrBase(returnType);
         if (returnTypeBase is DynamicType ||
@@ -591,23 +591,27 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             returnTypeBase.isDartCoreNull) {
           return;
         } else {
-          errorCode = WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE;
+          diagnosticCode = WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE;
         }
       }
       if (errorNode is ConstructorDeclaration) {
         errorReporter.atConstructorDeclaration(
           errorNode,
-          errorCode,
+          diagnosticCode,
           arguments: [returnType],
         );
       } else if (errorNode is BlockFunctionBody) {
         errorReporter.atToken(
           errorNode.block.leftBracket,
-          errorCode,
+          diagnosticCode,
           arguments: [returnType],
         );
       } else if (errorNode is Token) {
-        errorReporter.atToken(errorNode, errorCode, arguments: [returnType]);
+        errorReporter.atToken(
+          errorNode,
+          diagnosticCode,
+          arguments: [returnType],
+        );
       }
     }
   }
@@ -4689,19 +4693,19 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       }
     } else if (positionalArgumentCount > unnamedParameterCount &&
         noBlankArguments) {
-      ErrorCode errorCode;
+      DiagnosticCode diagnosticCode;
       int namedParameterCount = namedParameters?.length ?? 0;
       int namedArgumentCount = usedNames?.length ?? 0;
       if (namedParameterCount > namedArgumentCount) {
-        errorCode =
+        diagnosticCode =
             CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED;
       } else {
-        errorCode = CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS;
+        diagnosticCode = CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS;
       }
       if (firstUnresolvedArgument != null) {
         errorReporter?.atNode(
           firstUnresolvedArgument,
-          errorCode,
+          diagnosticCode,
           arguments: [unnamedParameterCount, positionalArgumentCount],
         );
       }
@@ -4789,21 +4793,21 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       arguments.add(requiredParameterCount);
       arguments.add(actualArgumentCount);
     }
-    ErrorCode errorCode;
+    DiagnosticCode diagnosticCode;
     if (name == null) {
-      errorCode =
+      diagnosticCode =
           isPlural
               ? CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_PLURAL
               : CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_SINGULAR;
     } else {
-      errorCode =
+      diagnosticCode =
           isPlural
               ? CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL
               : CompileTimeErrorCode
                   .NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR;
       arguments.add(name);
     }
-    errorReporter.atToken(token, errorCode, arguments: arguments);
+    errorReporter.atToken(token, diagnosticCode, arguments: arguments);
   }
 }
 

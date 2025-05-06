@@ -254,7 +254,7 @@ abstract class LintRule {
     AstNode? node, {
     List<Object> arguments = const [],
     List<DiagnosticMessage>? contextMessages,
-    ErrorCode? errorCode,
+    DiagnosticCode? errorCode,
   }) {
     if (node != null && !node.isSynthetic) {
       reporter.atNode(
@@ -276,7 +276,7 @@ abstract class LintRule {
     int length, {
     List<Object> arguments = const [],
     List<DiagnosticMessage>? contextMessages,
-    ErrorCode? errorCode,
+    DiagnosticCode? errorCode,
   }) {
     reporter.atOffset(
       offset: offset,
@@ -296,7 +296,7 @@ abstract class LintRule {
     PSNode node, {
     List<Object> arguments = const [],
     List<DiagnosticMessage> contextMessages = const [],
-    ErrorCode? errorCode,
+    DiagnosticCode? errorCode,
   }) {
     // Cache error and location info for creating `AnalysisErrorInfo`s.
     var error = Diagnostic.tmp(
@@ -319,7 +319,7 @@ abstract class LintRule {
     Token token, {
     List<Object> arguments = const [],
     List<DiagnosticMessage>? contextMessages,
-    ErrorCode? errorCode,
+    DiagnosticCode? errorCode,
   }) {
     if (!token.isSynthetic) {
       reporter.atToken(

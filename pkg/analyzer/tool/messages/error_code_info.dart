@@ -9,8 +9,8 @@ import 'package:analyzer_testing/package_root.dart' as pkg_root;
 import 'package:path/path.dart';
 import 'package:yaml/yaml.dart' show loadYaml;
 
-/// Information about all the classes derived from `ErrorCode` that are code
-/// generated based on the contents of the analyzer and front end
+/// Information about all the classes derived from `DiagnosticCode` that are
+/// code-generated based on the contents of the analyzer and front end
 /// `messages.yaml` files.
 const List<ErrorClassInfo> errorClasses = [
   ErrorClassInfo(
@@ -432,7 +432,7 @@ class ErrorClassInfo {
     this.includeCfeMessages = false,
     required this.name,
     this.severity,
-    this.superclass = 'ErrorCode',
+    this.superclass = 'DiagnosticCode',
     required this.type,
   });
 
@@ -545,16 +545,19 @@ abstract class ErrorCodeInfo {
   }
 
   /// Generates a dart declaration for this error code, suitable for inclusion
-  /// in the error class [className].  [errorCode] is the name of the error code
-  /// to be generated.
+  /// in the error class [className].
+  ///
+  /// [diagnosticCode] is the name of the error code to be generated.
   String toAnalyzerCode(
     String className,
-    String errorCode, {
+    String diagnosticCode, {
     String? sharedNameReference,
   }) {
     var out = StringBuffer();
     out.writeln('$className(');
-    out.writeln('${sharedNameReference ?? "'${sharedName ?? errorCode}'"},');
+    out.writeln(
+      '${sharedNameReference ?? "'${sharedName ?? diagnosticCode}'"},',
+    );
     var maxWidth = 80 - 8 /* indentation */ - 2 /* quotes */ - 1 /* comma */;
     var placeholderToIndexMap = computePlaceholderToIndexMap();
     var messageAsCode = convertTemplate(placeholderToIndexMap, problemMessage);
@@ -578,7 +581,7 @@ abstract class ErrorCodeInfo {
       out.writeln('isUnresolvedIdentifier:true,');
     }
     if (sharedName != null) {
-      out.writeln("uniqueName: '$errorCode',");
+      out.writeln("uniqueName: '$diagnosticCode',");
     }
     out.write(');');
     return out.toString();

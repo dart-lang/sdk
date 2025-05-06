@@ -1541,14 +1541,14 @@ int finishHash(int hash) {
 
 class TestError {
   final int offset;
-  final ErrorCode errorCode;
+  final DiagnosticCode diagnosticCode;
   final List<Object>? arguments;
 
-  TestError(this.offset, this.errorCode, this.arguments);
+  TestError(this.offset, this.diagnosticCode, this.arguments);
 
   @override
   int get hashCode {
-    int h = combineHash(combineHash(0, offset), errorCode.hashCode);
+    int h = combineHash(combineHash(0, offset), diagnosticCode.hashCode);
     if (arguments != null) {
       for (Object argument in arguments!) {
         h = combineHash(h, argument.hashCode);
@@ -1561,7 +1561,7 @@ class TestError {
   bool operator ==(Object other) {
     if (other is TestError &&
         offset == other.offset &&
-        errorCode == other.errorCode) {
+        diagnosticCode == other.diagnosticCode) {
       if (arguments == null) return other.arguments == null;
       if (other.arguments == null) return false;
       if (arguments!.length != other.arguments!.length) return false;
@@ -1576,7 +1576,7 @@ class TestError {
   @override
   String toString() {
     var argString = arguments == null ? '' : '(${arguments!.join(', ')})';
-    return 'Error($offset, $errorCode$argString)';
+    return 'Error($offset, $diagnosticCode$argString)';
   }
 }
 

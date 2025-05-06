@@ -65,7 +65,8 @@ class Diagnostic {
     required Source source,
     required int offset,
     required int length,
-    required ErrorCode errorCode,
+    // TODO(srawlins): Rename to `diagnosticCode`.
+    required DiagnosticCode errorCode,
     List<Object?> arguments = const [],
     List<DiagnosticMessage> contextMessages = const [],
     Object? data,

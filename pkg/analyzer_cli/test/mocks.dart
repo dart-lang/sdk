@@ -67,7 +67,7 @@ class MockCommandLineOptions implements CommandLineOptions {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-class MockErrorCode implements ErrorCode {
+class MockErrorCode implements DiagnosticCode {
   @override
   DiagnosticType type;
 

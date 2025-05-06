@@ -13,7 +13,8 @@ import 'customized_codes.dart';
 /// Generally, messages should follow the [Guide for Writing
 /// Diagnostics](https://github.com/dart-lang/sdk/blob/main/pkg/front_end/lib/src/base/diagnostics.md).
 @AnalyzerPublicApi(message: 'exported by package:analyzer/error/error.dart')
-typedef DiagnosticCode = ErrorCode;
+@Deprecated("Use 'DiagnosticCode' instead.")
+typedef ErrorCode = DiagnosticCode;
 
 /// An error code associated with an `AnalysisError`.
 ///
@@ -23,7 +24,7 @@ typedef DiagnosticCode = ErrorCode;
 /// Note that this class name, `ErrorCode`, is soft-deprecated in favor of the
 /// type alias, `DiagnosticCode`.
 @AnalyzerPublicApi(message: 'exported by package:analyzer/error/error.dart')
-abstract class ErrorCode {
+abstract class DiagnosticCode {
   /// Regular expression for identifying positional arguments in error messages.
   static final RegExp _positionalArgumentRegExp = new RegExp(r'{(\d+)\}');
 
@@ -58,7 +59,7 @@ abstract class ErrorCode {
    * template. The correction associated with the error will be created from the
    * given [correctionMessage] template.
    */
-  const ErrorCode({
+  const DiagnosticCode({
     String? correctionMessage,
     this.hasPublishedDocs = false,
     this.isUnresolvedIdentifier = false,
@@ -133,7 +134,7 @@ abstract class ErrorCode {
 typedef ErrorSeverity = DiagnosticSeverity;
 
 /**
- * The severity of an [ErrorCode].
+ * The severity of an [DiagnosticCode].
  *
  * Note that this class name, `ErrorSeverity`, is soft-deprecated in favor of
  * the type alias, [DiagnosticSeverity].

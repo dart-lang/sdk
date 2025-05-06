@@ -15,7 +15,7 @@ import 'package:analyzer/error/error.dart';
 /// unintended code, maintainability, style and other best practices that might
 /// be aggregated to define a project's style guide.
 @AnalyzerPublicApi(message: 'exported by lib/error/error.dart')
-class LintCode extends ErrorCode {
+class LintCode extends DiagnosticCode {
   const LintCode(
     String name,
     String problemMessage, {

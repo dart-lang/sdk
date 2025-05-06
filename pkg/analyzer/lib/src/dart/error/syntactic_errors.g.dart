@@ -20,7 +20,7 @@ library;
 
 import "package:analyzer/error/error.dart";
 
-final fastaAnalyzerErrorCodes = <ErrorCode?>[
+final fastaAnalyzerErrorCodes = <DiagnosticCode?>[
   null,
   ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND,
   ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP,
@@ -202,7 +202,7 @@ final fastaAnalyzerErrorCodes = <ErrorCode?>[
   ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS,
 ];
 
-class ParserErrorCode extends ErrorCode {
+class ParserErrorCode extends DiagnosticCode {
   static const ParserErrorCode ABSTRACT_CLASS_MEMBER = ParserErrorCode(
     'ABSTRACT_CLASS_MEMBER',
     "Members of classes can't be declared to be 'abstract'.",

@@ -121,7 +121,7 @@ typedef ReportError(
 /**
  * The error codes used for errors detected by the scanner.
  */
-class ScannerErrorCode extends ErrorCode {
+class ScannerErrorCode extends DiagnosticCode {
   /**
    * Parameters:
    * 0: the token that was expected but not found
