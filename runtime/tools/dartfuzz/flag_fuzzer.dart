@@ -39,13 +39,13 @@ final gcFlags = [
   "--dontneed_on_sweep",
   "--force_evacuation",
   "--mark_when_idle",
-  "--marker_tasks=${range(0, 3)}", // 0 disables parallel marking
+  "--marker_tasks=${range(1, 3)}",
   "--no_concurrent_mark",
   "--no_concurrent_sweep",
   "--no_inline_alloc",
   "--runtime_allocate_old",
   "--runtime_allocate_spill_tlab",
-  "--scavenger_tasks=${range(0, 3)}", // 0 disables parallel scavenge
+  "--scavenger_tasks=${range(1, 3)}",
   "--use_compactor",
   "--verify_after_gc",
   "--verify_after_marking",
