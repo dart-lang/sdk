@@ -353,8 +353,11 @@ class EnumElementDeclaration
   }
 
   @override
-  void buildFieldOutlineNode(SourceLibraryBuilder libraryBuilder,
-      NameScheme nameScheme, BuildNodesCallback f, FieldReference references,
+  void buildFieldOutlineNode(
+      SourceLibraryBuilder libraryBuilder,
+      NameScheme nameScheme,
+      BuildNodesCallback f,
+      PropertyReferences references,
       {required List<TypeParameter>? classTypeParameters}) {
     _field = new Field.immutable(dummyName,
         type: _type,
@@ -363,7 +366,7 @@ class EnumElementDeclaration
         isStatic: true,
         fileUri: fileUri,
         fieldReference: references.fieldReference,
-        getterReference: references.fieldGetterReference,
+        getterReference: references.getterReference,
         isEnumElement: true)
       ..fileOffset = nameOffset
       ..fileEndOffset = nameOffset;

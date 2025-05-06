@@ -201,9 +201,9 @@ class SourceEnumBuilder extends SourceClassBuilder {
           new Name("_enumToString", coreLibrary.library));
     }
 
-    FieldReference valuesReferences = new FieldReference(
+    PropertyReferences valuesReferences = new PropertyReferences(
         "values", staticFieldNameScheme, indexedClass,
-        fieldIsLateWithLowering: false, isExternal: false);
+        fieldIsLateWithLowering: false);
 
     Builder? customValuesDeclaration =
         nameSpace.lookupLocalMember("values")?.getable;
@@ -251,7 +251,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
     }
 
     _enumValuesFieldDeclaration =
-        new _EnumValuesFieldDeclaration(this, valuesReferences, listType);
+        new _EnumValuesFieldDeclaration(this, listType);
 
     SourcePropertyBuilder valuesBuilder = new SourcePropertyBuilder.forField(
         fileUri: fileUri,
@@ -599,7 +599,6 @@ class _EnumValuesFieldDeclaration
   static const String name = "values";
 
   final SourceEnumBuilder _sourceEnumBuilder;
-  final FieldReference fieldReference;
 
   SourcePropertyBuilder? _builder;
 
@@ -609,8 +608,7 @@ class _EnumValuesFieldDeclaration
 
   final TypeBuilder _typeBuilder;
 
-  _EnumValuesFieldDeclaration(
-      this._sourceEnumBuilder, this.fieldReference, this._typeBuilder);
+  _EnumValuesFieldDeclaration(this._sourceEnumBuilder, this._typeBuilder);
 
   SourcePropertyBuilder get builder {
     assert(_builder != null, "Builder has not been computed for $this.");
@@ -669,8 +667,11 @@ class _EnumValuesFieldDeclaration
   }
 
   @override
-  void buildFieldOutlineNode(SourceLibraryBuilder libraryBuilder,
-      NameScheme nameScheme, BuildNodesCallback f, FieldReference references,
+  void buildFieldOutlineNode(
+      SourceLibraryBuilder libraryBuilder,
+      NameScheme nameScheme,
+      BuildNodesCallback f,
+      PropertyReferences references,
       {required List<TypeParameter>? classTypeParameters}) {
     fieldType = _typeBuilder.build(libraryBuilder, TypeUse.fieldType);
     _field = new Field.immutable(dummyName,
@@ -680,7 +681,7 @@ class _EnumValuesFieldDeclaration
         isStatic: true,
         fileUri: builder.fileUri,
         fieldReference: references.fieldReference,
-        getterReference: references.fieldGetterReference,
+        getterReference: references.getterReference,
         isEnumElement: false)
       ..fileOffset = builder.fileOffset
       ..fileEndOffset = builder.fileOffset;

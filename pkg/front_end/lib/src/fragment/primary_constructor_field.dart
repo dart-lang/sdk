@@ -46,6 +46,7 @@ class PrimaryConstructorFieldFragment implements Fragment {
     _builder = value;
   }
 
+  // Coverage-ignore(suite): Not run.
   PrimaryConstructorFieldDeclaration get declaration {
     assert(
         _declaration != null, "Declaration has not been computed for $this.");
@@ -107,9 +108,11 @@ class PrimaryConstructorFieldDeclaration
   shared.Expression? get initializerExpression => null;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isConst => false;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isEnumElement => false;
 
   @override
@@ -122,6 +125,7 @@ class PrimaryConstructorFieldDeclaration
   bool get isLate => false;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isStatic => false;
 
   @override
@@ -148,6 +152,7 @@ class PrimaryConstructorFieldDeclaration
     _encoding.type = value;
   }
 
+  // Coverage-ignore(suite): Not run.
   /// Builds the body of this field using [initializer] as the initializer
   /// expression.
   void buildBody(CoreTypes coreTypes, Expression? initializer) {
@@ -164,6 +169,7 @@ class PrimaryConstructorFieldDeclaration
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void buildFieldInitializer(InferenceHelper helper, TypeInferrer typeInferrer,
       CoreTypes coreTypes, Expression? initializer) {
     if (initializer != null) {
@@ -179,6 +185,7 @@ class PrimaryConstructorFieldDeclaration
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void buildImplicitDefaultValue() {
     _encoding.buildImplicitDefaultValue();
   }
@@ -216,8 +223,11 @@ class PrimaryConstructorFieldDeclaration
   }
 
   @override
-  void buildFieldOutlineNode(SourceLibraryBuilder libraryBuilder,
-      NameScheme nameScheme, BuildNodesCallback f, FieldReference references,
+  void buildFieldOutlineNode(
+      SourceLibraryBuilder libraryBuilder,
+      NameScheme nameScheme,
+      BuildNodesCallback f,
+      PropertyReferences references,
       {required List<TypeParameter>? classTypeParameters}) {
     _encoding.buildOutlineNode(libraryBuilder, nameScheme, references,
         isAbstractOrExternal: false, classTypeParameters: classTypeParameters);
@@ -243,6 +253,7 @@ class PrimaryConstructorFieldDeclaration
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void checkFieldVariance(
       SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {
     sourceClassBuilder.checkVarianceInField(typeEnvironment,
@@ -287,6 +298,7 @@ class PrimaryConstructorFieldDeclaration
 
     type.registerInferredTypeListener(this);
     if (type is InferableTypeBuilder) {
+      // Coverage-ignore-block(suite): Not run.
       // A field with no type and initializer or an instance field without
       // type and initializer need to have the type inferred.
       _encoding.type = new InferredType(
@@ -304,6 +316,7 @@ class PrimaryConstructorFieldDeclaration
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void ensureTypes(
       ClassMembersBuilder membersBuilder,
       Set<ClassMember>? getterOverrideDependencies,
@@ -320,17 +333,18 @@ class PrimaryConstructorFieldDeclaration
           nameLength: _fragment.name.length,
           isAssignable: hasSetter);
     } else {
-      // Coverage-ignore-block(suite): Not run.
       type.build(builder.libraryBuilder, TypeUse.fieldType,
           hierarchy: membersBuilder.hierarchyBuilder);
     }
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void registerSuperCall() {
     _encoding.registerSuperCall();
   }
 
+  // Coverage-ignore(suite): Not run.
   DartType _computeInferredType(
       ClassHierarchyBase classHierarchy, Token? token) {
     DartType? inferredType;
@@ -344,16 +358,9 @@ class PrimaryConstructorFieldDeclaration
                   declarationBuilder.cls, libraryBuilder.library.nonNullable)
           : null;
       LookupScope scope = _fragment.enclosingScope;
-      TypeInferrer typeInferrer =
-          libraryBuilder.loader.typeInferenceEngine.createTopLevelTypeInferrer(
-              fileUri,
-              enclosingClassThisType,
-              libraryBuilder,
-              scope,
-              builder
-                  .dataForTesting
-                  // Coverage-ignore(suite): Not run.
-                  ?.inferenceData);
+      TypeInferrer typeInferrer = libraryBuilder.loader.typeInferenceEngine
+          .createTopLevelTypeInferrer(fileUri, enclosingClassThisType,
+              libraryBuilder, scope, builder.dataForTesting?.inferenceData);
       BodyBuilderContext bodyBuilderContext = createBodyBuilderContext();
       BodyBuilder bodyBuilder = libraryBuilder.loader.createBodyBuilderForField(
           libraryBuilder, bodyBuilderContext, scope, typeInferrer, fileUri);
@@ -371,6 +378,7 @@ class PrimaryConstructorFieldDeclaration
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void setCovariantByClassInternal() {
     _encoding.setCovariantByClass();
   }
@@ -398,6 +406,7 @@ class PrimaryConstructorFieldDeclaration
       TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder) {}
 
   @override
+  // Coverage-ignore(suite): Not run.
   void checkGetterVariance(
       SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
 
@@ -414,6 +423,7 @@ class PrimaryConstructorFieldDeclaration
       List<NominalParameterBuilder> unboundNominalParameters) {}
 
   @override
+  // Coverage-ignore(suite): Not run.
   void ensureGetterTypes(
       {required SourceLibraryBuilder libraryBuilder,
       required DeclarationBuilder? declarationBuilder,
@@ -421,6 +431,7 @@ class PrimaryConstructorFieldDeclaration
       required Set<ClassMember>? getterOverrideDependencies}) {}
 
   @override
+  // Coverage-ignore(suite): Not run.
   Iterable<Reference> getExportedGetterReferences(
       PropertyReferences references) {
     return [references.getterReference!];

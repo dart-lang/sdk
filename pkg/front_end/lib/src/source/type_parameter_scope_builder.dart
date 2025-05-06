@@ -2491,10 +2491,9 @@ _AddBuilder _createFieldBuilder(FieldFragment fragment,
           : enclosingLibraryBuilder.libraryName);
   indexedContainer ??= indexedLibrary;
 
-  FieldReference references = new FieldReference(
+  PropertyReferences references = new PropertyReferences(
       name, nameScheme, indexedContainer,
-      fieldIsLateWithLowering: fieldIsLateWithLowering,
-      isExternal: fragment.modifiers.isExternal);
+      fieldIsLateWithLowering: fieldIsLateWithLowering);
 
   RegularFieldDeclaration declaration = new RegularFieldDeclaration(fragment);
   SourcePropertyBuilder propertyBuilder = new SourcePropertyBuilder.forField(
@@ -2552,9 +2551,9 @@ _AddBuilder _createPrimaryConstructorFieldBuilder(
           : enclosingLibraryBuilder.libraryName);
   indexedContainer ??= indexedLibrary;
 
-  FieldReference references = new FieldReference(
+  PropertyReferences references = new PropertyReferences(
       name, nameScheme, indexedContainer,
-      fieldIsLateWithLowering: false, isExternal: false);
+      fieldIsLateWithLowering: false);
 
   PrimaryConstructorFieldDeclaration declaration =
       new PrimaryConstructorFieldDeclaration(fragment);
@@ -2614,8 +2613,9 @@ _AddBuilder _createGetterBuilder(
 
   indexedContainer ??= indexedLibrary;
 
-  GetterReference references =
-      new GetterReference(name, nameScheme, indexedContainer);
+  PropertyReferences references = new PropertyReferences(
+      name, nameScheme, indexedContainer,
+      fieldIsLateWithLowering: false);
 
   GetterDeclaration declaration = new GetterDeclarationImpl(fragment);
   List<GetterDeclaration> augmentationDeclarations = [];
@@ -2706,8 +2706,9 @@ _AddBuilder _createSetterBuilder(
 
   indexedContainer ??= indexedLibrary;
 
-  SetterReference references =
-      new SetterReference(name, nameScheme, indexedContainer);
+  PropertyReferences references = new PropertyReferences(
+      name, nameScheme, indexedContainer,
+      fieldIsLateWithLowering: false);
 
   SetterDeclaration declaration = new SetterDeclarationImpl(fragment);
   List<SetterDeclaration> augmentationDeclarations = [];
@@ -3313,9 +3314,9 @@ _AddBuilder _createEnumElementBuilder(EnumElementFragment fragment,
       libraryName: indexedLibrary != null
           ? new LibraryName(indexedLibrary.library.reference)
           : enclosingLibraryBuilder.libraryName);
-  FieldReference references = new FieldReference(
+  PropertyReferences references = new PropertyReferences(
       fragment.name, nameScheme, indexedContainer,
-      fieldIsLateWithLowering: false, isExternal: false);
+      fieldIsLateWithLowering: false);
   EnumElementDeclaration enumElementDeclaration =
       new EnumElementDeclaration(fragment);
   SourcePropertyBuilder propertyBuilder = new SourcePropertyBuilder.forField(
