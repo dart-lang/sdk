@@ -446,10 +446,7 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
       results,
       closedWorld,
     );
-    if (node.staticType != null) {
-      result = abstractValueDomain.intersection(result, node.staticType!);
-    }
-    return result;
+    return node.computeInstructionType(result, abstractValueDomain);
   }
 
   @override

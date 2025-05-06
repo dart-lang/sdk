@@ -1965,6 +1965,20 @@ abstract class HInvokeDynamic extends HInvoke implements InstructionContext {
     );
   }
 
+  /// Returns [value] narrowed by the [staticType].
+  AbstractValue computeInstructionType(
+    AbstractValue value,
+    AbstractValueDomain abstractValueDomain,
+  ) {
+    if (staticType == null) return value;
+    final narrowed = abstractValueDomain.intersection(value, staticType!);
+    // Preserve the sentinel in [value] since the static type does not include
+    // a sentinel and the intersection would remove it.
+    return abstractValueDomain.isLateSentinel(value).isPotentiallyTrue
+        ? abstractValueDomain.includeLateSentinel(narrowed)
+        : narrowed;
+  }
+
   @override
   String toString() => 'invoke dynamic: selector=$selector, mask=$receiverType';
 
