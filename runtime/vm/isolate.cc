@@ -335,6 +335,7 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       heap_(nullptr),
       saved_unlinked_calls_(Array::null()),
       initial_field_table_(new FieldTable(/*isolate=*/nullptr)),
+      sentinel_field_table_(new FieldTable(/*isolate=*/nullptr)),
       shared_initial_field_table_(new FieldTable(/*isolate=*/nullptr,
                                                  /*isolate_group=*/nullptr)),
       shared_field_table_(new FieldTable(/*isolate=*/nullptr, this)),
@@ -849,7 +850,11 @@ void IsolateGroup::RegisterStaticField(const Field& field,
   const bool need_to_grow_backing_store =
       initial_field_table()->Register(field);
   const intptr_t field_id = field.field_id();
+  if (need_to_grow_backing_store) {
+    sentinel_field_table()->AllocateIndex(field_id);
+  }
   initial_field_table()->SetAt(field_id, initial_value.ptr());
+  sentinel_field_table()->SetAt(field_id, Object::sentinel().ptr());
 
   SafepointReadRwLocker ml(Thread::Current(), isolates_lock_.get());
   if (need_to_grow_backing_store) {
@@ -885,6 +890,7 @@ void IsolateGroup::FreeStaticField(const Field& field) {
     shared_field_table()->Free(field_id);
   } else {
     initial_field_table()->Free(field_id);
+    sentinel_field_table()->Free(field_id);
     ForEachIsolate([&](Isolate* isolate) {
       auto field_table = isolate->field_table();
       // The isolate might've just been created and is now participating in
@@ -2972,6 +2978,7 @@ void IsolateGroup::VisitSharedPointers(ObjectPointerVisitor* visitor) {
   }
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&saved_unlinked_calls_));
   initial_field_table()->VisitObjectPointers(visitor);
+  sentinel_field_table()->VisitObjectPointers(visitor);
   shared_initial_field_table()->VisitObjectPointers(visitor);
   shared_field_table()->VisitObjectPointers(visitor);
 

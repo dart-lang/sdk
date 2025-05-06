@@ -4553,8 +4553,8 @@ void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ BranchIf(EQUAL, slow_path->entry_label());
       return;
     }
-    ASSERT(field().has_initializer());
-    ASSERT(field().is_late());
+    ASSERT((FLAG_experimental_shared_data && !field().is_shared()) ||
+           (field().has_initializer() && field().is_late()));
     auto object_store = compiler->isolate_group()->object_store();
     const Field& original_field = Field::ZoneHandle(field().Original());
 
@@ -4568,7 +4568,9 @@ void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     } else {
       // The stubs below call the initializer function directly, so make sure
       // one is created.
-      original_field.EnsureInitializerFunction();
+      if (original_field.has_nontrivial_initializer()) {
+        original_field.EnsureInitializerFunction();
+      }
       stub =
           field().is_shared()
               ? (field().is_final()

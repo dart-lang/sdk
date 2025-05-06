@@ -19,16 +19,34 @@ import 'dart:isolate';
 import "package:expect/expect.dart";
 
 var foo = 42;
+var foo_no_initializer;
+
+@pragma('vm:shared')
+var shared_foo_no_initializer;
+
+final foo_final = 1234;
 
 @pragma('vm:never-inline')
 updateFoo() {
   foo = 56;
 }
 
+@pragma('vm:never-inline')
+updateFooNoInitializer() {
+  foo_no_initializer = 78;
+}
+
 main() {
   Expect.equals(42, IsolateGroup.runSync(() => 42));
 
   Expect.listEquals([1, 2, 3], IsolateGroup.runSync(() => [1, 2, 3]));
+
+  Expect.equals(1234, IsolateGroup.runSync(() => foo_final));
+
+  IsolateGroup.runSync(() {
+    shared_foo_no_initializer = 2345;
+  });
+  Expect.equals(2345, IsolateGroup.runSync(() => shared_foo_no_initializer));
 
   Expect.throws(
     () {
@@ -46,23 +64,60 @@ main() {
       return Isolate.current;
     });
   }, Isolate.current);
-  //
-  // Following crashes VM since field_table is not set up on
-  // isolate group mutator thread.
-  //
-  // Expect.throws(() {
-  //   IsolateGroup.runSync(() {
-  //     print('42');
-  //   });
-  // }, (e) => e is Error && e.toString().contains("Unsupported operation"));
 
-  // updateFoo();
-  // Expect.equals(
-  //   IsolateGroup.runSync(() {
-  //     return foo;
-  //   }),
-  //   42,
-  // );
+  Expect.throws(
+    () {
+      IsolateGroup.runSync(() {
+        print('42');
+      });
+    },
+    (e) => e is Error && e.toString().contains("AccessError"),
+    'Expect error printing',
+  );
+
+  updateFoo();
+  Expect.throws(
+    () {
+      IsolateGroup.runSync(() {
+        return foo;
+      });
+    },
+    (e) => e is Error && e.toString().contains("AccessError"),
+    'Expect error accessing',
+  );
+
+  Expect.throws(
+    () {
+      IsolateGroup.runSync(() {
+        foo = 123;
+      });
+    },
+    (e) => e is Error && e.toString().contains("AccessError"),
+    'Expect error accessing',
+  );
+  Expect.equals(foo, 56);
+
+  updateFooNoInitializer();
+  Expect.throws(
+    () {
+      IsolateGroup.runSync(() {
+        return foo_no_initializer;
+      });
+    },
+    (e) => e is Error && e.toString().contains("AccessError"),
+    'Expect error accessing',
+  );
+
+  Expect.throws(
+    () {
+      IsolateGroup.runSync(() {
+        foo_no_initializer = 456;
+      });
+    },
+    (e) => e is Error && e.toString().contains("AccessError"),
+    'Expect error accessing',
+  );
+  Expect.equals(foo_no_initializer, 78);
 
   print("All tests completed :)");
 }

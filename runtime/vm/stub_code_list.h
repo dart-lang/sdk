@@ -145,6 +145,8 @@ namespace dart {
   V(RangeErrorSharedWithoutFPURegs)                                            \
   V(WriteErrorSharedWithFPURegs)                                               \
   V(WriteErrorSharedWithoutFPURegs)                                            \
+  V(FieldAccessErrorSharedWithFPURegs)                                         \
+  V(FieldAccessErrorSharedWithoutFPURegs)                                      \
   V(StackOverflowSharedWithFPURegs)                                            \
   V(StackOverflowSharedWithoutFPURegs)                                         \
   V(DoubleToInteger)                                                           \

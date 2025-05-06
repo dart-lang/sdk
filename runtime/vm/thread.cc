@@ -524,6 +524,9 @@ void Thread::EnterIsolateGroupAsMutator(IsolateGroup* isolate_group,
   // Even if [bypass_safepoint] is true, a thread may need mutator state (e.g.
   // parallel scavenger threads write to the [Thread]s storebuffer)
   thread->SetupMutatorState();
+  // This forces slow-path for static field access, which allows to enforce
+  // no-access to static fields from isolate group mutator thread.
+  thread->field_table_values_ = isolate_group->sentinel_field_table()->table();
   thread->SetupDartMutatorStateDependingOnSnapshot(isolate_group);
 
   ResumeThreadInternal(thread);

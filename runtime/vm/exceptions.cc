@@ -1158,6 +1158,12 @@ void Exceptions::ThrowCompileTimeError(const LanguageError& error) {
   Exceptions::ThrowByType(Exceptions::kCompileTimeError, args);
 }
 
+void Exceptions::ThrowStaticFieldAccessedWithoutIsolate(const String& name) {
+  const Array& args = Array::Handle(Array::New(1));
+  args.SetAt(0, name);
+  Exceptions::ThrowByType(Exceptions::kStaticFieldAccessedWithoutIsolate, args);
+}
+
 void Exceptions::ThrowLateFieldAlreadyInitialized(const String& name) {
   const Array& args = Array::Handle(Array::New(1));
   args.SetAt(0, name);
@@ -1254,6 +1260,11 @@ ObjectPtr Exceptions::Create(ExceptionType type, const Array& arguments) {
     case kCompileTimeError:
       library = Library::CoreLibrary();
       class_name = &Symbols::_CompileTimeError();
+      break;
+    case kStaticFieldAccessedWithoutIsolate:
+      library = Library::InternalLibrary();
+      class_name = &Symbols::FieldAccessError();
+      constructor_name = &Symbols::DotStaticFieldAccessedWithoutIsolate();
       break;
     case kLateFieldAlreadyInitialized:
       library = Library::InternalLibrary();

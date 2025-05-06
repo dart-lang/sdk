@@ -634,9 +634,14 @@ Fragment BaseFlowGraphBuilder::StoreFieldGuarded(
 
 Fragment BaseFlowGraphBuilder::LoadStaticField(const Field& field,
                                                bool calls_initializer) {
+  // "Inititalizer" code is in charge of checking non-shared field access from
+  // stateless isolates(which exist when experimental_shared_data is enabled).
+  const bool do_call_initializer =
+      calls_initializer ||
+      (dart::FLAG_experimental_shared_data && !field.is_shared());
   LoadStaticFieldInstr* load = new (Z) LoadStaticFieldInstr(
-      field, InstructionSource(), calls_initializer,
-      calls_initializer ? GetNextDeoptId() : DeoptId::kNone);
+      field, InstructionSource(), do_call_initializer,
+      do_call_initializer ? GetNextDeoptId() : DeoptId::kNone);
   Push(load);
   return Fragment(load);
 }
@@ -674,7 +679,8 @@ Fragment BaseFlowGraphBuilder::Utf8Scan() {
 Fragment BaseFlowGraphBuilder::StoreStaticField(TokenPosition position,
                                                 const Field& field) {
   return Fragment(new (Z) StoreStaticFieldInstr(MayCloneField(Z, field), Pop(),
-                                                InstructionSource(position)));
+                                                InstructionSource(position),
+                                                GetNextDeoptId()));
 }
 
 Fragment BaseFlowGraphBuilder::StoreIndexed(classid_t class_id) {

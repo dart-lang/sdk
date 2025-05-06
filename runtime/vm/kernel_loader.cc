@@ -24,9 +24,9 @@
 #include "vm/service_isolate.h"
 #include "vm/symbols.h"
 #include "vm/thread.h"
-#include "vm/version.h"
 
 namespace dart {
+
 namespace kernel {
 
 #define Z (zone_)
@@ -36,24 +36,6 @@ namespace kernel {
 #define H (translation_helper_)
 
 static const char* const kVMServiceIOLibraryUri = "dart:vmservice_io";
-
-static bool IsMainOrDevChannel() {
-  return strstr("|main|dev|", Version::Channel()) != nullptr;
-}
-
-static bool is_experimental_shared_data_enabled = false;
-static void EnableExperimentSharedData(bool value) {
-  if (value && !IsMainOrDevChannel()) {
-    FATAL(
-        "Shared memory multithreading in only available for "
-        "experimentation in dev or main");
-  }
-  is_experimental_shared_data_enabled = value;
-}
-
-DEFINE_FLAG_HANDLER(EnableExperimentSharedData,
-                    experimental_shared_data,
-                    "Enable experiment to share data between isolates.");
 
 class SimpleExpressionConverter {
  public:
@@ -1206,7 +1188,7 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library,
           "import of dart:ffi is not supported in the current Dart runtime");
     }
     if (target_library.url() == Symbols::DartConcurrent().ptr() &&
-        !is_experimental_shared_data_enabled) {
+        !FLAG_experimental_shared_data) {
       FATAL(
           "Encountered dart:concurrent when functionality is disabled. "
           "Pass --experimental-shared-data");
@@ -1785,7 +1767,7 @@ void KernelLoader::ReadVMAnnotations(intptr_t annotation_count,
           *pragma_bits = FfiNativePragma::update(true, *pragma_bits);
         }
         if (constant_reader.IsStringConstant(name_index, "vm:shared")) {
-          if (!is_experimental_shared_data_enabled) {
+          if (!FLAG_experimental_shared_data) {
             FATAL(
                 "Encountered vm:shared when functionality is disabled. "
                 "Pass --experimental-shared-data");

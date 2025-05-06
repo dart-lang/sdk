@@ -175,6 +175,8 @@ constexpr bool FLAG_target_memory_sanitizer = false;
 #endif
 #endif
 
+DECLARE_FLAG(bool, experimental_shared_data);
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_FLAGS_H_

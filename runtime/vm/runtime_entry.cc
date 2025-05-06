@@ -4093,6 +4093,12 @@ DEFINE_RUNTIME_ENTRY(InitStaticField, 1) {
   arguments.SetReturn(result);
 }
 
+DEFINE_RUNTIME_ENTRY(StaticFieldAccessedWithoutIsolateError, 1) {
+  const Field& field = Field::CheckedHandle(zone, arguments.ArgAt(0));
+  Exceptions::ThrowStaticFieldAccessedWithoutIsolate(
+      String::Handle(field.name()));
+}
+
 DEFINE_RUNTIME_ENTRY(LateFieldAlreadyInitializedError, 1) {
   const Field& field = Field::CheckedHandle(zone, arguments.ArgAt(0));
   Exceptions::ThrowLateFieldAlreadyInitialized(String::Handle(field.name()));
