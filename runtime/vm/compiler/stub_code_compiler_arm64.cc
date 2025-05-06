@@ -622,7 +622,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 #if defined(DART_TARGET_OS_FUCHSIA)
     // TODO(https://dartbug.com/52579): Remove.
     if (FLAG_precompiled_mode) {
-      GenerateLoadBSSEntry(BSS::Relocation::DRT_ExitIsolateGroupSharedIsolate,
+      GenerateLoadBSSEntry(BSS::Relocation::DLRT_ExitIsolateGroupSharedIsolate,
                            R4, R9);
     } else {
       Label call;

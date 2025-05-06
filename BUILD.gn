@@ -309,7 +309,6 @@ if (is_fuchsia) {
     "tests/ffi/inline_array_test.dart",
     "tests/ffi/inline_array_variable_length_test.dart",
     "tests/ffi/invoke_callback_after_suspension_test.dart",
-    "tests/ffi/isolate_group_shared_callback_test.dart",
     "tests/ffi/isolate_local_function_callbacks_test.dart",
     "tests/ffi/msan_test.dart",
     "tests/ffi/native_assets/asset_absolute_test.dart",
