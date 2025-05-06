@@ -765,7 +765,9 @@ static void ThrowExceptionHelper(Thread* thread,
   Zone* zone = thread->zone();
   auto object_store = thread->isolate_group()->object_store();
 #if !defined(PRODUCT)
-  if (!bypass_debugger) {
+  Isolate* isolate = thread->isolate();
+  // TODO(dartbug.com/60507): Support debugging of isolate group dart mutator.
+  if (!bypass_debugger && isolate != nullptr) {
     // Do not notify debugger on stack overflow and out of memory exceptions.
     // The VM would crash when the debugger calls back into the VM to
     // get values of variables.

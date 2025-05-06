@@ -4,7 +4,7 @@
 
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/edit/dart/dart_fix_kind_priority.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
@@ -200,7 +200,7 @@ class IgnoreDiagnosticOnLine extends _DartIgnoreDiagnostic {
     if (_isCodeUnignorable) return;
 
     await builder.addDartFileEdit(file, (builder) {
-      var offset = error.problemMessage.offset;
+      var offset = diagnostic.problemMessage.offset;
       var lineNumber = unitResult.lineInfo.getLocation(offset).lineNumber - 1;
 
       if (lineNumber == 0) {
@@ -234,12 +234,13 @@ abstract class _BaseIgnoreDiagnostic extends ResolvedCorrectionProducer {
       // TODO(applicability): comment on why.
       CorrectionApplicability.singleLocation;
 
-  AnalysisError get error => diagnostic as AnalysisError;
+  @override
+  Diagnostic get diagnostic => super.diagnostic!;
 
   @override
   List<String> get fixArguments => [_code];
 
-  String get _code => error.errorCode.name.toLowerCase();
+  String get _code => diagnostic.errorCode.name.toLowerCase();
 
   /// Returns `true` if any of the following is `true`:
   /// - `error.code` is present in the `cannot-ignore` list.
@@ -247,7 +248,7 @@ abstract class _BaseIgnoreDiagnostic extends ResolvedCorrectionProducer {
   bool get _isCodeUnignorable {
     var cannotIgnore = (analysisOptions as AnalysisOptionsImpl)
         .unignorableNames
-        .contains(error.errorCode.name);
+        .contains(diagnostic.errorCode.name);
 
     if (cannotIgnore) {
       return true;
@@ -260,7 +261,7 @@ abstract class _BaseIgnoreDiagnostic extends ResolvedCorrectionProducer {
     //       See `ErrorConfig` in `pkg/analyzer/source/error_processor.dart`.
     return analysisOptions.errorProcessors.any(
       (element) =>
-          element.severity == null && element.code == error.errorCode.name,
+          element.severity == null && element.code == diagnostic.errorCode.name,
     );
   }
 }

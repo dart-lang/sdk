@@ -224,3 +224,11 @@ external void pushWasmArray<T>(
 /// slot in the array, which may cause memory leaks. Callers should manually
 /// clear non-nullable reference element slots in the array when popping.
 external T popWasmArray<T>(WasmArray<T> array, int length);
+
+@patch
+@pragma("vm:entry-point")
+abstract interface class IsolateGroup {
+  @patch
+  static Object _runSync(Object computation) =>
+      throw UnsupportedError("_runSync");
+}

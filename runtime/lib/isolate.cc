@@ -117,7 +117,7 @@ DEFINE_NATIVE_ENTRY(SendPort_sendInternal_, 0, 2) {
 #if defined(DEBUG)
   if (same_group) {
     ASSERT(PortMap::IsReceiverInThisIsolateGroupOrClosed(destination_port_id,
-                                                         isolate->group()));
+                                                         group));
   }
 #endif
 

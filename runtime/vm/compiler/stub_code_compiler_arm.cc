@@ -2328,8 +2328,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   Label stepping, done_stepping;
   if (optimized == kUnoptimized) {
     __ Comment("Check single stepping");
-    __ LoadIsolate(R8);
-    __ ldrb(R8, Address(R8, target::Isolate::single_step_offset()));
+    __ ldrb(R8, Address(THR, target::Thread::single_step_offset()));
     __ CompareImmediate(R8, 0);
     __ b(&stepping, NE);
     __ Bind(&done_stepping);
@@ -2681,8 +2680,7 @@ void StubCodeCompiler::GenerateZeroArgsUnoptimizedStaticCallStub() {
 #if !defined(PRODUCT)
   // Check single stepping.
   Label stepping, done_stepping;
-  __ LoadIsolate(R8);
-  __ ldrb(R8, Address(R8, target::Isolate::single_step_offset()));
+  __ ldrb(R8, Address(THR, target::Thread::single_step_offset()));
   __ CompareImmediate(R8, 0);
   __ b(&stepping, NE);
   __ Bind(&done_stepping);
@@ -2899,8 +2897,7 @@ void StubCodeCompiler::GenerateDebugStepCheckStub() {
 #else
   // Check single stepping.
   Label stepping, done_stepping;
-  __ LoadIsolate(R1);
-  __ ldrb(R1, Address(R1, target::Isolate::single_step_offset()));
+  __ ldrb(R1, Address(THR, target::Thread::single_step_offset()));
   __ CompareImmediate(R1, 0);
   __ b(&stepping, NE);
   __ Bind(&done_stepping);
@@ -3220,8 +3217,7 @@ void StubCodeCompiler::GenerateUnoptimizedIdenticalWithNumberCheckStub() {
 #if !defined(PRODUCT)
   // Check single stepping.
   Label stepping, done_stepping;
-  __ LoadIsolate(R1);
-  __ ldrb(R1, Address(R1, target::Isolate::single_step_offset()));
+  __ ldrb(R1, Address(THR, target::Thread::single_step_offset()));
   __ CompareImmediate(R1, 0);
   __ b(&stepping, NE);
   __ Bind(&done_stepping);

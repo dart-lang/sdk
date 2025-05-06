@@ -1527,7 +1527,7 @@ void Debugger::DeoptimizeWorld() {
   if (FLAG_trace_deoptimization) {
     THR_Print("Deopt for debugger\n");
   }
-  isolate_->set_has_attempted_stepping(true);
+  isolate_->group()->set_has_attempted_stepping(true);
 
   DeoptimizeFunctionsOnStack();
 
@@ -1617,17 +1617,18 @@ void Debugger::RunWithStoppedDeoptimizedWorld(std::function<void()> fun) {
 }
 
 void Debugger::NotifySingleStepping(bool value) {
+  RELEASE_ASSERT(isolate_->mutator_thread() != nullptr);
   if (value) {
     // Setting breakpoint requires unoptimized code, make sure we stop all
     // isolates to prevent racing reoptimization.
     RunWithStoppedDeoptimizedWorld([&] {
-      isolate_->set_single_step(value);
+      isolate_->mutator_thread()->set_single_step(value);
       // Ensure other isolates in the isolate group keep
       // unoptimized code unoptimized, won't attempt to optimize it.
       group_debugger()->RegisterSingleSteppingDebugger(Thread::Current(), this);
     });
   } else {
-    isolate_->set_single_step(value);
+    isolate_->mutator_thread()->set_single_step(value);
     group_debugger()->UnregisterSingleSteppingDebugger(Thread::Current(), this);
   }
 }
@@ -1653,19 +1654,18 @@ static ArrayPtr DeoptimizeToArray(Thread* thread,
                                   StackFrame* frame,
                                   const Code& code) {
   ASSERT(code.is_optimized() && !code.is_force_optimized());
-  Isolate* isolate = thread->isolate();
   // Create the DeoptContext for this deoptimization.
   DeoptContext* deopt_context =
       new DeoptContext(frame, code, DeoptContext::kDestIsAllocated, nullptr,
                        nullptr, true, false /* deoptimizing_code */);
-  isolate->set_deopt_context(deopt_context);
+  thread->set_deopt_context(deopt_context);
 
   deopt_context->FillDestFrame();
   deopt_context->MaterializeDeferredObjects();
   const Array& dest_frame =
       Array::Handle(thread->zone(), deopt_context->DestFrameAsArray());
 
-  isolate->set_deopt_context(nullptr);
+  thread->set_deopt_context(nullptr);
   delete deopt_context;
 
   return dest_frame.ptr();
@@ -3591,7 +3591,7 @@ static bool IsAtAsyncJump(ActivationFrame* top_frame) {
 }
 
 ErrorPtr Debugger::PauseStepping() {
-  ASSERT(isolate_->single_step());
+  ASSERT(Thread::Current()->single_step());
   // Don't pause recursively.
   if (IsPaused()) {
     return Error::null();

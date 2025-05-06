@@ -6,6 +6,7 @@ import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analysis_server_plugin/edit/fix/fix.dart';
 import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -69,7 +70,7 @@ final class FixInFileProcessor {
           unitResult: _fixContext.unitResult,
           error: error,
         );
-        fixState = await _fixError(fixContext, fixState, generator, error);
+        fixState = await _fixDiagnostic(fixContext, fixState, generator, error);
 
         // The original error was not fixable; continue to next generator.
         if (!(fixState.builder as ChangeBuilderImpl).hasEdits) {
@@ -85,7 +86,8 @@ final class FixInFileProcessor {
             unitResult: _fixContext.unitResult,
             error: error,
           );
-          fixState = await _fixError(fixContext, fixState, generator, error);
+          fixState =
+              await _fixDiagnostic(fixContext, fixState, generator, error);
         }
         if (fixState is _NotEmptyFixState) {
           var sourceChange = fixState.builder.sourceChange;
@@ -104,11 +106,11 @@ final class FixInFileProcessor {
     return fixes;
   }
 
-  Future<_FixState> _fixError(
+  Future<_FixState> _fixDiagnostic(
     DartFixContext fixContext,
     _FixState fixState,
     ProducerGenerator generator,
-    AnalysisError diagnostic,
+    Diagnostic diagnostic,
   ) async {
     var context = CorrectionProducerContext.createResolved(
       applyingBulkFixes: true,

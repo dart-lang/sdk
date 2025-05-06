@@ -333,11 +333,11 @@ class GatheringErrorListener implements AnalysisErrorListener {
   /// number of [expectedSeverities] and that there are the same number of
   /// errors and warnings as specified by the argument. The order in which the
   /// errors were gathered is ignored.
-  void assertErrorsWithSeverities(List<ErrorSeverity> expectedSeverities) {
+  void assertErrorsWithSeverities(List<DiagnosticSeverity> expectedSeverities) {
     var expectedErrorCount = 0;
     var expectedWarningCount = 0;
     for (var severity in expectedSeverities) {
-      if (severity == ErrorSeverity.ERROR) {
+      if (severity == DiagnosticSeverity.ERROR) {
         expectedErrorCount++;
       } else {
         expectedWarningCount++;
@@ -346,7 +346,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
     var actualErrorCount = 0;
     var actualWarningCount = 0;
     for (var error in _errors) {
-      if (error.errorCode.errorSeverity == ErrorSeverity.ERROR) {
+      if (error.errorCode.errorSeverity == DiagnosticSeverity.ERROR) {
         actualErrorCount++;
       } else {
         actualWarningCount++;

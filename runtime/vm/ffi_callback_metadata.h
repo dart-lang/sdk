@@ -12,6 +12,9 @@
 
 namespace dart {
 
+class Closure;
+class Function;
+class Isolate;
 class PersistentHandle;
 
 // Stores metadata related to FFI callbacks (Dart functions that are assigned a

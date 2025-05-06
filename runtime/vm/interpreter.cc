@@ -3541,8 +3541,7 @@ SwitchDispatch:
     ASSERT(Function::KindOf(function) ==
            UntaggedFunction::kDynamicInvocationForwarder);
 
-    ArrayPtr checks = Array::RawCast(function->untag()->data());
-    FunctionPtr target = Function::RawCast(checks->untag()->element(0));
+    FunctionPtr target = Function::RawCast(function->untag()->data());
     ASSERT(Function::KindOf(target) !=
            UntaggedFunction::kDynamicInvocationForwarder);
 

@@ -375,6 +375,7 @@ namespace dart {
   V(ConditionVariable_NotifyAll, void, (Dart_Handle))                          \
   V(ConditionVariable_Wait, void, (Dart_Handle, Dart_Handle))                  \
   V(FinalizerEntry_SetExternalSize, void, (Dart_Handle, intptr_t))             \
+  V(IsolateGroup_runSync, Dart_Handle, (Dart_Handle))                          \
   V(Mutex_Initialize, void, (Dart_Handle))                                     \
   V(Mutex_RunLocked, Dart_Handle, (Dart_Handle, Dart_Handle))                  \
   V(Pointer_asTypedListFinalizerAllocateData, void*, ())                       \

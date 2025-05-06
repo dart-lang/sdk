@@ -377,7 +377,6 @@ ObjectPtr Api::UnwrapHandle(Dart_Handle object) {
   Thread* thread = Thread::Current();
   ASSERT(thread->execution_state() == Thread::kThreadInVM);
   ASSERT(thread->IsDartMutatorThread());
-  ASSERT(thread->isolate() != nullptr);
   ASSERT(FinalizablePersistentHandle::ptr_offset() == 0 &&
          PersistentHandle::ptr_offset() == 0 && LocalHandle::ptr_offset() == 0);
 #endif
@@ -483,17 +482,17 @@ Dart_Handle Api::NewArgumentError(const char* format, ...) {
 }
 
 bool Api::IsValid(Dart_Handle handle) {
-  Isolate* isolate = Isolate::Current();
   Thread* thread = Thread::Current();
   ASSERT(thread->IsDartMutatorThread());
-  CHECK_ISOLATE(isolate);
+  IsolateGroup* isolate_group = thread->isolate_group();
+  CHECK_ISOLATE_GROUP(isolate_group);
 
   // Check against all of the handles in the current isolate as well as the
   // read-only handles.
   return thread->IsValidHandle(handle) ||
-         isolate->group()->api_state()->IsActivePersistentHandle(
+         isolate_group->api_state()->IsActivePersistentHandle(
              reinterpret_cast<Dart_PersistentHandle>(handle)) ||
-         isolate->group()->api_state()->IsActiveWeakPersistentHandle(
+         isolate_group->api_state()->IsActiveWeakPersistentHandle(
              reinterpret_cast<Dart_WeakPersistentHandle>(handle)) ||
          Dart::IsReadOnlyApiHandle(handle) ||
          Dart::IsReadOnlyHandle(reinterpret_cast<uword>(handle));
@@ -854,7 +853,7 @@ DART_EXPORT Dart_Handle Dart_NewUnhandledExceptionError(Dart_Handle exception) {
 
 DART_EXPORT void Dart_PropagateError(Dart_Handle handle) {
   Thread* thread = Thread::Current();
-  CHECK_ISOLATE(thread->isolate());
+  CHECK_ISOLATE_GROUP(thread->isolate_group());
   TransitionNativeToVM transition(thread);
   const Object& obj = Object::Handle(thread->zone(), Api::UnwrapHandle(handle));
   if (!obj.IsError()) {
@@ -921,9 +920,9 @@ DART_EXPORT bool Dart_IdentityEquals(Dart_Handle obj1, Dart_Handle obj2) {
 DART_EXPORT Dart_Handle
 Dart_HandleFromPersistent(Dart_PersistentHandle object) {
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-  CHECK_ISOLATE(isolate);
-  ApiState* state = isolate->group()->api_state();
+  IsolateGroup* isolate_group = thread->isolate_group();
+  CHECK_ISOLATE_GROUP(isolate_group);
+  ApiState* state = isolate_group->api_state();
   ASSERT(state != nullptr);
   TransitionNativeToVM transition(thread);
   NoSafepointScope no_safepoint_scope;
@@ -934,9 +933,9 @@ Dart_HandleFromPersistent(Dart_PersistentHandle object) {
 DART_EXPORT Dart_Handle
 Dart_HandleFromWeakPersistent(Dart_WeakPersistentHandle object) {
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-  CHECK_ISOLATE(isolate);
-  ApiState* state = isolate->group()->api_state();
+  IsolateGroup* isolate_group = thread->isolate_group();
+  CHECK_ISOLATE_GROUP(isolate_group);
+  ApiState* state = isolate_group->api_state();
   ASSERT(state != nullptr);
   TransitionNativeToVM transition(thread);
   NoSafepointScope no_safepoint_scope;
@@ -950,9 +949,9 @@ Dart_HandleFromWeakPersistent(Dart_WeakPersistentHandle object) {
 
 static Dart_Handle HandleFromFinalizable(Dart_FinalizableHandle object) {
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-  CHECK_ISOLATE(isolate);
-  ApiState* state = isolate->group()->api_state();
+  IsolateGroup* isolate_group = thread->isolate_group();
+  CHECK_ISOLATE_GROUP(isolate_group);
+  ApiState* state = isolate_group->api_state();
   ASSERT(state != nullptr);
   TransitionNativeToVM transition(thread);
   NoSafepointScope no_safepoint_scope;
@@ -963,8 +962,10 @@ static Dart_Handle HandleFromFinalizable(Dart_FinalizableHandle object) {
 
 DART_EXPORT Dart_PersistentHandle Dart_NewPersistentHandle(Dart_Handle object) {
   DARTSCOPE(Thread::Current());
-  Isolate* I = T->isolate();
-  ApiState* state = I->group()->api_state();
+  Thread* thread = Thread::Current();
+  IsolateGroup* isolate_group = thread->isolate_group();
+  CHECK_ISOLATE_GROUP(isolate_group);
+  ApiState* state = isolate_group->api_state();
   ASSERT(state != nullptr);
   const Object& old_ref = Object::Handle(Z, Api::UnwrapHandle(object));
   PersistentHandle* new_ref = state->AllocatePersistentHandle();
@@ -975,8 +976,10 @@ DART_EXPORT Dart_PersistentHandle Dart_NewPersistentHandle(Dart_Handle object) {
 DART_EXPORT void Dart_SetPersistentHandle(Dart_PersistentHandle obj1,
                                           Dart_Handle obj2) {
   DARTSCOPE(Thread::Current());
-  Isolate* I = T->isolate();
-  ApiState* state = I->group()->api_state();
+  Thread* thread = Thread::Current();
+  IsolateGroup* isolate_group = thread->isolate_group();
+  CHECK_ISOLATE_GROUP(isolate_group);
+  ApiState* state = isolate_group->api_state();
   ASSERT(state != nullptr);
   ASSERT(state->IsValidPersistentHandle(obj1));
   const Object& obj2_ref = Object::Handle(Z, Api::UnwrapHandle(obj2));
@@ -1999,8 +2002,9 @@ DART_EXPORT Dart_Handle Dart_RunLoop() {
   bool result;
   {
     Thread* T = Thread::Current();
-    I = T->isolate();
     CHECK_API_SCOPE(T);
+    I = T->isolate();
+    CHECK_ISOLATE(I);
     CHECK_CALLBACK_STATE(T);
   }
   API_TIMELINE_BEGIN_END(Thread::Current());
@@ -2087,8 +2091,9 @@ DART_EXPORT bool Dart_RunLoopAsync(bool errors_are_fatal,
 
 DART_EXPORT Dart_Handle Dart_HandleMessage() {
   Thread* T = Thread::Current();
-  Isolate* I = T->isolate();
   CHECK_API_SCOPE(T);
+  Isolate* I = T->isolate();
+  CHECK_ISOLATE(I);
   CHECK_CALLBACK_STATE(T);
   API_TIMELINE_BEGIN_END(T);
   TransitionNativeToVM transition(T);
@@ -2103,8 +2108,9 @@ DART_EXPORT bool Dart_HandleServiceMessages() {
   return true;
 #else
   Thread* T = Thread::Current();
-  Isolate* I = T->isolate();
   CHECK_API_SCOPE(T);
+  Isolate* I = T->isolate();
+  CHECK_ISOLATE(I);
   CHECK_CALLBACK_STATE(T);
   API_TIMELINE_DURATION(T);
   TransitionNativeToVM transition(T);
@@ -2351,7 +2357,7 @@ DART_EXPORT Dart_Handle Dart_ObjectIsType(Dart_Handle object,
 
 DART_EXPORT bool Dart_IsInstance(Dart_Handle object) {
   Thread* thread = Thread::Current();
-  CHECK_ISOLATE(thread->isolate());
+  CHECK_ISOLATE_GROUP(thread->isolate_group());
   TransitionNativeToVM transition(thread);
   REUSABLE_OBJECT_HANDLESCOPE(thread);
   Object& ref = thread->ObjectHandle();
@@ -2361,42 +2367,42 @@ DART_EXPORT bool Dart_IsInstance(Dart_Handle object) {
 
 DART_EXPORT bool Dart_IsNumber(Dart_Handle object) {
   Thread* thread = Thread::Current();
-  CHECK_ISOLATE(thread->isolate());
+  CHECK_ISOLATE_GROUP(thread->isolate_group());
   TransitionNativeToVM transition(thread);
   return IsNumberClassId(Api::ClassId(object));
 }
 
 DART_EXPORT bool Dart_IsInteger(Dart_Handle object) {
   Thread* thread = Thread::Current();
-  CHECK_ISOLATE(thread->isolate());
+  CHECK_ISOLATE_GROUP(thread->isolate_group());
   TransitionNativeToVM transition(thread);
   return IsIntegerClassId(Api::ClassId(object));
 }
 
 DART_EXPORT bool Dart_IsDouble(Dart_Handle object) {
   Thread* thread = Thread::Current();
-  CHECK_ISOLATE(thread->isolate());
+  CHECK_ISOLATE_GROUP(thread->isolate_group());
   TransitionNativeToVM transition(thread);
   return Api::ClassId(object) == kDoubleCid;
 }
 
 DART_EXPORT bool Dart_IsBoolean(Dart_Handle object) {
   Thread* thread = Thread::Current();
-  CHECK_ISOLATE(thread->isolate());
+  CHECK_ISOLATE_GROUP(thread->isolate_group());
   TransitionNativeToVM transition(thread);
   return Api::ClassId(object) == kBoolCid;
 }
 
 DART_EXPORT bool Dart_IsString(Dart_Handle object) {
   Thread* thread = Thread::Current();
-  CHECK_ISOLATE(thread->isolate());
+  CHECK_ISOLATE_GROUP(thread->isolate_group());
   TransitionNativeToVM transition(thread);
   return IsStringClassId(Api::ClassId(object));
 }
 
 DART_EXPORT bool Dart_IsStringLatin1(Dart_Handle object) {
   Thread* thread = Thread::Current();
-  CHECK_ISOLATE(thread->isolate());
+  CHECK_ISOLATE_GROUP(thread->isolate_group());
   TransitionNativeToVM transition(thread);
   return IsOneByteStringClassId(Api::ClassId(object));
 }
@@ -2419,42 +2425,42 @@ DART_EXPORT bool Dart_IsMap(Dart_Handle object) {
 
 DART_EXPORT bool Dart_IsLibrary(Dart_Handle object) {
   Thread* thread = Thread::Current();
-  CHECK_ISOLATE(thread->isolate());
+  CHECK_ISOLATE_GROUP(thread->isolate_group());
   TransitionNativeToVM transition(thread);
   return Api::ClassId(object) == kLibraryCid;
 }
 
 DART_EXPORT bool Dart_IsType(Dart_Handle handle) {
   Thread* thread = Thread::Current();
-  CHECK_ISOLATE(thread->isolate());
+  CHECK_ISOLATE_GROUP(thread->isolate_group());
   TransitionNativeToVM transition(thread);
   return IsTypeClassId(Api::ClassId(handle));
 }
 
 DART_EXPORT bool Dart_IsFunction(Dart_Handle handle) {
   Thread* thread = Thread::Current();
-  CHECK_ISOLATE(thread->isolate());
+  CHECK_ISOLATE_GROUP(thread->isolate_group());
   TransitionNativeToVM transition(thread);
   return Api::ClassId(handle) == kFunctionCid;
 }
 
 DART_EXPORT bool Dart_IsVariable(Dart_Handle handle) {
   Thread* thread = Thread::Current();
-  CHECK_ISOLATE(thread->isolate());
+  CHECK_ISOLATE_GROUP(thread->isolate_group());
   TransitionNativeToVM transition(thread);
   return Api::ClassId(handle) == kFieldCid;
 }
 
 DART_EXPORT bool Dart_IsTypeVariable(Dart_Handle handle) {
   Thread* thread = Thread::Current();
-  CHECK_ISOLATE(thread->isolate());
+  CHECK_ISOLATE_GROUP(thread->isolate_group());
   TransitionNativeToVM transition(thread);
   return Api::ClassId(handle) == kTypeParameterCid;
 }
 
 DART_EXPORT bool Dart_IsClosure(Dart_Handle object) {
   Thread* thread = Thread::Current();
-  CHECK_ISOLATE(thread->isolate());
+  CHECK_ISOLATE_GROUP(thread->isolate_group());
   TransitionNativeToVM transition(thread);
   return Api::ClassId(object) == kClosureCid;
 }
@@ -2473,7 +2479,7 @@ DART_EXPORT bool Dart_IsTearOff(Dart_Handle object) {
 
 DART_EXPORT bool Dart_IsTypedData(Dart_Handle handle) {
   Thread* thread = Thread::Current();
-  CHECK_ISOLATE(thread->isolate());
+  CHECK_ISOLATE_GROUP(thread->isolate_group());
   TransitionNativeToVM transition(thread);
   intptr_t cid = Api::ClassId(handle);
   return IsTypedDataClassId(cid) || IsExternalTypedDataClassId(cid) ||
@@ -2482,7 +2488,7 @@ DART_EXPORT bool Dart_IsTypedData(Dart_Handle handle) {
 
 DART_EXPORT bool Dart_IsByteBuffer(Dart_Handle handle) {
   Thread* thread = Thread::Current();
-  CHECK_ISOLATE(thread->isolate());
+  CHECK_ISOLATE_GROUP(thread->isolate_group());
   TransitionNativeToVM transition(thread);
   return Api::ClassId(handle) == kByteBufferCid;
 }
@@ -2616,8 +2622,7 @@ DART_EXPORT Dart_Handle Dart_IntegerFitsIntoInt64(Dart_Handle integer,
   // Fast path for Smis and Mints.
   Thread* thread = Thread::Current();
   API_TIMELINE_DURATION(thread);
-  Isolate* isolate = thread->isolate();
-  CHECK_ISOLATE(isolate);
+  CHECK_ISOLATE_GROUP(thread->isolate_group());
   if (Api::IsSmi(integer)) {
     *fits = true;
     return Api::Success();
@@ -2637,8 +2642,7 @@ DART_EXPORT Dart_Handle Dart_IntegerFitsIntoUint64(Dart_Handle integer,
                                                    bool* fits) {
   // Fast path for Smis.
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-  CHECK_ISOLATE(isolate);
+  CHECK_ISOLATE_GROUP(thread->isolate_group());
   API_TIMELINE_DURATION(thread);
   if (Api::IsSmi(integer)) {
     *fits = (Api::SmiValue(integer) >= 0);
@@ -2658,8 +2662,7 @@ DART_EXPORT Dart_Handle Dart_IntegerFitsIntoUint64(Dart_Handle integer,
 DART_EXPORT Dart_Handle Dart_NewInteger(int64_t value) {
   // Fast path for Smis.
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-  CHECK_ISOLATE(isolate);
+  CHECK_ISOLATE_GROUP(thread->isolate_group());
   API_TIMELINE_DURATION(thread);
   DARTSCOPE(thread);
   CHECK_CALLBACK_STATE(thread);
@@ -2694,8 +2697,7 @@ DART_EXPORT Dart_Handle Dart_IntegerToInt64(Dart_Handle integer,
                                             int64_t* value) {
   // Fast path for Smis.
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-  CHECK_ISOLATE(isolate);
+  CHECK_ISOLATE_GROUP(thread->isolate_group());
   if (Api::IsSmi(integer)) {
     *value = Api::SmiValue(integer);
     return Api::Success();
@@ -2715,8 +2717,7 @@ DART_EXPORT Dart_Handle Dart_IntegerToUint64(Dart_Handle integer,
                                              uint64_t* value) {
   // Fast path for Smis.
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-  CHECK_ISOLATE(isolate);
+  CHECK_ISOLATE_GROUP(thread->isolate_group());
   if (Api::IsSmi(integer)) {
     intptr_t smi_value = Api::SmiValue(integer);
     if (smi_value >= 0) {
@@ -2844,8 +2845,7 @@ DART_EXPORT Dart_Handle Dart_False() {
 }
 
 DART_EXPORT Dart_Handle Dart_NewBoolean(bool value) {
-  Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
+  CHECK_ISOLATE_GROUP(IsolateGroup::Current());
   return value ? Api::True() : Api::False();
 }
 
@@ -3057,7 +3057,7 @@ DART_EXPORT Dart_Handle Dart_StringToUTF16(Dart_Handle str,
 DART_EXPORT Dart_Handle Dart_StringStorageSize(Dart_Handle str,
                                                intptr_t* size) {
   Thread* thread = Thread::Current();
-  CHECK_ISOLATE(thread->isolate());
+  CHECK_ISOLATE_GROUP(thread->isolate_group());
   TransitionNativeToVM transition(thread);
   if (size == nullptr) {
     RETURN_NULL_ERROR(size);
@@ -3078,7 +3078,7 @@ DART_EXPORT Dart_Handle Dart_StringGetProperties(Dart_Handle object,
                                                  intptr_t* str_len,
                                                  void** peer) {
   Thread* thread = Thread::Current();
-  CHECK_ISOLATE(thread->isolate());
+  CHECK_ISOLATE_GROUP(thread->isolate_group());
   TransitionNativeToVM transition(thread);
   {
     ReusableObjectHandleScope reused_obj_handle(thread);
@@ -4173,8 +4173,7 @@ DART_EXPORT Dart_Handle Dart_TypedDataReleaseData(Dart_Handle object) {
 DART_EXPORT Dart_Handle Dart_GetDataFromByteBuffer(Dart_Handle object) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
-  CHECK_ISOLATE(isolate);
+  CHECK_ISOLATE_GROUP(thread->isolate_group());
   TransitionNativeToVM transition(thread);
   intptr_t class_id = Api::ClassId(object);
   if (class_id != kByteBufferCid) {
@@ -4847,8 +4846,7 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
 DART_EXPORT Dart_Handle Dart_ThrowException(Dart_Handle exception) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
-  CHECK_ISOLATE(isolate);
+  CHECK_ISOLATE_GROUP(thread->isolate_group());
   CHECK_CALLBACK_STATE(thread);
   if (::Dart_IsError(exception)) {
     ::Dart_PropagateError(exception);
@@ -4881,8 +4879,7 @@ DART_EXPORT Dart_Handle Dart_ReThrowException(Dart_Handle exception,
                                               Dart_Handle stacktrace) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
-  CHECK_ISOLATE(isolate);
+  CHECK_ISOLATE_GROUP(thread->isolate_group());
   CHECK_CALLBACK_STATE(thread);
   TransitionNativeToVM transition(thread);
   {
@@ -4923,7 +4920,7 @@ DART_EXPORT Dart_Handle Dart_ReThrowException(Dart_Handle exception,
 DART_EXPORT Dart_Handle Dart_GetNativeInstanceFieldCount(Dart_Handle obj,
                                                          int* count) {
   Thread* thread = Thread::Current();
-  CHECK_ISOLATE(thread->isolate());
+  CHECK_ISOLATE_GROUP(thread->isolate_group());
   TransitionNativeToVM transition(thread);
   {
     ReusableObjectHandleScope reused_obj_handle(thread);
@@ -4941,7 +4938,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeInstanceField(Dart_Handle obj,
                                                     int index,
                                                     intptr_t* value) {
   Thread* thread = Thread::Current();
-  CHECK_ISOLATE(thread->isolate());
+  CHECK_ISOLATE_GROUP(thread->isolate_group());
   TransitionNativeToVM transition(thread);
   bool is_null = false;
   {
@@ -5409,17 +5406,17 @@ DART_EXPORT void Dart_SetDoubleReturnValue(Dart_NativeArguments args,
 
 DART_EXPORT Dart_Handle
 Dart_SetLibraryTagHandler(Dart_LibraryTagHandler handler) {
-  Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
-  isolate->group()->set_library_tag_handler(handler);
+  IsolateGroup* isolate_group = IsolateGroup::Current();
+  CHECK_ISOLATE_GROUP(isolate_group);
+  isolate_group->set_library_tag_handler(handler);
   return Api::Success();
 }
 
 DART_EXPORT Dart_Handle
 Dart_SetDeferredLoadHandler(Dart_DeferredLoadHandler handler) {
-  Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
-  isolate->group()->set_deferred_load_handler(handler);
+  IsolateGroup* isolate_group = IsolateGroup::Current();
+  CHECK_ISOLATE_GROUP(isolate_group);
+  isolate_group->set_deferred_load_handler(handler);
   return Api::Success();
 }
 
@@ -5479,11 +5476,10 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromKernel(const uint8_t* buffer,
 
 DART_EXPORT Dart_Handle Dart_RootLibrary() {
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-  CHECK_ISOLATE(isolate);
+  IsolateGroup* isolate_group = thread->isolate_group();
+  CHECK_ISOLATE_GROUP(isolate_group);
   TransitionNativeToVM transition(thread);
-  return Api::NewHandle(thread,
-                        isolate->group()->object_store()->root_library());
+  return Api::NewHandle(thread, isolate_group->object_store()->root_library());
 }
 
 DART_EXPORT Dart_Handle Dart_SetRootLibrary(Dart_Handle library) {
@@ -5989,7 +5985,7 @@ DART_EXPORT Dart_Handle Dart_GetPeer(Dart_Handle object, void** peer) {
     RETURN_NULL_ERROR(peer);
   }
   Thread* thread = Thread::Current();
-  CHECK_ISOLATE(thread->isolate());
+  CHECK_ISOLATE_GROUP(thread->isolate_group());
   TransitionNativeToVM transition(thread);
   REUSABLE_OBJECT_HANDLESCOPE(thread);
   Object& obj = thread->ObjectHandle();
@@ -6009,7 +6005,7 @@ DART_EXPORT Dart_Handle Dart_GetPeer(Dart_Handle object, void** peer) {
 
 DART_EXPORT Dart_Handle Dart_SetPeer(Dart_Handle object, void* peer) {
   Thread* thread = Thread::Current();
-  CHECK_ISOLATE(thread->isolate());
+  CHECK_ISOLATE_GROUP(thread->isolate_group());
   TransitionNativeToVM transition(thread);
   REUSABLE_OBJECT_HANDLESCOPE(thread);
   Object& obj = thread->ObjectHandle();
@@ -6255,9 +6251,9 @@ DART_EXPORT bool Dart_IsReloading() {
   return false;
 #else
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-  CHECK_ISOLATE(isolate);
-  return isolate->group()->IsReloading();
+  IsolateGroup* isolate_group = thread->isolate_group();
+  CHECK_ISOLATE_GROUP(isolate_group);
+  return isolate_group->IsReloading();
 #endif
 }
 
@@ -6929,7 +6925,7 @@ DART_EXPORT Dart_Handle Dart_GetDefaultUserTag() {
 
 DART_EXPORT Dart_Handle Dart_NewUserTag(const char* label) {
   Thread* thread = Thread::Current();
-  CHECK_ISOLATE(thread->isolate());
+  CHECK_ISOLATE_GROUP(thread->isolate_group());
   DARTSCOPE(thread);
   if (label == nullptr) {
     return Api::NewError(
@@ -6941,7 +6937,7 @@ DART_EXPORT Dart_Handle Dart_NewUserTag(const char* label) {
 
 DART_EXPORT Dart_Handle Dart_SetCurrentUserTag(Dart_Handle user_tag) {
   Thread* thread = Thread::Current();
-  CHECK_ISOLATE(thread->isolate());
+  CHECK_ISOLATE_GROUP(thread->isolate_group());
   DARTSCOPE(thread);
   const UserTag& tag = Api::UnwrapUserTagHandle(Z, user_tag);
   if (tag.IsNull()) {

@@ -48,7 +48,6 @@ class Become;
 class Capability;
 class CodeIndexTable;
 class Debugger;
-class DeoptContext;
 class ExternalTypedData;
 class GroupDebugger;
 class HandleScope;
@@ -776,19 +775,25 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   Isolate* EnterTemporaryIsolate();
   static void ExitTemporaryIsolate();
 
+  Mutex* cache_mutex() { return &cache_mutex_; }
   void RunWithCachedCatchEntryMoves(
       const Code& code,
       intptr_t pc,
       std::function<void(const CatchEntryMoves&)> action);
   void ClearCatchEntryMovesCacheLocked();
+  HandlerInfoCache* handler_info_cache() { return &handler_info_cache_; }
 
   void SetNativeAssetsCallbacks(NativeAssetsApi* native_assets_api) {
     native_assets_api_ = *native_assets_api;
   }
   NativeAssetsApi* native_assets_api() { return &native_assets_api_; }
 
-  Mutex* cache_mutex() { return &cache_mutex_; }
-  HandlerInfoCache* handler_info_cache() { return &handler_info_cache_; }
+  bool has_attempted_stepping() const {
+    return has_attempted_stepping_.load(std::memory_order_relaxed);
+  }
+  void set_has_attempted_stepping(bool value) {
+    has_attempted_stepping_.store(value, std::memory_order_relaxed);
+  }
 
  private:
   friend class Dart;  // For `object_store_ = ` in Dart::Init
@@ -945,6 +950,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   Mutex cache_mutex_;
   HandlerInfoCache handler_info_cache_;
   CatchEntryMovesCache catch_entry_moves_cache_;
+
+  std::atomic<bool> has_attempted_stepping_;
 };
 
 // When an isolate sends-and-exits this class represent things that it passed
@@ -1140,12 +1147,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
     return has_completed_blocks_.exchange(1) == 0;
   }
 
-  void set_single_step(bool value) { single_step_ = value; }
-  bool single_step() const { return single_step_; }
-  static intptr_t single_step_offset() {
-    return OFFSET_OF(Isolate, single_step_);
-  }
-
   void set_has_resumption_breakpoints(bool value) {
     has_resumption_breakpoints_ = value;
   }
@@ -1262,13 +1263,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
 
   intptr_t NumServiceIdZones() const;
 #endif  // !defined(PRODUCT)
-
-  bool IsDeoptimizing() const { return deopt_context_ != nullptr; }
-  DeoptContext* deopt_context() const { return deopt_context_; }
-  void set_deopt_context(DeoptContext* value) {
-    ASSERT(value == nullptr || deopt_context_ == nullptr);
-    deopt_context_ = value;
-  }
 
   FfiCallbackMetadata::Trampoline CreateAsyncFfiCallback(
       Zone* zone,
@@ -1430,13 +1424,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
 #undef FLAG_FOR_PRODUCT
 #undef DECLARE_GETTER
 
-  bool has_attempted_stepping() const {
-    return isolate_flags_.Read<HasAttemptedSteppingBit>();
-  }
-  void set_has_attempted_stepping(bool value) {
-    isolate_flags_.UpdateBool<HasAttemptedSteppingBit>(value);
-  }
-
   // Kills all non-system isolates.
   static void KillAllIsolates(LibMsgId msg_id);
   // Kills all system isolates, excluding the kernel service and VM service.
@@ -1569,7 +1556,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   // Used to clear out `UntaggedFinalizerBase::isolate_` pointers on isolate
   // shutdown to prevent usage of dangling pointers.
   GrowableObjectArrayPtr finalizers_;
-  bool single_step_ = false;
   bool has_resumption_breakpoints_ = false;
   // End accessed from generated code.
 
@@ -1672,7 +1658,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   Mutex mutex_;  // Protects compiler stats.
   IsolateMessageHandler* message_handler_ = nullptr;
   intptr_t defer_finalization_count_ = 0;
-  DeoptContext* deopt_context_ = nullptr;
   FfiCallbackMetadata::Metadata* ffi_callback_list_head_ = nullptr;
   intptr_t ffi_callback_keep_alive_counter_ = 0;
   RelaxedAtomic<ThreadId> owner_thread_ = OSThread::kInvalidThreadId;

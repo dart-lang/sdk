@@ -1026,7 +1026,7 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
 
   void walk() {
     RELEASE_ASSERT(StubCode::HasBeenInitialized());
-    if (thread_->isolate()->IsDeoptimizing()) {
+    if (thread_->IsDeoptimizing()) {
       sample_->set_ignore_sample(true);
       return;
     }
@@ -1428,7 +1428,7 @@ void Profiler::SampleThread(Thread* thread,
   }
 
   if (thread->IsDartMutatorThread()) {
-    if (isolate->IsDeoptimizing()) {
+    if (thread->IsDeoptimizing()) {
       counters_.single_frame_sample_deoptimizing.fetch_add(1);
       SampleThreadSingleFrame(thread, sample, pc);
       return;

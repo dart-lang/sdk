@@ -4387,6 +4387,11 @@ FunctionPtr Function::CreateDynamicInvocationForwarder(
   // blocks inlining and can't take Function-s only Code objects.
   forwarder.set_is_visible(false);
 
+#if defined(DART_DYNAMIC_MODULES)
+  if (HasBytecode()) {
+    forwarder.ClearBytecode();
+  }
+#endif
   forwarder.ClearICDataArray();
   forwarder.ClearCode();
   forwarder.set_usage_counter(0);
@@ -4428,13 +4433,7 @@ FunctionPtr Function::GetDynamicInvocationForwarder(
       /*create_if_absent=*/false);
   if (!result.IsNull()) return result.ptr();
 
-  const bool needs_dyn_forwarder =
-#if defined(DART_DYNAMIC_MODULES) && defined(DART_PRECOMPILED_RUNTIME)
-      // TODO(alexmarkov)
-      false;
-#else
-      kernel::NeedsDynamicInvocationForwarder(*this);
-#endif
+  const bool needs_dyn_forwarder = NeedsDynamicInvocationForwarder();
   if (!needs_dyn_forwarder) {
     return ptr();
   }
@@ -4453,6 +4452,90 @@ FunctionPtr Function::GetDynamicInvocationForwarder(
   result = CreateDynamicInvocationForwarder(mangled_name);
   owner.AddInvocationDispatcher(mangled_name, Array::null_array(), result);
   return result.ptr();
+}
+
+bool Function::NeedsDynamicInvocationForwarder() const {
+  Zone* zone = Thread::Current()->zone();
+
+  // Right now closures do not need a dyn:* forwarder.
+  // See https://github.com/dart-lang/sdk/issues/40813
+  if (IsClosureFunction()) return false;
+
+  // Method extractors have no parameters to check and return value is a closure
+  // and therefore not an unboxed primitive type.
+  if (IsMethodExtractor()) {
+    return false;
+  }
+
+  // Record field getters have no parameters to check and 'dynamic' return type.
+  if (IsRecordFieldGetter()) {
+    return false;
+  }
+
+  // Invoke field dispatchers are dynamically generated, will invoke a getter to
+  // obtain the field value and then invoke ".call()" on the result.
+  // Those dynamically generated dispathers don't have proper kernel metadata
+  // associated with them - we can therefore not query if there are dynamic
+  // calls to them or not and are therefore conservative.
+  if (IsInvokeFieldDispatcher()) {
+    return true;
+  }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // The dyn:* forwarders perform unboxing of parameters before calling the
+  // actual target (which accepts unboxed parameters) and boxes return values
+  // of the return value.
+  if (HasUnboxedParameters() || HasUnboxedReturnValue()) {
+    return true;
+  }
+
+  if (MaxNumberOfParametersInRegisters(zone) > 0) {
+    return true;
+  }
+#endif
+
+  // There are no parameters to type check for getters and if the return value
+  // is boxed, then the dyn:* forwarder is not needed.
+  if (IsImplicitGetterFunction()) {
+    return false;
+  }
+
+  // Covariant parameters (both explicitly covariant and generic-covariant-impl)
+  // are checked in the body of a function and therefore don't need checks in a
+  // dynamic invocation forwarder. So dynamic invocation forwarder is only
+  // needed if there are non-covariant parameters of non-top type.
+  if (IsImplicitSetterFunction()) {
+    const auto& field = Field::Handle(zone, accessor_field());
+    return !(field.is_covariant() || field.is_generic_covariant_impl());
+  }
+
+  const auto& type_params = TypeParameters::Handle(zone, type_parameters());
+  if (!type_params.IsNull()) {
+    auto& bound = AbstractType::Handle(zone);
+    for (intptr_t i = 0, n = type_params.Length(); i < n; ++i) {
+      bound = type_params.BoundAt(i);
+      if (!bound.IsTopTypeForSubtyping() &&
+          !type_params.IsGenericCovariantImplAt(i)) {
+        return true;
+      }
+    }
+  }
+
+  const intptr_t num_params = NumParameters();
+  BitVector is_covariant(zone, num_params);
+  BitVector is_generic_covariant_impl(zone, num_params);
+  ReadParameterCovariance(&is_covariant, &is_generic_covariant_impl);
+
+  auto& type = AbstractType::Handle(zone);
+  for (intptr_t i = NumImplicitParameters(); i < num_params; ++i) {
+    type = ParameterTypeAt(i);
+    if (!type.IsTopTypeForSubtyping() &&
+        !is_generic_covariant_impl.Contains(i) && !is_covariant.Contains(i)) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 void Function::ReadParameterCovariance(
@@ -8393,6 +8476,12 @@ void Function::AttachBytecode(const Bytecode& value) const {
   SetInstructions(StubCode::InterpretCall());
 }
 
+void Function::ClearBytecode() const {
+  ASSERT(HasBytecode());
+  untag()->set_ic_data_array_or_bytecode(Object::null());
+  ClearCode();
+}
+
 #endif  // defined(DART_DYNAMIC_MODULES)
 
 bool Function::HasCode(FunctionPtr function) {
@@ -11916,8 +12005,7 @@ bool Function::NeedsMonomorphicCheckedEntry(Zone* zone) const {
 
   // Only if there are dynamic callers and if we didn't create a dyn:* forwarder
   // for it do we need the monomorphic checked entry.
-  return HasDynamicCallers(zone) &&
-         !kernel::NeedsDynamicInvocationForwarder(*this);
+  return HasDynamicCallers(zone) && !NeedsDynamicInvocationForwarder();
 #else
   UNREACHABLE();
   return true;
@@ -25577,7 +25665,7 @@ ArrayPtr Array::MakeFixedLength(const GrowableObjectArray& growable_array,
 
     // The backing array may be a shared instance, or may not have correct
     // type parameters. Create a new empty array.
-    Heap::Space space = thread->IsDartMutatorThread() ? Heap::kNew : Heap::kOld;
+    Heap::Space space = thread->HasDartMutatorStack() ? Heap::kNew : Heap::kOld;
     Array& array = Array::Handle(zone, Array::New(0, space));
     array.SetTypeArguments(type_arguments);
     return array.ptr();
