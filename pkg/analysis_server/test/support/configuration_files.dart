@@ -8,8 +8,8 @@ import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer_testing/mock_packages/mock_packages.dart';
 import 'package:analyzer_testing/package_root.dart' as package_root;
-import 'package:analyzer_utilities/test/mock_packages/mock_packages.dart';
 
 /// A mixin adding functionality to write `.dart_tool/package_config.json`
 /// files along with mock packages to a [ResourceProvider].

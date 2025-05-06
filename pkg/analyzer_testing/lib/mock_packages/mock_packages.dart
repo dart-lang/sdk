@@ -15,9 +15,8 @@ void _cacheFiles(Map<String, String> cachedFiles) {
   var packageRoot = pathContext.normalize(package_root.packageRoot);
   var mockPath = pathContext.join(
     packageRoot,
-    'analyzer_utilities',
+    'analyzer_testing',
     'lib',
-    'test',
     'mock_packages',
     'package_content',
   );

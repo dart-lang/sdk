@@ -6,6 +6,7 @@ environment:
 resolution: workspace
 
 dependencies:
+  analyzer: ^8.0.0-dev
   path: ^1.9.0
 
 # We use 'any' version constraints here as we get our package versions from

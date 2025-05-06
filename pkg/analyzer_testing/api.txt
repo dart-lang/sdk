@@ -1,4 +1,31 @@
+package:analyzer_testing/mock_packages/mock_packages.dart:
+  BlazeMockPackages (class extends Object):
+    instance (static getter: BlazeMockPackages)
+    addFlutter (method: void Function(ResourceProvider))
+    addMeta (method: void Function(ResourceProvider))
+  MockPackagesMixin (mixin on Object):
+    packagesRootPath (getter: String)
+    pathContext (getter: Context)
+    resourceProvider (getter: ResourceProvider)
+    addAngularMeta (method: Folder Function())
+    addFfi (method: Folder Function())
+    addFixnum (method: Folder Function())
+    addFlutter (method: Folder Function())
+    addFlutterTest (method: Folder Function())
+    addJs (method: Folder Function())
+    addKernel (method: Folder Function())
+    addMeta (method: Folder Function())
+    addPedantic (method: Folder Function())
+    addTestReflectiveLoader (method: Folder Function())
+    addUI (method: Folder Function())
+    addVectorMath (method: Folder Function())
 package:analyzer_testing/package_root.dart:
   packageRoot (static getter: String)
 dart:core:
+  Object (referenced)
   String (referenced)
+package:analyzer/file_system/file_system.dart:
+  Folder (referenced)
+  ResourceProvider (referenced)
+package:path/src/context.dart:
+  Context (referenced)
