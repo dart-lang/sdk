@@ -3390,6 +3390,12 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
     case MethodRecognizer::kFfiNativeIsolateLocalCallbackFunction:
       return BuildFfiNativeCallbackFunction(
           FfiCallbackKind::kIsolateLocalClosureCallback);
+    case MethodRecognizer::kFfiNativeIsolateGroupSharedCallbackFunction:
+      return BuildFfiNativeCallbackFunction(
+          FfiCallbackKind::kIsolateGroupSharedStaticCallback);
+    case MethodRecognizer::kFfiNativeIsolateGroupSharedClosureFunction:
+      return BuildFfiNativeCallbackFunction(
+          FfiCallbackKind::kIsolateGroupSharedClosureCallback);
     case MethodRecognizer::kFfiNativeAsyncCallbackFunction:
       return BuildFfiNativeCallbackFunction(FfiCallbackKind::kAsyncCallback);
     case MethodRecognizer::kFfiLoadAbiSpecificInt:
@@ -6210,6 +6216,9 @@ Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction(
   // FfiCallbackKind::kIsolateLocalStaticCallback:
   //   _nativeCallbackFunction<NativeSignatureType>(target, exceptionalReturn)
   //
+  // FfiCallbackKind::kIsolateGroupSharedStaticCallback:
+  //   _nativeCallbackFunction<NativeSignatureType>(target, exceptionalReturn)
+  //
   // FfiCallbackKind::kAsyncCallback:
   //   _nativeAsyncCallbackFunction<NativeSignatureType>()
   //
@@ -6217,9 +6226,15 @@ Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction(
   //   _nativeIsolateLocalCallbackFunction<NativeSignatureType>(
   //       exceptionalReturn)
   //
+  // FfiCallbackKind::kIsolateGroupSharedClosureCallback:
+  //   _nativeIsolateGroupSharedCallbackFunction<NativeSignatureType>(
+  //       exceptionalReturn)
+  //
   // The FE also guarantees that the arguments are constants.
 
-  const bool has_target = kind == FfiCallbackKind::kIsolateLocalStaticCallback;
+  const bool has_target =
+      kind == FfiCallbackKind::kIsolateLocalStaticCallback ||
+      kind == FfiCallbackKind::kIsolateGroupSharedStaticCallback;
   const bool has_exceptional_return = kind != FfiCallbackKind::kAsyncCallback;
   const intptr_t expected_argc =
       static_cast<int>(has_target) + static_cast<int>(has_exceptional_return);

@@ -364,9 +364,9 @@ class MutatorThreadVisitor {
 
 // A VM thread; may be executing Dart code or performing helper tasks like
 // garbage collection or compilation. The Thread structure associated with
-// a thread is allocated by EnsureInit before entering an isolate, and destroyed
-// automatically when the underlying OS thread exits. NOTE: On Windows, CleanUp
-// must currently be called manually (issue 23474).
+// a thread is allocated by ThreadRegistry::GetFromFreelistLocked either
+// before entering an isolate or entering an isolate group, and destroyed
+// automatically when the underlying OS thread exits.
 class Thread : public ThreadState {
  public:
   // The kind of task this thread is performing. Sampled by the profiler.
@@ -381,6 +381,7 @@ class Thread : public ThreadState {
     kSampleBlockTask,
     kIncrementalCompactorTask,
     kSpawnTask,
+    kIsolateGroupSharedCallbackTask,
   };
 
   ~Thread();

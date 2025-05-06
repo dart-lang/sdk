@@ -34,6 +34,7 @@ external int sizeOf<T extends SizedNativeType>();
 
 /// Represents a pointer into the native C memory corresponding to 'NULL', e.g.
 /// a pointer with address 0.
+@pragma('vm:shared')
 final Pointer<Never> nullptr = Pointer.fromAddress(0);
 
 /// Represents a pointer into the native C memory. Cannot be extended.
@@ -389,6 +390,13 @@ abstract final class NativeCallable<T extends Function> {
   /// After [NativeCallable.close] is called, invoking the [nativeFunction] from
   /// native code will cause undefined behavior.
   factory NativeCallable.isolateLocal(
+    @DartRepresentationOf("T") Function callback, {
+    Object? exceptionalReturn,
+  }) {
+    throw UnsupportedError("NativeCallable cannot be constructed dynamically.");
+  }
+
+  factory NativeCallable.isolateGroupShared(
     @DartRepresentationOf("T") Function callback, {
     Object? exceptionalReturn,
   }) {

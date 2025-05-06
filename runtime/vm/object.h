@@ -2990,7 +2990,9 @@ struct NameFormattingParams {
 
 enum class FfiCallbackKind : uint8_t {
   kIsolateLocalStaticCallback,
+  kIsolateGroupSharedStaticCallback,
   kIsolateLocalClosureCallback,
+  kIsolateGroupSharedClosureCallback,
   kAsyncCallback,
 };
 

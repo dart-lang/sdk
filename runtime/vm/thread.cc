@@ -1552,8 +1552,6 @@ void Thread::SetupMutatorState() {
     DeferredMarkingStackAcquire();
   }
 
-  // TODO(koda): Use StoreBufferAcquire once we properly flush
-  // before Scavenge.
   if (task_kind_ == kMutatorTask) {
     StoreBufferAcquire();
   } else {

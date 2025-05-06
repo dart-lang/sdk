@@ -446,9 +446,9 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_DeleteTrampolines) {
 
   // Create some callbacks.
   for (int itr = 0; itr < kCreations; ++itr) {
-    tramps.insert(fcm->CreateIsolateLocalFfiCallback(
-        isolate, thread->zone(), sync_func, Closure::Handle(Closure::null()),
-        &list_head));
+    tramps.insert(fcm->CreateLocalFfiCallback(
+        isolate, /*isolate_group=*/nullptr, thread->zone(), sync_func,
+        Closure::Handle(Closure::null()), &list_head));
   }
 
   // Delete some of the callbacks.
@@ -559,8 +559,8 @@ static void RunBigRandomMultithreadedTest(uint64_t seed) {
       if ((random.NextUInt32() % 2) == 0) {
         // 50% chance of creating a sync callback.
         tramp.port = ILLEGAL_PORT;
-        tramp.tramp = fcm->CreateIsolateLocalFfiCallback(
-            isolate, thread->zone(), sync_func,
+        tramp.tramp = fcm->CreateLocalFfiCallback(
+            isolate, /*isolate_group=*/nullptr, thread->zone(), sync_func,
             Closure::Handle(Closure::null()), &list_head);
       } else {
         // 50% chance of creating an async callback.

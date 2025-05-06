@@ -571,6 +571,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   }
 
   Label async_callback;
+  Label sync_isolate_group_shared_callback;
   Label done;
 
   // If GetFfiCallbackMetadata returned a null thread, it means that the async
@@ -584,6 +585,11 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
       Operand(static_cast<uword>(FfiCallbackMetadata::TrampolineType::kAsync)));
   __ b(&async_callback, EQ);
 
+  __ cmp(R9,
+         Operand(static_cast<uword>(
+             FfiCallbackMetadata::TrampolineType::kSyncIsolateGroupShared)));
+  __ b(&sync_isolate_group_shared_callback, EQ);
+
   // Sync callback. The entry point contains the target function, so just call
   // it. DLRT_GetThreadForNativeCallbackTrampoline exited the safepoint, so
   // re-enter it afterwards.
@@ -596,6 +602,53 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   __ EnterFullSafepoint(/*scratch=*/R9);
 
   __ b(&done);
+
+  __ Bind(&sync_isolate_group_shared_callback);
+
+  __ blr(R10);
+
+  // Exit isolate group shared isolate.
+  {
+    __ SetupDartSP();
+    __ EnterFrame(0);
+    __ ReserveAlignedFrameSpace(0);
+
+    const RegisterSet return_registers(
+        (1 << CallingConventions::kReturnReg) |
+            (1 << CallingConventions::kSecondReturnReg),
+        1 << CallingConventions::kReturnFpuReg);
+    __ PushRegisters(return_registers);
+
+#if defined(DART_TARGET_OS_FUCHSIA)
+    // TODO(https://dartbug.com/52579): Remove.
+    if (FLAG_precompiled_mode) {
+      GenerateLoadBSSEntry(BSS::Relocation::DRT_ExitIsolateGroupSharedIsolate,
+                           R4, R9);
+    } else {
+      Label call;
+      __ ldr(R4, compiler::Address::PC(2 * Instr::kInstrSize));
+      __ b(&call);
+      __ Emit64(reinterpret_cast<int64_t>(&DLRT_ExitIsolateGroupSharedIsolate));
+      __ Bind(&call);
+    }
+#else
+    GenerateLoadFfiCallbackMetadataRuntimeFunction(
+        FfiCallbackMetadata::kExitIsolateGroupSharedIsolate, R4);
+#endif
+
+    __ mov(CSP, SP);
+    __ blr(R4);
+    __ mov(SP, CSP);
+    __ mov(THR, R0);
+
+    __ PopRegisters(return_registers);
+
+    __ LeaveFrame();
+    __ RestoreCSP();
+  }
+
+  __ b(&done);
+
   __ Bind(&async_callback);
 
   // Async callback. The entrypoint marshals the arguments into a message and

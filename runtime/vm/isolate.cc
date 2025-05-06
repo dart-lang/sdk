@@ -3828,8 +3828,19 @@ FfiCallbackMetadata::Trampoline Isolate::CreateIsolateLocalFfiCallback(
   if (keep_isolate_alive) {
     UpdateNativeCallableKeepIsolateAliveCounter(1);
   }
-  return FfiCallbackMetadata::Instance()->CreateIsolateLocalFfiCallback(
-      this, zone, trampoline, target, &ffi_callback_list_head_);
+  return FfiCallbackMetadata::Instance()->CreateLocalFfiCallback(
+      this, /*isolate_group=*/nullptr, zone, trampoline, target,
+      &ffi_callback_list_head_);
+}
+
+// TODO(aam): Should this be in IsolateGroup?
+FfiCallbackMetadata::Trampoline Isolate::CreateIsolateGroupSharedFfiCallback(
+    Zone* zone,
+    const Function& trampoline,
+    const Closure& target) {
+  return FfiCallbackMetadata::Instance()->CreateLocalFfiCallback(
+      /*isolate=*/nullptr, group(), zone, trampoline, target,
+      &ffi_callback_list_head_);
 }
 
 bool Isolate::HasLivePorts() {

@@ -12,6 +12,7 @@
 
 namespace dart {
 
+class ApiState;
 class Closure;
 class Function;
 class Isolate;
@@ -44,11 +45,14 @@ class FfiCallbackMetadata {
     kSync = 0,
     kSyncStackDelta4 = 1,  // Only used by TARGET_ARCH_IA32
     kAsync = 2,
+    kSyncIsolateGroupShared = 3,
+    kSyncIsolateGroupSharedStackDelta4 = 4,  // Only used by TARGET_ARCH_IA32
   };
 
   enum RuntimeFunctions {
     kGetFfiCallbackMetadata,
     kExitTemporaryIsolate,
+    kExitIsolateGroupSharedIsolate,
     kNumRuntimeFunctions,
   };
 
@@ -66,12 +70,14 @@ class FfiCallbackMetadata {
                                     Dart_Port send_port,
                                     Metadata** list_head);
 
-  // Creates an isolate local callback trampoline for the given function.
-  Trampoline CreateIsolateLocalFfiCallback(Isolate* isolate,
-                                           Zone* zone,
-                                           const Function& function,
-                                           const Closure& closure,
-                                           Metadata** list_head);
+  // Creates an isolate- or isolategroup- local callback trampoline for
+  // the given function.
+  Trampoline CreateLocalFfiCallback(Isolate* isolate,
+                                    IsolateGroup* isolate_group,
+                                    Zone* zone,
+                                    const Function& function,
+                                    const Closure& closure,
+                                    Metadata** list_head);
 
   // Deletes a single trampoline.
   void DeleteCallback(Trampoline trampoline, Metadata** list_head);
@@ -81,7 +87,10 @@ class FfiCallbackMetadata {
 
   // FFI callback metadata for any sync or async trampoline.
   class Metadata {
-    Isolate* target_isolate_;
+    union {
+      Isolate* target_isolate_;
+      IsolateGroup* target_isolate_group_;
+    };
     TrampolineType trampoline_type_;
 
     union {
@@ -117,6 +126,19 @@ class FfiCallbackMetadata {
           list_prev_(list_prev),
           list_next_(list_next) {}
 
+    Metadata(IsolateGroup* target_isolate_group,
+             TrampolineType trampoline_type,
+             uword target_entry_point,
+             uint64_t context,
+             Metadata* list_prev,
+             Metadata* list_next)
+        : target_isolate_group_(target_isolate_group),
+          trampoline_type_(trampoline_type),
+          target_entry_point_(target_entry_point),
+          context_(context),
+          list_prev_(list_prev),
+          list_next_(list_next) {}
+
    public:
     friend class FfiCallbackMetadata;
     bool IsSameCallback(const Metadata& other) const {
@@ -129,7 +151,9 @@ class FfiCallbackMetadata {
     }
 
     // Whether the callback is still alive.
-    bool IsLive() const { return target_isolate_ != 0; }
+    bool IsLive() const {
+      return target_isolate_ != 0 || target_isolate_group_ != 0;
+    }
 
     // The target isolate. The isolate that owns the callback. Sync callbacks
     // must be invoked on this isolate. Async callbacks will send a message to
@@ -137,6 +161,11 @@ class FfiCallbackMetadata {
     Isolate* target_isolate() const {
       ASSERT(IsLive());
       return target_isolate_;
+    }
+
+    IsolateGroup* target_isolate_group() const {
+      ASSERT(IsLive());
+      return target_isolate_group_;
     }
 
     // The Dart entrypoint for the callback, which the trampoline invokes.
@@ -150,9 +179,20 @@ class FfiCallbackMetadata {
     PersistentHandle* closure_handle() const {
       ASSERT(IsLive());
       ASSERT(trampoline_type_ == TrampolineType::kSync ||
-             trampoline_type_ == TrampolineType::kSyncStackDelta4);
+             trampoline_type_ == TrampolineType::kSyncStackDelta4 ||
+             trampoline_type_ == TrampolineType::kSyncIsolateGroupShared ||
+             trampoline_type_ ==
+                 TrampolineType::kSyncIsolateGroupSharedStackDelta4);
       return reinterpret_cast<PersistentHandle*>(context_);
     }
+
+    bool is_isolate_group_shared() const {
+      return trampoline_type_ == TrampolineType::kSyncIsolateGroupShared ||
+             trampoline_type_ ==
+                 TrampolineType::kSyncIsolateGroupSharedStackDelta4;
+    }
+    // ApiState associated with an isolate group associated with this metadata.
+    ApiState* api_state() const;
 
     // For async callbacks, this is the send port. For sync callbacks this is a
     // persistent handle to the callback's closure, or null.
@@ -251,27 +291,27 @@ class FfiCallbackMetadata {
 
 #if defined(TARGET_ARCH_X64)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 12;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 289;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 338;
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
 #elif defined(TARGET_ARCH_IA32)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 10;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 146;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 193;
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 4;
 #elif defined(TARGET_ARCH_ARM)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 8;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 232;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 328;
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 4;
 #elif defined(TARGET_ARCH_ARM64)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 8;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 332;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 428;
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
 #elif defined(TARGET_ARCH_RISCV32)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 8;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 284;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 302;
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
 #elif defined(TARGET_ARCH_RISCV64)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 8;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 252;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 302;
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
 #else
 #error What architecture?
@@ -291,18 +331,26 @@ class FfiCallbackMetadata {
   VirtualMemory* AllocateTrampolinePage();
   void EnsureFreeListNotEmptyLocked();
   Trampoline CreateMetadataEntry(Isolate* target_isolate,
+                                 IsolateGroup* target_isolate_group,
                                  TrampolineType trampoline_type,
                                  uword target_entry_point,
                                  uint64_t context,
                                  Metadata** list_head);
   Trampoline CreateSyncFfiCallbackImpl(Isolate* isolate,
+                                       IsolateGroup* isolate_group,
                                        Zone* zone,
                                        const Function& function,
                                        PersistentHandle* closure,
                                        Metadata** list_head);
+  Trampoline CreateIsolateGroupSharedFfiCallbackImpl(
+      IsolateGroup* isolate_group,
+      Zone* zone,
+      const Function& function,
+      PersistentHandle* closure,
+      Metadata** list_head);
   Trampoline TryAllocateFromFreeListLocked();
   static uword GetEntryPoint(Zone* zone, const Function& function);
-  static PersistentHandle* CreatePersistentHandle(Isolate* isolate,
+  static PersistentHandle* CreatePersistentHandle(IsolateGroup* isolate_group,
                                                   const Closure& closure);
 
   static FfiCallbackMetadata* singleton_;
