@@ -18,7 +18,7 @@ import 'server_abstract.dart';
 abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
   /// Initializes the server with some basic configuration and expects to find
   /// a [CodeAction] with [kind]/[command]/[title].
-  Future<CodeActionLiteral> expectCodeActionLiteral(
+  Future<CodeAction> expectCodeAction(
     String content, {
     CodeActionKind? kind,
     String? command,
@@ -46,7 +46,7 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
       triggerKind: triggerKind,
     );
 
-    var action = findCodeActionLiteral(
+    var action = findCodeAction(
       codeActions,
       kind: kind,
       command: command,
@@ -57,6 +57,31 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
       fail('Failed to find a code action titled "$title".');
     }
     return action;
+  }
+
+  /// Initializes the server with some basic configuration and expects to find
+  /// a [CodeAction] with [kind]/[command]/[title].
+  Future<CodeActionLiteral> expectCodeActionLiteral(
+    String content, {
+    CodeActionKind? kind,
+    String? command,
+    List<Object>? commandArgs,
+    String? title,
+    CodeActionTriggerKind? triggerKind,
+    String? filePath,
+    bool openTargetFile = false,
+  }) async {
+    var action = await expectCodeAction(
+      content,
+      kind: kind,
+      command: command,
+      commandArgs: commandArgs,
+      title: title,
+      triggerKind: triggerKind,
+      filePath: filePath,
+      openTargetFile: openTargetFile,
+    );
+    return action.asCodeActionLiteral;
   }
 
   /// Expects that command [commandName] was logged to the analytics manager.
@@ -71,7 +96,7 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
   }
 
   /// Initializes the server with some basic configuration and expects not to
-  /// find a [CodeActionLiteral] with [kind]/[command]/[title].
+  /// find a [CodeAction] with [kind]/[command]/[title].
   Future<void> expectNoAction(
     String content, {
     String? filePath,
@@ -97,18 +122,34 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
     );
 
     expect(
-      findCodeActionLiteral(
-        codeActions,
-        kind: kind,
-        command: command,
-        title: title,
-      ),
+      findCodeAction(codeActions, kind: kind, command: command, title: title),
       isNull,
     );
   }
 
-  /// Finds the single [CodeActionLiteral] matching [title], [kind] and
-  /// [command].
+  /// Finds the single [CodeAction] matching [title], [kind] and [command].
+  ///
+  /// If [command] and/or [commandArgs] are supplied, ensures the result is
+  /// either that command, or a literal code action with that command.
+  ///
+  /// Returns `null` if there is not exactly one match.
+  CodeAction? findCodeAction(
+    List<CodeAction> actions, {
+    String? title,
+    CodeActionKind? kind,
+    String? command,
+    List<Object>? commandArgs,
+  }) {
+    return findCodeActions(
+      actions,
+      title: title,
+      kind: kind,
+      command: command,
+      commandArgs: commandArgs,
+    ).singleOrNull;
+  }
+
+  /// Finds the single [CodeActionLiteral] matching [title], [kind] and [command].
   ///
   /// If [command] and/or [commandArgs] are supplied, ensures the result is
   /// either that command, or a literal code action with that command.
@@ -121,56 +162,63 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
     String? command,
     List<Object>? commandArgs,
   }) {
-    return findCodeActionLiterals(
+    return findCodeAction(
       actions,
       title: title,
       kind: kind,
       command: command,
       commandArgs: commandArgs,
-    ).singleOrNull;
+    )?.asCodeActionLiteral;
   }
 
-  List<CodeActionLiteral> findCodeActionLiterals(
-    List<Either2<CodeActionLiteral, Command>> actions, {
+  List<CodeAction> findCodeActions(
+    List<CodeAction> actions, {
     String? title,
     CodeActionKind? kind,
     String? command,
     List<Object>? commandArgs,
   }) {
-    return actions
-        .map((action) => action.map((action) => action, (cmd) => null))
-        .where((action) => title == null || action?.title == title)
-        .where((action) => kind == null || action?.kind == kind)
-        // Some tests filter by only supplying a command, so if there is no
-        // title given, filter by the command. If a title was given, don't
-        // filter by the command and assert it below. This results in a better
-        // failure message if the action existed by title but without the correct
-        // command.
-        .where(
-          (action) =>
-              title != null ||
-              command == null ||
-              action?.command?.command == command,
-        )
-        .map((action) {
-          // Always expect a command (either to execute, or for logging)
-          expect(action!.command, isNotNull);
+    return actions.where((action) {
+      var actionLiteral = action.map((action) => action, (command) => null);
+      var actionCommand = action.map(
+        // Always expect a command (either to execute, or for logging)
+        (action) => action.command!,
+        (command) => command,
+      );
+      var actionTitle = actionLiteral?.title ?? actionCommand.title;
+      var actionKind = actionLiteral?.kind;
 
-          if (command != null) {
-            expect(action.command!.command, command);
-          } else {
-            // Expect an edit if we weren't looking for a command-action.
-            expect(action.edit, isNotNull);
-          }
+      if (title != null && actionTitle != title) {
+        return false;
+      }
 
-          if (commandArgs != null) {
-            expect(action.command!.arguments, equals(commandArgs));
-          }
+      if (kind != null && actionKind != kind) {
+        return false;
+      }
 
-          return action;
-        })
-        .nonNulls
-        .toList();
+      // Some tests filter by only supplying a command, so if there is no
+      // title given, filter by the command. If a title was given, don't
+      // filter by the command and assert it below. This results in a better
+      // failure message if the action existed by title but without the correct
+      // command.
+      if (title == null &&
+          command != null &&
+          actionCommand.command != command) {
+        return false;
+      }
+
+      if (command != null) {
+        expect(actionCommand.command, command);
+      } else {
+        // Expect an edit if we weren't looking for a command-action.
+        expect(actionLiteral?.edit, isNotNull);
+      }
+      if (commandArgs != null) {
+        expect(actionCommand.arguments, equals(commandArgs));
+      }
+
+      return true;
+    }).toList();
   }
 
   CodeAction? findCommand(
@@ -201,6 +249,34 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
     setDocumentChangesSupport();
     registerBuiltInAssistGenerators();
     registerBuiltInFixGenerators();
+  }
+
+  /// Verifies that executing the given Code Action (either via a command or
+  /// an inline edit) results in the files matching the expected content.
+  Future<LspChangeVerifier> verifyCodeActionEdits(
+    CodeAction action,
+    String expectedContent, {
+    ProgressToken? workDoneToken,
+  }) async {
+    var command = action.command;
+    var edit = action.map((literal) => literal.edit, (_) => null);
+
+    // Verify the edits either by executing the command we expected, or
+    // the edits attached directly to the code action.
+    // Don't try to execute 'dart.logAction' because it will never produce
+    // edits.
+    if (command != null && command.command != Commands.logAction) {
+      assert(edit == null, 'Got a command but also a literal edit');
+      return await verifyCommandEdits(
+        command,
+        expectedContent,
+        workDoneToken: workDoneToken,
+      );
+    } else if (edit != null) {
+      return verifyEdit(edit, expectedContent);
+    } else {
+      throw 'CodeAction had neither a command or a literal edit';
+    }
   }
 
   /// Initializes the server with some basic configuration and expects to find
@@ -237,19 +313,10 @@ $expected''';
       openTargetFile: openTargetFile,
     );
 
-    // Verify the edits either by executing the command we expected, or
-    // the edits attached directly to the code action.
-    // Don't try to execute 'dart.logAction' because it will never produce
-    // edits.
-    if (command != null && command != Commands.logAction) {
-      return await verifyCommandEdits(
-        action.command!,
-        expected,
-        workDoneToken: commandWorkDoneToken,
-      );
-    } else {
-      var edit = action.edit!;
-      return verifyEdit(edit, expected);
-    }
+    return await verifyCodeActionEdits(
+      CodeAction.t1(action),
+      expected,
+      workDoneToken: commandWorkDoneToken,
+    );
   }
 }
