@@ -63,20 +63,26 @@ abstract class AbstractCodeActionsProducer
 
   bool get supportsLiterals => capabilities.literalCodeActions;
 
-  /// Creates a CodeAction to apply this assist. Note: This code will fetch the
-  /// version of each document being modified so it's important to call this
-  /// immediately after computing edits to ensure the document is not modified
-  /// before the version number is read.
+  /// Creates a CodeAction to apply this assist.
+  ///
+  /// This code will fetch the version of each document being modified so it's
+  /// important to call this immediately after computing edits to ensure the
+  /// document is not modified before the version number is read.
   @protected
   CodeActionLiteral createAssistAction(
     protocol.SourceChange change,
+    CodeActionKind kind,
     String? loggedAssistId,
     String path,
     LineInfo lineInfo,
   ) {
+    assert(
+      kind == CodeActionKind.Refactor ||
+          '$kind'.startsWith('${CodeActionKind.Refactor}.'),
+    );
     return CodeActionLiteral(
       title: change.message,
-      kind: toCodeActionKind(change.id, CodeActionKind.Refactor),
+      kind: kind,
       diagnostics: const [],
       command: createLogActionCommand(loggedAssistId),
       edit: createWorkspaceEdit(
@@ -106,21 +112,27 @@ abstract class AbstractCodeActionsProducer
     );
   }
 
-  /// Creates a CodeAction to apply this fix. Note: This code will fetch the
-  /// version of each document being modified so it's important to call this
-  /// immediately after computing edits to ensure the document is not modified
-  /// before the version number is read.
+  /// Creates a CodeAction to apply this fix.
+  ///
+  /// This code will fetch the version of each document being modified so it's
+  /// important to call this immediately after computing edits to ensure the
+  /// document is not modified before the version number is read.
   @protected
   CodeActionLiteral createFixAction(
     protocol.SourceChange change,
+    CodeActionKind kind,
     String? loggedFixId,
     Diagnostic diagnostic,
     String path,
     LineInfo lineInfo,
   ) {
+    assert(
+      kind == CodeActionKind.QuickFix ||
+          '$kind'.startsWith('${CodeActionKind.QuickFix}.'),
+    );
     return CodeActionLiteral(
       title: change.message,
-      kind: toCodeActionKind(change.id, CodeActionKind.QuickFix),
+      kind: kind,
       diagnostics: [diagnostic],
       command: createLogActionCommand(loggedFixId),
       edit: createWorkspaceEdit(

@@ -18,6 +18,7 @@ import 'package:path/path.dart' as path;
 import 'package:test/test.dart' as test show expect;
 import 'package:test/test.dart';
 
+import '../utils/lsp_protocol_extensions.dart';
 import 'change_verifier.dart';
 
 /// A mixin with helpers for applying LSP edits to strings.
@@ -346,7 +347,7 @@ mixin LspRequestHelpersMixin {
     List<CodeActionKind>? kinds,
     CodeActionTriggerKind? triggerKind,
     ProgressToken? workDoneToken,
-  }) {
+  }) async {
     range ??=
         position != null
             ? Range(start: position, end: position)
@@ -367,7 +368,8 @@ mixin LspRequestHelpersMixin {
         workDoneToken: workDoneToken,
       ),
     );
-    return expectSuccessfulResponseTo(
+
+    var actions = await expectSuccessfulResponseTo(
       request,
       _fromJsonList(
         _generateFromJsonFor(
@@ -378,6 +380,26 @@ mixin LspRequestHelpersMixin {
         ),
       ),
     );
+
+    // As an additional check, ensure all returned values are either exact
+    // matches or sub-kinds of the requested kind(s).
+    if (kinds != null && kinds.isNotEmpty) {
+      // Kinds must either by an exact match, or start with the
+      // requested value followed by a dot (a sub-kind).
+      var allowedKinds =
+          kinds
+              .expand((kind) => [equals('$kind'), startsWith('$kind.')])
+              .toList();
+
+      // Only CodeActionLiterals can be checked because bare commands do not
+      // have CodeActionKinds (once they've left the server).
+      var literals = actions.where((action) => action.isCodeActionLiteral);
+      for (var result in literals) {
+        expect(result.asCodeActionLiteral.kind.toString(), anyOf(allowedKinds));
+      }
+    }
+
+    return actions;
   }
 
   Future<TextDocumentCodeLensResult> getCodeLens(Uri uri) {

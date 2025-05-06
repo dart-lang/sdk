@@ -48,6 +48,7 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
         .map((response) => plugin.EditGetAssistsResult.fromResponse(response))
         .expand((response) => response.assists)
         .map(_convertAssist)
+        .nonNulls
         .toList();
   }
 
@@ -78,10 +79,20 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
   @override
   Future<List<CodeAction>> getSourceActions() async => [];
 
-  CodeActionWithPriority _convertAssist(plugin.PrioritizedSourceChange assist) {
+  CodeActionWithPriority? _convertAssist(
+    plugin.PrioritizedSourceChange assist,
+  ) {
+    var kind = toCodeActionKind(assist.change.id, CodeActionKind.Refactor);
+    // TODO(dantup): Find a way to filter these earlier, so we don't
+    //  compute fixes we will filter out.
+    if (!shouldIncludeKind(kind)) {
+      return null;
+    }
+
     return (
       action: createAssistAction(
         assist.change,
+        kind,
         'assist from plugin',
         path,
         lineInfo,
@@ -100,18 +111,25 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
       supportedTags: supportedDiagnosticTags,
       clientSupportsCodeDescription: supportsCodeDescription,
     );
-    return fixes.fixes.map(
-      (fix) => (
+    return fixes.fixes.map((fix) {
+      var kind = toCodeActionKind(fix.change.id, CodeActionKind.QuickFix);
+      // TODO(dantup): Find a way to filter these earlier, so we don't
+      //  compute fixes we will filter out.
+      if (!shouldIncludeKind(kind)) {
+        return null;
+      }
+      return (
         action: createFixAction(
           fix.change,
+          kind,
           'fix from plugin',
           diagnostic,
           path,
           lineInfo,
         ),
         priority: fix.priority,
-      ),
-    );
+      );
+    }).nonNulls;
   }
 
   Future<List<plugin.Response>> _sendPluginRequest(

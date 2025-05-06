@@ -218,7 +218,7 @@ class CodeActionHandler
             analysisOptions: analysisOptions,
           ),
         ];
-        var sorter = _CodeActionSorter(params.range, shouldIncludeKind);
+        var sorter = _CodeActionSorter(params.range);
 
         var allActions = <CodeAction>[
           // Like-kinded actions are grouped (and prioritized) together
@@ -303,9 +303,8 @@ class CodeActionRegistrations extends FeatureRegistration
 /// the one nearest [range].
 class _CodeActionSorter {
   final Range range;
-  final bool Function(CodeActionKind?) shouldIncludeKind;
 
-  _CodeActionSorter(this.range, this.shouldIncludeKind);
+  _CodeActionSorter(this.range);
 
   List<CodeAction> sort(List<CodeActionWithPriority> actions) {
     var dedupedActions = _dedupeActions(actions, range.start);
@@ -323,7 +322,6 @@ class _CodeActionSorter {
     dedupedActionsWithIndex.sort(_compareCodeActions);
 
     return dedupedActionsWithIndex
-        .where((action) => shouldIncludeKind(action.action.kind))
         .map((action) => CodeAction.t1(action.action))
         .toList();
   }

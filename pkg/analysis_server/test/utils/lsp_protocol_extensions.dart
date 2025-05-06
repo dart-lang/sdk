@@ -27,6 +27,22 @@ extension CodeActionExtensions on CodeAction {
     return map((literal) => literal.command, (command) => command);
   }
 
+  /// Whether this [CodeAction] is a [CodeActionLiteral].
+  bool get isCodeActionLiteral {
+    return map(
+      (_) => true, // literal
+      (_) => false, // command
+    );
+  }
+
+  /// Whether this [CodeAction] is a [Command].
+  bool get isCommand {
+    return map(
+      (_) => false, // literal
+      (_) => true, // command
+    );
+  }
+
   /// The title for this [CodeAction], whether it's a [CodeActionLiteral]
   /// or a [Command].
   String get title {

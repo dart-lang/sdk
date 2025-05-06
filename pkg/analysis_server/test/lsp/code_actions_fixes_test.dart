@@ -312,9 +312,10 @@ Future foo;
     ofKind(CodeActionKind kind) =>
         getCodeActions(mainFileUri, range: code.range.range, kinds: [kind]);
 
-    // The code above will return a quickfix.remove.unusedImport
+    // The code above will return a 'quickfix.remove.unusedImport'.
     expect(await ofKind(CodeActionKind.QuickFix), isNotEmpty);
     expect(await ofKind(CodeActionKind('quickfix.remove')), isNotEmpty);
+    expect(await ofKind(CodeActionKind('quickfix.remove.foo')), isEmpty);
     expect(await ofKind(CodeActionKind('quickfix.other')), isEmpty);
     expect(await ofKind(CodeActionKind.Refactor), isEmpty);
   }

@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/handlers/code_actions/abstract_code_actions_producer.dart';
+import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/services/correction/fix/analysis_options/fix_generator.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -95,15 +96,22 @@ class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
       var diagnostic = createDiagnostic(lineInfo, result, error);
       codeActions.addAll(
         fixes.map((fix) {
+          var kind = toCodeActionKind(fix.change.id, CodeActionKind.QuickFix);
+          // TODO(dantup): Find a way to filter these earlier, so we don't
+          //  compute fixes we will filter out.
+          if (!shouldIncludeKind(kind)) {
+            return null;
+          }
           var action = createFixAction(
             fix.change,
+            kind,
             fix.change.id,
             diagnostic,
             path,
             lineInfo,
           );
           return (action: action, priority: fix.kind.priority);
-        }),
+        }).nonNulls,
       );
     }
 

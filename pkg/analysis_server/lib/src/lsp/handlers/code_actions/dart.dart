@@ -162,15 +162,28 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
         assists = await computeAssists(context);
       }
 
-      return assists.map((assist) {
-        var action = createAssistAction(
-          assist.change,
-          assist.change.id,
-          unitResult.path,
-          unitResult.lineInfo,
-        );
-        return (action: action, priority: assist.kind.priority);
-      }).toList();
+      return assists
+          .map((assist) {
+            var kind = toCodeActionKind(
+              assist.change.id,
+              CodeActionKind.Refactor,
+            );
+            // TODO(dantup): Find a way to filter these earlier, so we don't
+            //  compute fixes we will filter out.
+            if (!shouldIncludeKind(kind)) {
+              return null;
+            }
+            var action = createAssistAction(
+              assist.change,
+              kind,
+              assist.change.id,
+              unitResult.path,
+              unitResult.lineInfo,
+            );
+            return (action: action, priority: assist.kind.priority);
+          })
+          .nonNulls
+          .toList();
     } on InconsistentAnalysisException {
       // If an InconsistentAnalysisException occurs, it's likely the user modified
       // the source and therefore is no longer interested in the results, so
@@ -247,15 +260,25 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
           );
           codeActions.addAll(
             fixes.map((fix) {
+              var kind = toCodeActionKind(
+                fix.change.id,
+                CodeActionKind.QuickFix,
+              );
+              // TODO(dantup): Find a way to filter these earlier, so we don't
+              //  compute fixes we will filter out.
+              if (!shouldIncludeKind(kind)) {
+                return null;
+              }
               var action = createFixAction(
                 fix.change,
+                kind,
                 fix.change.id,
                 diagnostic,
                 path,
                 lineInfo,
               );
               return (action: action, priority: fix.kind.priority);
-            }),
+            }).nonNulls,
           );
         }
       }
@@ -300,7 +323,11 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
         performance: performanceTracker,
       );
       var actions = await processor.compute();
-      refactorActions.addAll(actions.map(CodeAction.t1));
+      refactorActions.addAll(
+        actions
+            .where((literal) => shouldIncludeKind(literal.kind))
+            .map(CodeAction.t1),
+      );
 
       // Extracts
       if (shouldIncludeKind(CodeActionKind.RefactorExtract)) {
