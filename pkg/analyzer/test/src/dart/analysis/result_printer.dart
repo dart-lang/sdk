@@ -176,6 +176,20 @@ class DriverEventsPrinter {
     }
   }
 
+  void _writeAnalyzeFileEvent(events.AnalyzeFile object) {
+    if (!configuration.withAnalyzeFileEvents) {
+      return;
+    }
+
+    sink.writelnWithIndent('[operation] analyzeFile');
+    sink.withIndent(() {
+      var file = object.file.resource;
+      sink.writelnWithIndent('file: ${file.posixPath}');
+      var libraryFile = object.library.file.resource;
+      sink.writelnWithIndent('library: ${libraryFile.posixPath}');
+    });
+  }
+
   void _writeCannotReuseLinkedBundle(events.CannotReuseLinkedBundle event) {
     sink.writelnWithIndent('[operation] cannotReuseLinkedBundle');
     sink.withIndent(() {
@@ -188,6 +202,10 @@ class DriverEventsPrinter {
   }
 
   void _writeErrorsEvent(GetErrorsEvent event) {
+    if (!configuration.withGetErrorsEvents) {
+      return;
+    }
+
     _writeGetEvent(event);
     sink.withIndent(() {
       _writeErrorsResult(event.result);
@@ -496,13 +514,7 @@ class DriverEventsPrinter {
     var object = event.object;
     switch (object) {
       case events.AnalyzeFile():
-        sink.writelnWithIndent('[operation] analyzeFile');
-        sink.withIndent(() {
-          var file = object.file.resource;
-          sink.writelnWithIndent('file: ${file.posixPath}');
-          var libraryFile = object.library.file.resource;
-          sink.writelnWithIndent('library: ${libraryFile.posixPath}');
-        });
+        _writeAnalyzeFileEvent(object);
       case events.AnalyzedLibrary():
         sink.writelnWithIndent('[operation] analyzedLibrary');
         sink.withIndent(() {
@@ -610,11 +622,13 @@ class DriverEventsPrinterConfiguration {
   var unitElementConfiguration = UnitElementPrinterConfiguration();
   var errorsConfiguration = ErrorsResultPrinterConfiguration();
   var elementTextConfiguration = ElementTextConfiguration();
-  var withResultRequirements = false;
+  var withAnalyzeFileEvents = true;
+  var withGetErrorsEvents = true;
   var withGetLibraryByUri = true;
   var withElementManifests = false;
   var withLibraryManifest = false;
   var withLinkBundleEvents = false;
+  var withResultRequirements = false;
   var withSchedulerStatus = true;
   var withStreamResolvedUnitResults = true;
   var requirements = RequirementPrinterConfiguration();

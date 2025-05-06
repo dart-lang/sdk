@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/analysis/driver_event.dart' as driver_events;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/fine/requirements.dart';
 import 'package:analyzer/src/lint/linter.dart';
@@ -5450,6 +5451,7 @@ class FineAnalysisDriverTest extends PubPackageResolutionTest
 
   @override
   Future<void> tearDown() async {
+    testFineAfterLibraryAnalyzerHook = null;
     withFineDependencies = false;
     return super.tearDown();
   }
@@ -36890,6 +36892,251 @@ int get b => 0;
     );
   }
 
+  test_req_instanceElement_getGetter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  static int get foo {}
+}
+''');
+
+    newFile(testFile.path, r'''
+import 'a.dart';
+''');
+
+    _ManualRequirements.install((state) {
+      var A = state.singleUnit.scopeInstanceElement('A');
+      A.getGetter2('foo');
+    });
+
+    await _runManualRequirementsRecording(
+      expectedEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedMethods
+            foo: #M1
+[status] idle
+''',
+    );
+  }
+
+  test_req_instanceElement_getMethod() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  static int foo() {}
+}
+''');
+
+    newFile(testFile.path, r'''
+import 'a.dart';
+''');
+
+    _ManualRequirements.install((state) {
+      var A = state.singleUnit.scopeInstanceElement('A');
+      A.getMethod2('foo');
+    });
+
+    await _runManualRequirementsRecording(
+      expectedEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedMethods
+            foo: #M1
+[status] idle
+''',
+    );
+  }
+
+  test_req_instanceElement_getMethod_doesNotExist() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    newFile(testFile.path, r'''
+import 'a.dart';
+''');
+
+    _ManualRequirements.install((state) {
+      var A = state.singleUnit.scopeInstanceElement('A');
+      A.getMethod2('foo');
+    });
+
+    await _runManualRequirementsRecording(
+      expectedEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedMethods
+            foo: <null>
+[status] idle
+''',
+    );
+  }
+
+  test_req_instanceElement_getSetter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  static set foo(int _) {}
+}
+''');
+
+    newFile(testFile.path, r'''
+import 'a.dart';
+''');
+
+    _ManualRequirements.install((state) {
+      var A = state.singleUnit.scopeInstanceElement('A');
+      A.getSetter2('foo');
+    });
+
+    await _runManualRequirementsRecording(
+      expectedEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedMethods
+            foo=: #M1
+[status] idle
+''',
+    );
+  }
+
+  test_req_interfaceElement_getConstructor_named() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  A.named();
+}
+''');
+
+    newFile(testFile.path, r'''
+import 'a.dart';
+''');
+
+    _ManualRequirements.install((state) {
+      var A = state.singleUnit.scopeInterfaceElement('A');
+      A.getNamedConstructor2('named');
+    });
+
+    await _runManualRequirementsRecording(
+      expectedEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          named.constructor: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            named: #M1
+[status] idle
+''',
+    );
+  }
+
   Future<void> _runChangeScenario({
     required _FineOperation operation,
     String? expectedInitialEvents,
@@ -37031,6 +37278,27 @@ int get b => 0;
       assertDriverStateString(testFile, expectedUpdatedDriverState);
     }
   }
+
+  /// Works together with [_ManualRequirements] to execute manual requests to
+  /// the element model, and observe which requirements are recorded.
+  Future<void> _runManualRequirementsRecording({
+    required String expectedEvents,
+  }) async {
+    withFineDependencies = true;
+    configuration
+      ..withAnalyzeFileEvents = false
+      ..withLibraryManifest = true
+      ..withLinkBundleEvents = true
+      ..withGetErrorsEvents = false
+      ..withResultRequirements = true
+      ..withStreamResolvedUnitResults = false;
+
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver, idProvider: idProvider);
+
+    collector.getErrors('T1', testFile);
+    await assertEventsText(collector, expectedEvents);
+  }
 }
 
 /// A lint that is always reported for all linted files.
@@ -37120,6 +37388,52 @@ final class _FineOperationGetTestLibrary extends _FineOperation {
 
 final class _FineOperationTestFileGetErrors extends _FineOperation {
   const _FineOperationTestFileGetErrors();
+}
+
+/// Helper for triggering requirements manually.
+///
+/// Some [Element] APIs are not trivial, or maybe even impossible, to
+/// trigger. For example because this API is not used during normal resolution
+/// of Dart code, but can be used by a linter rule.
+class _ManualRequirements {
+  final List<CompilationUnitImpl> units;
+
+  _ManualRequirements(this.units);
+
+  _ManualRequirementsUnit get singleUnit {
+    var unit = units.single;
+    return _ManualRequirementsUnit(unit);
+  }
+
+  static void install(void Function(_ManualRequirements) operation) {
+    testFineAfterLibraryAnalyzerHook = (units) {
+      var self = _ManualRequirements(units);
+      operation(self);
+    };
+  }
+}
+
+class _ManualRequirementsUnit {
+  final CompilationUnitImpl unit;
+
+  _ManualRequirementsUnit(this.unit);
+
+  LibraryFragmentImpl get libraryFragment {
+    return unit.declaredFragment!;
+  }
+
+  ClassElementImpl2 scopeClassElement(String name) {
+    return scopeInterfaceElement(name) as ClassElementImpl2;
+  }
+
+  InstanceElementImpl2 scopeInstanceElement(String name) {
+    var lookupResult = libraryFragment.scope.lookup(name);
+    return lookupResult.getter2 as InstanceElementImpl2;
+  }
+
+  InterfaceElementImpl2 scopeInterfaceElement(String name) {
+    return scopeInstanceElement(name) as InterfaceElementImpl2;
+  }
 }
 
 extension on AnalysisDriver {

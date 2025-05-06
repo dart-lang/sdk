@@ -8,7 +8,6 @@ import 'dart:typed_data';
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -36,6 +35,7 @@ import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
@@ -64,6 +64,15 @@ import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
+
+/// This function is used to test recording requirements during analysis.
+///
+/// Some [ElementImpl2] APIs are not trivial, or maybe even impossible, to
+/// trigger. For example because this API is not used during normal resolution
+/// of Dart code, but can be used by a linter rule.
+@visibleForTesting
+void Function(List<CompilationUnitImpl> units)?
+testFineAfterLibraryAnalyzerHook;
 
 /// This class computes analysis results for Dart files.
 ///
@@ -1375,6 +1384,12 @@ class AnalysisDriver {
             enableLintRuleTiming: _enableLintRuleTiming,
           ).analyze();
         });
+
+        // Invoke the test only hook to trigger additional requirements.
+        if (testFineAfterLibraryAnalyzerHook case var hook?) {
+          var units = results.map((result) => result.unit).toList();
+          hook(units);
+        }
 
         if (withFineDependencies) {
           globalResultRequirements = null;
