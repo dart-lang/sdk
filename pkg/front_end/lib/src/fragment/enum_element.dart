@@ -245,15 +245,6 @@ class _EnumElementFragmentBodyBuilderContext extends BodyBuilderContext {
 
   @override
   // Coverage-ignore(suite): Not run.
-  AugmentSuperTarget? get augmentSuperTarget {
-    if (_fragment.builder.isAugmentation) {
-      return _fragment.builder.augmentSuperTarget;
-    }
-    return null;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
   ConstantContext get constantContext {
     return ConstantContext.inferred;
   }

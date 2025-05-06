@@ -89,10 +89,6 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   Builder get parent => declarationBuilder ?? libraryBuilder;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  bool get isAugmentation => _modifiers.isAugment;
-
-  @override
   bool get isAbstract => _modifiers.isAbstract;
 
   @override

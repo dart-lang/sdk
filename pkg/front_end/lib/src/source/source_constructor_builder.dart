@@ -318,10 +318,6 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get isAugmentation => modifiers.isAugment;
-
-  @override
-  // Coverage-ignore(suite): Not run.
   bool get isClassInstanceMember => false;
 
   @override

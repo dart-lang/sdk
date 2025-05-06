@@ -103,10 +103,6 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
       _lastDeclaration.redirectionTarget;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  bool get isAugmentation => modifiers.isAugment;
-
-  @override
   bool get isConst => modifiers.isConst;
 
   @override
