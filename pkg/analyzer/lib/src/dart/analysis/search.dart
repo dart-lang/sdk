@@ -632,7 +632,11 @@ class Search {
       name = externalElement.enclosingElement2.displayName;
     }
 
-    var elementPath = element.firstFragment.libraryFragment!.source.fullName;
+    var elementPath = element.firstFragment.libraryFragment?.source.fullName;
+    if (elementPath == null) {
+      return;
+    }
+
     var elementFile = _driver.fsState.getExistingFromPath(elementPath);
     if (elementFile == null) {
       return;
@@ -896,8 +900,8 @@ class Search {
     bool Function(AstNode n) isRootNode,
     SearchedFiles searchedFiles,
   ) async {
-    String path = element.firstFragment.libraryFragment!.source.fullName;
-    if (!searchedFiles.add(path, this)) {
+    String? path = element.firstFragment.libraryFragment?.source.fullName;
+    if (path == null || !searchedFiles.add(path, this)) {
       return const <SearchResult>[];
     }
 

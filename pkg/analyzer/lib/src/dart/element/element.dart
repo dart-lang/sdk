@@ -3418,6 +3418,9 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
     TypeImpl type,
     ParameterKind parameterKind,
   ) {
+    // TODO(dantup): This does not keep any reference to the non-synthetic
+    //  parameter which prevents navigation/references from working. See
+    //  https://github.com/dart-lang/sdk/issues/60200
     var element = FormalParameterFragmentImpl(
       name: name2 ?? '',
       nameOffset: -1,
