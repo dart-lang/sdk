@@ -1948,10 +1948,6 @@ abstract class ElementImpl2 implements Element {
   String get displayName => name3 ?? '<unnamed>';
 
   @override
-  // TODO(augmentations): implement enclosingElement2
-  Element? get enclosingElement2 => throw UnimplementedError();
-
-  @override
   List<Fragment> get fragments {
     return [
       for (
@@ -4074,6 +4070,9 @@ class GenericFunctionTypeElementImpl2 extends FunctionTypedElementImpl2
 
   @override
   String? get documentationComment => _wrappedElement.documentationComment;
+
+  @override
+  Element? get enclosingElement2 => firstFragment.enclosingFragment?.element;
 
   @override
   GenericFunctionTypeFragmentImpl get firstFragment => _wrappedElement;
