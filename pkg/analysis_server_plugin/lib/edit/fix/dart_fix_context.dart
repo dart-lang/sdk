@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analysis_server_plugin/edit/fix/fix_context.dart';
 import 'package:analysis_server_plugin/src/correction/change_workspace.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -37,6 +38,9 @@ class DartFixContext implements FixContext {
   /// The unit result in which the fix operates.
   final ResolvedUnitResult unitResult;
 
+  // The [CorrectionUtils] for the unit result.
+  final CorrectionUtils correctionUtils;
+
   /// The workspace in which the fix contributor operates.
   final ChangeWorkspace workspace;
 
@@ -58,7 +62,8 @@ class DartFixContext implements FixContext {
     required this.unitResult,
     required this.error,
     this.autoTriggered = false,
-  });
+    CorrectionUtils? correctionUtils,
+  }) : correctionUtils = correctionUtils ?? CorrectionUtils(unitResult);
 
   /// Returns the mapping from each library (that is available to this context)
   /// to a top-level declaration that is exported (not necessary declared) by

@@ -244,7 +244,7 @@ final class CorrectionProducerContext {
   })  : _libraryResult = libraryResult,
         _unitResult = unitResult,
         _sessionHelper = AnalysisSessionHelper(unitResult.session),
-        _utils = CorrectionUtils(unitResult),
+        _utils = dartFixContext?.correctionUtils ?? CorrectionUtils(unitResult),
         _applyingBulkFixes = applyingBulkFixes,
         _diagnostic = diagnostic,
         _token = token,

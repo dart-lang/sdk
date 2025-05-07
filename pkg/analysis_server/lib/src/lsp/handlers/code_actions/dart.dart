@@ -18,6 +18,7 @@ import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server_plugin/edit/assist/assist.dart';
 import 'package:analysis_server_plugin/edit/assist/dart_assist_context.dart';
+import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analysis_server_plugin/src/correction/assist_performance.dart';
 import 'package:analysis_server_plugin/src/correction/assist_processor.dart';
@@ -210,6 +211,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
       Set<String>? skipAlreadyCalculatedIfNonNull =
           willBeDeduplicated ? {} : null;
       var workspace = DartChangeWorkspace(await server.currentSessions);
+      CorrectionUtils? correctionUtils;
       for (var error in unitResult.errors) {
         // Return fixes for any part of the line where a diagnostic is.
         // If a diagnostic spans multiple lines, the fix will be included for
@@ -228,6 +230,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
           libraryResult: libraryResult,
           unitResult: unitResult,
           error: error,
+          correctionUtils: correctionUtils ??= CorrectionUtils(unitResult),
         );
 
         var performanceTracker = FixPerformance();

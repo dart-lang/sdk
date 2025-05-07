@@ -69,6 +69,7 @@ final class FixInFileProcessor {
           libraryResult: _fixContext.libraryResult,
           unitResult: _fixContext.unitResult,
           error: error,
+          correctionUtils: _fixContext.correctionUtils,
         );
         fixState = await _fixDiagnostic(fixContext, fixState, generator, error);
 
@@ -85,6 +86,7 @@ final class FixInFileProcessor {
             libraryResult: _fixContext.libraryResult,
             unitResult: _fixContext.unitResult,
             error: error,
+            correctionUtils: _fixContext.correctionUtils,
           );
           fixState =
               await _fixDiagnostic(fixContext, fixState, generator, error);
