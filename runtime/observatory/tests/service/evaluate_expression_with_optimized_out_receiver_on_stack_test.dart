@@ -45,8 +45,7 @@ String examineStackExpression(String variableName) {
 @pragma('vm:never-inline')
 dynamic triggerDeopt() {
   print('triggerDeopt');
-  VMInternalsForTesting
-      .deoptimizeFunctionsOnStack(); // ignore: undefined_identifier
+  VMInternalsForTesting.deoptimizeFunctionsOnStack(); // ignore: undefined_identifier
 }
 
 @pragma('vm:never-inline')
