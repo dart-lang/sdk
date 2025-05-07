@@ -191,6 +191,8 @@ class Flags {
   static const String disableDiagnosticByteCache =
       '--disable-diagnostic-byte-cache';
 
+  static const enableDeferredLoadingEventLog = '--log-deferred-loading-events';
+
   // `--no-shipping` and `--canary` control sets of flags. For simplicity, these
   // flags live in options.dart.
   // Shipping features default to on, but can be disabled individually. All

@@ -685,6 +685,9 @@ class CompilerOptions implements DiagnosticOptions {
   // Whether or not to disable byte cache for sources loaded from Kernel dill.
   bool disableDiagnosticByteCache = false;
 
+  // Whether or not to enable deferred loading event log.
+  bool enableDeferredLoadingEventLog = false;
+
   bool enableProtoShaking = false;
   bool enableProtoMixinShaking = false;
 
@@ -992,6 +995,10 @@ class CompilerOptions implements DiagnosticOptions {
       ..disableDiagnosticByteCache = _hasOption(
         options,
         Flags.disableDiagnosticByteCache,
+      )
+      ..enableDeferredLoadingEventLog = _hasOption(
+        options,
+        Flags.enableDeferredLoadingEventLog,
       )
       ..features = featureOptions;
   }

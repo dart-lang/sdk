@@ -538,6 +538,7 @@ Future<api.CompilationResult> compile(
     _OneOption('${Flags.invoker}=.+', setInvoker),
     _OneOption('${Flags.verbosity}=.+', passThrough),
     _OneOption(Flags.disableDiagnosticByteCache, passThrough),
+    _OneOption(Flags.enableDeferredLoadingEventLog, passThrough),
 
     // Experimental features.
     // We don't provide documentation for these yet.
