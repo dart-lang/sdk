@@ -5522,8 +5522,6 @@ final class DefaultFormalParameterImpl extends FormalParameterImpl
 sealed class Directive implements AnnotatedNode {}
 
 sealed class DirectiveImpl extends AnnotatedNodeImpl implements Directive {
-  FragmentImpl? element;
-
   /// Initializes a newly create directive.
   ///
   /// Either or both of the [comment] and [metadata] can be `null` if the
@@ -6522,6 +6520,9 @@ final class ExportDirectiveImpl extends NamespaceDirectiveImpl
   @override
   final Token exportKeyword;
 
+  @override
+  LibraryExportImpl? libraryExport;
+
   /// Initializes a newly created export directive.
   ///
   /// Either or both of the [comment] and [metadata] can be `null` if the
@@ -6540,12 +6541,6 @@ final class ExportDirectiveImpl extends NamespaceDirectiveImpl
 
   @override
   Token get firstTokenAfterCommentAndMetadata => exportKeyword;
-
-  @experimental
-  @override
-  LibraryExportElementImpl? get libraryExport {
-    return element as LibraryExportElementImpl?;
-  }
 
   @override
   ChildEntities get _childEntities =>
@@ -10817,6 +10812,9 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
 
   SimpleIdentifierImpl? _prefix;
 
+  @override
+  LibraryImportImpl? libraryImport;
+
   /// Initializes a newly created import directive.
   ///
   /// Either or both of the [comment] and [metadata] can be `null` if the
@@ -10845,12 +10843,6 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
 
   @override
   Token get firstTokenAfterCommentAndMetadata => importKeyword;
-
-  @experimental
-  @override
-  LibraryImportElementImpl? get libraryImport {
-    return element as LibraryImportElementImpl?;
-  }
 
   @override
   SimpleIdentifierImpl? get prefix => _prefix;
@@ -12078,6 +12070,9 @@ final class LibraryDirectiveImpl extends DirectiveImpl
   @override
   final Token semicolon;
 
+  @override
+  LibraryElementImpl? element2;
+
   /// Initializes a newly created library directive.
   ///
   /// Either or both of the [comment] and [metadata] can be `null` if the
@@ -12091,10 +12086,6 @@ final class LibraryDirectiveImpl extends DirectiveImpl
   }) : _name = name {
     _becomeParentOf(_name);
   }
-
-  @experimental
-  @override
-  LibraryElementImpl? get element2 => element as LibraryElementImpl?;
 
   @override
   Token get endToken => semicolon;
@@ -14963,6 +14954,9 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
   @override
   final Token semicolon;
 
+  @override
+  PartIncludeImpl? partInclude;
+
   /// Initializes a newly created part directive.
   ///
   /// Either or both of the [comment] and [metadata] can be `null` if the
@@ -14983,10 +14977,6 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
 
   @override
   Token get firstTokenAfterCommentAndMetadata => partKeyword;
-
-  @experimental
-  @override
-  PartElementImpl? get partInclude => element as PartElementImpl?;
 
   @override
   ChildEntities get _childEntities =>

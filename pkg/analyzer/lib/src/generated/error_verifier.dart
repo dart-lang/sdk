@@ -1890,7 +1890,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// See [CompileTimeErrorCode.AMBIGUOUS_EXPORT].
   void _checkForAmbiguousExport(
     ExportDirectiveImpl directive,
-    LibraryExportElementImpl libraryExport,
+    LibraryExportImpl libraryExport,
     LibraryElementImpl? exportedLibrary,
   ) {
     if (exportedLibrary == null) {

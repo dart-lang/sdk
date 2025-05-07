@@ -254,12 +254,6 @@ class BundleWriter {
     });
   }
 
-  void _writeExportElement(LibraryExportElementImpl element) {
-    _resolutionSink._writeAnnotationList(element.metadata);
-    _sink.writeList(element.combinators, _writeNamespaceCombinator);
-    _writeDirectiveUri(element.uri);
-  }
-
   void _writeExportLocation(ExportLocation location) {
     _sink.writeUInt30(location.fragmentIndex);
     _sink.writeUInt30(location.exportIndex);
@@ -378,14 +372,6 @@ class BundleWriter {
     });
   }
 
-  void _writeImportElement(LibraryImportElementImpl element) {
-    _resolutionSink._writeAnnotationList(element.metadata);
-    _sink.writeList(element.combinators, _writeNamespaceCombinator);
-    _writeLibraryImportPrefixFragment(element.prefix2);
-    _writeDirectiveUri(element.uri);
-    LibraryImportElementFlags.write(_sink, element);
-  }
-
   void _writeLanguageVersion(LibraryLanguageVersion version) {
     _sink.writeUInt30(version.package.major);
     _sink.writeUInt30(version.package.minor);
@@ -398,6 +384,20 @@ class BundleWriter {
     } else {
       _sink.writeBool(false);
     }
+  }
+
+  void _writeLibraryExport(LibraryExportImpl element) {
+    _resolutionSink._writeAnnotationList(element.annotations);
+    _sink.writeList(element.combinators, _writeNamespaceCombinator);
+    _writeDirectiveUri(element.uri);
+  }
+
+  void _writeLibraryImport(LibraryImportImpl element) {
+    _resolutionSink._writeAnnotationList(element.annotations);
+    _sink.writeBool(element.isSynthetic);
+    _sink.writeList(element.combinators, _writeNamespaceCombinator);
+    _writeLibraryImportPrefixFragment(element.prefix2);
+    _writeDirectiveUri(element.uri);
   }
 
   void _writeLibraryImportPrefixFragment(PrefixFragmentImpl? fragment) {
@@ -517,18 +517,18 @@ class BundleWriter {
     });
   }
 
-  void _writePartElement(PartElementImpl element) {
-    _writeDirectiveUri(element.uri);
-  }
-
   /// We write metadata here, to keep it inside [unitElement] resolution
-  /// data, because [_writePartElement] recursively writes included unit
+  /// data, because [_writePartInclude] recursively writes included unit
   /// elements. But the bundle reader wants all metadata for `parts`
   /// sequentially.
   void _writePartElementsMetadata(LibraryFragmentImpl unitElement) {
     for (var element in unitElement.parts) {
-      _resolutionSink._writeAnnotationList(element.metadata);
+      _resolutionSink._writeAnnotationList(element.annotations);
     }
+  }
+
+  void _writePartInclude(PartIncludeImpl element) {
+    _writeDirectiveUri(element.uri);
   }
 
   void _writePropertyAccessorElement(PropertyAccessorFragmentImpl fragment) {
@@ -630,8 +630,8 @@ class BundleWriter {
 
     _sink.writeBool(unitElement.isSynthetic);
 
-    _writeList(unitElement.libraryImports, _writeImportElement);
-    _writeList(unitElement.libraryExports, _writeExportElement);
+    _writeList(unitElement.libraryImports, _writeLibraryImport);
+    _writeList(unitElement.libraryExports, _writeLibraryExport);
 
     // Write the metadata for parts here, even though we write parts below.
     // The reason is that resolution data must be in a single chunk.
@@ -658,7 +658,7 @@ class BundleWriter {
 
     // Write parts after this library fragment, so that when we read, we
     // process fragments of declarations in the same order as we build them.
-    _writeList(unitElement.parts, _writePartElement);
+    _writeList(unitElement.parts, _writePartInclude);
   }
 
   static TypeParameterVarianceTag _encodeVariance(

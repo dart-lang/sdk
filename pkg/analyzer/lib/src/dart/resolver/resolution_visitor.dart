@@ -550,8 +550,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitExportDirective(covariant ExportDirectiveImpl node) {
     var element = node.libraryExport;
-    if (element is LibraryExportElementImpl) {
-      _setOrCreateMetadataElements(element, node.metadata);
+    if (element != null) {
+      _setElementAnnotations(node.metadata, element.metadata2.annotations);
     }
 
     _withElementWalker(null, () {
@@ -956,8 +956,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitImportDirective(covariant ImportDirectiveImpl node) {
     var element = node.libraryImport;
-    if (element is LibraryImportElementImpl) {
-      _setOrCreateMetadataElements(element, node.metadata);
+    if (element != null) {
+      _setElementAnnotations(node.metadata, element.metadata2.annotations);
     }
 
     _withElementWalker(null, () {
@@ -1123,8 +1123,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitPartDirective(covariant PartDirectiveImpl node) {
     var partInclude = node.partInclude;
-    if (partInclude is PartElementImpl) {
-      _setOrCreateMetadataElements(partInclude, node.metadata);
+    if (partInclude != null) {
+      _setElementAnnotations(node.metadata, partInclude.metadata2.annotations);
     }
 
     _withElementWalker(null, () {

@@ -71,7 +71,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var libraryDirective =
         unit.directives.whereType<LibraryDirectiveImpl>().firstOrNull;
     if (libraryDirective != null) {
-      libraryDirective.element = libraryElement;
+      libraryDirective.element2 = libraryElement;
       libraryElement.documentationComment = getCommentNodeRawText(
         libraryDirective.documentationComment,
       );
@@ -85,7 +85,25 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       libraryElement.documentationComment = getCommentNodeRawText(
         firstDirective.documentationComment,
       );
-      var firstDirectiveMetadata = firstDirective.element?.metadata;
+      List<ElementAnnotationImpl>? firstDirectiveMetadata;
+      switch (firstDirective) {
+        case ExportDirectiveImpl():
+          firstDirectiveMetadata =
+              firstDirective.libraryExport?.metadata2.annotations;
+        case ImportDirectiveImpl():
+          firstDirectiveMetadata =
+              firstDirective.libraryImport?.metadata2.annotations;
+        case PartDirectiveImpl():
+          firstDirectiveMetadata =
+              firstDirective.partInclude?.metadata2.annotations;
+        case LibraryDirectiveImpl():
+          // Impossible, since there is no library directive.
+          break;
+        case PartOfDirectiveImpl():
+          // Can only occur in erroneous code (this is the defining
+          // compilation unit)
+          break;
+      }
       if (firstDirectiveMetadata != null) {
         libraryElement.metadata = firstDirectiveMetadata;
       }
@@ -484,8 +502,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   void visitExportDirective(covariant ExportDirectiveImpl node) {
     var index = _exportDirectiveIndex++;
     var exportElement = _unitElement.libraryExports[index];
-    exportElement.metadata = _buildAnnotations(node.metadata);
-    node.element = exportElement;
+    exportElement.annotations = _buildAnnotations(node.metadata);
+    node.libraryExport = exportElement;
   }
 
   @override
@@ -1121,8 +1139,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   void visitImportDirective(covariant ImportDirectiveImpl node) {
     var index = _importDirectiveIndex++;
     var importElement = _unitElement.libraryImports[index];
-    importElement.metadata = _buildAnnotations(node.metadata);
-    node.element = importElement;
+    importElement.annotations = _buildAnnotations(node.metadata);
+    node.libraryImport = importElement;
   }
 
   @override
@@ -1298,10 +1316,11 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitPartDirective(PartDirective node) {
+  void visitPartDirective(covariant PartDirectiveImpl node) {
     var index = _partDirectiveIndex++;
     var partElement = _unitElement.parts[index];
-    partElement.metadata = _buildAnnotations(node.metadata);
+    partElement.annotations = _buildAnnotations(node.metadata);
+    node.partInclude = partElement;
   }
 
   @override

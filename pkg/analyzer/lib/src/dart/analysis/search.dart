@@ -466,11 +466,8 @@ class Search {
     LibraryImport import,
     SearchedFiles searchedFiles,
   ) async {
-    var legacyElement = import as LibraryImportElementImpl;
-    var legacyResults = await _searchReferences_Import(
-      legacyElement,
-      searchedFiles,
-    );
+    import as LibraryImportImpl;
+    var legacyResults = await _searchReferences_Import(import, searchedFiles);
 
     return legacyResults.map((match) {
       return LibraryFragmentSearchMatch(
@@ -836,16 +833,16 @@ class Search {
   }
 
   Future<List<SearchResult>> _searchReferences_Import(
-    LibraryImportElementImpl element,
+    LibraryImportImpl element,
     SearchedFiles searchedFiles,
   ) async {
-    String path = element.source.fullName;
+    String path = element.libraryFragment.source.fullName;
     if (!searchedFiles.add(path, this)) {
       return const <SearchResult>[];
     }
 
     List<SearchResult> results = <SearchResult>[];
-    LibraryElementImpl libraryElement = element.library;
+    LibraryElementImpl libraryElement = element.libraryFragment.element;
     for (var unitElement in libraryElement.units) {
       String unitPath = unitElement.source.fullName;
       var unitResult = await _driver.getResolvedUnit(unitPath);
@@ -874,8 +871,7 @@ class Search {
       if (unitResult is ResolvedUnitResultImpl) {
         var unit = unitResult.unit;
         for (var directive in unit.directives) {
-          if (directive is PartOfDirectiveImpl &&
-              directive.element == element) {
+          if (directive is PartOfDirectiveImpl) {
             var targetEntity = directive.libraryName ?? directive.uri;
             results.add(
               SearchResult._(

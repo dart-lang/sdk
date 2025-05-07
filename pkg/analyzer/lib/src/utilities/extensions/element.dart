@@ -12,10 +12,10 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:meta/meta.dart';
 
 class MockLibraryImportElement implements Element, PrefixFragment {
-  final LibraryImportElementImpl import;
+  final LibraryImportImpl import;
 
   MockLibraryImportElement(LibraryImport import)
-    : import = import as LibraryImportElementImpl;
+    : import = import as LibraryImportImpl;
 
   @override
   LibraryElement get enclosingElement2 => library2;
@@ -209,9 +209,9 @@ extension ElementOrNullExtension on FragmentImpl? {
       return NeverElementImpl2.instance;
     } else if (self is ParameterMember) {
       return (self as FormalParameterFragment).element;
-    } else if (self is LibraryImportElementImpl ||
-        self is LibraryExportElementImpl ||
-        self is PartElementImpl) {
+    } else if (self is LibraryImportImpl ||
+        self is LibraryExportImpl ||
+        self is PartIncludeImpl) {
       // There is no equivalent in the new element model.
       return null;
     } else {

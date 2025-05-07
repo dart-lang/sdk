@@ -120,7 +120,7 @@ class ImportsTracking {
   ImportsTracking({required this.map});
 
   /// The elements that are used from [import].
-  Set<Element> elementsOf(LibraryImportElementImpl import) {
+  Set<Element> elementsOf(LibraryImportImpl import) {
     return trackerOf(import)?.importToUsedElements[import] ?? {};
   }
 
@@ -130,7 +130,7 @@ class ImportsTracking {
     }
   }
 
-  ImportsTrackingOfPrefix? trackerOf(LibraryImportElementImpl import) {
+  ImportsTrackingOfPrefix? trackerOf(LibraryImportImpl import) {
     var prefix = import.prefix2?.element;
     return map[prefix];
   }
@@ -141,16 +141,16 @@ class ImportsTrackingOfPrefix {
 
   /// Key: an element.
   /// Value: the imports that provide the element.
-  final Map<Element, List<LibraryImportElementImpl>> _elementImports = {};
+  final Map<Element, List<LibraryImportImpl>> _elementImports = {};
 
   /// Key: an import.
   /// Value: used elements imported from the import.
-  final Map<LibraryImportElementImpl, Set<Element>> importToUsedElements = {};
+  final Map<LibraryImportImpl, Set<Element>> importToUsedElements = {};
 
   /// Key: an import.
   /// Value: used elements imported from the import.
   /// Excludes elements from deprecated exports.
-  final Map<LibraryImportElementImpl, Set<Element>> importToAccessedElements2 =
+  final Map<LibraryImportImpl, Set<Element>> importToAccessedElements2 =
       {};
 
   /// Usually it is an error to use an import prefix without `.identifier`
@@ -166,13 +166,13 @@ class ImportsTrackingOfPrefix {
   }
 
   /// The elements that are used from [import].
-  Set<Element> elementsOf(LibraryImportElementImpl import) {
+  Set<Element> elementsOf(LibraryImportImpl import) {
     return importToUsedElements[import] ?? {};
   }
 
   /// The subset of [elementsOf], excludes elements that are from deprecated
   /// exports inside the imported library.
-  Set<Element> elementsOf2(LibraryImportElementImpl import) {
+  Set<Element> elementsOf2(LibraryImportImpl import) {
     var result = importToAccessedElements2[import];
     if (result != null) {
       return result;
@@ -492,7 +492,7 @@ class PrefixScope implements Scope {
   final LibraryFragmentImpl libraryFragment;
   final PrefixScope? parent;
 
-  final List<LibraryImportElementImpl> _importElements = [];
+  final List<LibraryImportImpl> _importElements = [];
   final List<LibraryElementImpl> _importedLibraries = [];
 
   final Map<String, Element> _getters = {};
@@ -507,7 +507,7 @@ class PrefixScope implements Scope {
   PrefixScope({
     required this.libraryFragment,
     required this.parent,
-    required List<LibraryImportElementImpl> libraryImports,
+    required List<LibraryImportImpl> libraryImports,
     required PrefixElement? prefix,
   }) {
     var elementFactory = libraryElement.session.elementFactory;

@@ -1911,6 +1911,26 @@ class ElementAnnotationImpl implements ElementAnnotation {
   }
 }
 
+sealed class ElementDirectiveImpl implements ElementDirective {
+  @override
+  late LibraryFragmentImpl libraryFragment;
+
+  @override
+  final DirectiveUri uri;
+
+  List<ElementAnnotationImpl> annotations = [];
+
+  ElementDirectiveImpl({required this.uri});
+
+  @override
+  Null get documentationComment => null;
+
+  @override
+  MetadataImpl get metadata2 {
+    return MetadataImpl(annotations);
+  }
+}
+
 abstract class ElementImpl2 implements Element {
   @override
   final int id = FragmentImpl._NEXT_ID++;
@@ -6000,54 +6020,25 @@ class LibraryElementImpl extends FragmentImpl
   }
 }
 
-class LibraryExportElementImpl extends _ExistingElementImpl
-    implements LibraryExport {
+class LibraryExportImpl extends ElementDirectiveImpl implements LibraryExport {
   @override
   final List<NamespaceCombinator> combinators;
 
   @override
-  final int exportKeywordOffset;
+  int exportKeywordOffset;
 
-  @override
-  final DirectiveUri uri;
-
-  LibraryExportElementImpl({
+  LibraryExportImpl({
+    required super.uri,
     required this.combinators,
     required this.exportKeywordOffset,
-    required this.uri,
-  }) : super(null, exportKeywordOffset);
-
-  @override
-  LibraryFragmentImpl get enclosingElement3 {
-    return super.enclosingElement3 as LibraryFragmentImpl;
-  }
+  });
 
   @override
   LibraryElementImpl? get exportedLibrary2 {
-    var uri = this.uri;
-    if (uri is DirectiveUriWithLibraryImpl) {
+    if (uri case DirectiveUriWithLibraryImpl uri) {
       return uri.library2;
     }
     return null;
-  }
-
-  @override
-  String get identifier => 'export@$nameOffset';
-
-  @override
-  ElementKind get kind => ElementKind.EXPORT;
-
-  @override
-  LibraryElementImpl get library {
-    return libraryFragment.library;
-  }
-
-  @override
-  LibraryFragmentImpl get libraryFragment => enclosingElement3;
-
-  @override
-  void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeExportElement(this);
   }
 }
 
@@ -6065,18 +6056,16 @@ class LibraryFragmentImpl extends _ExistingElementImpl
   final LibraryElementImpl library;
 
   /// The libraries exported by this unit.
-  List<LibraryExportElementImpl> _libraryExports =
-      _Sentinel.libraryExportElement;
+  List<LibraryExportImpl> _libraryExports = _Sentinel.libraryExport;
 
   /// The libraries imported by this unit.
-  List<LibraryImportElementImpl> _libraryImports =
-      _Sentinel.libraryImportElement;
+  List<LibraryImportImpl> _libraryImports = _Sentinel.libraryImport;
 
   /// The cached list of prefixes from [prefixes].
   List<PrefixElementImpl2>? _libraryImportPrefixes2;
 
   /// The parts included by this unit.
-  List<PartElementImpl> _parts = const <PartElementImpl>[];
+  List<PartIncludeImpl> _parts = const <PartIncludeImpl>[];
 
   /// A list containing all of the top-level accessors (getters and setters)
   /// contained in this compilation unit.
@@ -6275,14 +6264,14 @@ class LibraryFragmentImpl extends _ExistingElementImpl
   ElementKind get kind => ElementKind.COMPILATION_UNIT;
 
   /// The libraries exported by this unit.
-  List<LibraryExportElementImpl> get libraryExports {
+  List<LibraryExportImpl> get libraryExports {
     linkedData?.read(this);
     return _libraryExports;
   }
 
-  set libraryExports(List<LibraryExportElementImpl> exports) {
+  set libraryExports(List<LibraryExportImpl> exports) {
     for (var exportElement in exports) {
-      exportElement.enclosingElement3 = this;
+      exportElement.libraryFragment = this;
     }
     _libraryExports = exports;
   }
@@ -6291,7 +6280,7 @@ class LibraryFragmentImpl extends _ExistingElementImpl
   List<LibraryExport> get libraryExports2 =>
       libraryExports.cast<LibraryExport>();
 
-  List<LibraryExportElementImpl> get libraryExports_unresolved {
+  List<LibraryExportImpl> get libraryExports_unresolved {
     return _libraryExports;
   }
 
@@ -6299,23 +6288,23 @@ class LibraryFragmentImpl extends _ExistingElementImpl
   LibraryFragment get libraryFragment => this;
 
   /// The libraries imported by this unit.
-  List<LibraryImportElementImpl> get libraryImports {
+  List<LibraryImportImpl> get libraryImports {
     linkedData?.read(this);
     return _libraryImports;
   }
 
-  set libraryImports(List<LibraryImportElementImpl> imports) {
+  set libraryImports(List<LibraryImportImpl> imports) {
     for (var importElement in imports) {
-      importElement.enclosingElement3 = this;
+      importElement.libraryFragment = this;
     }
     _libraryImports = imports;
   }
 
   @override
-  List<LibraryImportElementImpl> get libraryImports2 =>
-      libraryImports.cast<LibraryImportElementImpl>();
+  List<LibraryImportImpl> get libraryImports2 =>
+      libraryImports.cast<LibraryImportImpl>();
 
-  List<LibraryImportElementImpl> get libraryImports_unresolved {
+  List<LibraryImportImpl> get libraryImports_unresolved {
     return _libraryImports;
   }
 
@@ -6373,13 +6362,12 @@ class LibraryFragmentImpl extends _ExistingElementImpl
   List<PartInclude> get partIncludes => parts.cast<PartInclude>();
 
   /// The parts included by this unit.
-  List<PartElementImpl> get parts => _parts;
+  List<PartIncludeImpl> get parts => _parts;
 
-  set parts(List<PartElementImpl> parts) {
+  set parts(List<PartIncludeImpl> parts) {
     for (var part in parts) {
-      part.enclosingElement3 = this;
-      var uri = part.uri;
-      if (uri is DirectiveUriWithUnitImpl) {
+      part.libraryFragment = this;
+      if (part.uri case DirectiveUriWithUnitImpl uri) {
         uri.libraryFragment.enclosingElement3 = this;
       }
     }
@@ -6543,56 +6531,36 @@ class LibraryFragmentImpl extends _ExistingElementImpl
   }
 }
 
-class LibraryImportElementImpl extends _ExistingElementImpl
-    implements LibraryImport {
+class LibraryImportImpl extends ElementDirectiveImpl implements LibraryImport {
+  @override
+  final bool isSynthetic;
+
   @override
   final List<NamespaceCombinator> combinators;
 
   @override
-  final int importKeywordOffset;
+  int importKeywordOffset;
 
   @override
   final PrefixFragmentImpl? prefix2;
 
-  @override
-  final DirectiveUri uri;
-
   Namespace? _namespace;
 
-  LibraryImportElementImpl({
+  LibraryImportImpl({
+    required super.uri,
+    required this.isSynthetic,
     required this.combinators,
     required this.importKeywordOffset,
     required this.prefix2,
-    required this.uri,
-  }) : super(null, importKeywordOffset);
-
-  @override
-  LibraryFragmentImpl get enclosingElement3 {
-    return super.enclosingElement3 as LibraryFragmentImpl;
-  }
-
-  @override
-  String get identifier => 'import@$nameOffset';
+  });
 
   @override
   LibraryElementImpl? get importedLibrary2 {
-    var uri = this.uri;
-    if (uri is DirectiveUriWithLibraryImpl) {
+    if (uri case DirectiveUriWithLibraryImpl uri) {
       return uri.library2;
     }
     return null;
   }
-
-  @override
-  ElementKind get kind => ElementKind.IMPORT;
-
-  @override
-  LibraryElementImpl get library {
-    return libraryFragment.library;
-  }
-
-  @override
-  LibraryFragmentImpl get libraryFragment => enclosingElement3;
 
   @override
   Namespace get namespace {
@@ -6606,11 +6574,6 @@ class LibraryImportElementImpl extends _ExistingElementImpl
           );
     }
     return Namespace.EMPTY;
-  }
-
-  @override
-  void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeImportElement(this);
   }
 }
 
@@ -8173,18 +8136,8 @@ mixin ParameterElementMixin implements VariableElementOrMember {
   }
 }
 
-class PartElementImpl extends _ExistingElementImpl implements PartInclude {
-  @override
-  final DirectiveUriImpl uri;
-
-  PartElementImpl({required this.uri}) : super(null, -1);
-
-  @override
-  LibraryFragmentImpl get enclosingUnit =>
-      enclosingElement3 as LibraryFragmentImpl;
-
-  @override
-  String get identifier => 'part';
+class PartIncludeImpl extends ElementDirectiveImpl implements PartInclude {
+  PartIncludeImpl({required super.uri});
 
   @override
   LibraryFragmentImpl? get includedFragment {
@@ -8192,17 +8145,6 @@ class PartElementImpl extends _ExistingElementImpl implements PartInclude {
       return uri.libraryFragment;
     }
     return null;
-  }
-
-  @override
-  ElementKind get kind => ElementKind.PART;
-
-  @override
-  LibraryFragmentImpl get libraryFragment => enclosingUnit;
-
-  @override
-  void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writePartElement(this);
   }
 }
 
@@ -8350,7 +8292,7 @@ class PrefixElementImpl2 extends ElementImpl2 implements PrefixElement {
   }
 
   @override
-  List<LibraryImportElementImpl> get imports {
+  List<LibraryImportImpl> get imports {
     return firstFragment.enclosingFragment.libraryImports
         .where((import) => import.prefix2?.element == this)
         .toList();
@@ -10511,10 +10453,8 @@ class _Sentinel {
   static final List<ConstructorFragmentImpl> constructorElement =
       List.unmodifiable([]);
   static final List<FieldFragmentImpl> fieldElement = List.unmodifiable([]);
-  static final List<LibraryExportElementImpl> libraryExportElement =
-      List.unmodifiable([]);
-  static final List<LibraryImportElementImpl> libraryImportElement =
-      List.unmodifiable([]);
+  static final List<LibraryExportImpl> libraryExport = List.unmodifiable([]);
+  static final List<LibraryImportImpl> libraryImport = List.unmodifiable([]);
   static final List<MethodFragmentImpl> methodElement = List.unmodifiable([]);
   static final List<PropertyAccessorFragmentImpl> propertyAccessorElement =
       List.unmodifiable([]);

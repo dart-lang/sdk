@@ -174,7 +174,7 @@ class CompilationUnitElementLinkedData
   @override
   void _read(element, reader) {
     for (var import in element.libraryImports) {
-      import.metadata = reader._readAnnotationList(unitElement: unitElement);
+      import.annotations = reader._readAnnotationList(unitElement: unitElement);
       var uri = import.uri;
       if (uri is DirectiveUriWithLibraryImpl) {
         uri.library2 = reader.libraryOfUri(uri.source.uri);
@@ -182,7 +182,7 @@ class CompilationUnitElementLinkedData
     }
 
     for (var export in element.libraryExports) {
-      export.metadata = reader._readAnnotationList(unitElement: unitElement);
+      export.annotations = reader._readAnnotationList(unitElement: unitElement);
       var uri = export.uri;
       if (uri is DirectiveUriWithLibraryImpl) {
         uri.library2 = reader.libraryOfUri(uri.source.uri);
@@ -190,7 +190,7 @@ class CompilationUnitElementLinkedData
     }
 
     for (var part in element.parts) {
-      part.metadata = reader._readAnnotationList(unitElement: unitElement);
+      part.annotations = reader._readAnnotationList(unitElement: unitElement);
     }
 
     applyConstantOffsets?.perform();
@@ -926,16 +926,6 @@ class LibraryReader {
     }
   }
 
-  LibraryExportElementImpl _readExportElement({
-    required LibraryFragmentImpl containerUnit,
-  }) {
-    return LibraryExportElementImpl(
-      combinators: _reader.readTypedList(_readNamespaceCombinator),
-      exportKeywordOffset: -1,
-      uri: _readDirectiveUri(containerUnit: containerUnit),
-    );
-  }
-
   ExportLocation _readExportLocation() {
     return ExportLocation(
       fragmentIndex: _reader.readUInt30(),
@@ -1198,19 +1188,6 @@ class LibraryReader {
     });
   }
 
-  LibraryImportElementImpl _readImportElement({
-    required LibraryFragmentImpl containerUnit,
-  }) {
-    var element = LibraryImportElementImpl(
-      combinators: _reader.readTypedList(_readNamespaceCombinator),
-      importKeywordOffset: -1,
-      prefix2: _readLibraryImportPrefixFragment(libraryFragment: containerUnit),
-      uri: _readDirectiveUri(containerUnit: containerUnit),
-    );
-    LibraryImportElementFlags.read(_reader, element);
-    return element;
-  }
-
   LibraryLanguageVersion _readLanguageVersion() {
     var packageMajor = _reader.readUInt30();
     var packageMinor = _reader.readUInt30();
@@ -1224,6 +1201,29 @@ class LibraryReader {
     }
 
     return LibraryLanguageVersion(package: package, override: override);
+  }
+
+  LibraryExportImpl _readLibraryExport({
+    required LibraryFragmentImpl containerUnit,
+  }) {
+    return LibraryExportImpl(
+      combinators: _reader.readTypedList(_readNamespaceCombinator),
+      exportKeywordOffset: -1,
+      uri: _readDirectiveUri(containerUnit: containerUnit),
+    );
+  }
+
+  LibraryImportImpl _readLibraryImport({
+    required LibraryFragmentImpl containerUnit,
+  }) {
+    var element = LibraryImportImpl(
+      isSynthetic: _reader.readBool(),
+      combinators: _reader.readTypedList(_readNamespaceCombinator),
+      importKeywordOffset: -1,
+      prefix2: _readLibraryImportPrefixFragment(libraryFragment: containerUnit),
+      uri: _readDirectiveUri(containerUnit: containerUnit),
+    );
+    return element;
   }
 
   PrefixFragmentImpl? _readLibraryImportPrefixFragment({
@@ -1443,12 +1443,12 @@ class LibraryReader {
     });
   }
 
-  PartElementImpl _readPartElement({
+  PartIncludeImpl _readPartInclude({
     required LibraryFragmentImpl containerUnit,
   }) {
     var uri = _readDirectiveUri(containerUnit: containerUnit);
 
-    return PartElementImpl(uri: uri);
+    return PartIncludeImpl(uri: uri);
   }
 
   PropertyAccessorFragmentImpl _readPropertyAccessorElement(
@@ -1764,11 +1764,11 @@ class LibraryReader {
     unitElement.isSynthetic = _reader.readBool();
 
     unitElement.libraryImports = _reader.readTypedList(() {
-      return _readImportElement(containerUnit: unitElement);
+      return _readLibraryImport(containerUnit: unitElement);
     });
 
     unitElement.libraryExports = _reader.readTypedList(() {
-      return _readExportElement(containerUnit: unitElement);
+      return _readLibraryExport(containerUnit: unitElement);
     });
 
     _readClasses(unitElement, unitReference);
@@ -1800,7 +1800,7 @@ class LibraryReader {
     unitElement.topLevelVariables = variableFragments.toFixedList();
 
     unitElement.parts = _reader.readTypedList(() {
-      return _readPartElement(containerUnit: unitElement);
+      return _readPartInclude(containerUnit: unitElement);
     });
 
     return unitElement;
