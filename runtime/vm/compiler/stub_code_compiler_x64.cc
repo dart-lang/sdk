@@ -536,12 +536,12 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   // If GetFfiCallbackMetadata returned a null thread, it means that the
   // callback was invoked after it was deleted. In this case, do nothing.
   __ cmpq(THR, Immediate(0));
-  __ j(EQUAL, &done, Assembler::kFarJump);
+  __ j(EQUAL, &done);
 
   // Check the trampoline type to see how the callback should be invoked.
   __ cmpq(RAX, Immediate(static_cast<uword>(
                    FfiCallbackMetadata::TrampolineType::kAsync)));
-  __ j(EQUAL, &async_callback, Assembler::kNearJump);
+  __ j(EQUAL, &async_callback);
 
   __ cmpq(RAX,
           Immediate(static_cast<uword>(
