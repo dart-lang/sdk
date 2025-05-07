@@ -755,7 +755,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
       kernel_program = kernel::Program::ReadFromTypedData(typed_data);
     }
 
-    NoActiveIsolateScope no_active_isolate_scope;
+    NoActiveIsolateScope no_active_isolate_scope(thread);
 
     IsolateGroupSource* source = IsolateGroup::Current()->source();
     source->add_loaded_blob(Z,
@@ -777,7 +777,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     }
   }
 
-  NoActiveIsolateScope no_active_isolate_scope;
+  NoActiveIsolateScope no_active_isolate_scope(thread);
 
   if (skip_reload) {
     ASSERT(modified_libs_->IsEmpty());

@@ -2014,7 +2014,7 @@ Fragment FlowGraphBuilder::BuildTypedDataViewFactoryConstructor(
   //
   // WARNING: Notice that we assume here no GC happens between the
   // LoadNativeField and the StoreNativeField, as the GC expects a properly
-  // updated data field (see ScavengerVisitorBase::VisitTypedDataViewPointers).
+  // updated data field (see ScavengerVisitor::VisitTypedDataViewPointers).
   body += LoadLocal(view_object);
   body += LoadLocal(typed_data);
   body += LoadNativeField(Slot::PointerBase_data(),

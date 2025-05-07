@@ -475,9 +475,7 @@ void Heap::CollectNewSpaceGarbage(Thread* thread,
     GcSafepointOperationScope safepoint_operation(thread);
     RecordBeforeGC(type, reason);
     {
-      VMTagScope tagScope(thread, reason == GCReason::kIdle
-                                      ? VMTag::kGCIdleTagId
-                                      : VMTag::kGCNewSpaceTagId);
+      NOT_IN_PRODUCT(VMTagScope tagScope(thread, VMTag::kGCNewSpaceTagId));
       if (reason == GCReason::kStoreBuffer) {
         // The remembered set may become too full, increasing the time of
         // stop-the-world phases, if new-space or to-be-evacuated objects are
@@ -542,9 +540,7 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
         /*at_safepoint=*/true);
 
     RecordBeforeGC(type, reason);
-    VMTagScope tagScope(thread, reason == GCReason::kIdle
-                                    ? VMTag::kGCIdleTagId
-                                    : VMTag::kGCOldSpaceTagId);
+    NOT_IN_PRODUCT(VMTagScope tagScope(thread, VMTag::kGCOldSpaceTagId));
     TIMELINE_FUNCTION_GC_DURATION(thread, "CollectOldGeneration");
     old_space_.CollectGarbage(thread, /*compact=*/type == GCType::kMarkCompact,
                               /*finalize=*/true);
@@ -647,9 +643,7 @@ void Heap::CheckFinalizeMarking(Thread* thread) {
 void Heap::StartConcurrentMarking(Thread* thread, GCReason reason) {
   GcSafepointOperationScope safepoint_operation(thread);
   RecordBeforeGC(GCType::kStartConcurrentMark, reason);
-  VMTagScope tagScope(thread, reason == GCReason::kIdle
-                                  ? VMTag::kGCIdleTagId
-                                  : VMTag::kGCOldSpaceTagId);
+  NOT_IN_PRODUCT(VMTagScope tagScope(thread, VMTag::kGCOldSpaceTagId));
   TIMELINE_FUNCTION_GC_DURATION(thread, "StartConcurrentMarking");
   old_space_.CollectGarbage(thread, /*compact=*/false, /*finalize=*/false);
   RecordAfterGC(GCType::kStartConcurrentMark);

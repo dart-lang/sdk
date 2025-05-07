@@ -381,9 +381,9 @@ namespace kernel {
 ObjectPtr EvaluateStaticConstFieldInitializer(const Field& field) {
   ASSERT(field.is_static() && field.is_const());
 
-  LongJumpScope jump;
+  Thread* thread = Thread::Current();
+  LongJumpScope jump(thread);
   if (DART_SETJMP(*jump.Set()) == 0) {
-    Thread* thread = Thread::Current();
     Zone* zone = thread->zone();
     TranslationHelper helper(thread);
     auto& kernel_program_info =
@@ -406,7 +406,7 @@ ObjectPtr EvaluateStaticConstFieldInitializer(const Field& field) {
 
     return constant_reader.ReadConstantInitializer();
   } else {
-    return Thread::Current()->StealStickyError();
+    return thread->StealStickyError();
   }
 }
 
@@ -467,9 +467,9 @@ class MetadataEvaluator : public KernelReaderHelper {
 ObjectPtr EvaluateMetadata(const Library& library,
                            intptr_t kernel_offset,
                            bool is_annotations_offset) {
-  LongJumpScope jump;
+  Thread* thread = Thread::Current();
+  LongJumpScope jump(thread);
   if (DART_SETJMP(*jump.Set()) == 0) {
-    Thread* thread = Thread::Current();
     Zone* zone = thread->zone();
     TranslationHelper helper(thread);
     const auto& kernel_info =
@@ -488,7 +488,7 @@ ObjectPtr EvaluateMetadata(const Library& library,
                                                is_annotations_offset);
 
   } else {
-    return Thread::Current()->StealStickyError();
+    return thread->StealStickyError();
   }
 }
 
@@ -571,9 +571,9 @@ ObjectPtr ParameterDescriptorBuilder::BuildParameterDescriptor(
 }
 
 ObjectPtr BuildParameterDescriptor(const Function& function) {
-  LongJumpScope jump;
+  Thread* thread = Thread::Current();
+  LongJumpScope jump(thread);
   if (DART_SETJMP(*jump.Set()) == 0) {
-    Thread* thread = Thread::Current();
     Zone* zone = thread->zone();
 
     const auto& kernel_info =
@@ -592,7 +592,7 @@ ObjectPtr BuildParameterDescriptor(const Function& function) {
 
     return builder.BuildParameterDescriptor(function);
   } else {
-    return Thread::Current()->StealStickyError();
+    return thread->StealStickyError();
   }
 }
 

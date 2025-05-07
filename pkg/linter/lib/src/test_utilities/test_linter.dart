@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart' as file_system;
 import 'package:analyzer/file_system/physical_file_system.dart' as file_system;
@@ -29,7 +29,7 @@ Source _createSource(Uri uri) {
 
 /// Dart source linter, only for package:linter's tools and tests.
 class TestLinter implements AnalysisErrorListener {
-  final errors = <AnalysisError>[];
+  final errors = <Diagnostic>[];
 
   final LinterOptions options;
   final file_system.ResourceProvider _resourceProvider;
@@ -38,8 +38,8 @@ class TestLinter implements AnalysisErrorListener {
     : _resourceProvider =
           resourceProvider ?? file_system.PhysicalResourceProvider.INSTANCE;
 
-  Future<List<AnalysisErrorInfo>> lintFiles(List<File> files) async {
-    var errors = <AnalysisErrorInfo>[];
+  Future<List<DiagnosticInfo>> lintFiles(List<File> files) async {
+    var errors = <DiagnosticInfo>[];
     var lintDriver = LintDriver(options, _resourceProvider);
     errors.addAll(await lintDriver.analyze(files.where(isDartFile)));
     for (var file in files.where(isPubspecFile)) {
@@ -76,5 +76,5 @@ class TestLinter implements AnalysisErrorListener {
   }
 
   @override
-  void onError(AnalysisError error) => errors.add(error);
+  void onError(Diagnostic error) => errors.add(error);
 }

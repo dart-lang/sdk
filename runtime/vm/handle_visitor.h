@@ -6,26 +6,18 @@
 #define RUNTIME_VM_HANDLE_VISITOR_H_
 
 #include "vm/allocation.h"
-#include "vm/flags.h"
-#include "vm/os.h"
 
 namespace dart {
 
-class Thread;
-
 class HandleVisitor {
  public:
-  explicit HandleVisitor(Thread* thread) : thread_(thread) {}
+  HandleVisitor() {}
   virtual ~HandleVisitor() {}
-
-  Thread* thread() const { return thread_; }
 
   virtual void VisitHandle(uword addr) = 0;
 
  private:
-  Thread* thread_;
-
-  DISALLOW_IMPLICIT_CONSTRUCTORS(HandleVisitor);
+  DISALLOW_COPY_AND_ASSIGN(HandleVisitor);
 };
 
 }  // namespace dart

@@ -5,6 +5,7 @@
 import 'dart:convert' show json;
 
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -41,7 +42,7 @@ ExpectedDiagnostic error(
   Pattern? messageContains,
 }) => _ExpectedError(code, offset, length, messageContains: messageContains);
 
-typedef DiagnosticMatcher = bool Function(AnalysisError error);
+typedef DiagnosticMatcher = bool Function(Diagnostic diagnostic);
 
 /// A description of a diagnostic that is expected to be reported.
 class ExpectedDiagnostic {
@@ -70,16 +71,17 @@ class ExpectedDiagnostic {
   }) : _messageContains = messageContains,
        _correctionContains = correctionContains;
 
-  /// Whether the [error] matches this description of what it's expected to be.
-  bool matches(AnalysisError error) {
-    if (!_diagnosticMatcher(error)) return false;
-    if (error.offset != _offset) return false;
-    if (error.length != _length) return false;
-    if (_messageContains != null && !error.message.contains(_messageContains)) {
+  /// Whether the [diagnostic] matches this description of what it's expected to be.
+  bool matches(Diagnostic diagnostic) {
+    if (!_diagnosticMatcher(diagnostic)) return false;
+    if (diagnostic.offset != _offset) return false;
+    if (diagnostic.length != _length) return false;
+    if (_messageContains != null &&
+        !diagnostic.message.contains(_messageContains)) {
       return false;
     }
     if (_correctionContains != null) {
-      var correctionMessage = error.correctionMessage;
+      var correctionMessage = diagnostic.correctionMessage;
       if (correctionMessage == null ||
           !correctionMessage.contains(_correctionContains)) {
         return false;
@@ -202,7 +204,7 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
   ) async {
     addTestFile(content);
     await resolveTestFile();
-    await _assertDiagnosticsIn(_errors, expectedDiagnostics);
+    await _assertDiagnosticsIn(_diagnostics, expectedDiagnostics);
   }
 
   /// Asserts that the number of diagnostics that have been gathered at [path]
@@ -215,7 +217,7 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
     List<ExpectedDiagnostic> expectedDiagnostics,
   ) async {
     await _resolveFile(path);
-    await _assertDiagnosticsIn(_errors, expectedDiagnostics);
+    await _assertDiagnosticsIn(_diagnostics, expectedDiagnostics);
   }
 
   /// Asserts that the diagnostics for each `path` match those in the paired
@@ -334,15 +336,15 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
     writePackageConfig(path, configCopy);
   }
 
-  /// Asserts that the diagnostics in [errors] match [expectedDiagnostics].
+  /// Asserts that the diagnostics in [diagnostics] match [expectedDiagnostics].
   Future<void> _assertDiagnosticsIn(
-    List<AnalysisError> errors,
+    List<Diagnostic> diagnostics,
     List<ExpectedDiagnostic> expectedDiagnostics,
   ) async {
     //
     // Match actual diagnostics to expected diagnostics.
     //
-    var unmatchedActual = errors.toList();
+    var unmatchedActual = diagnostics.toList();
     var unmatchedExpected = expectedDiagnostics.toList();
     var actualIndex = 0;
     while (actualIndex < unmatchedActual.length) {
@@ -414,10 +416,12 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
       }
     }
     if (buffer.isNotEmpty) {
-      errors.sort((first, second) => first.offset.compareTo(second.offset));
+      diagnostics.sort(
+        (first, second) => first.offset.compareTo(second.offset),
+      );
       buffer.writeln();
       buffer.writeln('To accept the current state, expect:');
-      for (var actual in errors) {
+      for (var actual in diagnostics) {
         late String diagnosticKind;
         Object? description;
         if (actual.errorCode is LintCode) {
@@ -461,7 +465,7 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
     }
   }
 
-  Future<List<AnalysisError>> _resolvePubspecFile(String content) async {
+  Future<List<Diagnostic>> _resolvePubspecFile(String content) async {
     var path = convertPath(testPackagePubspecPath);
     var pubspecRules = <LintRule, PubspecVisitor<Object?>>{};
     for (var rule in Registry.ruleRegistry.where(
@@ -530,8 +534,8 @@ abstract class _ContextResolutionTest
 
   List<String> get _collectionIncludedPaths;
 
-  /// The analysis errors that were computed during analysis.
-  List<AnalysisError> get _errors =>
+  /// The diagnostics that were computed during analysis.
+  List<Diagnostic> get _diagnostics =>
       result.errors
           .whereNot((e) => ignoredErrorCodes.any((c) => e.errorCode == c))
           .toList();

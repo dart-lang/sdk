@@ -29,7 +29,7 @@ String _outFolder = Platform.isMacOS ? 'xcodebuild' : 'out';
 String configuration = () {
   var env = Platform.environment['DART_CONFIGURATION'];
   if (env != null) return env;
-  var folderSegments = _dartBin.resolve('.').pathSegments;
+  var folderSegments = dartBin.resolve('.').pathSegments;
   for (int i = folderSegments.length - 1; i > 0; i--) {
     if (folderSegments[i] == _outFolder) {
       var candidate = folderSegments[i + 1];
@@ -64,12 +64,12 @@ String _d8Path = (() {
 })();
 
 Uri d8Uri = repoRoot.resolve(_d8Path);
-Uri _dartBin = Uri.file(Platform.resolvedExecutable);
-Uri dartAotBin = _dartBin
+Uri dartBin = Uri.file(Platform.resolvedExecutable);
+Uri dartAotBin = dartBin
     .resolve(Platform.isWindows ? 'dartaotruntime.exe' : 'dartaotruntime');
-Uri ddcAotSnapshot = _dartBin.resolve('snapshots/dartdevc_aot.dart.snapshot');
+Uri ddcAotSnapshot = dartBin.resolve('snapshots/dartdevc_aot.dart.snapshot');
 Uri kernelWorkerAotSnapshot =
-    _dartBin.resolve('snapshots/kernel_worker_aot.dart.snapshot');
+    dartBin.resolve('snapshots/kernel_worker_aot.dart.snapshot');
 Uri buildRootUri = repoRoot.resolve(buildFolder);
 Uri ddcSdkOutline = buildRootUri.resolve('ddc_outline.dill');
 Uri ddcSdkJs = buildRootUri.resolve('gen/utils/ddc/stable/sdk/ddc/dart_sdk.js');
@@ -90,8 +90,7 @@ Uri aotRuntimeBin = buildRootUri
     .resolve(useProduct ? 'dartaotruntime_product' : 'dartaotruntime');
 Uri vmPlatformDill = buildRootUri.resolve('vm_platform_strong.dill');
 
-Uri dart2wasmSnapshot =
-    _dartBin.resolve('snapshots/dart2wasm_product.snapshot');
+Uri dart2wasmSnapshot = dartBin.resolve('snapshots/dart2wasm_product.snapshot');
 Uri dart2wasmPlatformDill = buildRootUri.resolve('dart2wasm_platform.dill');
 Uri dart2wasmLibrariesSpec = repoRoot.resolve('sdk/lib/libraries.json');
 Uri compileBenchmark = repoRoot.resolve('pkg/dart2wasm/tool/compile_benchmark');

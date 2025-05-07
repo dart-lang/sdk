@@ -15,7 +15,12 @@ import 'model.dart';
 import 'util.dart';
 import 'target.dart';
 
-/// Logic to build and execute dynamic modules in Dart AOT.
+enum VmMode {
+  aot,
+  jit,
+}
+
+/// Logic to build and execute dynamic modules using Dart VM (AOT or JIT).
 ///
 /// In particular:
 ///   * The initial app is built as a regular AOT target, except that
@@ -28,13 +33,14 @@ import 'target.dart';
 ///
 /// Note: this assumes that [Platform.resolvedExecutable] is a VM built with the
 /// `--dart_dynamic_modules` build flag.
-class AotExecutor implements TargetExecutor {
+class VmExecutor implements TargetExecutor {
   static const rootScheme = 'dev-dart-app';
+  final VmMode mode;
   late final bool _shouldCleanup;
   late final Directory _tmp;
   final Logger _logger;
 
-  AotExecutor(this._logger) {
+  VmExecutor(this._logger, {required this.mode}) {
     /// Allow using an environment variable to run tests on a fixed directory.
     /// This prevents the directory from getting deleted too.
     var path = Platform.environment['TMP_DIR'] ?? '';
@@ -98,17 +104,23 @@ class AotExecutor implements TargetExecutor {
   Future compileApplication(DynamicModuleTest test) async {
     _ensureDirectory(test.name);
     _logger.info('Compile ${test.name} app');
-    await _buildKernel(test.name, test.main, test.folder, true);
+
+    if (mode == VmMode.aot) {
+      await _buildKernel(test.name, test.main, test.folder, true);
+    }
     await _buildKernel(test.name, test.main, test.folder, false);
 
-    var testDir = _tmp.uri.resolve(test.name).toFilePath();
-    var args = [
-      '--snapshot-kind=app-aot-elf',
-      '--elf=${test.main}.snapshot',
-      '${test.main}_aot.dill',
-    ];
-    await runProcess(genSnapshotBin.toFilePath(), args, testDir, _logger,
-        'aot snapshot ${test.name}/${test.main}');
+    final testDir = _tmp.uri.resolve(test.name).toFilePath();
+
+    if (mode == VmMode.aot) {
+      var args = [
+        '--snapshot-kind=app-aot-elf',
+        '--elf=${test.main}.snapshot',
+        '${test.main}_aot.dill',
+      ];
+      await runProcess(genSnapshotBin.toFilePath(), args, testDir, _logger,
+          'aot snapshot ${test.name}/${test.main}');
+    }
 
     // The next steps are optional, but done to test trimming of assets used
     // by the bytecode compiler.
@@ -184,9 +196,15 @@ class AotExecutor implements TargetExecutor {
     // and finally launches the app.
     var testDir = _tmp.uri.resolve('${test.name}/');
     var result = await runProcess(
-        aotRuntimeBin.toFilePath(),
+        switch (mode) {
+          VmMode.aot => aotRuntimeBin.toFilePath(),
+          VmMode.jit => dartBin.toFilePath(),
+        },
         [
-          '${test.main}.snapshot',
+          switch (mode) {
+            VmMode.aot => '${test.main}.snapshot',
+            VmMode.jit => '${test.main}_no_aot.dill',
+          },
         ],
         testDir.toFilePath(),
         _logger,

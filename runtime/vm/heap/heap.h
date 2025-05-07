@@ -346,8 +346,8 @@ class Heap {
   // Trigger major GC if 'gc_on_nth_allocation_' is set.
   void CollectForDebugging(Thread* thread);
 
-  IsolateGroup* isolate_group_;
-  bool is_vm_isolate_;
+  IsolateGroup* const isolate_group_;
+  const bool is_vm_isolate_;
 
   // The different spaces used for allocation.
   Scavenger new_space_;

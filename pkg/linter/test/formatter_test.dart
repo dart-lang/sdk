@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/test_utilities/analysis_error_info.dart';
 import 'package:test/test.dart';
@@ -24,7 +24,7 @@ void defineTests() {
     });
 
     group('reporter', () {
-      late AnalysisErrorInfo info;
+      late DiagnosticInfo info;
       late StringBuffer out;
       late String sourcePath;
       late ReportFormatter reporter;
@@ -46,14 +46,14 @@ var z = 33;
         sourcePath = '${d.sandbox}/project/foo.dart';
         var source = MockSource(sourcePath);
 
-        var error = AnalysisError.tmp(
+        var error = Diagnostic.tmp(
           source: source,
           offset: 10,
           length: 3,
           errorCode: code,
         );
 
-        info = AnalysisErrorInfo([error], lineInfo);
+        info = DiagnosticInfo([error], lineInfo);
         out = StringBuffer();
         reporter = ReportFormatter([info], out)..write();
       });

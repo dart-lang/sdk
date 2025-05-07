@@ -342,7 +342,7 @@ class IncrementalForwardingVisitor : public ObjectPointerVisitor,
                                      public HandleVisitor {
  public:
   explicit IncrementalForwardingVisitor(Thread* thread)
-      : ObjectPointerVisitor(thread->isolate_group()), HandleVisitor(thread) {}
+      : ObjectPointerVisitor(thread->isolate_group()), HandleVisitor() {}
 
   void VisitObject(ObjectPtr obj) override {
     if (obj->untag()->IsMarked()) {

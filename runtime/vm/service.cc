@@ -3689,7 +3689,7 @@ static void GetInstances(Thread* thread, JSONStream* js) {
   GetInstancesVisitor visitor(&storage, limit);
   {
     ObjectGraph graph(thread);
-    HeapIterationScope iteration_scope(Thread::Current(), true);
+    HeapIterationScope iteration_scope(thread, true);
     MarkClasses(cls, include_subclasses, include_implementers);
     graph.IterateObjects(&visitor);
     UnmarkClasses();
@@ -3739,7 +3739,7 @@ static void GetInstancesAsList(Thread* thread, JSONStream* js) {
     GetInstancesVisitor visitor(&storage, kSmiMax);
     {
       ObjectGraph graph(thread);
-      HeapIterationScope iteration_scope(Thread::Current(), true);
+      HeapIterationScope iteration_scope(thread, true);
       MarkClasses(cls, include_subclasses, include_implementers);
       graph.IterateObjects(&visitor);
       UnmarkClasses();
@@ -5136,8 +5136,8 @@ static const MethodParameter* const get_persistent_handles_params[] = {
 template <typename T>
 class PersistentHandleVisitor : public HandleVisitor {
  public:
-  PersistentHandleVisitor(Thread* thread, JSONArray* handles)
-      : HandleVisitor(thread), handles_(handles) {
+  explicit PersistentHandleVisitor(JSONArray* handles)
+      : HandleVisitor(), handles_(handles) {
     ASSERT(handles_ != nullptr);
   }
 
@@ -5199,7 +5199,7 @@ static void GetPersistentHandles(Thread* thread, JSONStream* js) {
       api_state->RunWithLockedPersistentHandles(
           [&](PersistentHandles& handles) {
             PersistentHandleVisitor<PersistentHandle> visitor(
-                thread, &persistent_handles);
+                &persistent_handles);
             handles.Visit(&visitor);
           });
     }
@@ -5209,7 +5209,7 @@ static void GetPersistentHandles(Thread* thread, JSONStream* js) {
       api_state->RunWithLockedWeakPersistentHandles(
           [&](FinalizablePersistentHandles& handles) {
             PersistentHandleVisitor<FinalizablePersistentHandle> visitor(
-                thread, &weak_persistent_handles);
+                &weak_persistent_handles);
             handles.VisitHandles(&visitor);
           });
     }

@@ -214,8 +214,8 @@ Future<void> writeBenchmarks(
   out.writeTimings(stats, 0);
 }
 
-int _maxSeverity(List<AnalysisErrorInfo> infos) {
-  var filteredErrors = infos.expand((i) => i.errors);
+int _maxSeverity(List<DiagnosticInfo> infos) {
+  var filteredErrors = infos.expand((i) => i.diagnostics);
   return filteredErrors.fold(
     0,
     (value, e) => math.max(value, e.errorCode.errorSeverity.ordinal),

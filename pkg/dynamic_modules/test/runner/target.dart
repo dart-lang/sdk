@@ -11,6 +11,7 @@ import 'model.dart';
 /// Possible backends where the tests can be executed.
 enum Target {
   aot,
+  jit,
   dart2wasm,
   ddc,
 }
