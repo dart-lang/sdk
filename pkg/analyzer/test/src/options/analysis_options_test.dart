@@ -12,6 +12,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -30,13 +31,16 @@ class AnalysisOptionsTest {
 
   final resourceProvider = MemoryResourceProvider();
 
+  String convertPath(String filePath) =>
+      ResourceProviderExtensions(resourceProvider).convertPath(filePath);
+
   // TODO(srawlins): Add tests that exercise
   // `optionsProvider.getOptionsFromString` throwing an exception.
   AnalysisOptionsImpl parseOptions(String content) =>
       AnalysisOptionsImpl.fromYaml(
         optionsMap: optionsProvider.getOptionsFromString(content),
         file: resourceProvider.getFile(
-          resourceProvider.convertPath('/project/analysis_options.yaml'),
+          convertPath('/project/analysis_options.yaml'),
         ),
         resourceProvider: resourceProvider,
       );
@@ -337,7 +341,7 @@ plugins:
         'toYaml',
         '''
   plugin_one:
-    path: ${resourceProvider.convertPath('/project/foo/bar')}
+    path: ${convertPath('/project/foo/bar')}
 ''',
       ),
     );
@@ -360,7 +364,7 @@ plugins:
         'toYaml',
         '''
   plugin_one:
-    path: ${resourceProvider.convertPath('/foo/baz')}
+    path: ${convertPath('/foo/baz')}
 ''',
       ),
     );
@@ -490,7 +494,7 @@ plugins:
     var sourceFactory = SourceFactory([ResourceUriResolver(resourceProvider)]);
     var optionsProvider = AnalysisOptionsProvider(sourceFactory);
     var otherOptions = resourceProvider.getFile(
-      resourceProvider.convertPath("/project/analysis_options_helper.yaml"),
+      convertPath("/project/analysis_options_helper.yaml"),
     );
     otherOptions.writeAsStringSync('''
 analyzer:
@@ -500,7 +504,7 @@ analyzer:
     c: ignore
 ''');
     var mainOptions = resourceProvider.getFile(
-      resourceProvider.convertPath("/project/analysis_options.yaml"),
+      convertPath("/project/analysis_options.yaml"),
     );
     mainOptions.writeAsStringSync('''
 include: analysis_options_helper.yaml

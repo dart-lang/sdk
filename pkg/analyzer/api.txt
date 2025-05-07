@@ -4535,7 +4535,7 @@ package:analyzer/file_system/memory_file_system.dart:
     nextStamp (getter: int)
     nextStamp= (setter: int)
     pathContext (getter: Context)
-    convertPath (method: String Function(String))
+    convertPath (method: String Function(String), deprecated)
     deleteFile (method: void Function(String))
     deleteFolder (method: void Function(String))
     getFile (method: File Function(String))

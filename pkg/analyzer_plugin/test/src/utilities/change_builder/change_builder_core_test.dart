@@ -23,7 +23,7 @@ void main() {
 }
 
 abstract class AbstractChangeBuilderTest {
-  MemoryResourceProvider resourceProvider = MemoryResourceProvider();
+  final resourceProvider = MemoryResourceProvider();
 
   late ChangeBuilderImpl builder;
 
