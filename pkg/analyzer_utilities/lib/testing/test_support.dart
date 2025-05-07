@@ -5,8 +5,7 @@
 /// Returns the content for an analysis options file, specified appropriately
 /// with the given parameter values.
 String analysisOptionsContent({
-  // TODO(srawlins): Change this maybe to a List<String>.
-  String? include,
+  List<String> includes = const [],
   List<String> experiments = const [],
   List<String> legacyPlugins = const [],
   List<String> rules = const [],
@@ -17,8 +16,11 @@ String analysisOptionsContent({
 }) {
   var buffer = StringBuffer();
 
-  if (include != null) {
-    buffer.writeln('include: $include');
+  if (includes.isNotEmpty) {
+    buffer.writeln('include:');
+    for (var include in includes) {
+      buffer.writeln('  - $include');
+    }
   }
 
   buffer.writeln('analyzer:');

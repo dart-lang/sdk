@@ -2263,7 +2263,7 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     // `analysis_options.yaml`.
     newAnalysisOptionsYamlFile(
       join(workspaceRootPath, 'package1', 'nestedFolder1'),
-      analysisOptionsContent(include: '../analysis_options.yaml'),
+      analysisOptionsContent(includes: ['../analysis_options.yaml']),
     );
 
     // Write the single package config at the root that can resolve both
