@@ -2773,21 +2773,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ) {
     var element = type.element3;
     if (element is ClassElement && element.isAbstract) {
-      var element = expression.constructorName.element;
-      if (element != null && !element.isFactory) {
-        bool isImplicit =
-            (expression as InstanceCreationExpressionImpl).isImplicit;
-        if (!isImplicit) {
-          errorReporter.atNode(
-            namedType,
-            CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS,
-          );
-        } else {
-          errorReporter.atNode(
-            namedType,
-            CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS,
-          );
-        }
+      var constructorElement = expression.constructorName.element;
+      if (constructorElement != null && !constructorElement.isFactory) {
+        errorReporter.atNode(
+          namedType,
+          CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS,
+        );
       }
     }
   }
