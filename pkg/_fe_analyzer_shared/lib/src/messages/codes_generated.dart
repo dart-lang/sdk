@@ -2113,17 +2113,6 @@ const MessageCode messageConstEvalNotMapInSpread = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeConstEvalNullAwareAccess = messageConstEvalNullAwareAccess;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstEvalNullAwareAccess = const MessageCode(
-  "ConstEvalNullAwareAccess",
-  analyzerCodes: <String>["CONST_EVAL_NULL_AWARE_ACCESS"],
-  problemMessage:
-      r"""Null-aware property access can't be used in a constant expression.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstEvalNullValue = messageConstEvalNullValue;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

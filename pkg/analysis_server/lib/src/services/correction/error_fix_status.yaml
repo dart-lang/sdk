@@ -426,8 +426,6 @@ CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT:
   status: needsEvaluation
 CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION:
   status: needsEvaluation
-CompileTimeErrorCode.CONST_EVAL_NULL_AWARE_ACCESS:
-  status: needsEvaluation
 CompileTimeErrorCode.CONST_EVAL_PRIMITIVE_EQUALITY:
   status: needsEvaluation
 CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS:

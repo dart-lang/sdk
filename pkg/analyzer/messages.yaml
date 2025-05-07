@@ -2824,9 +2824,6 @@ CompileTimeErrorCode:
     problemMessage: "Constant expressions don't support 'for' elements."
     correctionMessage: "Try replacing the 'for' element with a spread, or removing 'const'."
     hasPublishedDocs: false
-  CONST_EVAL_NULL_AWARE_ACCESS:
-    problemMessage: "Null-aware property access can't be used in a constant expression."
-    hasPublishedDocs: false
   CONST_EVAL_PROPERTY_ACCESS:
     problemMessage: "The property '{0}' can't be accessed on the type '{1}' in a constant expression."
     hasPublishedDocs: false
