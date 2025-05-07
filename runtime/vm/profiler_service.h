@@ -32,6 +32,7 @@ class Code;
 class Function;
 class JSONArray;
 class JSONStream;
+class ProfileBuilder;
 class ProfileFunctionTable;
 class ProfileCodeTable;
 class SampleFilter;
@@ -298,7 +299,7 @@ class ProfileCode : public ZoneAllocated {
   void Tick(uword pc, bool exclusive, intptr_t serial);
   void TickAddress(uword pc, bool exclusive);
 
-  ProfileFunction* SetFunctionAndName(ProfileFunctionTable* table);
+  ProfileFunction* SetFunctionAndName(ProfileBuilder* builder);
 
   void PrintNativeCode(JSONObject* profile_code_obj);
   void PrintCollectedCode(JSONObject* profile_code_obj);
@@ -400,6 +401,9 @@ class Profile : public ValueObject {
 
   ProfileFunction* FindFunction(const Function& function);
 
+  Thread* thread() const { return thread_; }
+  Isolate* isolate() const { return isolate_; }
+
  private:
   void PrintHeaderJSON(JSONObject* obj);
   void ProcessSampleFrameJSON(JSONArray* stack,
@@ -424,6 +428,8 @@ class Profile : public ValueObject {
       protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>* packet);
 #endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
 
+  Thread* thread_;
+  Isolate* isolate_;
   Zone* zone_;
   ProcessedSampleBuffer* samples_;
   ProfileCodeTable* live_code_;
