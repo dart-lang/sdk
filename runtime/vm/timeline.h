@@ -829,6 +829,7 @@ class TimelineEventBlock : public MallocAllocated {
   friend class TimelineEventRingRecorder;
   friend class TimelineEventStartupRecorder;
   friend class TimelineEventPlatformRecorder;
+  friend class TimelineEventFileRecorderBase;
   friend class TimelineTestHelper;
   friend class JSONStream;
 
@@ -897,7 +898,7 @@ class TimelineEventRecorder : public MallocAllocated {
   virtual intptr_t Size() = 0;
   // Only safe to call when holding |lock_|.
   virtual TimelineEventBlock* GetNewBlockLocked() = 0;
-  void FinishBlock(TimelineEventBlock* block);
+  virtual void FinishBlock(TimelineEventBlock* block);
   // This function must be called at least once for each thread that corresponds
   // to a track in the trace.
   virtual void AddTrackMetadataBasedOnThread(const intptr_t process_id,
@@ -925,8 +926,6 @@ class TimelineEventRecorder : public MallocAllocated {
   // Interface method(s) which must be implemented.
   virtual TimelineEvent* StartEvent() = 0;
   virtual void CompleteEvent(TimelineEvent* event) = 0;
-  // Only safe to call when holding |lock_|.
-  virtual TimelineEventBlock* GetHeadBlockLocked() = 0;
   // Only safe to call when holding |lock_|.
   virtual void ClearLocked() = 0;
 
@@ -1018,7 +1017,6 @@ class TimelineEventFixedBufferRecorder : public TimelineEventBufferedRecorder {
  protected:
   TimelineEvent* StartEvent();
   void CompleteEvent(TimelineEvent* event);
-  TimelineEventBlock* GetHeadBlockLocked();
   // Only safe to call when holding |lock_|.
   intptr_t FindOldestBlockIndexLocked() const;
   void ClearLocked();
@@ -1089,7 +1087,6 @@ class TimelineEventCallbackRecorder : public TimelineEventRecorder {
 
  protected:
   TimelineEventBlock* GetNewBlockLocked() { UNREACHABLE(); }
-  TimelineEventBlock* GetHeadBlockLocked() { UNREACHABLE(); }
   void ClearLocked() { ASSERT(lock_.IsOwnedByCurrentThread()); }
   TimelineEvent* StartEvent();
   void CompleteEvent(TimelineEvent* event);
@@ -1130,7 +1127,6 @@ class TimelineEventEndlessRecorder : public TimelineEventBufferedRecorder {
   TimelineEvent* StartEvent();
   void CompleteEvent(TimelineEvent* event);
   TimelineEventBlock* GetNewBlockLocked();
-  TimelineEventBlock* GetHeadBlockLocked();
   void ClearLocked();
 
   TimelineEventBlock* head_;
@@ -1171,7 +1167,6 @@ class TimelineEventPlatformRecorder : public TimelineEventRecorder {
 
  protected:
   TimelineEventBlock* GetNewBlockLocked() { UNREACHABLE(); }
-  TimelineEventBlock* GetHeadBlockLocked() { UNREACHABLE(); }
   void ClearLocked() { ASSERT(lock_.IsOwnedByCurrentThread()); }
   TimelineEvent* StartEvent();
   void CompleteEvent(TimelineEvent* event);
@@ -1231,32 +1226,66 @@ class TimelineEventMacosRecorder : public TimelineEventPlatformRecorder {
 };
 #endif  // defined(DART_HOST_OS_MACOS)
 
-class TimelineEventFileRecorderBase : public TimelineEventPlatformRecorder {
+class TimelineEventFileRecorderBase : public TimelineEventRecorder {
  public:
   explicit TimelineEventFileRecorderBase(const char* path);
   virtual ~TimelineEventFileRecorderBase();
 
-  intptr_t Size() final { return 0; }
-  void OnEvent(TimelineEvent* event) final { UNREACHABLE(); }
+  intptr_t Size() { return block_count_ * sizeof(TimelineEventBlock); }
   void Drain();
 
+#ifndef PRODUCT
+  void PrintJSON(JSONStream* js, TimelineEventFilter* filter) final {
+    UNREACHABLE();
+  }
+#if defined(SUPPORT_PERFETTO)
+  void PrintPerfettoTimeline(JSONStream* js,
+                             const TimelineEventFilter& filter) final {
+    UNREACHABLE();
+  }
+#endif  // defined(SUPPORT_PERFETTO)
+  void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter) final {
+    UNREACHABLE();
+  }
+#endif
+
  protected:
-  void Write(const char* buffer, intptr_t len) const;
-  void Write(const char* buffer) const { Write(buffer, strlen(buffer)); }
+  void Write(const char* buffer, intptr_t len);
+  void Write(const char* buffer) { Write(buffer, strlen(buffer)); }
   void CompleteEvent(TimelineEvent* event) final;
   void StartUp(const char* name);
   void ShutDown();
 
+  TimelineEvent* StartEvent();
+  TimelineEventBlock* GetNewBlockLocked();
+  void ClearLocked();
+  void FinishBlock(TimelineEventBlock* block) final;
+
  private:
+  // Size of internal buffer which is used to buffer writes before passing
+  // them to |Dart::file_write_callback()|.
+  static constexpr intptr_t kBufferSize = 8 * KB;
+
+  void FlushBuffer();
+  void WriteToFile(const char* buffer, intptr_t len) const;
+
+  void DrainBlockChain(TimelineEventBlock* block);
+
   virtual void DrainImpl(const TimelineEvent& event) = 0;
 
   Monitor monitor_;
-  TimelineEvent* head_;
-  TimelineEvent* tail_;
-  void* file_;
-  bool shutting_down_;
-  bool drained_;
-  ThreadJoinId thread_id_;
+  // Completed blocks which are waiting to be drained by the writer thread.
+  TimelineEventBlock* completed_blocks_head_ = nullptr;
+  TimelineEventBlock* completed_blocks_tail_ = nullptr;
+  // Empty blocks which can be reused.
+  TimelineEventBlock* empty_blocks_ = nullptr;
+  std::unique_ptr<char[]> buffer_{new char[kBufferSize]};
+  intptr_t buffer_pos_ = 0;
+  void* file_ = nullptr;
+  intptr_t block_count_ = 0;
+  bool shutting_down_ = false;
+  bool drained_ = false;
+  ThreadJoinId thread_id_ = OSThread::kInvalidThreadJoinId;
 };
 
 class TimelineEventFileRecorder : public TimelineEventFileRecorderBase {
