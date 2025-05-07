@@ -1,3 +1,6 @@
+package:analyzer_testing/experiments/experiments.dart:
+  experimentsForTests (static getter: List<String>)
+  experimentsForTests= (static setter: List<String>)
 package:analyzer_testing/mock_packages/mock_packages.dart:
   BlazeMockPackages (class extends Object):
     instance (static getter: BlazeMockPackages)
@@ -22,6 +25,7 @@ package:analyzer_testing/mock_packages/mock_packages.dart:
 package:analyzer_testing/package_root.dart:
   packageRoot (static getter: String)
 dart:core:
+  List (referenced)
   Object (referenced)
   String (referenced)
 package:analyzer/file_system/file_system.dart:

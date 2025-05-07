@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer_utilities/test/experiments/experiments.dart';
+import 'package:analyzer_testing/experiments/experiments.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 class FeatureSets {

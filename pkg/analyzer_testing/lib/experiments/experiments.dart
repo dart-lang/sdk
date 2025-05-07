@@ -10,7 +10,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 ///
 /// Experiments should be added to this list when work on a new experiment
 /// begins. Experiments should be removed from this list when they are marked
-/// as being enable by default.
+/// as being enabled by default.
 ///
 /// The flags in the list are kept in alphabetic order for ease of determining
 /// whether a given flag is already included.

@@ -16,7 +16,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
-import 'package:analyzer_utilities/test/experiments/experiments.dart';
+import 'package:analyzer_testing/experiments/experiments.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 

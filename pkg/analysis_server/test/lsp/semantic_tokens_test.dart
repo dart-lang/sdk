@@ -12,7 +12,7 @@ import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
-import 'package:analyzer_utilities/test/experiments/experiments.dart';
+import 'package:analyzer_testing/experiments/experiments.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
