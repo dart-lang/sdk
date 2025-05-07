@@ -5,9 +5,11 @@
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io' as io;
+
 import 'package:expect/expect.dart';
-import 'package:observatory/service_io.dart' as S;
 import 'package:test/test.dart';
+
+import 'package:observatory/service_io.dart' as S;
 import 'test_helper.dart';
 
 Future<Null> testeeBefore() async {

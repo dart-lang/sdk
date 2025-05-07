@@ -6,6 +6,7 @@ library mixin_step_test;
 
 import 'dart:collection';
 import 'dart:developer';
+
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
@@ -36,7 +37,7 @@ List<String> stops = [];
 // THIS TEST DEPENDS ON SPECIFIC LINE NUMBERS IN UNRELATED PLATFORM LIBRARIES
 // STAYING FIXED. VERY FRAGILE. SHOULD BE FIXED OR REMOVED.
 List<String> expected = [
-  "set.dart:142:21 (sdk_break_with_mixin_test.dart:20:5)",
+  "set.dart:142:21 (sdk_break_with_mixin_test.dart:21:5)",
 ];
 
 var tests = <IsolateTest>[

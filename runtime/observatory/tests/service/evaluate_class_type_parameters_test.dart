@@ -3,8 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:developer';
-import 'package:observatory/service_io.dart';
+
 import 'package:test/test.dart';
+
+import 'package:observatory/service_io.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
@@ -33,7 +35,7 @@ var tests = <IsolateTest>[
     var stack = await isolate.getStack();
     var topFrame = 0;
     expect(stack.type, equals('Stack'));
-    expect(await stack['frames'][topFrame].location.getLine(), 19);
+    expect(await stack['frames'][topFrame].location.getLine(), 21);
 
     Instance result = await isolate.evalFrame(topFrame, '"\$S"') as Instance;
     print(result);
@@ -46,7 +48,7 @@ var tests = <IsolateTest>[
     var stack = await isolate.getStack();
     var topFrame = 0;
     expect(stack.type, equals('Stack'));
-    expect(await stack['frames'][topFrame].location.getLine(), 13);
+    expect(await stack['frames'][topFrame].location.getLine(), 15);
 
     Instance result = await isolate.evalFrame(topFrame, '"\$T"') as Instance;
     print(result);

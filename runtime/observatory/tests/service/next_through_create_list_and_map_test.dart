@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'test_helper.dart';
 import 'service_test_common.dart';
+import 'test_helper.dart';
 
 const int LINE_A = 12;
 const String file = "next_through_create_list_and_map_test.dart";
@@ -47,35 +47,35 @@ code() {
 List<String> stops = [];
 List<String> expected = [
   // Initialize list (on '[')
-  "$file:${LINE_A+0}:22",
+  "$file:${LINE_A + 0}:22",
 
   // Initialize const list (on '=')
-  "$file:${LINE_A+7}:25",
+  "$file:${LINE_A + 7}:25",
 
   // Initialize map (on '{')
-  "$file:${LINE_A+14}:25",
+  "$file:${LINE_A + 14}:25",
 
   // Initialize const map (on '=')
-  "$file:${LINE_A+20}:28",
+  "$file:${LINE_A + 20}:28",
 
   // Prints (on call to 'print')
-  "$file:${LINE_A+26}:3",
-  "$file:${LINE_A+27}:3",
+  "$file:${LINE_A + 26}:3",
+  "$file:${LINE_A + 27}:3",
 
   // Lookup (on '[')
-  "$file:${LINE_A+28}:21",
+  "$file:${LINE_A + 28}:21",
 
   // Prints (on call to 'print')
-  "$file:${LINE_A+29}:3",
-  "$file:${LINE_A+30}:3",
-  "$file:${LINE_A+31}:3",
+  "$file:${LINE_A + 29}:3",
+  "$file:${LINE_A + 30}:3",
+  "$file:${LINE_A + 31}:3",
 
   // Lookup (on '[') + print (on call to 'print')
-  "$file:${LINE_A+32}:14",
-  "$file:${LINE_A+32}:3",
+  "$file:${LINE_A + 32}:14",
+  "$file:${LINE_A + 32}:3",
 
   // End (on ending '}')
-  "$file:${LINE_A+33}:1"
+  "$file:${LINE_A + 33}:1"
 ];
 
 var tests = <IsolateTest>[

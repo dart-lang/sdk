@@ -2,17 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+import 'dart:developer' as developer;
+import 'dart:isolate' as isolate;
+
+import 'package:test/test.dart';
+
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/service_io.dart';
-import 'package:test/test.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
-import 'dart:async';
-import 'dart:isolate' as isolate;
-import 'dart:developer' as developer;
 
 int counter = 0;
-const stoppedAtLine = 23;
+const stoppedAtLine = 25;
 var port = new isolate.RawReceivePort(msgHandler);
 
 // This name is used in a test below.

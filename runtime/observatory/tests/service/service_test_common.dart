@@ -5,11 +5,13 @@
 library service_test_common;
 
 import 'dart:async';
+
 import 'package:dds/dds.dart';
+import 'package:test/test.dart';
+
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/service_common.dart';
 import 'package:observatory/service_io.dart';
-import 'package:test/test.dart';
 
 typedef Future IsolateTest(Isolate isolate);
 typedef Future VMTest(VM vm);

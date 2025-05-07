@@ -4,26 +4,28 @@
 // VMOptions=--verbose_debug
 
 import 'dart:developer';
-import 'package:observatory/service_io.dart';
+
 import 'package:test/test.dart';
+
+import 'package:observatory/service_io.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
 helper() async {
-  // Line 12, Col 16 is the open brace.
+  // Line 14, Col 16 is the open brace.
 }
 
 testMain() {
   debugger();
-  helper(); // Line 18, Col 3 is the position of the function call.
+  helper(); // Line 20, Col 3 is the position of the function call.
 }
 
 var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
-  stoppedAtLine(17),
+  stoppedAtLine(19),
   stepOver,
   hasStoppedAtBreakpoint,
-  stoppedAtLine(18),
+  stoppedAtLine(20),
   stepInto,
   (Isolate isolate) async {
     ServiceMap stack = await isolate.getStack();
@@ -33,12 +35,12 @@ var tests = <IsolateTest>[
     // See issue #27128.
     var frame = stack['frames'][0];
     expect(frame.function.qualifiedName, equals('helper'));
-    expect(await frame.location.getLine(), equals(14));
+    expect(await frame.location.getLine(), equals(16));
     expect(await frame.location.getColumn(), equals(1));
 
     frame = stack['frames'][1];
     expect(frame.function.name, equals('testMain'));
-    expect(await frame.location.getLine(), equals(18));
+    expect(await frame.location.getLine(), equals(20));
     expect(await frame.location.getColumn(), equals(3));
   }
 ];

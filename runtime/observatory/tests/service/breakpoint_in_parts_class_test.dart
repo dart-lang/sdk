@@ -4,8 +4,8 @@
 
 library breakpoint_in_parts_class;
 
-import 'test_helper.dart';
 import 'service_test_common.dart';
+import 'test_helper.dart';
 
 part 'breakpoint_in_parts_class_part.dart';
 
@@ -20,8 +20,8 @@ code() {
 List<String> stops = [];
 
 List<String> expected = [
-  "$file:${LINE+0}:5", // on 'print'
-  "$file:${LINE+1}:3" // on class ending '}'
+  "$file:${LINE + 0}:5", // on 'print'
+  "$file:${LINE + 1}:3" // on class ending '}'
 ];
 
 var tests = <IsolateTest>[

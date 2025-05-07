@@ -3,8 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:logging/logging.dart';
-import "package:observatory/service_io.dart";
 import 'package:test/test.dart';
+
+import "package:observatory/service_io.dart";
 
 void testBadWebSocket() async {
   var vm = new WebSocketVM(new WebSocketVMTarget('ws://karatekid/ws'));

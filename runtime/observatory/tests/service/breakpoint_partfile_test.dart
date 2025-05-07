@@ -5,8 +5,9 @@
 library breakpoint_in_parts_class;
 
 import 'package:observatory_test_package/has_part.dart' as hasPart;
-import 'test_helper.dart';
+
 import 'service_test_common.dart';
+import 'test_helper.dart';
 
 const int LINE = 8;
 const String breakpointFile =

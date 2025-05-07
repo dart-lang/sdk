@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:html';
 import 'dart:async';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
-import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/instance_ref.dart';
 
@@ -47,7 +49,7 @@ class FieldRefElement extends CustomElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = <Element>[];
+    removeChildren();
   }
 
   void render() {
@@ -67,21 +69,23 @@ class FieldRefElement extends CustomElement implements Renderable {
       header += 'var ';
     }
     if (_field.declaredType!.name == 'dynamic') {
-      children = <Element>[
-        new SpanElement()..text = header,
-        new AnchorElement(href: Uris.inspect(_isolate, object: _field))
-          ..text = _field.name
-      ];
+      setChildren(<HTMLElement>[
+        new HTMLSpanElement()..textContent = header,
+        new HTMLAnchorElement()
+          ..href = Uris.inspect(_isolate, object: _field)
+          ..text = _field.name ?? ''
+      ]);
     } else {
-      children = <Element>[
-        new SpanElement()..text = header,
+      setChildren(<HTMLElement>[
+        new HTMLSpanElement()..textContent = header,
         new InstanceRefElement(_isolate, _field.declaredType!, _objects,
                 queue: _r.queue, expandable: _expandable)
             .element,
-        new SpanElement()..text = ' ',
-        new AnchorElement(href: Uris.inspect(_isolate, object: _field))
-          ..text = _field.name
-      ];
+        new HTMLSpanElement()..textContent = ' ',
+        new HTMLAnchorElement()
+          ..href = Uris.inspect(_isolate, object: _field)
+          ..text = _field.name ?? ''
+      ]);
     }
   }
 }

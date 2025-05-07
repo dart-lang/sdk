@@ -3,10 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'test_helper.dart';
-import 'service_test_common.dart';
 
-const int LINE_A = 26, LINE_B = 31, LINE_C = 35;
+import 'service_test_common.dart';
+import 'test_helper.dart';
+
+const int LINE_A = 27, LINE_B = 32, LINE_C = 36;
 
 class VMServiceClient {
   VMServiceClient(this.x);

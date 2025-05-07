@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:observatory/service_io.dart';
 import 'package:test/test.dart';
-import 'test_helper.dart';
+
+import 'package:observatory/service_io.dart';
 import 'service_test_common.dart';
+import 'test_helper.dart';
 
 doThrow() {
   throw "oh no";

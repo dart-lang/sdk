@@ -9,10 +9,12 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dds/dds.dart';
-import 'package:observatory/service_io.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
+
+import 'package:observatory/service_io.dart';
 import 'service_test_common.dart';
+
 export 'service_test_common.dart' show DDSTest, IsolateTest, VMTest;
 
 /// Determines whether DDS is enabled for this test run.

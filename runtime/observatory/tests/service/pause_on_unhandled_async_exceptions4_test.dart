@@ -6,11 +6,12 @@
 // in async method which is not awaited.
 // Regression test for https://github.com/dart-lang/sdk/issues/51175.
 
-import 'package:observatory/service_io.dart';
-import 'package:observatory/models.dart' as M;
 import 'package:test/test.dart';
-import 'test_helper.dart';
+
+import 'package:observatory/models.dart' as M;
+import 'package:observatory/service_io.dart';
 import 'service_test_common.dart';
+import 'test_helper.dart';
 
 doThrow() async {
   await null; // force async gap

@@ -6,12 +6,13 @@
 // frame's method.
 
 import 'dart:async';
-import 'package:observatory/service_io.dart';
-import 'package:test/test.dart';
-import 'test_helper.dart';
-import 'service_test_common.dart';
 
+import 'package:test/test.dart';
+
+import 'package:observatory/service_io.dart';
 import 'evaluate_activation_in_method_class_other.dart';
+import 'service_test_common.dart';
+import 'test_helper.dart';
 
 var topLevel = "TestLibrary";
 

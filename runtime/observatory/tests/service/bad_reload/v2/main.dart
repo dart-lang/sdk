@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:isolate';
+
 import 'library_isnt_here_man';
 
 test() => 'apple';

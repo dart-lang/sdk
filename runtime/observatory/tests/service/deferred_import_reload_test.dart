@@ -4,15 +4,17 @@
 //
 // OtherResources=deferred_import_reload/v1/main.dart deferred_import_reload/v1/deferred.dart deferred_import_reload/v2/main.dart deferred_import_reload/v2/deferred.dart
 
-import 'test_helper.dart';
 import 'dart:async';
 import 'dart:developer';
-import 'dart:isolate' as I;
 import 'dart:io';
-import 'service_test_common.dart';
-import 'package:observatory/service.dart';
+import 'dart:isolate' as I;
+
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
+
+import 'package:observatory/service.dart';
+import 'service_test_common.dart';
+import 'test_helper.dart';
 
 // Chop off the file name.
 String baseDirectory = path.dirname(Platform.script.path) + '/';

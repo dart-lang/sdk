@@ -62,6 +62,7 @@ observatory_sources = [
   "lib/src/elements/heap_snapshot.dart",
   "lib/src/elements/helpers/any_ref.dart",
   "lib/src/elements/helpers/custom_element.dart",
+  "lib/src/elements/helpers/element_utils.dart",
   "lib/src/elements/helpers/nav_bar.dart",
   "lib/src/elements/helpers/nav_menu.dart",
   "lib/src/elements/helpers/rendering_queue.dart",

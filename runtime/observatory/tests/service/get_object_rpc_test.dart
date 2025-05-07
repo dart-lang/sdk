@@ -4,10 +4,12 @@
 
 library get_object_rpc_test;
 
-import 'dart:typed_data';
 import 'dart:convert' show base64Decode;
-import 'package:observatory/service_io.dart';
+import 'dart:typed_data';
+
 import 'package:test/test.dart';
+
+import 'package:observatory/service_io.dart';
 import 'test_helper.dart';
 
 abstract class _DummyAbstractBaseClass {

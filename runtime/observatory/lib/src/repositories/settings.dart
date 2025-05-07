@@ -10,13 +10,13 @@ class _Settings {
 
   /// Associated [value] with [key]. [value] must be JSON encodable.
   static void set(String key, dynamic value) {
-    _storage[key] = json.encode(value);
+    _storage.setItem(key, json.encode(value));
   }
 
   /// Get value associated with [key]. Return value will be a JSON encodable
   /// object.
   static dynamic get(String key) {
-    var value = _storage[key];
+    var value = _storage.getItem(key);
     if (value == null) {
       return null;
     }

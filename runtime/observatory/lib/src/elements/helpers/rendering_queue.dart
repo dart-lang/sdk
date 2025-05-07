@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:html';
-import 'dart:collection';
 import 'dart:async';
+import 'dart:collection';
+import 'dart:js_interop';
+
+import 'package:web/web.dart';
 
 /// A generic rendering task that can be scheduled.
 abstract class RenderingTask {
@@ -20,7 +22,12 @@ abstract class RenderingBarrier {
 
 /// Synchronization system based on the AnimationFrame.
 class NextAnimationFrameBarrier implements RenderingBarrier {
-  Future<num> get next => window.animationFrame;
+  Future<num> get next {
+    final c = Completer<num>();
+    window.requestAnimationFrame(
+        ((num n) => c.complete(DateTime.now().microsecondsSinceEpoch)).toJS);
+    return c.future;
+  }
 }
 
 /// MOCK synchronization system for manual barrier triggering.

@@ -3,14 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:html';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/class_ref.dart';
 import 'package:observatory/src/elements/containers/virtual_collection.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
@@ -93,13 +96,13 @@ class AllocationProfileElement extends CustomElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = <Element>[];
+    removeChildren();
     _gcSubscription.cancel();
   }
 
   void render() {
-    children = <Element>[
-      navBar(<Element>[
+    children = <HTMLElement>[
+      navBar(<HTMLElement>[
         new NavTopMenuElement(queue: _r.queue).element,
         new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element,
@@ -114,125 +117,127 @@ class AllocationProfileElement extends CustomElement implements Renderable {
         (new NavRefreshElement(queue: _r.queue)
               ..onRefresh.listen((_) => _refresh()))
             .element,
-        new DivElement()
-          ..classes = ['nav-option']
-          ..children = <Element>[
-            new CheckboxInputElement()
+        new HTMLDivElement()
+          ..className = 'nav-option'
+          ..appendChildren(<HTMLElement>[
+            new HTMLInputElement()
               ..id = 'allocation-profile-auto-refresh'
+              ..type = 'checkbox'
               ..checked = _autoRefresh
               ..onChange.listen((_) => _autoRefresh = !_autoRefresh),
-            new LabelElement()
+            new HTMLLabelElement()
               ..htmlFor = 'allocation-profile-auto-refresh'
-              ..text = 'Auto-refresh on GC'
-          ],
+              ..textContent = 'Auto-refresh on GC'
+          ]),
         new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
-      new DivElement()
-        ..classes = ['content-centered-big']
-        ..children = <Element>[
-          new HeadingElement.h2()..text = 'Allocation Profile',
-          new HRElement()
-        ]
+      new HTMLDivElement()
+        ..className = 'content-centered-big'
+        ..appendChildren(<HTMLElement>[
+          new HTMLHeadingElement.h2()..textContent = 'Allocation Profile',
+          new HTMLHRElement()
+        ])
     ];
     if (_profile == null) {
-      children.addAll([
-        new DivElement()
-          ..classes = ['content-centered-big']
-          ..children = <Element>[new HeadingElement.h2()..text = 'Loading...']
-      ]);
+      appendChild(new HTMLDivElement()
+        ..className = 'content-centered-big'
+        ..append(new HTMLHeadingElement.h2()..textContent = 'Loading...'));
     } else {
-      children.addAll([
-        new DivElement()
-          ..classes = ['content-centered-big']
-          ..children = _isCompacted
+      appendChildren([
+        new HTMLDivElement()
+          ..className = 'content-centered-big'
+          ..appendChildren(_isCompacted
               ? []
               : [
-                  new DivElement()
-                    ..classes = ['memberList']
-                    ..children = <Element>[
-                      new DivElement()
-                        ..classes = ['memberItem']
-                        ..children = <Element>[
-                          new DivElement()
-                            ..classes = ['memberName']
-                            ..text = 'last forced GC at',
-                          new DivElement()
-                            ..classes = ['memberValue']
-                            ..text = _profile!.lastServiceGC == null
+                  new HTMLDivElement()
+                    ..className = 'memberList'
+                    ..append(
+                      new HTMLDivElement()
+                        ..className = 'memberItem'
+                        ..appendChildren(<HTMLElement>[
+                          new HTMLDivElement()
+                            ..className = 'memberName'
+                            ..textContent = 'last forced GC at',
+                          new HTMLDivElement()
+                            ..className = 'memberValue'
+                            ..textContent = _profile!.lastServiceGC == null
                                 ? '---'
-                                : '${_profile!.lastServiceGC}',
-                        ],
-                    ],
-                  new HRElement(),
-                ],
-        new DivElement()
-          ..classes = ['content-centered-big', 'compactable']
-          ..children = <Element>[
-            new DivElement()
-              ..classes = ['heap-space', 'left']
-              ..children = _isCompacted
+                                : '${_profile!.lastServiceGC}'
+                        ]),
+                    ),
+                  new HTMLHRElement(),
+                ]),
+        new HTMLDivElement()
+          ..className = 'content-centered-big compactable'
+          ..appendChildren([
+            new HTMLDivElement()
+              ..className = 'heap-space left'
+              ..appendChildren(_isCompacted
                   ? [
-                      new HeadingElement.h2()
-                        ..text = 'New Generation '
+                      new HTMLHeadingElement.h2()
+                        ..textContent = 'New Generation '
                             '(${_usedCaption(_profile!.newSpace)})',
                     ]
                   : [
-                      new HeadingElement.h2()..text = 'New Generation',
-                      new BRElement(),
-                      new DivElement()
-                        ..classes = ['memberList']
-                        ..children = _createSpaceMembers(_profile!.newSpace),
-                    ],
-            new DivElement()
-              ..classes = ['heap-space', 'left']
-              ..children = _isCompacted
+                      new HTMLHeadingElement.h2()
+                        ..textContent = 'New Generation',
+                      new HTMLBRElement(),
+                      new HTMLDivElement()
+                        ..className = 'memberList'
+                        ..appendChildren(
+                            _createSpaceMembers(_profile!.newSpace)),
+                    ]),
+            new HTMLDivElement()
+              ..className = 'heap-space left'
+              ..appendChildren(_isCompacted
                   ? [
-                      new HeadingElement.h2()
-                        ..text = 'Old Generation '
+                      new HTMLHeadingElement.h2()
+                        ..textContent = 'Old Generation '
                             '(${_usedCaption(_profile!.oldSpace)})',
                     ]
                   : [
-                      new HeadingElement.h2()..text = 'Old Generation',
-                      new BRElement(),
-                      new DivElement()
-                        ..classes = ['memberList']
-                        ..children = _createSpaceMembers(_profile!.oldSpace),
-                    ],
-            new DivElement()
-              ..classes = ['heap-space', 'left']
-              ..children = _isCompacted
+                      new HTMLHeadingElement.h2()
+                        ..textContent = 'Old Generation',
+                      new HTMLBRElement(),
+                      new HTMLDivElement()
+                        ..className = 'memberList'
+                        ..appendChildren(
+                            _createSpaceMembers(_profile!.oldSpace)),
+                    ]),
+            new HTMLDivElement()
+              ..className = 'heap-space left'
+              ..appendChildren(_isCompacted
                   ? [
-                      new HeadingElement.h2()
-                        ..text = 'Total '
+                      new HTMLHeadingElement.h2()
+                        ..textContent = 'Total '
                             '(${_usedCaption(_profile!.totalSpace)})',
                     ]
                   : [
-                      new HeadingElement.h2()..text = 'Total',
-                      new BRElement(),
-                      new DivElement()
-                        ..classes = ['memberList']
-                        ..children = _createSpaceMembers(_profile!.totalSpace),
-                    ],
-            new ButtonElement()
-              ..classes = ['compact']
-              ..text = _isCompacted ? 'expand ▼' : 'compact ▲'
+                      new HTMLHeadingElement.h2()..textContent = 'Total',
+                      new HTMLBRElement(),
+                      new HTMLDivElement()
+                        ..className = 'memberList'
+                        ..appendChildren(
+                            _createSpaceMembers(_profile!.totalSpace)),
+                    ]),
+            new HTMLButtonElement()
+              ..className = 'compact'
+              ..textContent = _isCompacted ? 'expand ▼' : 'compact ▲'
               ..onClick.listen((_) {
                 _isCompacted = !_isCompacted;
                 _r.dirty();
               }),
-            new HRElement()
-          ],
-        new DivElement()
-          ..classes = _isCompacted ? ['collection', 'expanded'] : ['collection']
-          ..children = <Element>[
-            new VirtualCollectionElement(
-                    _createCollectionLine, _updateCollectionLine,
-                    createHeader: _createCollectionHeader,
-                    search: _search,
-                    items: _profile!.members.toList()..sort(_createSorter()),
-                    queue: _r.queue)
-                .element
-          ]
+            new HTMLHRElement()
+          ]),
+        new HTMLDivElement()
+          ..className = _isCompacted ? 'collection expanded' : 'collection'
+          ..appendChild(new VirtualCollectionElement(
+                  _createCollectionLine, _updateCollectionLine,
+                  createHeader: _createCollectionHeader,
+                  search: _search,
+                  items: _profile!.members.toList()..sort(_createSorter()),
+                  queue: _r.queue)
+              .element)
       ]);
     }
   }
@@ -294,102 +299,102 @@ class AllocationProfileElement extends CustomElement implements Renderable {
     }
   }
 
-  static HtmlElement _createCollectionLine() => new DivElement()
-    ..classes = ['collection-item']
-    ..children = <Element>[
-      new SpanElement()
-        ..classes = ['bytes']
-        ..text = '0B',
-      new SpanElement()
-        ..classes = ['bytes']
-        ..text = '0B',
-      new SpanElement()
-        ..classes = ['bytes']
-        ..text = '0B',
-      new SpanElement()
-        ..classes = ['instances']
-        ..text = '0',
-      new SpanElement()
-        ..classes = ['bytes']
-        ..text = '0B',
-      new SpanElement()
-        ..classes = ['bytes']
-        ..text = '0B',
-      new SpanElement()
-        ..classes = ['bytes']
-        ..text = '0B',
-      new SpanElement()
-        ..classes = ['instances']
-        ..text = '0',
-      new SpanElement()
-        ..classes = ['bytes']
-        ..text = '0B',
-      new SpanElement()
-        ..classes = ['bytes']
-        ..text = '0B',
-      new SpanElement()
-        ..classes = ['bytes']
-        ..text = '0B',
-      new SpanElement()
-        ..classes = ['instances']
-        ..text = '0',
-      new SpanElement()..classes = ['name']
-    ];
+  static HTMLElement _createCollectionLine() => new HTMLDivElement()
+    ..className = 'collection-item'
+    ..appendChildren(<HTMLElement>[
+      new HTMLSpanElement()
+        ..className = 'bytes'
+        ..textContent = '0B',
+      new HTMLSpanElement()
+        ..className = 'bytes'
+        ..textContent = '0B',
+      new HTMLSpanElement()
+        ..className = 'bytes'
+        ..textContent = '0B',
+      new HTMLSpanElement()
+        ..className = 'instances'
+        ..textContent = '0',
+      new HTMLSpanElement()
+        ..className = 'bytes'
+        ..textContent = '0B',
+      new HTMLSpanElement()
+        ..className = 'bytes'
+        ..textContent = '0B',
+      new HTMLSpanElement()
+        ..className = 'bytes'
+        ..textContent = '0B',
+      new HTMLSpanElement()
+        ..className = 'instances'
+        ..textContent = '0',
+      new HTMLSpanElement()
+        ..className = 'bytes'
+        ..textContent = '0B',
+      new HTMLSpanElement()
+        ..className = 'bytes'
+        ..textContent = '0B',
+      new HTMLSpanElement()
+        ..className = 'bytes'
+        ..textContent = '0B',
+      new HTMLSpanElement()
+        ..className = 'instances'
+        ..textContent = '0',
+      new HTMLSpanElement()..className = 'name'
+    ]);
 
-  List<HtmlElement> _createCollectionHeader() => [
-        new DivElement()
-          ..classes = ['collection-item']
-          ..children = <Element>[
-            new SpanElement()
-              ..classes = ['group']
-              ..text = 'New Generation',
-            new SpanElement()
-              ..classes = ['group']
-              ..text = 'Old Generation',
-            new SpanElement()
-              ..classes = ['group']
-              ..text = 'Total',
-            new SpanElement()
-              ..classes = ['group']
-              ..text = '',
-          ],
-        new DivElement()
-          ..classes = ['collection-item']
-          ..children = <Element>[
-            _createHeaderButton(const ['bytes'], 'Internal',
+  List<HTMLElement> _createCollectionHeader() => [
+        new HTMLDivElement()
+          ..className = 'collection-item'
+          ..appendChildren(<HTMLElement>[
+            new HTMLSpanElement()
+              ..className = 'group'
+              ..textContent = 'New Generation',
+            new HTMLSpanElement()
+              ..className = 'group'
+              ..textContent = 'Old Generation',
+            new HTMLSpanElement()
+              ..className = 'group'
+              ..textContent = 'Total',
+            new HTMLSpanElement()
+              ..className = 'group'
+              ..textContent = '',
+          ]),
+        new HTMLDivElement()
+          ..className = 'collection-item'
+          ..appendChildren(<Node>[
+            _createHeaderButton('bytes', 'Internal',
                 _SortingField.newInternalSize, _SortingDirection.descending),
-            _createHeaderButton(const ['bytes'], 'External',
+            _createHeaderButton('bytes', 'External',
                 _SortingField.newExternalSize, _SortingDirection.descending),
-            _createHeaderButton(const ['bytes'], 'Size', _SortingField.newSize,
+            _createHeaderButton('bytes', 'Size', _SortingField.newSize,
                 _SortingDirection.descending),
-            _createHeaderButton(const ['instances'], 'Instances',
+            _createHeaderButton('instances', 'Instances',
                 _SortingField.newInstances, _SortingDirection.descending),
-            _createHeaderButton(const ['bytes'], 'Internal',
+            _createHeaderButton('bytes', 'Internal',
                 _SortingField.oldInternalSize, _SortingDirection.descending),
-            _createHeaderButton(const ['bytes'], 'External',
+            _createHeaderButton('bytes', 'External',
                 _SortingField.oldExternalSize, _SortingDirection.descending),
-            _createHeaderButton(const ['bytes'], 'Size', _SortingField.oldSize,
+            _createHeaderButton('bytes', 'Size', _SortingField.oldSize,
                 _SortingDirection.descending),
-            _createHeaderButton(const ['instances'], 'Instances',
+            _createHeaderButton('instances', 'Instances',
                 _SortingField.oldInstances, _SortingDirection.descending),
-            _createHeaderButton(const ['bytes'], 'Internal',
-                _SortingField.internalSize, _SortingDirection.descending),
-            _createHeaderButton(const ['bytes'], 'External',
-                _SortingField.externalSize, _SortingDirection.descending),
-            _createHeaderButton(const ['bytes'], 'Size', _SortingField.size,
+            _createHeaderButton('bytes', 'Internal', _SortingField.internalSize,
                 _SortingDirection.descending),
-            _createHeaderButton(const ['instances'], 'Instances',
+            _createHeaderButton('bytes', 'External', _SortingField.externalSize,
+                _SortingDirection.descending),
+            _createHeaderButton('bytes', 'Size', _SortingField.size,
+                _SortingDirection.descending),
+            _createHeaderButton('instances', 'Instances',
                 _SortingField.instances, _SortingDirection.descending),
-            _createHeaderButton(const ['name'], 'Class',
-                _SortingField.className, _SortingDirection.ascending)
-          ],
+            _createHeaderButton('name', 'Class', _SortingField.className,
+                _SortingDirection.ascending)
+          ])
       ];
 
-  ButtonElement _createHeaderButton(List<String> classes, String text,
+  HTMLButtonElement _createHeaderButton(String className, String text,
           _SortingField field, _SortingDirection direction) =>
-      new ButtonElement()
-        ..classes = classes
-        ..text = _sortingField != field
+      new HTMLButtonElement()
+        ..className = className
+        ..textContent = _sortingField != field
             ? text
             : _sortingDirection == _SortingDirection.ascending
                 ? '$text▼'
@@ -413,23 +418,33 @@ class AllocationProfileElement extends CustomElement implements Renderable {
     _r.dirty();
   }
 
-  void _updateCollectionLine(Element e, itemDynamic, index) {
+  void _updateCollectionLine(HTMLElement e, itemDynamic, index) {
     M.ClassHeapStats item = itemDynamic;
-    e.children[0].text = Utils.formatSize(_getNewInternalSize(item));
-    e.children[1].text = Utils.formatSize(_getNewExternalSize(item));
-    e.children[2].text = Utils.formatSize(_getNewSize(item));
-    e.children[3].text = '${_getNewInstances(item)}';
-    e.children[4].text = Utils.formatSize(_getOldInternalSize(item));
-    e.children[5].text = Utils.formatSize(_getOldExternalSize(item));
-    e.children[6].text = Utils.formatSize(_getOldSize(item));
-    e.children[7].text = '${_getOldInstances(item)}';
-    e.children[8].text = Utils.formatSize(_getInternalSize(item));
-    e.children[9].text = Utils.formatSize(_getExternalSize(item));
-    e.children[10].text = Utils.formatSize(_getSize(item));
-    e.children[11].text = '${_getInstances(item)}';
-    e.children[12] = new ClassRefElement(_isolate, item.clazz!, queue: _r.queue)
-        .element
-      ..classes = ['name'];
+    e.childNodes.item(0)!.textContent =
+        Utils.formatSize(_getNewInternalSize(item));
+    e.childNodes.item(1)!.textContent =
+        Utils.formatSize(_getNewExternalSize(item));
+    e.childNodes.item(2)!.textContent = Utils.formatSize(_getNewSize(item));
+    e.childNodes.item(3)!.textContent = '${_getNewInstances(item)}';
+    e.childNodes.item(4)!.textContent =
+        Utils.formatSize(_getOldInternalSize(item));
+    e.childNodes.item(5)!.textContent =
+        Utils.formatSize(_getOldExternalSize(item));
+    e.childNodes.item(6)!.textContent = Utils.formatSize(_getOldSize(item));
+    e.childNodes.item(7)!.textContent = '${_getOldInstances(item)}';
+    e.childNodes.item(8)!.textContent =
+        Utils.formatSize(_getInternalSize(item));
+    e.childNodes.item(9)!.textContent =
+        Utils.formatSize(_getExternalSize(item));
+    e.childNodes.item(10)!.textContent = Utils.formatSize(_getSize(item));
+    e.childNodes.item(11)!.textContent = '${_getInstances(item)}';
+    final old = e.childNodes.item(12)!;
+    e.insertBefore(
+        old,
+        e.appendChild(
+            (new ClassRefElement(_isolate, item.clazz!, queue: _r.queue).element
+              ..className = 'name')));
+    e.removeChild(old);
   }
 
   bool _search(Pattern pattern, itemDynamic) {
@@ -442,53 +457,53 @@ class AllocationProfileElement extends CustomElement implements Renderable {
       ' of '
       '${Utils.formatSize(space.capacity)}';
 
-  static List<Element> _createSpaceMembers(M.HeapSpace space) {
+  static List<HTMLElement> _createSpaceMembers(M.HeapSpace space) {
     final used = _usedCaption(space);
     final ext = '${Utils.formatSize(space.external)}';
     final collections = '${space.collections}';
     final avgCollectionTime =
         '${Utils.formatDurationInMilliseconds(space.avgCollectionTime)} ms';
     return [
-      new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'used',
-          new DivElement()
-            ..classes = ['memberValue']
-            ..text = used
-        ],
-      new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'external',
-          new DivElement()
-            ..classes = ['memberValue']
-            ..text = ext
-        ],
-      new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'collections',
-          new DivElement()
-            ..classes = ['memberValue']
-            ..text = collections
-        ],
-      new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'average collection time',
-          new DivElement()
-            ..classes = ['memberValue']
-            ..text = avgCollectionTime
-        ],
+      new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'used',
+          new HTMLDivElement()
+            ..className = 'memberValue'
+            ..textContent = used
+        ]),
+      new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'external',
+          new HTMLDivElement()
+            ..className = 'memberValue'
+            ..textContent = ext
+        ]),
+      new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'collections',
+          new HTMLDivElement()
+            ..className = 'memberValue'
+            ..textContent = collections
+        ]),
+      new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'average collection time',
+          new HTMLDivElement()
+            ..className = 'memberValue'
+            ..textContent = avgCollectionTime
+        ]),
     ];
   }
 
@@ -517,14 +532,16 @@ class AllocationProfileElement extends CustomElement implements Renderable {
           'Class'
         ].join(',') +
         '\n';
-    AnchorElement tl = document.createElement('a') as AnchorElement;
+    HTMLAnchorElement tl = document.createElement('a') as HTMLAnchorElement;
     tl
-      ..attributes['href'] = 'data:text/plain;charset=utf-8,' +
-          Uri.encodeComponent(header +
-              (_profile!.members.toList()..sort(_createSorter()))
-                  .map(_csvOut)
-                  .join('\n'))
-      ..attributes['download'] = 'heap-profile.csv'
+      ..attributes.setNamedItem(document.createAttribute('href')
+        ..value = 'data:text/plain;charset=utf-8,' +
+            Uri.encodeComponent(header +
+                (_profile!.members.toList()..sort(_createSorter()))
+                    .map(_csvOut)
+                    .join('\n')))
+      ..attributes.setNamedItem(
+          document.createAttribute('download')..value = 'heap-profile.csv')
       ..click();
   }
 

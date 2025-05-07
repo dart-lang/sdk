@@ -5,12 +5,15 @@
 // VMOptions=--deterministic
 
 import 'dart:async';
-import 'dart:_internal'; // ignore: import_internal_library, unused_import
 
-import 'package:observatory/service_io.dart';
 import 'package:test/test.dart';
 
+import 'package:observatory/service_io.dart';
 import 'test_helper.dart';
+
+import 'dart:_internal'; // ignore: import_internal_library, unused_import
+
+
 
 String examineStackExpression(String variableName) {
   // The returned string is the evaluation expression. We try to make it so that
@@ -42,7 +45,8 @@ String examineStackExpression(String variableName) {
 @pragma('vm:never-inline')
 dynamic triggerDeopt() {
   print('triggerDeopt');
-  VMInternalsForTesting.deoptimizeFunctionsOnStack();  // ignore: undefined_identifier
+  VMInternalsForTesting
+      .deoptimizeFunctionsOnStack(); // ignore: undefined_identifier
 }
 
 @pragma('vm:never-inline')

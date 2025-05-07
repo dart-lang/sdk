@@ -6,8 +6,9 @@ import 'dart:async';
 import 'dart:developer' as dev;
 import 'dart:isolate' as Core;
 
-import 'package:observatory/service_io.dart' as Service;
 import 'package:test/test.dart';
+
+import 'package:observatory/service_io.dart' as Service;
 import 'service_test_common.dart';
 import 'test_helper.dart';
 

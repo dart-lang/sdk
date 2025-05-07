@@ -2,13 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:html';
 import 'dart:async';
+
+import 'package:web/web.dart';
+
+import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
+import 'package:observatory/src/elements/helpers/uris.dart';
+
 import 'package:observatory/models.dart' as M
     show IsolateRef, LocalVarDescriptorsRef;
-import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/custom_element.dart';
-import 'package:observatory/src/elements/helpers/uris.dart';
 
 class LocalVarDescriptorsRefElement extends CustomElement
     implements Renderable {
@@ -47,16 +50,17 @@ class LocalVarDescriptorsRefElement extends CustomElement
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = <Element>[];
+    removeChildren();
   }
 
   void render() {
     final text = (_localVar.name == null || _localVar.name == '')
         ? 'LocalVarDescriptors'
         : _localVar.name;
-    children = <Element>[
-      new AnchorElement(href: Uris.inspect(_isolate, object: _localVar))
-        ..text = text
+    children = <HTMLElement>[
+      new HTMLAnchorElement()
+        ..href = Uris.inspect(_isolate, object: _localVar)
+        ..text = text ?? ''
     ];
   }
 }

@@ -3,10 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:html';
+import 'dart:js_interop';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
-import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/utils.dart';
 
 class SampleBufferControlChangedElement {
@@ -81,9 +85,9 @@ class SampleBufferControlElement extends CustomElement implements Renderable {
   }
 
   void render() {
-    var content = <Element>[
-      new HeadingElement.h2()..text = 'Sample buffer',
-      new HRElement()
+    var content = <HTMLElement>[
+      new HTMLHeadingElement.h2()..textContent = 'Sample buffer',
+      new HTMLHRElement()
     ];
     switch (_progress.status) {
       case M.SampleProfileLoadingStatus.fetching:
@@ -100,55 +104,57 @@ class SampleBufferControlElement extends CustomElement implements Renderable {
         content.addAll(_createStatusReport());
         break;
     }
-    children = <Element>[
-      new DivElement()
-        ..classes = ['content-centered-big']
-        ..children = content
+    children = <HTMLElement>[
+      new HTMLDivElement()
+        ..className = 'content-centered-big'
+        ..appendChildren(content)
     ];
   }
 
-  static List<Element> _createStatusMessage(String message,
+  static List<HTMLElement> _createStatusMessage(String message,
       {double progress = 0.0}) {
     return [
-      new DivElement()
-        ..classes = ['statusBox', 'shadow', 'center']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['statusMessage']
-            ..text = message,
-          new DivElement()
+      new HTMLDivElement()
+        ..className = 'statusBox shadow center'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'statusMessage'
+            ..textContent = message,
+          new HTMLDivElement()
             ..style.background = '#0489c3'
             ..style.width = '$progress%'
             ..style.height = '15px'
             ..style.borderRadius = '4px'
-        ]
+        ])
     ];
   }
 
-  List<Element> _createDisabledMessage() {
+  List<HTMLElement> _createDisabledMessage() {
     return [
-      new DivElement()
-        ..classes = ['statusBox' 'shadow' 'center']
-        ..children = <Element>[
-          new DivElement()
-            ..children = <Element>[
-              new HeadingElement.h1()..text = 'Profiling is disabled',
-              new BRElement(),
-              new DivElement()
-                ..innerHtml = 'Perhaps the <b>profile</b> '
-                    'flag has been disabled for this VM.',
-              new BRElement(),
-              new ButtonElement()
-                ..text = 'Enable profiler'
+      new HTMLDivElement()
+        ..className = 'statusBox' 'shadow' 'center'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..appendChildren(<HTMLElement>[
+              new HTMLHeadingElement.h1()
+                ..textContent = 'Profiling is disabled',
+              new HTMLBRElement(),
+              new HTMLDivElement()
+                ..innerHTML = 'Perhaps the <b>profile</b> '
+                        'flag has been disabled for this VM.'
+                    .toJS,
+              new HTMLBRElement(),
+              new HTMLButtonElement()
+                ..textContent = 'Enable profiler'
                 ..onClick.listen((_) {
                   _enableProfiler();
                 })
-            ]
-        ]
+            ])
+        ])
     ];
   }
 
-  List<Element> _createStatusReport() {
+  List<HTMLElement> _createStatusReport() {
     final fetchT = Utils.formatDurationInSeconds(_progress.fetchingTime);
     final loadT = Utils.formatDurationInSeconds(_progress.loadingTime);
     final sampleCount = _progress.profile.sampleCount;
@@ -159,58 +165,59 @@ class SampleBufferControlElement extends CustomElement implements Renderable {
         ? '0s'
         : Utils.formatTimePrecise(_progress.profile.timeSpan);
 
-    var content = <Element>[
-      new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'Refreshed at',
-          new DivElement()
-            ..classes = ['memberValue']
-            ..text = '$refreshT (fetched in ${fetchT}s) (loaded in ${loadT}s)'
-        ],
-      new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'Profile contains ',
-          new DivElement()
-            ..classes = ['memberValue']
-            ..text = '$sampleCount samples (spanning $timeSpan)'
-        ],
-      new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'Sampling',
-          new DivElement()
-            ..classes = ['memberValue']
-            ..text = '$maxStackDepth stack frames @ ${sampleRate}Hz'
-        ],
+    var content = <HTMLElement>[
+      new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'Refreshed at',
+          new HTMLDivElement()
+            ..className = 'memberValue'
+            ..textContent =
+                '$refreshT (fetched in ${fetchT}s) (loaded in ${loadT}s)'
+        ]),
+      new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'Profile contains ',
+          new HTMLDivElement()
+            ..className = 'memberValue'
+            ..textContent = '$sampleCount samples (spanning $timeSpan)'
+        ]),
+      new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'Sampling',
+          new HTMLDivElement()
+            ..className = 'memberValue'
+            ..textContent = '$maxStackDepth stack frames @ ${sampleRate}Hz'
+        ]),
     ];
     if (_showTag) {
-      content.add(new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'Tag Order',
-          new DivElement()
-            ..classes = ['memberValue']
-            ..children = _createTagSelect()
-        ]);
+      content.add(new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'Tag Order',
+          new HTMLDivElement()
+            ..className = 'memberValue'
+            ..appendChildren(_createTagSelect())
+        ]));
     }
     return [
-      new DivElement()
-        ..classes = ['memberList']
-        ..children = content
+      new HTMLDivElement()
+        ..className = 'memberList'
+        ..appendChildren(content)
     ];
   }
 
-  List<Element> _createTagSelect() {
+  List<HTMLElement> _createTagSelect() {
     var values = M.SampleProfileTag.values;
     if (!_profileVM) {
       values = const [
@@ -219,21 +226,19 @@ class SampleBufferControlElement extends CustomElement implements Renderable {
         M.SampleProfileTag.none
       ];
     }
-    var s;
-    return [
-      s = new SelectElement()
-        ..classes = ['tag-select']
-        ..value = tagToString(_tag)
-        ..children = values.map((tag) {
-          return new OptionElement(
-              value: tagToString(tag), selected: _tag == tag)
-            ..text = tagToString(tag);
-        }).toList(growable: false)
-        ..onChange.listen((_) {
-          _tag = values[s.selectedIndex];
-        })
-        ..onChange.map(_toEvent).listen(_triggerModeChange),
-    ];
+    final s = HTMLSelectElement()
+      ..className = 'tag-select'
+      ..value = tagToString(_tag)
+      ..appendChildren(values.map((tag) => HTMLOptionElement()
+        ..value = tagToString(tag)
+        ..selected = _tag == tag
+        ..textContent = tagToString(tag)));
+    s
+      ..onChange.listen((_) {
+        _tag = values[s.selectedIndex];
+      })
+      ..onChange.map(_toEvent).listen(_triggerModeChange);
+    return [s];
   }
 
   static String tagToString(M.SampleProfileTag tag) {

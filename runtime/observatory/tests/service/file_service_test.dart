@@ -6,9 +6,11 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io' as io;
+
 import 'package:expect/expect.dart';
-import 'package:observatory/service_io.dart';
 import 'package:test/test.dart';
+
+import 'package:observatory/service_io.dart';
 import 'test_helper.dart';
 
 Future setupFiles() async {

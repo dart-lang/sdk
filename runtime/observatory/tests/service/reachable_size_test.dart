@@ -3,10 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'package:observatory/service_io.dart';
+
 import 'package:test/test.dart';
-import 'test_helper.dart';
+
+import 'package:observatory/service_io.dart';
 import 'service_test_common.dart';
+import 'test_helper.dart';
 
 class Pair {
   // Make sure these fields are not removed by the tree shaker.

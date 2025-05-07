@@ -6,11 +6,13 @@ library repositories;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:html';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/allocation_profile.dart';
-import 'package:observatory/sample_profile.dart';
-import 'package:observatory/object_graph.dart';
 import 'package:observatory/models.dart' as M;
+import 'package:observatory/object_graph.dart';
+import 'package:observatory/sample_profile.dart';
 import 'package:observatory/service.dart' as S;
 import 'package:observatory/service_common.dart' as SC;
 import 'package:observatory/src/repositories/timeline_base.dart';

@@ -3,9 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:isolate' as isolate;
+
+import 'package:test/test.dart';
+
 import 'package:observatory/object_graph.dart';
 import 'package:observatory/service_io.dart';
-import 'package:test/test.dart';
 import 'test_helper.dart';
 
 // Make sure these fields are not removed by the tree shaker.

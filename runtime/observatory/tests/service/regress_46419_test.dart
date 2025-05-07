@@ -5,8 +5,9 @@
 
 import 'dart:async';
 
-import 'package:observatory/service_io.dart';
 import 'package:test/test.dart';
+
+import 'package:observatory/service_io.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
@@ -16,13 +17,13 @@ void printSync() {
   print('sync');
   if (testing) {
     // We'll never reach this code, but setting a breakpoint here will result in
-    // the breakpoint being resolved below at line 27.
-    print('unreachable'); // line 20, bp1
+    // the breakpoint being resolved below at line 28.
+    print('unreachable'); // line 21, bp1
   }
 }
 
 printSyncStar() sync* {
-  // We'll end up resolving breakpoint 1 to this location instead of at line 17
+  // We'll end up resolving breakpoint 1 to this location instead of at line 18
   // if #46419 regresses.
   print('sync*');
 }
@@ -31,7 +32,7 @@ testeeDo() {
   printSync();
   final iterator = printSyncStar();
 
-  print('middle'); // Line 34, bp2
+  print('middle'); // Line 35, bp2
 
   iterator.toList();
 }
@@ -46,10 +47,10 @@ final tests = <IsolateTest>[
     await isolate.rootLibrary.load();
     final script = isolate.rootLibrary.scripts[0];
 
-    bp1 = await isolate.addBreakpoint(script, 20);
+    bp1 = await isolate.addBreakpoint(script, 21);
     print("BP1 - $bp1");
     expect(bp1, isNotNull);
-    bp2 = await isolate.addBreakpoint(script, 34);
+    bp2 = await isolate.addBreakpoint(script, 35);
     print("BP2 - $bp2");
     expect(bp2, isNotNull);
   },

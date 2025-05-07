@@ -4,9 +4,9 @@
 
 import 'dart:typed_data';
 
-import 'package:observatory/service_io.dart';
 import 'package:test/test.dart';
 
+import 'package:observatory/service_io.dart';
 import 'test_helper.dart';
 
 const MB = 1 << 20;

@@ -2,17 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:html';
+import 'package:web/web.dart';
 
-navMenu(String label, {String? link, List<Element> content = const []}) {
-  return new LIElement()
-    ..classes = ['nav-menu']
-    ..children = <Element>[
-      new SpanElement()
-        ..classes = ['nav-menu_label']
-        ..children = <Element>[
-          new AnchorElement(href: link)..text = label,
-          new UListElement()..children = content
-        ]
-    ];
+navMenu(String label, {String? link, List<HTMLElement> content = const []}) {
+  final ulist = new HTMLUListElement();
+  for (final element in content) {
+    ulist.appendChild(element);
+  }
+  return new HTMLLIElement()
+    ..className = 'nav-menu'
+    ..appendChild(new HTMLSpanElement()
+      ..className = 'nav-menu_label'
+      ..appendChild(new HTMLAnchorElement()
+        ..href = link ?? ''
+        ..text = label)
+      ..appendChild(ulist));
 }

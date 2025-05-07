@@ -4,8 +4,10 @@
 
 library error_ref_element;
 
-import 'dart:html';
 import 'dart:async';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' show ErrorRef;
 import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
@@ -37,11 +39,13 @@ class ErrorRefElement extends CustomElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = <Element>[];
+    removeChildren();
     _r.disable(notify: true);
   }
 
   void render() {
-    children = <Element>[new PreElement()..text = error.message];
+    setChildren(<HTMLElement>[
+      new HTMLPreElement.pre()..textContent = error.message ?? ''
+    ]);
   }
 }

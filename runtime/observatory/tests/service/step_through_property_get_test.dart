@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'test_helper.dart';
 import 'service_test_common.dart';
+import 'test_helper.dart';
 
 const int LINE = 33;
 const String file = "step_through_property_get_test.dart";
@@ -43,25 +43,25 @@ class Bar extends Foo {
 
 List<String> stops = [];
 List<String> expected = [
-  "$file:${LINE+0}:11", // on 'data2'
-  "$file:${LINE+0}:5", // on 'print'
-  "$file:${LINE+1}:11", // on 'data2'
-  "$file:${LINE+1}:16", // on '['
-  "$file:${LINE+1}:5", // on 'print'
+  "$file:${LINE + 0}:11", // on 'data2'
+  "$file:${LINE + 0}:5", // on 'print'
+  "$file:${LINE + 1}:11", // on 'data2'
+  "$file:${LINE + 1}:16", // on '['
+  "$file:${LINE + 1}:5", // on 'print'
 
-  "$file:${LINE+3}:11", // on 'data1'
-  "$file:${LINE+3}:5", // on 'print'
-  "$file:${LINE+4}:11", // on 'data1'
-  "$file:${LINE+4}:16", // on '['
-  "$file:${LINE+4}:5", // on 'print'
+  "$file:${LINE + 3}:11", // on 'data1'
+  "$file:${LINE + 3}:5", // on 'print'
+  "$file:${LINE + 4}:11", // on 'data1'
+  "$file:${LINE + 4}:16", // on '['
+  "$file:${LINE + 4}:5", // on 'print'
 
-  "$file:${LINE+6}:17", // on 'data1'
-  "$file:${LINE+6}:5", // on 'print'
-  "$file:${LINE+7}:17", // on 'data1'
-  "$file:${LINE+7}:22", // on '['
-  "$file:${LINE+7}:5", // on 'print'
+  "$file:${LINE + 6}:17", // on 'data1'
+  "$file:${LINE + 6}:5", // on 'print'
+  "$file:${LINE + 7}:17", // on 'data1'
+  "$file:${LINE + 7}:22", // on '['
+  "$file:${LINE + 7}:5", // on 'print'
 
-  "$file:${LINE+8}:3" // on ending '}'
+  "$file:${LINE + 8}:3" // on ending '}'
 ];
 
 var tests = <IsolateTest>[

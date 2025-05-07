@@ -5,15 +5,18 @@
 library instance_view_element;
 
 import 'dart:async';
-import 'dart:html';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/curly_block.dart';
 import 'package:observatory/src/elements/eval_box.dart';
 import 'package:observatory/src/elements/helpers/any_ref.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/instance_ref.dart';
 import 'package:observatory/src/elements/nav/class_menu.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
@@ -108,25 +111,25 @@ class InstanceViewElement extends CustomElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = <Element>[];
+    removeChildren();
   }
 
   void render() {
-    final content = <Element>[
-      new HeadingElement.h2()
-        ..text = M.isAbstractType(_instance.kind)
+    final content = <HTMLElement>[
+      new HTMLHeadingElement.h2()
+        ..textContent = M.isAbstractType(_instance.kind)
             ? 'type ${_instance.name}'
             : 'instance of ${_instance.clazz!.name}',
-      new HRElement(),
+      new HTMLHRElement(),
       new ObjectCommonElement(_isolate, _instance, _retainedSizes,
               _reachableSizes, _references, _retainingPaths, _objects,
               queue: _r.queue)
           .element,
-      new BRElement(),
-      new DivElement()
-        ..classes = ['memberList']
-        ..children = _createMembers(),
-      new HRElement(),
+      new HTMLBRElement(),
+      new HTMLDivElement()
+        ..className = 'memberList'
+        ..appendChildren(_createMembers()),
+      new HTMLHRElement(),
       new EvalBoxElement(_isolate, _instance, _objects, _eval,
               quickExpressions: const ['toString()', 'runtimeType'],
               queue: _r.queue)
@@ -134,23 +137,23 @@ class InstanceViewElement extends CustomElement implements Renderable {
     ];
     if (_location != null) {
       content.addAll([
-        new HRElement(),
+        new HTMLHRElement(),
         new SourceInsetElement(
                 _isolate, _location!, _scripts, _objects, _events,
                 queue: _r.queue)
             .element
       ]);
     }
-    children = <Element>[
+    children = <HTMLElement>[
       navBar(_createMenu()),
-      new DivElement()
-        ..classes = ['content-centered-big']
-        ..children = content
+      new HTMLDivElement()
+        ..className = 'content-centered-big'
+        ..appendChildren(content)
     ];
   }
 
-  List<Element> _createMenu() {
-    final menu = <Element>[
+  List<HTMLElement> _createMenu() {
+    final menu = <HTMLElement>[
       new NavTopMenuElement(queue: _r.queue).element,
       new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
       new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element
@@ -159,7 +162,7 @@ class InstanceViewElement extends CustomElement implements Renderable {
       menu.add(new NavLibraryMenuElement(_isolate, _library!, queue: _r.queue)
           .element);
     }
-    menu.addAll(<Element>[
+    menu.addAll(<HTMLElement>[
       new NavClassMenuElement(_isolate, _instance.clazz!, queue: _r.queue)
           .element,
       navMenu('instance'),
@@ -174,29 +177,28 @@ class InstanceViewElement extends CustomElement implements Renderable {
     return menu;
   }
 
-  Element memberHalf(String cssClass, dynamic half) {
-    var result = new DivElement()..classes = [cssClass];
+  HTMLElement memberHalf(String cssClass, dynamic half) {
+    var result = new HTMLDivElement()..className = cssClass;
     if (half is String) {
-      result.text = half;
+      result.textContent = half;
     } else {
-      result.children = <Element>[
-        anyRef(_isolate, half, _objects, queue: _r.queue)
-      ];
+      result.setChildren(
+          <HTMLElement>[anyRef(_isolate, half, _objects, queue: _r.queue)]);
     }
     return result;
   }
 
-  Element member(dynamic name, dynamic value) {
-    return new DivElement()
-      ..classes = ['memberItem']
-      ..children = <Element>[
+  HTMLElement member(dynamic name, dynamic value) {
+    return new HTMLDivElement()
+      ..className = 'memberItem'
+      ..appendChildren(<HTMLElement>[
         memberHalf('memberName', name),
         memberHalf('memberValue', value),
-      ];
+      ]);
   }
 
-  List<Element> _createMembers() {
-    final members = <Element>[];
+  List<HTMLElement> _createMembers() {
+    final members = <HTMLElement>[];
     if (_instance.valueAsString != null) {
       if (_instance.kind == M.InstanceKind.string) {
         members.add(member(
@@ -211,24 +213,24 @@ class InstanceViewElement extends CustomElement implements Renderable {
       members.add(member('type class', _instance.typeClass));
     }
     if (_typeArguments != null && _typeArguments!.types!.isNotEmpty) {
-      members.add(new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'type arguments',
-          new DivElement()
-            ..classes = ['memberValue']
-            ..children = ([new SpanElement()..text = '< ']
+      members.add(new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'type arguments',
+          new HTMLDivElement()
+            ..className = 'memberValue'
+            ..appendChildren(([new HTMLSpanElement()..textContent = '< ']
               ..addAll(_typeArguments!.types!.expand((type) => [
                     new InstanceRefElement(_isolate, type, _objects,
                             queue: _r.queue)
                         .element,
-                    new SpanElement()..text = ', '
+                    new HTMLSpanElement()..textContent = ', '
                   ]))
               ..removeLast()
-              ..add(new SpanElement()..text = ' >'))
-        ]);
+              ..add(new HTMLSpanElement()..textContent = ' >')))
+        ]));
     }
     if (_instance.parameterizedClass != null) {
       members.add(member('parameterized class', _instance.parameterizedClass));
@@ -249,108 +251,105 @@ class InstanceViewElement extends CustomElement implements Renderable {
       members.add(member('closure receiver', _instance.closureReceiver));
     }
     if (_instance.kind == M.InstanceKind.closure) {
-      late ButtonElement btn;
-      members.add(new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'closure breakpoint',
-          new DivElement()
-            ..classes = ['memberValue']
-            ..children = <Element>[
-              btn = new ButtonElement()
-                ..text = _instance.activationBreakpoint == null
+      late HTMLButtonElement btn;
+      members.add(new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'closure breakpoint',
+          new HTMLDivElement()
+            ..className = 'memberValue'
+            ..appendChildren(<HTMLElement>[
+              btn = new HTMLButtonElement()
+                ..textContent = _instance.activationBreakpoint == null
                     ? 'break on activation'
                     : 'remove'
                 ..onClick.listen((_) {
                   btn.disabled = true;
                   _toggleBreakpoint();
                 })
-            ]
-        ]);
+            ])
+        ]));
     }
 
     if (_instance.nativeFields != null && _instance.nativeFields!.isNotEmpty) {
       int i = 0;
-      members.add(new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'native fields (${_instance.nativeFields!.length})',
-          new DivElement()
-            ..classes = ['memberName']
-            ..children = <Element>[
+      members.add(new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'native fields (${_instance.nativeFields!.length})',
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..appendChildren(<HTMLElement>[
               (new CurlyBlockElement(
                       expanded: _instance.nativeFields!.length <= 100,
                       queue: _r.queue)
-                    ..content = <Element>[
-                      new DivElement()
-                        ..classes = ['memberList']
-                        ..children = _instance.nativeFields!
-                            .map<Element>(
-                                (f) => member('[ ${i++} ]', '[ ${f.value} ]'))
-                            .toList()
+                    ..content = <HTMLElement>[
+                      new HTMLDivElement()
+                        ..className = 'memberList'
+                        ..appendChildren(_instance.nativeFields!
+                            .map<HTMLElement>(
+                                (f) => member('[ ${i++} ]', '[ ${f.value} ]')))
                     ])
                   .element
-            ]
-        ]);
+            ])
+        ]));
     }
 
     if (_instance.fields != null && _instance.fields!.isNotEmpty) {
       final fields = _instance.fields!.toList();
-      members.add(new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'fields (${fields.length})',
-          new DivElement()
-            ..classes = ['memberName']
-            ..children = <Element>[
+      members.add(new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'fields (${fields.length})',
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..appendChildren(<HTMLElement>[
               (new CurlyBlockElement(
                       expanded: fields.length <= 100, queue: _r.queue)
-                    ..content = <Element>[
-                      new DivElement()
-                        ..classes = ['memberList']
-                        ..children = fields.map<Element>((f) {
+                    ..content = <HTMLElement>[
+                      new HTMLDivElement()
+                        ..className = 'memberList'
+                        ..appendChildren(fields.map<HTMLElement>((f) {
                           final name = _instance.kind == M.InstanceKind.record
                               ? f.name
                               : f.decl;
                           return member(name, f.value);
-                        }).toList()
+                        }))
                     ])
                   .element
-            ]
-        ]);
+            ])
+        ]));
     }
 
     if (_instance.elements != null && _instance.elements!.isNotEmpty) {
       final elements = _instance.elements!.toList();
       int i = 0;
-      members.add(new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'elements (${_instance.length})',
-          new DivElement()
-            ..classes = ['memberValue']
-            ..children = <Element>[
+      members.add(new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'elements (${_instance.length})',
+          new HTMLDivElement()
+            ..className = 'memberValue'
+            ..appendChildren(<HTMLElement>[
               (new CurlyBlockElement(
                       expanded: elements.length <= 100, queue: _r.queue)
-                    ..content = <Element>[
-                      new DivElement()
-                        ..classes = ['memberList']
-                        ..children = elements
-                            .map<Element>(
-                                (element) => member('[ ${i++} ]', element))
-                            .toList()
+                    ..content = <HTMLElement>[
+                      new HTMLDivElement()
+                        ..className = 'memberList'
+                        ..appendChildren(elements.map<HTMLElement>(
+                            (element) => member('[ ${i++} ]', element)))
                     ])
                   .element
-            ]
-        ]);
+            ])
+        ]));
       if (_instance.length != elements.length) {
         members.add(member(
             '...', '${_instance.length! - elements.length} omitted elements'));
@@ -359,44 +358,43 @@ class InstanceViewElement extends CustomElement implements Renderable {
 
     if (_instance.associations != null && _instance.associations!.isNotEmpty) {
       final associations = _instance.associations!.toList();
-      members.add(new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'associations (${_instance.length})',
-          new DivElement()
-            ..classes = ['memberName']
-            ..children = <Element>[
+      members.add(new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'associations (${_instance.length})',
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..appendChildren(<HTMLElement>[
               (new CurlyBlockElement(
                       expanded: associations.length <= 100, queue: _r.queue)
-                    ..content = <Element>[
-                      new DivElement()
-                        ..classes = ['memberList']
-                        ..children = associations
-                            .map<Element>((a) => new DivElement()
-                              ..classes = ['memberItem']
-                              ..children = <Element>[
-                                new DivElement()
-                                  ..classes = ['memberName']
-                                  ..children = <Element>[
-                                    new SpanElement()..text = '[ ',
+                    ..content = <HTMLElement>[
+                      new HTMLDivElement()
+                        ..className = 'memberList'
+                        ..appendChildren(associations
+                            .map<HTMLElement>((a) => new HTMLDivElement()
+                              ..className = 'memberItem'
+                              ..appendChildren(<HTMLElement>[
+                                new HTMLDivElement()
+                                  ..className = 'memberName'
+                                  ..appendChildren(<HTMLElement>[
+                                    new HTMLSpanElement()..textContent = '[ ',
                                     anyRef(_isolate, a.key, _objects,
                                         queue: _r.queue),
-                                    new SpanElement()..text = ' ]',
-                                  ],
-                                new DivElement()
-                                  ..classes = ['memberValue']
-                                  ..children = <Element>[
+                                    new HTMLSpanElement()..textContent = ' ]',
+                                  ]),
+                                new HTMLDivElement()
+                                  ..className = 'memberValue'
+                                  ..appendChildren(<HTMLElement>[
                                     anyRef(_isolate, a.value, _objects,
                                         queue: _r.queue)
-                                  ]
-                              ])
-                            .toList()
+                                  ])
+                              ])))
                     ])
                   .element
-            ]
-        ]);
+            ])
+        ]));
       if (_instance.length != associations.length) {
         members.add(member('...',
             '${_instance.length! - associations.length} omitted elements'));
@@ -407,27 +405,26 @@ class InstanceViewElement extends CustomElement implements Renderable {
         _instance.typedElements!.isNotEmpty) {
       final typedElements = _instance.typedElements!.toList();
       int i = 0;
-      members.add(new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'elements (${_instance.length})',
-          new DivElement()
-            ..classes = ['memberValue']
-            ..children = <Element>[
+      members.add(new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'elements (${_instance.length})',
+          new HTMLDivElement()
+            ..className = 'memberValue'
+            ..appendChildren(<HTMLElement>[
               (new CurlyBlockElement(
                       expanded: typedElements.length <= 100, queue: _r.queue)
-                    ..content = <Element>[
-                      new DivElement()
-                        ..classes = ['memberList']
-                        ..children = typedElements
-                            .map<Element>((e) => member('[ ${i++} ]', '$e'))
-                            .toList()
+                    ..content = <HTMLElement>[
+                      new HTMLDivElement()
+                        ..className = 'memberList'
+                        ..appendChildren(typedElements.map<HTMLElement>(
+                            (e) => member('[ ${i++} ]', '$e')))
                     ])
                   .element
-            ]
-        ]);
+            ])
+        ]));
       if (_instance.length != typedElements.length) {
         members.add(member('...',
             '${_instance.length! - typedElements.length} omitted elements'));

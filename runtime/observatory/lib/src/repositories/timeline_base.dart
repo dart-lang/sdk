@@ -3,9 +3,11 @@
 // BSD-style license that can be found in the LICENSE file
 
 import 'dart:async';
+
 import 'package:logging/logging.dart';
-import 'package:observatory/sample_profile.dart';
+
 import 'package:observatory/models.dart' as M;
+import 'package:observatory/sample_profile.dart';
 import 'package:observatory/service.dart' as S;
 
 class TimelineRepositoryBase {
