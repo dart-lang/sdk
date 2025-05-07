@@ -169,9 +169,9 @@ class ScriptInsetElement extends CustomElement implements Renderable {
   }
 
   void _scrollToCurrentPos() {
-    var lines = getElementsByClassName(makeLineClass(_currentLine));
+    final lines = getElementsByClassName(makeLineClass(_currentLine));
     if (lines.length > 0) {
-      (lines.item(0) as dynamic).scrollIntoView();
+      lines.item(0)!.scrollIntoView();
     }
   }
 
@@ -241,7 +241,7 @@ class ScriptInsetElement extends CustomElement implements Renderable {
       // TODO(turnidge): Track down the root cause of null startLine/endLine.
       if ((startLine != null) && (endLine != null)) {
         for (var line = startLine; line <= endLine; line++) {
-          var rangeList = _rangeMap[line];
+          final rangeList = _rangeMap[line];
           if (rangeList == null) {
             _rangeMap[line] = [range];
           } else {
@@ -962,12 +962,11 @@ class ScriptInsetElement extends CustomElement implements Renderable {
 
 const nbsp = "\u00A0";
 
-void addInfoBox(HTMLElement content, Function infoBoxGenerator) {
-  var infoBox;
+void addInfoBox(HTMLElement content, HTMLElement infoBoxGenerator ()) {
   var show = false;
-  var originalBackground = content.style.backgroundColor;
-  buildInfoBox() {
-    infoBox = infoBoxGenerator();
+  final originalBackground = content.style.backgroundColor;
+  late HTMLElement infoBox = () {
+    final infoBox = infoBoxGenerator();
     infoBox.style.position = 'absolute';
     infoBox.style.padding = '1em';
     infoBox.style.border = 'solid black 2px';
@@ -977,11 +976,11 @@ void addInfoBox(HTMLElement content, Function infoBoxGenerator) {
     // Don't inherit pre formatting from the script lines.
     infoBox.style.whiteSpace = 'normal';
     content.append(infoBox);
-  }
+    return infoBox;
+  } ();
 
   content.onClick.listen((event) {
     show = !show;
-    if (infoBox == null) buildInfoBox(); // Created lazily on the first click.
     infoBox.style.display = show ? 'block' : 'none';
     content.style.backgroundColor = show ? 'white' : originalBackground;
   });
@@ -1023,25 +1022,24 @@ abstract class Annotation implements Comparable<Annotation> {
   }
 
   HTMLElement table() {
-    var e = new HTMLDivElement();
-    e.style.display = "table";
-    e.style.color = "#333";
-    e.style.font = "400 14px 'Montserrat', sans-serif";
-    return e;
+    return HTMLDivElement()
+      ..style.display = "table"
+      ..style.color = "#333"
+      ..style.font = "400 14px 'Montserrat', sans-serif";
   }
 
   HTMLElement row([content]) {
-    var e = new HTMLDivElement();
-    e.style.display = "table-row";
+    final e = HTMLDivElement()
+      ..style.display = "table-row";
     if (content is String) e.textContent = content;
     if (content is HTMLElement) e.appendChild(content);
     return e;
   }
 
   HTMLElement cell(content) {
-    var e = new HTMLDivElement();
-    e.style.display = 'table-cell';
-    e.style.padding = '3px';
+    final e = HTMLDivElement()
+      ..style.display = 'table-cell'
+      ..style.padding = '3px';
     if (content is String) e.textContent = content;
     if (content is HTMLElement) e.appendChild(content);
     return e;
@@ -1192,7 +1190,7 @@ class CallSiteAnnotation extends Annotation {
     element.title = "Call site: ${callSite.name}";
 
     addInfoBox(element, () {
-      var details = table();
+      final HTMLElement details = table();
       if (callSite.entries.isEmpty) {
         details.append(row('Call of "${callSite.name}" did not execute'));
       } else {
