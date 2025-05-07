@@ -322,6 +322,16 @@ _nightly_builder(
     category = "vm|misc|sanitizer|a",
 )
 _nightly_builder(
+    "vm-asan-mac-release-x64",
+    category = "vm|misc|sanitizer|a",
+    dimensions = [mac],
+)
+_nightly_builder(
+    "vm-asan-win-release-x64",
+    category = "vm|misc|sanitizer|a",
+    dimensions = [windows],
+)
+_nightly_builder(
     "vm-msan-linux-release-x64",
     category = "vm|misc|sanitizer|m",
 )
@@ -331,22 +341,6 @@ _nightly_builder(
 )
 _nightly_builder(
     "vm-ubsan-linux-release-x64",
-    category = "vm|misc|sanitizer|u",
-)
-_nightly_builder(
-    "vm-aot-asan-linux-release-x64",
-    category = "vm|misc|sanitizer|a",
-)
-_nightly_builder(
-    "vm-aot-msan-linux-release-x64",
-    category = "vm|misc|sanitizer|m",
-)
-_nightly_builder(
-    "vm-aot-tsan-linux-release-x64",
-    category = "vm|misc|sanitizer|t",
-)
-_nightly_builder(
-    "vm-aot-ubsan-linux-release-x64",
     category = "vm|misc|sanitizer|u",
 )
 _nightly_builder(
@@ -384,14 +378,6 @@ _nightly_builder(
 _nightly_builder(
     "vm-reload-linux-release-x64",
     category = "vm|misc|reload|r",
-)
-_nightly_builder(
-    "vm-reload-rollback-linux-debug-x64",
-    category = "vm|misc|reload|drb",
-)
-_nightly_builder(
-    "vm-reload-rollback-linux-release-x64",
-    category = "vm|misc|reload|rrb",
 )
 _nightly_builder(
     "vm-linux-debug-x64c",
