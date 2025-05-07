@@ -4781,6 +4781,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           nameNodeName is PrefixedIdentifier
               ? nameNodeName.identifier.name
               : '${nameNodeName.name}.new';
+    } else if (nameNode is DotShorthandConstructorInvocation) {
+      name = nameNode.constructorName.name;
     } else if (nameNode is DotShorthandInvocation) {
       name = nameNode.memberName.name;
     } else {

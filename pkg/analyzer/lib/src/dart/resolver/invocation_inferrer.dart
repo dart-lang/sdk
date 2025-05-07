@@ -161,6 +161,16 @@ class DotShorthandConstructorInvocationInferrer
   TypeArgumentListImpl? get _typeArguments => node.typeArguments;
 
   @override
+  void _reportWrongNumberOfTypeArguments(
+    TypeArgumentList typeArgumentList,
+    FunctionType rawType,
+    List<TypeParameterElement> typeParameters,
+  ) {
+    // Error reporting for dot shorthand constructor invocations is done
+    // within the [InstanceCreationExpressionResolver].
+  }
+
+  @override
   List<FormalParameterElement>? _storeResult(
     List<DartType>? typeArgumentTypes,
     FunctionTypeImpl? invokeType,

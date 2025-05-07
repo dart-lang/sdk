@@ -5917,6 +5917,20 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   ///  Parameters:
+  ///  0: the name of the class being instantiated
+  ///  1: the name of the constructor being invoked
+  static const CompileTimeErrorCode
+  WRONG_NUMBER_OF_TYPE_ARGUMENTS_DOT_SHORTHAND_CONSTRUCTOR = CompileTimeErrorCode(
+    'WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR',
+    "The constructor '{0}.{1}` doesn't have type parameters.",
+    correctionMessage:
+        "Try removing the type arguments, or adding a class name, followed by "
+        "the type arguments, then the constructor name.",
+    hasPublishedDocs: true,
+    uniqueName: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS_DOT_SHORTHAND_CONSTRUCTOR',
+  );
+
+  ///  Parameters:
   ///  0: the number of type parameters that were declared
   ///  1: the number of type arguments provided
   static const CompileTimeErrorCode WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM =

@@ -1620,7 +1620,6 @@ class AstBuilder extends StackListener {
     }
 
     var dotShorthand = pop() as DotShorthandInvocationImpl;
-    // TODO(kallentu): Report error if there are type arguments here.
     push(
       DotShorthandConstructorInvocationImpl(
         constKeyword: token,

@@ -18392,6 +18392,15 @@ CompileTimeErrorCode:
       }
       C f() => C.named();
       ```
+  WRONG_NUMBER_OF_TYPE_ARGUMENTS_DOT_SHORTHAND_CONSTRUCTOR:
+    sharedName: WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
+    problemMessage: "The constructor '{0}.{1}` doesn't have type parameters."
+    correctionMessage: Try removing the type arguments, or adding a class name, followed by the type arguments, then the constructor name.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the class being instantiated
+      1: the name of the constructor being invoked
   WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM:
     problemMessage: The enum is declared with {0} type parameters, but {1} type arguments were given.
     correctionMessage: Try adjusting the number of type arguments.
