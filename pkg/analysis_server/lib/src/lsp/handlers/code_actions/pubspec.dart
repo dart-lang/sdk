@@ -39,6 +39,11 @@ class PubspecCodeActionsProducer extends AbstractCodeActionsProducer {
   Future<List<CodeActionWithPriority>> getFixActions(
     OperationPerformance? performance,
   ) async {
+    // These fixes are only provided as literal CodeActions.
+    if (!supportsLiterals) {
+      return [];
+    }
+
     var session = await server.getAnalysisSession(path);
     if (session == null) {
       return [];
@@ -88,13 +93,15 @@ class PubspecCodeActionsProducer extends AbstractCodeActionsProducer {
           if (!shouldIncludeKind(kind)) {
             return null;
           }
-          var action = createFixAction(
-            fix.change,
-            kind,
-            fix.change.id,
-            diagnostic,
-            path,
-            lineInfo,
+          var action = CodeAction.t1(
+            createFixCodeActionLiteral(
+              fix.change,
+              kind,
+              fix.change.id,
+              diagnostic,
+              path,
+              lineInfo,
+            ),
           );
           return (action: action, priority: fix.kind.priority);
         }).nonNulls,

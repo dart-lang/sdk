@@ -72,7 +72,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
       (() => Commands.serverSupportedCommands.contains(command))(),
       'serverSupportedCommands did not contain $command',
     );
-    return _commandOrCodeActionLiteral(
+    return _maybeWrapCommandInCodeActionLiteral(
       actionKind,
       Command(
         title: title,
@@ -102,7 +102,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
       'serverSupportedCommands did not contain $command',
     );
 
-    return _commandOrCodeActionLiteral(
+    return _maybeWrapCommandInCodeActionLiteral(
       actionKind,
       Command(
         title: name,
@@ -165,21 +165,21 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
 
       return assists
           .map((assist) {
-            var kind = toCodeActionKind(
-              assist.change.id,
-              CodeActionKind.Refactor,
-            );
+            var change = assist.change;
+            var kind = toCodeActionKind(change.id, CodeActionKind.Refactor);
             // TODO(dantup): Find a way to filter these earlier, so we don't
             //  compute fixes we will filter out.
             if (!shouldIncludeKind(kind)) {
               return null;
             }
-            var action = createAssistAction(
-              assist.change,
-              kind,
-              assist.change.id,
-              unitResult.path,
-              unitResult.lineInfo,
+            var action = CodeAction.t1(
+              createAssistCodeActionLiteral(
+                assist.change,
+                kind,
+                assist.change.id,
+                unitResult.path,
+                unitResult.lineInfo,
+              ),
             );
             return (action: action, priority: assist.kind.priority);
           })
@@ -272,13 +272,15 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
               if (!shouldIncludeKind(kind)) {
                 return null;
               }
-              var action = createFixAction(
-                fix.change,
-                kind,
-                fix.change.id,
-                diagnostic,
-                path,
-                lineInfo,
+              var action = CodeAction.t1(
+                createFixCodeActionLiteral(
+                  fix.change,
+                  kind,
+                  fix.change.id,
+                  diagnostic,
+                  path,
+                  lineInfo,
+                ),
               );
               return (action: action, priority: fix.kind.priority);
             }).nonNulls,
@@ -531,9 +533,13 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
     ];
   }
 
-  /// Wraps a command in a CodeAction if the client supports it so that a
-  /// CodeActionKind can be supplied.
-  CodeAction _commandOrCodeActionLiteral(CodeActionKind kind, Command command) {
+  /// Returns a [CodeAction] that is [command] wrapped in a [CodeActionLiteral]
+  /// (to allow a [CodeActionKind] to be supplied) if the client supports it,
+  /// otherwise the bare command.
+  CodeAction _maybeWrapCommandInCodeActionLiteral(
+    CodeActionKind kind,
+    Command command,
+  ) {
     return supportsLiterals
         ? CodeAction.t1(
           CodeActionLiteral(title: command.title, kind: kind, command: command),

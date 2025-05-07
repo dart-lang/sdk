@@ -9,6 +9,7 @@ library;
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
+import 'package:analysis_server/src/lsp/extensions/code_action.dart';
 import 'package:analysis_server/src/lsp/handlers/code_actions/abstract_code_actions_producer.dart';
 import 'package:analysis_server/src/lsp/handlers/code_actions/analysis_options.dart';
 import 'package:analysis_server/src/lsp/handlers/code_actions/dart.dart';
@@ -344,17 +345,21 @@ class _CodeActionSorter {
         }).toList();
     dedupedActionsWithIndex.sort(_compareCodeActions);
 
-    return dedupedActionsWithIndex
-        .map((action) => CodeAction.t1(action.action))
-        .toList();
+    return dedupedActionsWithIndex.map((action) => action.action).toList();
   }
 
-  /// Creates a comparer for [CodeActionLiteral]s that compares the column distance from
-  /// [pos].
-  int Function(CodeActionLiteral a, CodeActionLiteral b)
-  _codeActionColumnDistanceComparer(Position pos) {
-    Position posOf(CodeActionLiteral action) {
-      var diagnostics = action.diagnostics;
+  /// Creates a comparer for [CodeAction]s that compares the column
+  /// distance from [pos].
+  ///
+  /// If a [CodeAction] has no diagnostics, considers the action at [pos].
+  int Function(CodeAction a, CodeAction b) _codeActionColumnDistanceComparer(
+    Position pos,
+  ) {
+    Position posOf(CodeAction action) {
+      var diagnostics = action.map(
+        (literal) => literal.diagnostics,
+        (command) => null,
+      );
       return diagnostics != null && diagnostics.isNotEmpty
           ? diagnostics.first.range.start
           : pos;
@@ -423,35 +428,53 @@ class _CodeActionSorter {
       // Otherwise, find the action nearest to the caret.
       var comparer = _codeActionColumnDistanceComparer(position);
       actions.sort((a, b) => comparer(a.action, b.action));
-      var first = actions.first.action;
+      var first = actions.first;
+      var firstAction = first.action;
       var priority = actions.first.priority;
 
-      // Get any actions with the same fix (edit/command) for merging diagnostics.
+      // If this action is not a literal (it is a command), just return as-is
+      // because we can't merge any diagnostics into it.
+      var firstLiteral = firstAction.map(
+        (literal) => literal,
+        (command) => null,
+      );
+      if (firstLiteral == null) {
+        return first;
+      }
+
+      // Get any literal actions with the same fix (edit/command) for merging
+      // diagnostics.
       var others = actions
           .skip(1)
-          .where(
-            (other) =>
-                // Compare either edits or commands based on which the selected action has.
-                first.edit != null
-                    ? first.edit == other.action.edit
-                    : first.command != null
-                    ? first.command == other.action.command
-                    : false,
-          );
+          .map(
+            (action) =>
+                action.action.map((literal) => literal, (command) => null),
+          )
+          .nonNulls
+          .where((other) {
+            // Compare either edits or commands based on which the selected action has.
+            return firstLiteral.edit != null
+                ? firstLiteral.edit == other.edit
+                : firstLiteral.command != null
+                ? firstLiteral.command == other.command
+                : false;
+          });
 
       // Build a new CodeAction that merges the diagnostics from each same
       // code action onto a single one.
       return (
-        action: CodeActionLiteral(
-          title: first.title,
-          kind: first.kind,
-          // Merge diagnostics from all of the matching CodeActions.
-          diagnostics: [
-            ...?first.diagnostics,
-            for (var other in others) ...?other.action.diagnostics,
-          ],
-          edit: first.edit,
-          command: first.command,
+        action: CodeAction.t1(
+          CodeActionLiteral(
+            title: firstAction.title,
+            kind: firstLiteral.kind,
+            // Merge diagnostics from all of the matching CodeActions.
+            diagnostics: [
+              ...?firstLiteral.diagnostics,
+              for (var other in others) ...?other.diagnostics,
+            ],
+            edit: firstLiteral.edit,
+            command: firstAction.command,
+          ),
         ),
         priority: priority,
       );

@@ -20,12 +20,12 @@ import 'package:analyzer/src/dart/analysis/results.dart' as engine;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:meta/meta.dart';
 
-typedef CodeActionWithPriority = ({CodeActionLiteral action, int priority});
+typedef CodeActionWithPriority = ({CodeAction action, int priority});
 
 typedef CodeActionWithPriorityAndIndex =
-    ({CodeActionLiteral action, int priority, int index});
+    ({CodeAction action, int priority, int index});
 
-/// A base for classes that produce [CodeActionLiteral]s for the LSP handler.
+/// A base for classes that produce [CodeAction]s for the LSP handler.
 abstract class AbstractCodeActionsProducer
     with RequestHandlerMixin<LspAnalysisServer> {
   final File file;
@@ -69,7 +69,7 @@ abstract class AbstractCodeActionsProducer
   /// important to call this immediately after computing edits to ensure the
   /// document is not modified before the version number is read.
   @protected
-  CodeActionLiteral createAssistAction(
+  CodeActionLiteral createAssistCodeActionLiteral(
     protocol.SourceChange change,
     CodeActionKind kind,
     String? loggedAssistId,
@@ -118,7 +118,7 @@ abstract class AbstractCodeActionsProducer
   /// important to call this immediately after computing edits to ensure the
   /// document is not modified before the version number is read.
   @protected
-  CodeActionLiteral createFixAction(
+  CodeActionLiteral createFixCodeActionLiteral(
     protocol.SourceChange change,
     CodeActionKind kind,
     String? loggedFixId,

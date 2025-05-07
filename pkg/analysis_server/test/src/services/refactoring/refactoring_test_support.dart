@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/lsp/extensions/code_action.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 
 import '../../../lsp/code_actions_abstract.dart';
-import '../../../utils/lsp_protocol_extensions.dart';
 import '../../../utils/test_code_extensions.dart';
 
 abstract class RefactoringTest extends AbstractCodeActionsTest {

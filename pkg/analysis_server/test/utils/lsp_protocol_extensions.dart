@@ -21,12 +21,6 @@ extension CodeActionExtensions on CodeAction {
     );
   }
 
-  /// The [Command] for this [CodeAction], whether it's a [CodeActionLiteral]
-  /// or a [Command].
-  Command? get command {
-    return map((literal) => literal.command, (command) => command);
-  }
-
   /// Whether this [CodeAction] is a [CodeActionLiteral].
   bool get isCodeActionLiteral {
     return map(
@@ -41,12 +35,6 @@ extension CodeActionExtensions on CodeAction {
       (_) => false, // literal
       (_) => true, // command
     );
-  }
-
-  /// The title for this [CodeAction], whether it's a [CodeActionLiteral]
-  /// or a [Command].
-  String get title {
-    return map((literal) => literal.title, (command) => command.title);
   }
 }
 

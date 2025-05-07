@@ -90,12 +90,14 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
     }
 
     return (
-      action: createAssistAction(
-        assist.change,
-        kind,
-        'assist from plugin',
-        path,
-        lineInfo,
+      action: CodeAction.t1(
+        createAssistCodeActionLiteral(
+          assist.change,
+          kind,
+          'assist from plugin',
+          path,
+          lineInfo,
+        ),
       ),
       priority: assist.priority,
     );
@@ -119,13 +121,15 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
         return null;
       }
       return (
-        action: createFixAction(
-          fix.change,
-          kind,
-          'fix from plugin',
-          diagnostic,
-          path,
-          lineInfo,
+        action: CodeAction.t1(
+          createFixCodeActionLiteral(
+            fix.change,
+            kind,
+            'fix from plugin',
+            diagnostic,
+            path,
+            lineInfo,
+          ),
         ),
         priority: fix.priority,
       );
