@@ -4818,7 +4818,7 @@ final a = new A();
 ''');
 
     // Remove `a`, so `b` is reanalyzed and has an error.
-    deleteFile2(a);
+    deleteFile(a.path);
     driver.removeFile2(a);
     await assertEventsText(collector, r'''
 [status] working

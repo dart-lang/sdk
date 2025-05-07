@@ -51,7 +51,7 @@ class AnalysisDomainBlazeTest extends _AnalysisDomainTest {
 
   Future<void> test_fileSystem_changeFile_buildFile_legacy() async {
     // Make it a Blaze package.
-    newBlazeBuildFile(myPackageRootPath, r'''
+    newBazelBuildFile(myPackageRootPath, r'''
 # foo
 ''');
 
@@ -70,7 +70,7 @@ AnalysisErrors
 ''');
 
     // Change BUILD file, nothing interesting.
-    newBlazeBuildFile(myPackageRootPath, r'''
+    newBazelBuildFile(myPackageRootPath, r'''
 # bar
 ''');
 
