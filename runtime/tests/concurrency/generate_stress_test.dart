@@ -24,9 +24,11 @@ main(List<String> args) async {
 }
 
 Future<String> generateStressTest(List<String> testFiles) async {
-  testFiles = testFiles
-      .map((String file) => path.absolute(path.join(thisDirectory, file)))
-      .toList();
+  testFiles =
+      testFiles
+          .map((String file) => path.absolute(path.join(thisDirectory, file)))
+          .toList()
+        ..shuffle();
 
   final sb = StringBuffer();
   sb.writeln(r'''
