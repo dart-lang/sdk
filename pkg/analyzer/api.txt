@@ -627,6 +627,7 @@ package:analyzer/dart/ast/ast.dart:
     lineInfo (getter: LineInfo)
     scriptTag (getter: ScriptTag?)
     sortedDirectivesAndDeclarations (getter: List<AstNode>)
+    nodeCovering (method: AstNode? Function({int length, required int offset}))
   CompilationUnitMember (class extends Object implements Declaration)
   CompoundAssignmentExpression (class extends Object implements Expression):
     readElement2 (getter: Element?, experimental)
@@ -4820,8 +4821,8 @@ package:analyzer/src/lint/linter.dart:
 package:analyzer/src/workspace/workspace.dart:
   Workspace (non-public)
 package:analyzer/utilities/extensions/ast.dart:
-  AstNodeExtension (extension on AstNode):
-    nodeCovering (method: AstNode? Function({int length, required int offset}))
+  AstNodeExtension (extension on AstNode, deprecated):
+    nodeCovering (method: AstNode? Function({int length, required int offset}), deprecated)
 package:analyzer/utilities/extensions/element.dart:
   LibraryElement2Extension (extension on LibraryElement):
     exportedExtensions (getter: Iterable<ExtensionElement>)

@@ -12,7 +12,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
-import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:dart_style/dart_style.dart';
 
 /// The result of [WidgetDescriptions.setPropertyValue] invocation.

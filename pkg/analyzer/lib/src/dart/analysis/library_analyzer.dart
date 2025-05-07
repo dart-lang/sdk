@@ -54,7 +54,6 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/version.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
-import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:collection/collection.dart';
 
 class AnalysisForCompletionResult {

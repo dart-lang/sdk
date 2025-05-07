@@ -15,7 +15,6 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
-import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 

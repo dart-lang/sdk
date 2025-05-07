@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/utilities/extensions/ast.dart';
 
 /// Computes selection ranges for a specific offset of a Dart [CompilationUnit].
 ///

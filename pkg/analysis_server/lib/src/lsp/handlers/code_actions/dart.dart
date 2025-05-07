@@ -29,7 +29,6 @@ import 'package:analyzer/dart/analysis/session.dart'
     show InconsistentAnalysisException;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
-import 'package:analyzer/utilities/extensions/ast.dart';
 
 /// Produces [CodeActionLiteral]s from Dart source commands, fixes, assists and
 /// refactors from the server.

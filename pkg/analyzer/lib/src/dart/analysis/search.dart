@@ -19,7 +19,6 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer/src/utilities/fuzzy_matcher.dart';
-import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:collection/collection.dart';
 
 Fragment _getEnclosingFragment(
