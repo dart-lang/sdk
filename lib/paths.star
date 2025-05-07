@@ -82,7 +82,9 @@ _ANALYZER_NNBD_PATHS = _STANDARD_PATHS + [
 _ANALYZER_PATHS = _STANDARD_PATHS + [
     # "analyzer" bots analyze everything under pkg
     "pkg/.+",
-    # "analyzer-analysis-server-linux" bot also analyzes dartfuzz
+    # "analyzer-analysis-server-linux" bot also analyzes dartfuzz, observatory and iso-stress
+    "runtime/observatory/.+",
+    "runtime/tests/concurrency/.+",
     "runtime/tools/dartfuzz/.+",
 ]
 
