@@ -1907,6 +1907,7 @@ void Scavenger::Scavenge(Thread* thread, GCType type, GCReason reason) {
     bytes_promoted += visitor->bytes_promoted();
     delete visitor;
   }
+  delete[] visitors;
 
   if (abort_) {
     ReverseScavenge(&from);
