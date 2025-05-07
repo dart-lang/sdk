@@ -707,10 +707,6 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         ) ||
         identical(
           diagnosticCode,
-          CompileTimeErrorCode.CONST_EVAL_NULL_AWARE_ACCESS,
-        ) ||
-        identical(
-          diagnosticCode,
           CompileTimeErrorCode.CONST_EVAL_PRIMITIVE_EQUALITY,
         ) ||
         identical(

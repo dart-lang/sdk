@@ -1025,12 +1025,6 @@ class CompileTimeErrorCode extends DiagnosticCode {
         "Methods can't be invoked in constant expressions.",
       );
 
-  static const CompileTimeErrorCode CONST_EVAL_NULL_AWARE_ACCESS =
-      CompileTimeErrorCode(
-        'CONST_EVAL_NULL_AWARE_ACCESS',
-        "Null-aware property access can't be used in a constant expression.",
-      );
-
   ///  See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
   ///  for text about "An expression of the form e1 == e2".
   static const CompileTimeErrorCode CONST_EVAL_PRIMITIVE_EQUALITY =

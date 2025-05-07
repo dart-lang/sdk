@@ -1,3 +1,0 @@
-const String s = '';
-
-const l = s..length;

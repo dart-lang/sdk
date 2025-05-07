@@ -2872,10 +2872,6 @@ class BodyBuilder extends StackListenerImpl
     ]));
     Object? send = pop();
     if (send is Selector) {
-      if (send is PropertySelector && constantContext != ConstantContext.none) {
-        addProblem(
-            cfe.messageConstEvalNullAwareAccess, token.charOffset, noLength);
-      }
       push(send.withReceiver(pop(), token.charOffset, isNullAware: true));
     } else {
       pop();
