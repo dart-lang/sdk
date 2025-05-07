@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:linter/src/analyzer.dart';
 
 const _desc = r"Don't commit soloed tests.";
@@ -45,13 +45,13 @@ class _Visitor extends SimpleAstVisitor<void> {
     // TODO(pq): we *could* ensure we're in a reflective test too.
     // Handle both 'solo_test_' and 'solo_fail_'.
     if (node.name.lexeme.startsWith('solo_')) {
-      rule.reportLintForToken(node.name);
+      rule.reportAtToken(node.name);
       return;
     }
 
     for (var annotation in node.metadata) {
       if (annotation.isSoloTest) {
-        rule.reportLint(annotation);
+        rule.reportAtNode(annotation);
       }
     }
   }

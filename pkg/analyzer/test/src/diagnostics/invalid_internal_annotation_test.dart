@@ -335,9 +335,7 @@ class _C {
 }
 ''');
 
-    assertErrorsInResult([
-      error(WarningCode.UNUSED_ELEMENT, 39, 2),
-    ]);
+    assertErrorsInResult([error(WarningCode.UNUSED_ELEMENT, 39, 2)]);
   }
 
   void test_publicMethod_privateClass_static() async {
@@ -362,8 +360,6 @@ extension type _E(int i) {
 }
 ''');
 
-    assertErrorsInResult([
-      error(WarningCode.UNUSED_ELEMENT, 48, 2),
-    ]);
+    assertErrorsInResult([error(WarningCode.UNUSED_ELEMENT, 48, 2)]);
   }
 }

@@ -68,7 +68,7 @@ class StatementTest {
     Expect.equals(5, count);
 
     // For loop with no test.
-    for (count = 0;; ++count) {
+    for (count = 0; ; ++count) {
       if (count == 10) {
         break;
       }
@@ -164,7 +164,7 @@ class StatementTest {
     var ints = [
       [32, 87, 3, 589],
       [12, 1076, 2000, 8],
-      [622, 127, 77, 955]
+      [622, 127, 77, 955],
     ];
     int i, j = 0;
     bool foundIt = false;

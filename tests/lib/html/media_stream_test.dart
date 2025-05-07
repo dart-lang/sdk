@@ -35,8 +35,9 @@ main() {
     });
 
     test('MediaStreamTrackEvent', () {
-      var expectation =
-          MediaStreamTrackEvent.supported ? returnsNormally : throws;
+      var expectation = MediaStreamTrackEvent.supported
+          ? returnsNormally
+          : throws;
       expect(() {
         var event = new Event.eventType('MediaStreamTrackEvent', 'media');
         expect(event is MediaStreamTrackEvent, isTrue);

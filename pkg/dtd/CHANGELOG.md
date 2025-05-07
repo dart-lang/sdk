@@ -1,3 +1,7 @@
+## 2.5.1
+
+- Widen the dependency on `unified_analytics` to include 8.0.0.
+
 ## 2.5.0
 
 - Update SDK constraints to `^3.5.0`.

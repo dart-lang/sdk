@@ -34,7 +34,8 @@ defineTests() {
   group('lint config', () {
     group('rule', () {
       test('configs', () {
-        var ruleConfigs = parseLinterSection(loadYamlNode('''
+        var ruleConfigs = parseLinterSection(
+          loadYamlNode('''
 linter:
   # Unsupported sections here to check that no exceptions are thrown when
   # YAML includes unknown sections.
@@ -49,17 +50,23 @@ linter:
       camel_case_types: true #enable
     pub:
       package_names: false
-''') as YamlMap);
+''')
+              as YamlMap,
+        );
         expect(ruleConfigs, hasLength(3));
       });
 
       test('config', () {
-        var ruleConfigs = parseLinterSection(loadYamlNode('''
+        var ruleConfigs =
+            parseLinterSection(
+              loadYamlNode('''
 linter:
   rules:
     style_guide:
       unnecessary_getters: false
-''') as YamlMap)!;
+''')
+                  as YamlMap,
+            )!;
         expect(ruleConfigs, hasLength(1));
         var ruleConfig = ruleConfigs.values.first;
         expect(ruleConfig.group, 'style_guide');
@@ -123,7 +130,8 @@ linter:
 ''';
           var ruleConfigs = processAnalysisOptionsFile(src)!.values.toList();
           ruleConfigs.sort(
-              (RuleConfig rc1, RuleConfig rc2) => rc1.name.compareTo(rc2.name));
+            (RuleConfig rc1, RuleConfig rc2) => rc1.name.compareTo(rc2.name),
+          );
           expect(ruleConfigs, hasLength(2));
           expect(ruleConfigs[0].name, 'camel_case_types');
           expect(ruleConfigs[0].isEnabled, isTrue);
@@ -151,7 +159,7 @@ linter:
       test('rule list', () {
         var options = <Object, Object?>{};
         var lintOptions = {
-          'rules': ['camel_case_types']
+          'rules': ['camel_case_types'],
         };
         options['linter'] = lintOptions;
 
@@ -163,7 +171,7 @@ linter:
       test('rule map (bool)', () {
         var options = <Object, Object?>{};
         var lintOptions = {
-          'rules': {'camel_case_types': true}
+          'rules': {'camel_case_types': true},
         };
         options['linter'] = lintOptions;
 
@@ -176,8 +184,8 @@ linter:
         var options = <Object, Object?>{};
         var lintOptions = {
           'rules': {
-            'style_guide': {'camel_case_types': true}
-          }
+            'style_guide': {'camel_case_types': true},
+          },
         };
         options['linter'] = lintOptions;
 
@@ -190,8 +198,8 @@ linter:
         var options = <Object, Object?>{};
         var lintOptions = {
           'rules': {
-            'style_guide': {'camel_case_types': true}
-          }
+            'style_guide': {'camel_case_types': true},
+          },
         };
         options['linter'] = lintOptions;
 

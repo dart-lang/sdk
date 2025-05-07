@@ -4,7 +4,8 @@
 
 import '../language_server_benchmark.dart';
 import '../legacy_messages.dart';
-import 'utils.dart';
+import '../run_utils.dart';
+import 'benchmark_utils.dart';
 
 /// We've observed that sometimes the plugin that users has installed times out
 /// (takes > 500 ms to answer). This benchmark simulates that and shows the
@@ -13,10 +14,12 @@ Future<void> main(List<String> args) async {
   await runHelper(
     args,
     LegacyWithPluginThatTimesOutBencmark.new,
+    copyData,
+    extraIterations: getExtraIterations,
     runAsLsp: false,
-    includePlugin: true,
+    extraInformation: (includePlugin: true),
     // The number of files isn't important here.
-    numberOfFileOptions: [10],
+    sizeOptions: [10],
   );
 }
 

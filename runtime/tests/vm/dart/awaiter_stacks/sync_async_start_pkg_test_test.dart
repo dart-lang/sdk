@@ -52,6 +52,6 @@ final currentExpectations = [
 #4    Declarer.test.<anonymous closure> (declarer.dart)
 <asynchronous suspension>
 #5    Invoker._waitForOutstandingCallbacks.<anonymous closure> (invoker.dart)
-<asynchronous suspension>"""
+<asynchronous suspension>""",
 ];
 // CURRENT EXPECTATIONS END

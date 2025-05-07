@@ -93,18 +93,7 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   bool get isAugmentation => _modifiers.isAugment;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  bool get isExternal => _modifiers.isExternal;
-
-  @override
   bool get isAbstract => _modifiers.isAbstract;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isConst => _modifiers.isConst;
-
-  @override
-  bool get isAugment => _modifiers.isAugment;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -115,7 +104,10 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   bool get isSynthesized => false;
 
   @override
-  bool get isEnumElement => false;
+  Builder get getable => this;
+
+  @override
+  Builder? get setable => null;
 
   @override
   int buildBodyNodes(BuildNodesCallback f) {
@@ -154,17 +146,23 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (!hasBuiltOutlineExpressions) {
-      _introductory.buildOutlineExpressions(classHierarchy, libraryBuilder,
-          declarationBuilder, this, _invokeTarget,
-          isClassInstanceMember: isClassInstanceMember,
-          createFileUriExpression:
-              _invokeTarget.fileUri != _introductory.fileUri);
+      _introductory.buildOutlineExpressions(
+          classHierarchy: classHierarchy,
+          libraryBuilder: libraryBuilder,
+          declarationBuilder: declarationBuilder,
+          methodBuilder: this,
+          annotatable: _invokeTarget,
+          annotatableFileUri: _invokeTarget.fileUri,
+          isClassInstanceMember: isClassInstanceMember);
       for (MethodDeclaration augmentation in _augmentations) {
-        augmentation.buildOutlineExpressions(classHierarchy, libraryBuilder,
-            declarationBuilder, this, _invokeTarget,
-            isClassInstanceMember: isClassInstanceMember,
-            createFileUriExpression:
-                _invokeTarget.fileUri != augmentation.fileUri);
+        augmentation.buildOutlineExpressions(
+            classHierarchy: classHierarchy,
+            libraryBuilder: libraryBuilder,
+            declarationBuilder: declarationBuilder,
+            methodBuilder: this,
+            annotatable: _invokeTarget,
+            annotatableFileUri: _invokeTarget.fileUri,
+            isClassInstanceMember: isClassInstanceMember);
       }
       hasBuiltOutlineExpressions = true;
     }
@@ -197,11 +195,6 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
         _reference,
       ];
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isAssignable =>
-      throw new UnsupportedError('$runtimeType.isAssignable');
-
   List<ClassMember>? _localMembers;
 
   @override
@@ -225,10 +218,10 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   Member get invokeTarget => _invokeTarget;
 
   @override
-  // Coverage-ignore(suite): Not run.
   Reference get invokeTargetReference => _reference;
 
   @override
+  // Coverage-ignore(suite): Not run.
   Member? get writeTarget => null;
 
   @override
@@ -251,9 +244,6 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
 
   @override
   bool get isProperty => false;
-
-  @override
-  bool get isRegularMethod => !isOperator;
 
   bool _typeEnsured = false;
   ClassMembersBuilder? _classMembersBuilder;
@@ -373,15 +363,6 @@ class _MethodClassMember implements ClassMember {
 
   @override
   bool get isExtensionTypeMember => _builder.isExtensionTypeMember;
-
-  @override
-  bool get isField => false;
-
-  @override
-  bool get isGetter => false;
-
-  @override
-  bool get isInternalImplementation => false;
 
   @override
   bool get isNoSuchMethodForwarder => false;

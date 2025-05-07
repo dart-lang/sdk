@@ -20,7 +20,7 @@ import 'standard_bounds.dart' show TypeSchemaStandardBounds;
 import 'type_constraint_gatherer.dart' show TypeConstraintGatherer;
 import 'type_demotion.dart';
 import 'type_inference_engine.dart';
-import 'type_schema.dart' show UnknownType, isKnown;
+import 'type_schema.dart' show UnknownType;
 import 'type_schema_elimination.dart' show greatestClosure, leastClosure;
 
 typedef GeneratedTypeConstraint
@@ -236,7 +236,8 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
               new TypeParameterType.withDefaultNullability(
                   helperTypeParameters[i]);
         } else {
-          assert(isKnown(inferredTypes[i]));
+          assert(operations
+              .isKnownType(new SharedTypeSchemaView(inferredTypes[i])));
           inferredSubstitution[helperTypeParameters[i]] = inferredTypes[i];
         }
       }
@@ -344,15 +345,15 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   /// type parameter which means we choose the upper bound rather than the
   /// lower bound for normally covariant type parameters.
   DartType solveTypeConstraint(MergedTypeConstraint constraint,
-      {required DartType topType,
-      bool grounded = false,
-      bool isContravariant = false}) {
+      {bool grounded = false,
+      bool isContravariant = false,
+      required covariant OperationsCfe operations}) {
     if (!isContravariant) {
       // Prefer the known bound, if any.
-      if (isKnown(constraint.lower.unwrapTypeSchemaView())) {
+      if (operations.isKnownType(constraint.lower)) {
         return constraint.lower.unwrapTypeSchemaView();
       }
-      if (isKnown(constraint.upper.unwrapTypeSchemaView())) {
+      if (operations.isKnownType(constraint.upper)) {
         return constraint.upper.unwrapTypeSchemaView();
       }
 
@@ -363,31 +364,32 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
             ? leastClosure(constraint.lower.unwrapTypeSchemaView(),
                 coreTypes: coreTypes)
             : constraint.lower.unwrapTypeSchemaView();
-      } else if (constraint.upper is! UnknownType) {
+      } else if (constraint.upper is! SharedUnknownTypeSchemaView) {
         return grounded
             ? greatestClosure(constraint.upper.unwrapTypeSchemaView(),
-                topType: topType)
+                topType: coreTypes.objectNullableRawType)
             : constraint.upper.unwrapTypeSchemaView();
       } else {
-        return const UnknownType();
+        assert(constraint.lower is SharedUnknownTypeSchemaView);
+        return constraint.lower.unwrapTypeSchemaView();
       }
     } else {
       // Prefer the known bound, if any.
-      if (isKnown(constraint.upper.unwrapTypeSchemaView())) {
+      if (operations.isKnownType(constraint.upper)) {
         // Coverage-ignore-block(suite): Not run.
         return constraint.upper.unwrapTypeSchemaView();
       }
-      if (isKnown(constraint.lower.unwrapTypeSchemaView())) {
+      if (operations.isKnownType(constraint.lower)) {
         return constraint.lower.unwrapTypeSchemaView();
       }
 
       // Otherwise take whatever bound has partial information,
       // e.g. `Iterable<?>`
-      if (constraint.upper is! UnknownType) {
+      if (constraint.upper is! SharedUnknownTypeSchemaView) {
         // Coverage-ignore-block(suite): Not run.
         return grounded
             ? greatestClosure(constraint.upper.unwrapTypeSchemaView(),
-                topType: topType)
+                topType: coreTypes.objectNullableRawType)
             : constraint.upper.unwrapTypeSchemaView();
       } else if (constraint.lower is! UnknownType) {
         return grounded
@@ -397,7 +399,8 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
             // Coverage-ignore(suite): Not run.
             constraint.lower.unwrapTypeSchemaView();
       } else {
-        return const UnknownType();
+        assert(constraint.upper is SharedUnknownTypeSchemaView);
+        return constraint.upper.unwrapTypeSchemaView();
       }
     }
   }
@@ -466,7 +469,8 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     // false.
     if (typeFromPreviousInference != null &&
         isLegacyCovariant &&
-        isKnown(typeFromPreviousInference)) {
+        operations
+            .isKnownType(new SharedTypeSchemaView(typeFromPreviousInference))) {
       return typeFromPreviousInference;
     }
 
@@ -494,9 +498,9 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     }
 
     return solveTypeConstraint(constraint,
-        topType: coreTypes.objectNullableRawType,
         grounded: true,
-        isContravariant: isContravariant);
+        isContravariant: isContravariant,
+        operations: operations);
   }
 
   DartType _inferTypeParameterFromContext(DartType? typeFromPreviousInference,
@@ -513,13 +517,13 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     // false.
     if (isLegacyCovariant &&
         typeFromPreviousInference != null &&
-        isKnown(typeFromPreviousInference)) {
+        operations
+            .isKnownType(new SharedTypeSchemaView(typeFromPreviousInference))) {
       return typeFromPreviousInference;
     }
 
-    DartType t = solveTypeConstraint(constraint,
-        topType: coreTypes.objectNullableRawType);
-    if (!isKnown(t)) {
+    DartType t = solveTypeConstraint(constraint, operations: operations);
+    if (!operations.isKnownType(new SharedTypeSchemaView(t))) {
       return t;
     }
 
@@ -553,8 +557,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       constraint = constraint.clone();
       constraint.mergeInTypeSchemaUpper(
           new SharedTypeSchemaView(extendsConstraint), operations);
-      return solveTypeConstraint(constraint,
-          topType: coreTypes.objectNullableRawType);
+      return solveTypeConstraint(constraint, operations: operations);
     }
 
     return t;

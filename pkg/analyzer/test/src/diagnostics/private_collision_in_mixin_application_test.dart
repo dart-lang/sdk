@@ -56,13 +56,20 @@ mixin B {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 
 class C extends Object with A, B {}
-''', [
-      error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 49, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
+          49,
+          1,
+        ),
+      ],
+    );
   }
 
   test_class_mixinAndMixin_indirect() async {
@@ -76,14 +83,21 @@ mixin B {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 
 class C extends Object with A {}
 class D extends C with B {}
-''', [
-      error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 74, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
+          74,
+          1,
+        ),
+      ],
+    );
   }
 
   test_class_mixinAndMixin_indirect_mixinClass() async {
@@ -97,14 +111,21 @@ mixin class B {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 
 class C extends Object with A {}
 class D extends C with B {}
-''', [
-      error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 74, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
+          74,
+          1,
+        ),
+      ],
+    );
   }
 
   test_class_mixinAndMixin_mixinClass() async {
@@ -118,13 +139,20 @@ mixin class B {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 
 class C extends Object with A, B {}
-''', [
-      error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 49, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
+          49,
+          1,
+        ),
+      ],
+    );
   }
 
   test_class_mixinAndMixin_withoutExtends() async {
@@ -138,13 +166,20 @@ mixin B {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 
 class C with A, B {}
-''', [
-      error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 34, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
+          34,
+          1,
+        ),
+      ],
+    );
   }
 
   test_class_mixinAndMixin_withoutExtends_mixinClass() async {
@@ -158,13 +193,20 @@ mixin class B {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 
 class C with A, B {}
-''', [
-      error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 34, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
+          34,
+          1,
+        ),
+      ],
+    );
   }
 
   test_class_staticAndInstanceElement() async {
@@ -250,13 +292,20 @@ mixin B {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 
 class C extends A with B {}
-''', [
-      error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 41, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
+          41,
+          1,
+        ),
+      ],
+    );
   }
 
   test_class_superclassAndMixin_getter2_mixinClass() async {
@@ -270,13 +319,20 @@ mixin class B {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 
 class C extends A with B {}
-''', [
-      error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 41, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
+          41,
+          1,
+        ),
+      ],
+    );
   }
 
   test_class_superclassAndMixin_method2() async {
@@ -290,13 +346,20 @@ mixin B {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 
 class C extends A with B {}
-''', [
-      error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 41, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
+          41,
+          1,
+        ),
+      ],
+    );
   }
 
   test_class_superclassAndMixin_method2_mixinClass() async {
@@ -310,17 +373,25 @@ mixin class B {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 
 class C extends A with B {}
-''', [
-      error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 41, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
+          41,
+          1,
+        ),
+      ],
+    );
   }
 
   test_class_superclassAndMixin_sameLibrary() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 mixin A {
   void _foo() {}
 }
@@ -330,14 +401,17 @@ mixin B {
 }
 
 class C extends Object with A, B {}
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 17, 4),
-      error(WarningCode.UNUSED_ELEMENT, 47, 4),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_ELEMENT, 17, 4),
+        error(WarningCode.UNUSED_ELEMENT, 47, 4),
+      ],
+    );
   }
 
   test_class_superclassAndMixin_sameLibrary_mixinClass() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 mixin class A {
   void _foo() {}
 }
@@ -347,10 +421,12 @@ mixin class B {
 }
 
 class C extends Object with A, B {}
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 23, 4),
-      error(WarningCode.UNUSED_ELEMENT, 59, 4),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_ELEMENT, 23, 4),
+        error(WarningCode.UNUSED_ELEMENT, 59, 4),
+      ],
+    );
   }
 
   test_class_superclassAndMixin_setter2() async {
@@ -364,14 +440,21 @@ mixin B {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 
 class C extends A with B {}
-''', [
-      error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 41, 1,
-          messageContains: ["'_foo'"]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
+          41,
+          1,
+          messageContains: ["'_foo'"],
+        ),
+      ],
+    );
   }
 
   test_class_superclassAndMixin_setter2_mixinClass() async {
@@ -385,14 +468,21 @@ mixin class B {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 
 class C extends A with B {}
-''', [
-      error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 41, 1,
-          messageContains: ["'_foo'"]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
+          41,
+          1,
+          messageContains: ["'_foo'"],
+        ),
+      ],
+    );
   }
 
   test_classTypeAlias_mixinAndMixin() async {
@@ -406,13 +496,20 @@ mixin B {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 
 class C = Object with A, B;
-''', [
-      error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 43, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
+          43,
+          1,
+        ),
+      ],
+    );
   }
 
   test_classTypeAlias_mixinAndMixin_indirect() async {
@@ -426,14 +523,21 @@ mixin B {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 
 class C = Object with A;
 class D = C with B;
-''', [
-      error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 60, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
+          60,
+          1,
+        ),
+      ],
+    );
   }
 
   test_classTypeAlias_mixinAndMixin_indirect_mixinClass() async {
@@ -447,14 +551,21 @@ mixin class B {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 
 class C = Object with A;
 class D = C with B;
-''', [
-      error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 60, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
+          60,
+          1,
+        ),
+      ],
+    );
   }
 
   test_classTypeAlias_mixinAndMixin_mixinClass() async {
@@ -468,13 +579,20 @@ mixin class B {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 
 class C = Object with A, B;
-''', [
-      error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 43, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
+          43,
+          1,
+        ),
+      ],
+    );
   }
 
   test_classTypeAlias_superclassAndMixin() async {
@@ -488,13 +606,20 @@ mixin B {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 
 class C = A with B;
-''', [
-      error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 35, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
+          35,
+          1,
+        ),
+      ],
+    );
   }
 
   test_classTypeAlias_superclassAndMixin_mixinClass() async {
@@ -508,13 +633,20 @@ mixin class B {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 
 class C = A with B;
-''', [
-      error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 35, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
+          35,
+          1,
+        ),
+      ],
+    );
   }
 
   test_enum_getter_mixinAndMixin() async {
@@ -528,15 +660,22 @@ mixin B {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 
 enum E with A, B {
   v
 }
-''', [
-      error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 33, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
+          33,
+          1,
+        ),
+      ],
+    );
   }
 
   test_enum_method_interfaceAndMixin_same() async {
@@ -567,15 +706,22 @@ mixin B {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 
 enum E with A, B {
   v
 }
-''', [
-      error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 33, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
+          33,
+          1,
+        ),
+      ],
+    );
   }
 
   test_enum_method_staticAndInstanceElement() async {
@@ -609,15 +755,22 @@ mixin B {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart';
 
 enum E with A, B {
   v
 }
-''', [
-      error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 33, 1,
-          messageContains: ["'_foo'"]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
+          33,
+          1,
+          messageContains: ["'_foo'"],
+        ),
+      ],
+    );
   }
 }

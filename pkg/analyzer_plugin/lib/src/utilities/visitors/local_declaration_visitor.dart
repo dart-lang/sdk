@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 /// A visitor that visits an [AstNode] and its parent recursively along with any
 /// declarations in those nodes. Consumers typically call [visit] which catches
@@ -38,14 +38,14 @@ abstract class LocalDeclarationVisitor extends UnifyingAstVisitor {
   void declaredLocalVar(
     Token name,
     TypeAnnotation? type,
-    LocalVariableElement2 declaredElement,
+    LocalVariableElement declaredElement,
   ) {}
 
   void declaredMethod(MethodDeclaration declaration) {}
 
   void declaredMixin(MixinDeclaration declaration) {}
 
-  void declaredParam(Token name, Element2? element, TypeAnnotation? type) {}
+  void declaredParam(Token name, Element? element, TypeAnnotation? type) {}
 
   void declaredTopLevelVar(
       VariableDeclarationList varList, VariableDeclaration varDecl) {}
@@ -139,7 +139,7 @@ abstract class LocalDeclarationVisitor extends UnifyingAstVisitor {
       var varList = forLoopParts.variables;
       for (var varDecl in varList.variables) {
         declaredLocalVar(varDecl.name, varList.type,
-            varDecl.declaredElement2 as LocalVariableElement2);
+            varDecl.declaredElement2 as LocalVariableElement);
       }
     }
     visitNode(node);
@@ -156,7 +156,7 @@ abstract class LocalDeclarationVisitor extends UnifyingAstVisitor {
       var varList = forLoopParts.variables;
       for (var varDecl in varList.variables) {
         declaredLocalVar(varDecl.name, varList.type,
-            varDecl.declaredElement2 as LocalVariableElement2);
+            varDecl.declaredElement2 as LocalVariableElement);
       }
     }
     visitNode(node);
@@ -448,7 +448,7 @@ abstract class LocalDeclarationVisitor extends UnifyingAstVisitor {
           for (var varDecl in varList.variables) {
             if (varDecl.end < offset) {
               declaredLocalVar(varDecl.name, varList.type,
-                  varDecl.declaredElement2 as LocalVariableElement2);
+                  varDecl.declaredElement2 as LocalVariableElement);
             }
           }
         } else if (stmt is FunctionDeclarationStatement) {

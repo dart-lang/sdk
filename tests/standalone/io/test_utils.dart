@@ -17,8 +17,10 @@ Future retry(Future fun(), {int maxCount = 10}) async {
       // trying.
       return await fun();
     } catch (e, stack) {
-      print("Failed to execute test closure (retry id: ${id}) in attempt $i "
-          "(${maxCount - i} retries left).");
+      print(
+        "Failed to execute test closure (retry id: ${id}) in attempt $i "
+        "(${maxCount - i} retries left).",
+      );
       print("Exception: ${e}");
       print("Stacktrace: ${stack}");
     }

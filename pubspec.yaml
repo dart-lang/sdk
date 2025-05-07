@@ -11,7 +11,7 @@ environment:
   #
   # It needs to be updated before testing language features introduced in the
   # next language version.
-  sdk: ^3.8.0-0
+  sdk: ^3.9.0-0
 
 # These are the packages that are contained in the SDK.
 workspace:
@@ -21,6 +21,7 @@ workspace:
   - pkg/analyzer
   - pkg/analyzer_cli
   - pkg/analyzer_plugin
+  - pkg/analyzer_testing
   - pkg/analyzer_utilities
   - pkg/async_helper
   - pkg/bisect_dart
@@ -53,8 +54,6 @@ workspace:
   - pkg/js_shared
   - pkg/kernel
   - pkg/linter
-  - pkg/_macros
-  - pkg/macros
   - pkg/meta
   - pkg/mmap
   - pkg/modular_test
@@ -130,6 +129,8 @@ dependency_overrides:
     path: third_party/pkg/tools/pkgs/cli_util
   clock:
     path: third_party/pkg/tools/pkgs/clock
+  code_assets:
+    path: third_party/pkg/native/pkgs/code_assets
   collection:
     path: third_party/pkg/core/pkgs/collection
   convert:
@@ -148,6 +149,8 @@ dependency_overrides:
     path: third_party/pkg/dart_style
   dartdoc:
     path: third_party/pkg/dartdoc
+  data_assets:
+    path: third_party/pkg/native/pkgs/data_assets
   extension_discovery:
     path: third_party/pkg/tools/pkgs/extension_discovery
   fake_async:
@@ -166,6 +169,10 @@ dependency_overrides:
     path: third_party/pkg/tools/pkgs/glob
   graphs:
     path: third_party/pkg/tools/pkgs/graphs
+  hooks:
+    path: third_party/pkg/native/pkgs/hooks
+  hooks_runner:
+    path: third_party/pkg/native/pkgs/hooks_runner
   html:
     path: third_party/pkg/tools/pkgs/html
   http:
@@ -200,10 +207,6 @@ dependency_overrides:
     path: third_party/pkg/leak_tracker/pkgs/memory_usage
   mime:
     path: third_party/pkg/tools/pkgs/mime
-  native_assets_builder:
-    path: third_party/pkg/native/pkgs/native_assets_builder
-  native_assets_cli:
-    path: third_party/pkg/native/pkgs/native_assets_cli
   native_toolchain_c:
     path: third_party/pkg/native/pkgs/native_toolchain_c
   oauth2:

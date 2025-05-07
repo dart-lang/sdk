@@ -18,11 +18,12 @@ main() async {
   var spawnError;
   try {
     await Isolate.spawn(
-        other,
-        // Rehashing of this map on receiver side will throw.
-        {Foo(): 1},
-        onError: onError.sendPort,
-        onExit: onExit.sendPort);
+      other,
+      // Rehashing of this map on receiver side will throw.
+      {Foo(): 1},
+      onError: onError.sendPort,
+      onExit: onExit.sendPort,
+    );
 
     await onExit.first;
   } on IsolateSpawnException catch (error) {
@@ -32,8 +33,9 @@ main() async {
     onExit.close();
   }
   Expect.contains(
-      'Unable to spawn isolate: Failed to deserialize the passed arguments to the new isolate',
-      '$spawnError');
+    'Unable to spawn isolate: Failed to deserialize the passed arguments to the new isolate',
+    '$spawnError',
+  );
 }
 
 class Foo {

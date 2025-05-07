@@ -16,12 +16,13 @@ main() {
 @reflectiveTest
 class AssignmentToFunctionTest extends PubPackageResolutionTest {
   test_function() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f() {}
 main() {
   f = null;
-}''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FUNCTION, 18, 1),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FUNCTION, 18, 1)],
+    );
   }
 }

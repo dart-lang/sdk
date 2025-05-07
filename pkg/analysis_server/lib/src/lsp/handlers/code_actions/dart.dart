@@ -15,6 +15,7 @@ import 'package:analysis_server/src/services/correction/refactoring_performance.
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_context.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_processor.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server_plugin/edit/assist/assist.dart';
 import 'package:analysis_server_plugin/edit/assist/dart_assist_context.dart';
 import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
@@ -25,11 +26,11 @@ import 'package:analysis_server_plugin/src/correction/fix_processor.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart'
     show InconsistentAnalysisException;
-import 'package:analyzer/dart/element/element2.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/utilities/extensions/ast.dart';
 
-/// Produces [CodeAction]s from Dart source commands, fixes, assists and
+/// Produces [CodeActionLiteral]s from Dart source commands, fixes, assists and
 /// refactors from the server.
 class DartCodeActionsProducer extends AbstractCodeActionsProducer {
   ResolvedLibraryResult libraryResult;
@@ -37,6 +38,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
   Range range;
   final OptionalVersionedTextDocumentIdentifier docIdentifier;
   final CodeActionTriggerKind? triggerKind;
+  final bool willBeDeduplicated;
 
   DartCodeActionsProducer(
     super.server,
@@ -52,14 +54,15 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
     required super.capabilities,
     required super.analysisOptions,
     required this.triggerKind,
+    required this.willBeDeduplicated,
   });
 
   @override
   String get name => 'ServerDartActionsComputer';
 
-  /// Helper to create a [CodeAction] or [Command] for the given arguments in
-  /// the current file based on client capabilities.
-  Either2<CodeAction, Command> createCommand(
+  /// Helper to create a [CodeAction] for the given arguments in the current
+  /// file based on client capabilities.
+  CodeAction createAction(
     CodeActionKind actionKind,
     String title,
     String command,
@@ -68,7 +71,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
       (() => Commands.serverSupportedCommands.contains(command))(),
       'serverSupportedCommands did not contain $command',
     );
-    return _commandOrCodeAction(
+    return _commandOrCodeActionLiteral(
       actionKind,
       Command(
         title: title,
@@ -86,11 +89,11 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
 
   /// Helper to create refactors that execute commands provided with
   /// the current file, location and document version.
-  Either2<CodeAction, Command> createRefactor(
+  CodeAction createRefactor(
     CodeActionKind actionKind,
     String name,
     RefactoringKind refactorKind, [
-    Map<String, dynamic>? options,
+    Map<String, Object?>? options,
   ]) {
     var command = Commands.performRefactor;
     assert(
@@ -98,7 +101,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
       'serverSupportedCommands did not contain $command',
     );
 
-    return _commandOrCodeAction(
+    return _commandOrCodeActionLiteral(
       actionKind,
       Command(
         title: name,
@@ -189,6 +192,10 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
     var codeActions = <CodeActionWithPriority>[];
 
     try {
+      // If deduplicating the result only do the expensive "fix all in file"
+      // calculation when we haven't before.
+      Set<String>? skipAlreadyCalculatedIfNonNull =
+          willBeDeduplicated ? {} : null;
       var workspace = DartChangeWorkspace(await server.currentSessions);
       for (var error in unitResult.errors) {
         // Return fixes for any part of the line where a diagnostic is.
@@ -214,6 +221,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
         var fixes = await computeFixes(
           context,
           performance: performanceTracker,
+          skipAlreadyCalculatedIfNonNull: skipAlreadyCalculatedIfNonNull,
         );
 
         if (performance != null) {
@@ -262,7 +270,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
   }
 
   @override
-  Future<List<Either2<CodeAction, Command>>> getRefactorActions(
+  Future<List<CodeAction>> getRefactorActions(
     OperationPerformance? performance,
   ) async {
     // If the client does not support workspace/applyEdit, we won't be able to
@@ -271,7 +279,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
       return const [];
     }
 
-    var refactorActions = <Either2<CodeAction, Command>>[];
+    var refactorActions = <CodeAction>[];
     var performanceTracker = RefactoringPerformance();
 
     try {
@@ -292,7 +300,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
         performance: performanceTracker,
       );
       var actions = await processor.compute();
-      refactorActions.addAll(actions.map(Either2<CodeAction, Command>.t1));
+      refactorActions.addAll(actions.map(CodeAction.t1));
 
       // Extracts
       if (shouldIncludeKind(CodeActionKind.RefactorExtract)) {
@@ -400,8 +408,8 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
       if (shouldIncludeKind(CodeActionKind.RefactorRewrite)) {
         timer.restart();
 
-        var node = NodeLocator(offset).searchWithin(unitResult.unit);
-        var element = server.getElementOfNode(node);
+        var node = unitResult.unit.nodeCovering(offset: offset);
+        var element = node?.getElement();
 
         // Getter to Method
         if (element is GetterElement &&
@@ -424,7 +432,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
         );
 
         // Method to Getter
-        if (element is ExecutableElement2 &&
+        if (element is ExecutableElement &&
             ConvertMethodToGetterRefactoring(
               server.refactoringWorkspace,
               unitResult.session,
@@ -468,7 +476,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
   /// Gets "Source" CodeActions, which are actions that apply to whole files of
   /// source such as Sort Members and Organise Imports.
   @override
-  Future<List<Either2<CodeAction, Command>>> getSourceActions() async {
+  Future<List<CodeAction>> getSourceActions() async {
     // If the client does not support workspace/applyEdit, we won't be able to
     // run any of these.
     if (!supportsApplyEdit) {
@@ -477,33 +485,30 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
 
     return [
       if (shouldIncludeKind(DartCodeActionKind.SortMembers))
-        createCommand(
+        createAction(
           DartCodeActionKind.SortMembers,
           'Sort Members',
           Commands.sortMembers,
         ),
       if (shouldIncludeKind(CodeActionKind.SourceOrganizeImports))
-        createCommand(
+        createAction(
           CodeActionKind.SourceOrganizeImports,
           'Organize Imports',
           Commands.organizeImports,
         ),
       if (shouldIncludeKind(DartCodeActionKind.FixAll))
-        createCommand(DartCodeActionKind.FixAll, 'Fix All', Commands.fixAll),
+        createAction(DartCodeActionKind.FixAll, 'Fix All', Commands.fixAll),
     ];
   }
 
   /// Wraps a command in a CodeAction if the client supports it so that a
   /// CodeActionKind can be supplied.
-  Either2<CodeAction, Command> _commandOrCodeAction(
-    CodeActionKind kind,
-    Command command,
-  ) {
+  CodeAction _commandOrCodeActionLiteral(CodeActionKind kind, Command command) {
     return supportsLiterals
-        ? Either2<CodeAction, Command>.t1(
-          CodeAction(title: command.title, kind: kind, command: command),
+        ? CodeAction.t1(
+          CodeActionLiteral(title: command.title, kind: kind, command: command),
         )
-        : Either2<CodeAction, Command>.t2(command);
+        : CodeAction.t2(command);
   }
 }
 

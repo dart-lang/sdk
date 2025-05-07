@@ -83,7 +83,8 @@ uword Heap::AllocateNew(Thread* thread, intptr_t size) {
   if (LIKELY(addr != 0)) {
     return addr;
   }
-  if (!assume_scavenge_will_fail_ && !thread->force_growth()) {
+
+  if (!thread->force_growth()) {
     GcSafepointOperationScope safepoint_operation(thread);
 
     // Another thread may have won the race to the safepoint and performed a GC
@@ -94,11 +95,19 @@ uword Heap::AllocateNew(Thread* thread, intptr_t size) {
       return addr;
     }
 
-    CollectGarbage(thread, GCType::kScavenge, GCReason::kNewSpace);
+    // Don't scavenge when the last scavenge resulted in too little free space
+    // to avoid performing one scavenge per allocation as the heap limit is
+    // approached.
+    // Don't scavenge when the OOM reservation needs to be refilled so that once
+    // free old-space becomes available, the refill will get it first instead of
+    // promotions from new-space.
+    if (!assume_scavenge_will_fail_ && old_space_.HasReservation()) {
+      CollectGarbage(thread, GCType::kScavenge, GCReason::kNewSpace);
 
-    addr = new_space_.TryAllocate(thread, size);
-    if (LIKELY(addr != 0)) {
-      return addr;
+      addr = new_space_.TryAllocate(thread, size);
+      if (LIKELY(addr != 0)) {
+        return addr;
+      }
     }
   }
 
@@ -157,23 +166,24 @@ uword Heap::AllocateOld(Thread* thread, intptr_t size, bool is_exec) {
     // Before throwing an out-of-memory error try a synchronous GC.
     CollectOldSpaceGarbage(thread, GCType::kMarkCompact, GCReason::kOldSpace);
     WaitForSweeperTasksAtSafepoint(thread);
-  }
-  uword addr = old_space_.TryAllocate(size, is_exec, PageSpace::kForceGrowth);
-  if (addr != 0) {
-    return addr;
-  }
-
-  if (!thread->force_growth()) {
-    WaitForSweeperTasks(thread);
+    addr = old_space_.TryAllocate(size, is_exec, PageSpace::kForceGrowth);
+    if (addr != 0) {
+      return addr;
+    }
+    // This allocation has failed. Release the OOM reservation so small
+    // allocations involved in handling the OOM exception might succeed.
     old_space_.TryReleaseReservation();
   } else {
-    // We may or may not be a safepoint, so we don't know how to wait for the
-    // sweeper.
+    uword addr = old_space_.TryAllocate(size, is_exec, PageSpace::kForceGrowth);
+    if (addr != 0) {
+      return addr;
+    }
   }
 
   // Give up allocating this object.
   OS::PrintErr("Exhausted heap space, trying to allocate %" Pd " bytes.\n",
                size);
+  isolate_group_->set_has_seen_oom(true);
   return 0;
 }
 
@@ -465,9 +475,7 @@ void Heap::CollectNewSpaceGarbage(Thread* thread,
     GcSafepointOperationScope safepoint_operation(thread);
     RecordBeforeGC(type, reason);
     {
-      VMTagScope tagScope(thread, reason == GCReason::kIdle
-                                      ? VMTag::kGCIdleTagId
-                                      : VMTag::kGCNewSpaceTagId);
+      NOT_IN_PRODUCT(VMTagScope tagScope(thread, VMTag::kGCNewSpaceTagId));
       if (reason == GCReason::kStoreBuffer) {
         // The remembered set may become too full, increasing the time of
         // stop-the-world phases, if new-space or to-be-evacuated objects are
@@ -532,9 +540,7 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
         /*at_safepoint=*/true);
 
     RecordBeforeGC(type, reason);
-    VMTagScope tagScope(thread, reason == GCReason::kIdle
-                                    ? VMTag::kGCIdleTagId
-                                    : VMTag::kGCOldSpaceTagId);
+    NOT_IN_PRODUCT(VMTagScope tagScope(thread, VMTag::kGCOldSpaceTagId));
     TIMELINE_FUNCTION_GC_DURATION(thread, "CollectOldGeneration");
     old_space_.CollectGarbage(thread, /*compact=*/type == GCType::kMarkCompact,
                               /*finalize=*/true);
@@ -545,12 +551,8 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
 #endif
 
     // Some Code objects may have been collected so invalidate handler cache.
-    thread->isolate_group()->ForEachIsolate(
-        [&](Isolate* isolate) {
-          isolate->handler_info_cache()->Clear();
-          isolate->catch_entry_moves_cache()->Clear();
-        },
-        /*at_safepoint=*/true);
+    thread->isolate_group()->handler_info_cache()->Clear();
+    thread->isolate_group()->ClearCatchEntryMovesCacheLocked();
     assume_scavenge_will_fail_ = false;
   }
 }
@@ -641,9 +643,7 @@ void Heap::CheckFinalizeMarking(Thread* thread) {
 void Heap::StartConcurrentMarking(Thread* thread, GCReason reason) {
   GcSafepointOperationScope safepoint_operation(thread);
   RecordBeforeGC(GCType::kStartConcurrentMark, reason);
-  VMTagScope tagScope(thread, reason == GCReason::kIdle
-                                  ? VMTag::kGCIdleTagId
-                                  : VMTag::kGCOldSpaceTagId);
+  NOT_IN_PRODUCT(VMTagScope tagScope(thread, VMTag::kGCOldSpaceTagId));
   TIMELINE_FUNCTION_GC_DURATION(thread, "StartConcurrentMarking");
   old_space_.CollectGarbage(thread, /*compact=*/false, /*finalize=*/false);
   RecordAfterGC(GCType::kStartConcurrentMark);
@@ -1159,14 +1159,14 @@ ForceGrowthScope::~ForceGrowthScope() {
 
 WritableVMIsolateScope::WritableVMIsolateScope(Thread* thread)
     : ThreadStackResource(thread) {
-  if (FLAG_write_protect_code && FLAG_write_protect_vm_isolate) {
+  if (FLAG_write_protect_vm_isolate) {
     Dart::vm_isolate_group()->heap()->WriteProtect(false);
   }
 }
 
 WritableVMIsolateScope::~WritableVMIsolateScope() {
   ASSERT(Dart::vm_isolate_group()->heap()->UsedInWords(Heap::kNew) == 0);
-  if (FLAG_write_protect_code && FLAG_write_protect_vm_isolate) {
+  if (FLAG_write_protect_vm_isolate) {
     Dart::vm_isolate_group()->heap()->WriteProtect(true);
   }
 }

@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -20,7 +20,7 @@ class RedeclareVerifier extends RecursiveAstVisitor<void> {
   final ErrorReporter _errorReporter;
 
   /// The current extension type.
-  InterfaceElement2? _currentExtensionType;
+  InterfaceElement? _currentExtensionType;
 
   RedeclareVerifier(this._inheritance, this._errorReporter);
 
@@ -43,36 +43,30 @@ class RedeclareVerifier extends RecursiveAstVisitor<void> {
 
     if (element.metadata2.hasRedeclare && !_redeclaresMember(element)) {
       switch (element) {
-        case MethodElement2():
+        case MethodElement():
           _errorReporter.atToken(
             node.name,
             WarningCode.REDECLARE_ON_NON_REDECLARING_MEMBER,
-            arguments: [
-              'method',
-            ],
+            arguments: ['method'],
           );
         case GetterElement():
           _errorReporter.atToken(
             node.name,
             WarningCode.REDECLARE_ON_NON_REDECLARING_MEMBER,
-            arguments: [
-              'getter',
-            ],
+            arguments: ['getter'],
           );
         case SetterElement():
           _errorReporter.atToken(
             node.name,
             WarningCode.REDECLARE_ON_NON_REDECLARING_MEMBER,
-            arguments: [
-              'setter',
-            ],
+            arguments: ['setter'],
           );
       }
     }
   }
 
   /// Return `true` if the [member] redeclares a member from a superinterface.
-  bool _redeclaresMember(ExecutableElement2 member) {
+  bool _redeclaresMember(ExecutableElement member) {
     var currentType = _currentExtensionType;
     if (currentType != null) {
       var interface = _inheritance.getInterface2(currentType);

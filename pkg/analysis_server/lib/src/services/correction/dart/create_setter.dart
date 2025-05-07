@@ -4,11 +4,11 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
-import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
@@ -49,11 +49,11 @@ class CreateSetter extends ResolvedCorrectionProducer {
     }
     // prepare target element
     var staticModifier = false;
-    InstanceElement2? targetElement;
+    InstanceElement? targetElement;
     if (target is ExtensionOverride) {
       targetElement = target.element2;
-    } else if (target is Identifier && target.element is ExtensionElement2) {
-      targetElement = target.element as ExtensionElement2;
+    } else if (target is Identifier && target.element is ExtensionElement) {
+      targetElement = target.element as ExtensionElement;
       staticModifier = true;
     } else if (target != null) {
       // prepare target interface type
@@ -69,8 +69,7 @@ class CreateSetter extends ResolvedCorrectionProducer {
         staticModifier = targetElement?.kind == ElementKind.CLASS;
       }
     } else {
-      targetElement =
-          node.enclosingInterfaceElement ?? node.enclosingExtensionElement;
+      targetElement = node.enclosingInstanceElement;
       if (targetElement == null) {
         return;
       }

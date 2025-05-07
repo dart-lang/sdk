@@ -20,7 +20,6 @@
 #include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
-#include "vm/deopt_instructions.h"
 #include "vm/dispatch_table.h"
 #include "vm/ffi_callback_metadata.h"
 #include "vm/flags.h"
@@ -102,21 +101,6 @@ DEFINE_FLAG(bool,
 #define T (thread())
 #define I (isolate())
 #define IG (isolate_group())
-
-#if defined(DEBUG)
-// Helper class to ensure that a live origin_id is never reused
-// and assigned to an isolate.
-class VerifyOriginId : public IsolateVisitor {
- public:
-  explicit VerifyOriginId(Dart_Port id) : id_(id) {}
-
-  void VisitIsolate(Isolate* isolate) { ASSERT(isolate->origin_id() != id_); }
-
- private:
-  Dart_Port id_;
-  DISALLOW_COPY_AND_ASSIGN(VerifyOriginId);
-};
-#endif
 
 static std::unique_ptr<Message> SerializeMessage(Dart_Port dest_port,
                                                  const Instance& obj) {
@@ -262,7 +246,7 @@ DisableIdleTimerScope::~DisableIdleTimerScope() {
 class FinalizeWeakPersistentHandlesVisitor : public HandleVisitor {
  public:
   explicit FinalizeWeakPersistentHandlesVisitor(IsolateGroup* isolate_group)
-      : HandleVisitor(Thread::Current()), isolate_group_(isolate_group) {}
+      : HandleVisitor(), isolate_group_(isolate_group) {}
 
   void VisitHandle(uword addr) override {
     auto handle = reinterpret_cast<FinalizablePersistentHandle*>(addr);
@@ -354,6 +338,7 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       shared_initial_field_table_(new FieldTable(/*isolate=*/nullptr,
                                                  /*isolate_group=*/nullptr)),
       shared_field_table_(new FieldTable(/*isolate=*/nullptr, this)),
+      isolate_group_flags_(),
 #if !defined(DART_PRECOMPILED_RUNTIME)
       background_compiler_(new BackgroundCompiler(this)),
 #endif
@@ -372,12 +357,13 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       boxed_field_list_(GrowableObjectArray::null()),
       program_lock_(new SafepointRwLock(SafepointLevel::kGCAndDeopt)),
       active_mutators_monitor_(new Monitor()),
-      max_active_mutators_(Scavenger::MaxMutatorThreadCount())
+      max_active_mutators_(Scavenger::MaxMutatorThreadCount()),
 #if !defined(PRODUCT)
-      ,
-      debugger_(new GroupDebugger(this))
+      debugger_(new GroupDebugger(this)),
 #endif
-{
+      cache_mutex_(),
+      handler_info_cache_(),
+      catch_entry_moves_cache_() {
   FlagsCopyFrom(api_flags);
   if (!is_vm_isolate) {
     intptr_t max_worker_threads;
@@ -731,7 +717,7 @@ void IsolateGroup::ForEach(std::function<void(IsolateGroup*)> action) {
 }
 
 void IsolateGroup::RunWithIsolateGroup(
-    uint64_t id,
+    Dart_Port id,
     std::function<void(IsolateGroup*)> action,
     std::function<void()> not_found) {
   ReadRwLocker wl(Thread::Current(), isolate_groups_rwlock_);
@@ -925,6 +911,36 @@ void IsolateGroup::ExitTemporaryIsolate() {
   ASSERT(thread != nullptr);
   thread->set_execution_state(Thread::kThreadInVM);
   Dart::ShutdownIsolate(thread);
+}
+
+void IsolateGroup::RunWithCachedCatchEntryMoves(
+    const Code& code,
+    intptr_t pc,
+    std::function<void(const CatchEntryMoves&)> action) {
+  SafepointMutexLocker ml(&cache_mutex_);
+  const CatchEntryMovesRefPtr* ref = catch_entry_moves_cache_.Lookup(pc);
+  if (ref != nullptr) {
+    action(ref->moves());
+  } else {
+    const intptr_t pc_offset = pc - code.PayloadStart();
+    const auto& td = TypedData::Handle(code.catch_entry_moves_maps());
+
+    CatchEntryMovesMapReader reader(td);
+    const CatchEntryMoves* moves = reader.ReadMovesForPcOffset(pc_offset);
+    catch_entry_moves_cache_.Insert(pc, CatchEntryMovesRefPtr(moves));
+    action(*moves);
+  }
+}
+
+void IsolateGroup::ClearCatchEntryMovesCacheLocked() {
+  auto thread = Thread::Current();
+  ASSERT(thread->OwnsSafepoint() ||
+         (thread->task_kind() == Thread::kMutatorTask) ||
+         (thread->task_kind() == Thread::kMarkerTask) ||
+         (thread->task_kind() == Thread::kCompactorTask) ||
+         (thread->task_kind() == Thread::kScavengerTask) ||
+         (thread->task_kind() == Thread::kIncrementalCompactorTask));
+  catch_entry_moves_cache_.Clear();
 }
 
 void IsolateGroup::RehashConstants(Become* become) {
@@ -1794,7 +1810,7 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       finalizers_(GrowableObjectArray::null()),
       isolate_group_(isolate_group),
       isolate_object_store_(new IsolateObjectStore()),
-      isolate_flags_(0),
+      isolate_flags_(),
 #if !defined(PRODUCT)
       last_resume_timestamp_(OS::GetCurrentTimeMillis()),
       vm_tag_counters_(),
@@ -1816,8 +1832,6 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       tag_table_(GrowableObjectArray::null()),
       sticky_error_(Error::null()),
       spawn_count_monitor_(),
-      handler_info_cache_(),
-      catch_entry_moves_cache_(),
       wake_pause_event_handler_count_(0),
       loaded_prefixes_set_storage_(nullptr) {
   FlagsCopyFrom(api_flags);
@@ -1854,8 +1868,6 @@ Isolate::~Isolate() {
   delete message_handler_;
   message_handler_ =
       nullptr;  // Fail fast if we send messages to a dead isolate.
-  ASSERT(deopt_context_ ==
-         nullptr);  // No deopt in progress when isolate deleted.
   ASSERT(spawn_count_ == 0);
 
   // The [Thread] object should've been released on the last
@@ -1909,12 +1921,6 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
   result->message_handler_ = new IsolateMessageHandler(result);
 
   result->set_main_port(PortMap::CreatePort(result->message_handler()));
-#if defined(DEBUG)
-  // Verify that we are never reusing a live origin id.
-  VerifyOriginId id_verifier(result->main_port());
-  Isolate::VisitIsolates(&id_verifier);
-#endif
-  result->set_origin_id(result->main_port());
 
   // First we ensure we enter the isolate. This will ensure we're participating
   // in any safepointing requests from this point on. Other threads requesting a
@@ -2030,17 +2036,6 @@ int64_t IsolateGroup::UptimeMicros() const {
 
 int64_t Isolate::UptimeMicros() const {
   return OS::GetCurrentMonotonicMicros() - start_time_micros_;
-}
-
-Dart_Port Isolate::origin_id() {
-  MutexLocker ml(&origin_id_mutex_);
-  return origin_id_;
-}
-
-void Isolate::set_origin_id(Dart_Port id) {
-  MutexLocker ml(&origin_id_mutex_);
-  ASSERT((id == main_port_ && origin_id_ == 0) || (origin_id_ == main_port_));
-  origin_id_ = id;
 }
 
 void Isolate::set_finalizers(const GrowableObjectArray& value) {
@@ -2794,13 +2789,6 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   }
 #endif  // !defined(PRODUCT)
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  // Visit objects that are being used for deoptimization.
-  if (deopt_context() != nullptr) {
-    deopt_context()->VisitObjectPointers(visitor);
-  }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
   visitor->VisitPointer(
       reinterpret_cast<ObjectPtr*>(&loaded_prefixes_set_storage_));
 
@@ -3187,8 +3175,6 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   if (ref) {
     return;
   }
-  jsobj.AddPropertyF("_originNumber", "%" Pd64 "",
-                     static_cast<int64_t>(origin_id()));
   int64_t uptime_millis = UptimeMicros() / kMicrosecondsPerMillisecond;
   int64_t start_time = OS::GetCurrentTimeMillis() - uptime_millis;
   jsobj.AddPropertyTimeMillis("startTime", start_time);

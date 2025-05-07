@@ -16,16 +16,9 @@ import 'package:expect/expect.dart';
 // `JSArrayImpl`.
 // 3) Test should ensure both receivers and arguments for all [List] operations
 // will be `JSArrayImpl`.
-enum TestMode {
-  jsReceiver,
-  jsArgument,
-  jsReceiverAndArguments,
-}
+enum TestMode { jsReceiver, jsArgument, jsReceiverAndArguments }
 
-enum Position {
-  jsReceiver,
-  jsArgument,
-}
+enum Position { jsReceiver, jsArgument }
 
 bool useJSType(Position pos, TestMode mode) =>
     (pos == Position.jsReceiver &&
@@ -336,14 +329,12 @@ void nonModedTests<T extends JSAny?>({required bool testProxy}) {
 
   // takeWhile
   Expect.listEquals(
-      [],
-      list
-          .takeWhile((n) => (n as JSNumber).toDouble > 3)
-          .toList()
-          .toListDouble);
+    [],
+    list.takeWhile((n) => (n as JSNumber).toDouble > 3).toList().toListDouble,
+  );
   Expect.listEquals([
     1,
-    2
+    2,
   ], list.takeWhile((n) => (n as JSNumber).toDouble < 3).toList().toListDouble);
 
   // skip
@@ -354,59 +345,79 @@ void nonModedTests<T extends JSAny?>({required bool testProxy}) {
   Expect.listEquals([
     1,
     2,
-    3
+    3,
   ], list.skipWhile((n) => (n as JSNumber).toDouble > 3).toList().toListDouble);
   Expect.listEquals(
-      [],
-      list
-          .skipWhile((n) => (n as JSNumber).toDouble < 4)
-          .toList()
-          .toListDouble);
+    [],
+    list.skipWhile((n) => (n as JSNumber).toDouble < 4).toList().toListDouble,
+  );
 
   // reduce
   Expect.equals(
-      6,
-      (list.reduce((a, b) =>
-              ((a as JSNumber).toDouble + (b as JSNumber).toDouble).toJS
-                  as T) as JSNumber)
-          .toDartDouble);
+    6,
+    (list.reduce(
+              (a, b) =>
+                  ((a as JSNumber).toDouble + (b as JSNumber).toDouble).toJS
+                      as T,
+            )
+            as JSNumber)
+        .toDartDouble,
+  );
 
   // fold
   Expect.equals(
-      6, list.fold<double>(0, (a, b) => a + (b as JSNumber).toDouble));
+    6,
+    list.fold<double>(0, (a, b) => a + (b as JSNumber).toDouble),
+  );
 
   // firstWhere
   Expect.equals(
-      1, list.firstWhere((a) => (a as JSNumber).toDartDouble == 1).toDouble);
+    1,
+    list.firstWhere((a) => (a as JSNumber).toDartDouble == 1).toDouble,
+  );
   Expect.equals(
-      45,
-      list
-          .firstWhere((a) => (a as JSNumber).toDartDouble == 4,
-              orElse: () => 45.toJS as T)
-          .toDouble);
+    45,
+    list
+        .firstWhere(
+          (a) => (a as JSNumber).toDartDouble == 4,
+          orElse: () => 45.toJS as T,
+        )
+        .toDouble,
+  );
 
   // lastWhere
   list = toJSList([1, 2, 3, 4]);
   Expect.equals(
-      4, list.lastWhere((a) => (a as JSNumber).toDartDouble % 2 == 0).toDouble);
+    4,
+    list.lastWhere((a) => (a as JSNumber).toDartDouble % 2 == 0).toDouble,
+  );
   Expect.equals(
-      45,
-      list
-          .lastWhere((a) => (a as JSNumber).toDartDouble == 5,
-              orElse: () => 45.toJS as T)
-          .toDouble);
+    45,
+    list
+        .lastWhere(
+          (a) => (a as JSNumber).toDartDouble == 5,
+          orElse: () => 45.toJS as T,
+        )
+        .toDouble,
+  );
 
   // singleWhere
   Expect.equals(
-      1, list.singleWhere((a) => (a as JSNumber).toDartDouble == 1).toDouble);
+    1,
+    list.singleWhere((a) => (a as JSNumber).toDartDouble == 1).toDouble,
+  );
   Expect.throwsStateError(
-      () => list.singleWhere((a) => (a as JSNumber).toDartDouble % 2 == 0));
+    () => list.singleWhere((a) => (a as JSNumber).toDartDouble % 2 == 0),
+  );
   Expect.equals(
-      45,
-      list
-          .singleWhere((a) => (a as JSNumber).toDartDouble == 5,
-              orElse: () => 45.toJS as T)
-          .toDouble);
+    45,
+    list
+        .singleWhere(
+          (a) => (a as JSNumber).toDartDouble == 5,
+          orElse: () => 45.toJS as T,
+        )
+        .toDouble,
+  );
 
   // sublist
   Expect.listEquals([1, 2, 3, 4], list.sublist(0).toListDouble);
@@ -455,7 +466,7 @@ void runAllTests() {
   for (final mode in [
     TestMode.jsReceiver,
     TestMode.jsArgument,
-    TestMode.jsReceiverAndArguments
+    TestMode.jsReceiverAndArguments,
   ]) {
     modedTests<JSAny?>(mode, testProxy: true);
     modedTests<JSAny?>(mode, testProxy: false);

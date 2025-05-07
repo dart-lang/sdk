@@ -1,29 +1,29 @@
-/*member: main:[null|powerset=1]*/
+/*member: main:[null|powerset={null}]*/
 void main() {
   testList();
   testClosure1();
 }
 
-/*member: testList:Container([exact=JSExtendableArray|powerset=0], element: [exact=JSUInt31|powerset=0], length: null, powerset: 0)*/
+/*member: testList:Container([exact=JSExtendableArray|powerset={I}], element: [exact=JSUInt31|powerset={I}], length: null, powerset: {I})*/
 testList() {
   dynamic list = [];
   final rec = (list, 3);
   final myList =
-      rec. /*[Record(RecordShape(2), [Container([exact=JSExtendableArray|powerset=0], element: [exact=JSUInt31|powerset=0], length: null, powerset: 0), [exact=JSUInt31|powerset=0]], powerset: 0)]*/ $1;
+      rec. /*[Record(RecordShape(2), [Container([exact=JSExtendableArray|powerset={I}], element: [exact=JSUInt31|powerset={I}], length: null, powerset: {I}), [exact=JSUInt31|powerset={I}]], powerset: {N})]*/ $1;
   myList
-      . /*invoke: Container([exact=JSExtendableArray|powerset=0], element: [exact=JSUInt31|powerset=0], length: null, powerset: 0)*/ add(
+      . /*invoke: Container([exact=JSExtendableArray|powerset={I}], element: [exact=JSUInt31|powerset={I}], length: null, powerset: {I})*/ add(
         1,
       );
   return list;
 }
 
-/*member: testClosure1:Container([exact=JSExtendableArray|powerset=0], element: [exact=JSUInt31|powerset=0], length: 2, powerset: 0)*/
+/*member: testClosure1:Container([exact=JSExtendableArray|powerset={I}], element: [exact=JSUInt31|powerset={I}], length: 2, powerset: {I})*/
 testClosure1() {
   return getRecord()
-      . /*[Record(RecordShape(2), [Container([exact=JSExtendableArray|powerset=0], element: [exact=JSUInt31|powerset=0], length: 2, powerset: 0), [exact=JSUInt31|powerset=0]], powerset: 0)]*/ $1;
+      . /*[Record(RecordShape(2), [Container([exact=JSExtendableArray|powerset={I}], element: [exact=JSUInt31|powerset={I}], length: 2, powerset: {I}), [exact=JSUInt31|powerset={I}]], powerset: {N})]*/ $1;
 }
 
-/*member: getRecord:[Record(RecordShape(2), [Container([exact=JSExtendableArray|powerset=0], element: [exact=JSUInt31|powerset=0], length: 2, powerset: 0), [exact=JSUInt31|powerset=0]], powerset: 0)]*/
+/*member: getRecord:[Record(RecordShape(2), [Container([exact=JSExtendableArray|powerset={I}], element: [exact=JSUInt31|powerset={I}], length: 2, powerset: {I}), [exact=JSUInt31|powerset={I}]], powerset: {N})]*/
 getRecord() {
   return ([1, 2], 3);
 }

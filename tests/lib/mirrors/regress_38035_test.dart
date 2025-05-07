@@ -14,6 +14,8 @@ class A {
 }
 
 main() {
-  Expect.equals('([dynamic]) -> dart.core.bool',
-      MirrorSystem.getName(reflect(A._defaultCheck).type.simpleName));
+  Expect.equals(
+    '([dynamic]) -> dart.core.bool',
+    MirrorSystem.getName(reflect(A._defaultCheck).type.simpleName),
+  );
 }

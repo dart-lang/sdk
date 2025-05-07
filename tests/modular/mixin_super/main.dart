@@ -29,6 +29,7 @@ class PointerScrollEvent extends PointerSignalEvent
 }
 
 main() {
-  new PointerScrollEvent()
-      .debugFillProperties(new DiagnosticPropertiesBuilder());
+  new PointerScrollEvent().debugFillProperties(
+    new DiagnosticPropertiesBuilder(),
+  );
 }

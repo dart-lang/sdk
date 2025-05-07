@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert' show JsonEncoder;
 import 'dart:developer' as developer;
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:analysis_server/protocol/protocol_constants.dart'
     show PROTOCOL_VERSION;
@@ -33,6 +34,8 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
@@ -163,7 +166,7 @@ String get _sdkVersion {
   return version;
 }
 
-String writeOption(String name, dynamic value) {
+String writeOption(String name, Object value) {
   return '$name: <code>$value</code><br> ';
 }
 
@@ -550,7 +553,7 @@ class CollectReportPage extends DiagnosticPage {
   }
 
   Future<String> _collectAllData() async {
-    Map<String, dynamic> collectedData = {};
+    Map<String, Object?> collectedData = {};
     var server = this.server;
 
     // General data.
@@ -759,14 +762,14 @@ class CollectReportPage extends DiagnosticPage {
         thisIsolateData['memory'] = isolateMemoryUsage.json;
         var allocationProfile = await serviceClient.getAllocationProfile(id);
         var allocationMembers = allocationProfile.members ?? [];
-        var allocationProfileData = [];
+        var allocationProfileData = <Map<String, Object?>>[];
         thisIsolateData['allocationProfile'] = allocationProfileData;
         for (var member in allocationMembers) {
           var bytesCurrent = member.bytesCurrent;
           // Filter out very small entries to avoid the report becoming too big.
           if (bytesCurrent == null || bytesCurrent < 1024) continue;
 
-          var memberData = {};
+          var memberData = <String, Object?>{};
           allocationProfileData.add(memberData);
           memberData['bytesCurrent'] = bytesCurrent;
           memberData['instancesCurrent'] = member.instancesCurrent;
@@ -1014,7 +1017,8 @@ class ContextsPage extends DiagnosticPageWithNav {
         'contexts',
         'Contexts',
         description:
-            'An analysis context defines the options and the set of sources being analyzed.',
+            'An analysis context defines a set of sources for which URIs are '
+            'all resolved in the same way.',
       );
 
   @override
@@ -1190,6 +1194,41 @@ class ContextsPage extends DiagnosticPageWithNav {
     buf.write('<p class="scroll-table">');
     writeMap(info.templateMap);
     buf.write('</p>');
+
+    h3('Largest library cycles');
+    Set<LibraryCycle> cycles = {};
+    var contextRoot = driver.analysisContext!.contextRoot;
+    for (var filePath in contextRoot.analyzedFiles()) {
+      var fileState = driver.fsState.getFileForPath(filePath);
+      var kind = fileState.kind;
+      if (kind is LibraryFileKind) {
+        cycles.add(kind.libraryCycle);
+      }
+    }
+    var sortedCycles =
+        cycles.toList()..sort((first, second) => second.size - first.size);
+    var cyclesToDisplay = math.min(sortedCycles.length, 10);
+    var initialPathLength = contextRoot.root.path.length + 1;
+    buf.write('<p>There are ${sortedCycles.length} library cycles. ');
+    buf.write('The $cyclesToDisplay largest contain</p>');
+    buf.write('<ul>');
+    for (var i = 0; i < cyclesToDisplay; i++) {
+      var cycle = sortedCycles[i];
+      var libraries = cycle.libraries;
+      var cycleSize = cycle.size;
+      var libraryCount = math.min(cycleSize, 8);
+      buf.write('<li>$cycleSize libraries, including');
+      buf.write('<ul>');
+      for (var j = 0; j < libraryCount; j++) {
+        var library = libraries[j];
+        buf.write('<li>');
+        buf.write(library.file.path.substring(initialPathLength));
+        buf.write('</li>');
+      }
+      buf.write('</ul>');
+      buf.write('</li>');
+    }
+    buf.write('</ul>');
   }
 
   void writeList<E>(List<E> list) {
@@ -2358,6 +2397,11 @@ abstract class WebSocketLoggingPage extends DiagnosticPageWithNav
 class _CollectedOptionsData {
   final Set<String> lints = <String>{};
   final Set<String> plugins = <String>{};
+}
+
+extension on LibraryCycle {
+  /// The number of libraries in the cycle.
+  int get size => libraries.length;
 }
 
 extension on String {

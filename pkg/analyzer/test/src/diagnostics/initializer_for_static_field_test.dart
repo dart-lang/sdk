@@ -16,25 +16,33 @@ main() {
 @reflectiveTest
 class InitializerForStaticFieldTest extends PubPackageResolutionTest {
   test_fieldFormalParameter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   static int? x;
   A([this.x = 0]) {}
 }
-''', [
-      error(CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD, 32, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD, 32, 6)],
+    );
   }
 
   test_initializer() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   static int x = 1;
   A() : x = 0 {}
 }
-''', [
-      error(CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD, 38, 5,
-          messageContains: ["'x'"]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD,
+          38,
+          5,
+          messageContains: ["'x'"],
+        ),
+      ],
+    );
   }
 }

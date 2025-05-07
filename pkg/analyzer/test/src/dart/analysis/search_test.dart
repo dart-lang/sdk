@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
@@ -30,8 +30,10 @@ main() {
 @reflectiveTest
 class SearchMultipleDriversTest extends PubPackageResolutionTest {
   @override
-  List<String> get collectionIncludedPaths =>
-      [workspaceRootPath, otherPackageRootPath];
+  List<String> get collectionIncludedPaths => [
+    workspaceRootPath,
+    otherPackageRootPath,
+  ];
 
   AnalysisDriver get driver => driverFor(testFile);
 
@@ -55,15 +57,18 @@ class SearchMultipleDriversTest extends PubPackageResolutionTest {
 
     // Ensure only one result for an SDK class, and that the file was tracked as searched.
     var declarations = results.declarations;
-    expect(declarations.where((element) => element.name == 'Duration'),
-        hasLength(1));
+    expect(
+      declarations.where((element) => element.name == 'Duration'),
+      hasLength(1),
+    );
   }
 }
 
 @reflectiveTest
 class SearchTest extends PubPackageResolutionTest {
-  final OperationPerformanceImpl performance =
-      OperationPerformanceImpl('<root>');
+  final OperationPerformanceImpl performance = OperationPerformanceImpl(
+    '<root>',
+  );
 
   AnalysisDriver get driver => driverFor(testFile);
 
@@ -83,7 +88,7 @@ class SearchTest extends PubPackageResolutionTest {
   }
 
   Future<void> assertElementReferencesText(
-    Element2 element,
+    Element element,
     String expected,
   ) async {
     var searchedFiles = SearchedFiles();
@@ -114,8 +119,10 @@ class SearchTest extends PubPackageResolutionTest {
     String expected,
   ) async {
     var searchedFiles = SearchedFiles();
-    var results =
-        await driver.search.referencesLibraryImport(import, searchedFiles);
+    var results = await driver.search.referencesLibraryImport(
+      import,
+      searchedFiles,
+    );
     var actual = _getSearchResultsText2(results);
     if (actual != expected) {
       print(actual);
@@ -129,8 +136,10 @@ class SearchTest extends PubPackageResolutionTest {
     String expected,
   ) async {
     var searchedFiles = SearchedFiles();
-    var results =
-        await driver.search.unresolvedMemberReferences(name, searchedFiles);
+    var results = await driver.search.unresolvedMemberReferences(
+      name,
+      searchedFiles,
+    );
     var actual = _getSearchResultsText(results);
     if (actual != expected) {
       print(actual);
@@ -257,7 +266,10 @@ class C {
       ownedFiles: analysisContextCollection.ownedFiles,
       performance: performance,
     ).compute();
-    assertDeclarationsText(results, {testFile: 'testFile'}, r'''
+    assertDeclarationsText(
+      results,
+      {testFile: 'testFile'},
+      r'''
 testFile
   CLASS C
     offset: 6 1:7
@@ -290,7 +302,8 @@ testFile
     codeOffset: 78 + 11
     className: C
     parameters: ()
-''');
+''',
+    );
   }
 
   test_declarations_discover() async {
@@ -323,12 +336,15 @@ testFile
       performance: performance,
     ).compute();
 
-    assertDeclarationsText(results, {
-      testFile: 'testFile',
-      file_a: 'file_a',
-      file_b: 'file_b',
-      file_c: 'file_c',
-    }, r'''
+    assertDeclarationsText(
+      results,
+      {
+        testFile: 'testFile',
+        file_a: 'file_a',
+        file_b: 'file_b',
+        file_c: 'file_c',
+      },
+      r'''
 testFile
   CLASS T
     offset: 6 1:7
@@ -341,7 +357,8 @@ file_b
   CLASS B
     offset: 6 1:7
     codeOffset: 0 + 10
-''');
+''',
+    );
   }
 
   test_declarations_enum() async {
@@ -360,7 +377,10 @@ enum E {
       ownedFiles: analysisContextCollection.ownedFiles,
       performance: performance,
     ).compute();
-    assertDeclarationsText(results, {testFile: 'testFile'}, r'''
+    assertDeclarationsText(
+      results,
+      {testFile: 'testFile'},
+      r'''
 testFile
   ENUM E
     offset: 5 1:6
@@ -374,7 +394,8 @@ testFile
   ENUM_CONSTANT ccc
     offset: 18 2:10
     codeOffset: 18 + 3
-''');
+''',
+    );
   }
 
   test_declarations_extension() async {
@@ -395,7 +416,10 @@ extension E on int {
       ownedFiles: analysisContextCollection.ownedFiles,
       performance: performance,
     ).compute();
-    assertDeclarationsText(results, {testFile: 'testFile'}, r'''
+    assertDeclarationsText(
+      results,
+      {testFile: 'testFile'},
+      r'''
 testFile
   EXTENSION E
     offset: 10 1:11
@@ -414,7 +438,8 @@ testFile
     offset: 74 5:8
     codeOffset: 69 + 11
     parameters: ()
-''');
+''',
+    );
   }
 
   test_declarations_extensionType() async {
@@ -434,7 +459,10 @@ extension type E(int it) {
       ownedFiles: analysisContextCollection.ownedFiles,
       performance: performance,
     ).compute();
-    assertDeclarationsText(results, {testFile: 'testFile'}, r'''
+    assertDeclarationsText(
+      results,
+      {testFile: 'testFile'},
+      r'''
 testFile
   EXTENSION_TYPE E
     offset: 15 1:16
@@ -462,7 +490,8 @@ testFile
     codeOffset: 66 + 11
     className: E
     parameters: ()
-''');
+''',
+    );
   }
 
   test_declarations_fuzzyMatch() async {
@@ -481,12 +510,16 @@ class D {}
       ownedFiles: analysisContextCollection.ownedFiles,
       performance: performance,
     ).compute();
-    assertDeclarationsText(results, {testFile: 'testFile'}, r'''
+    assertDeclarationsText(
+      results,
+      {testFile: 'testFile'},
+      r'''
 testFile
   CLASS A
     offset: 6 1:7
     codeOffset: 0 + 10
-''');
+''',
+    );
   }
 
   test_declarations_maxResults() async {
@@ -525,7 +558,10 @@ mixin M {
       ownedFiles: analysisContextCollection.ownedFiles,
       performance: performance,
     ).compute();
-    assertDeclarationsText(results, {testFile: 'testFile'}, r'''
+    assertDeclarationsText(
+      results,
+      {testFile: 'testFile'},
+      r'''
 testFile
   MIXIN M
     offset: 6 1:7
@@ -548,7 +584,8 @@ testFile
     codeOffset: 58 + 11
     mixinName: M
     parameters: ()
-''');
+''',
+    );
   }
 
   test_declarations_onlyForFile() async {
@@ -567,12 +604,16 @@ testFile
     ).compute();
     expect(results.files, [b.path]);
 
-    assertDeclarationsText(results, {testFile: 'testFile', b: 'file_b'}, r'''
+    assertDeclarationsText(
+      results,
+      {testFile: 'testFile', b: 'file_b'},
+      r'''
 file_b
   CLASS B
     offset: 6 1:7
     codeOffset: 0 + 10
-''');
+''',
+    );
   }
 
   test_declarations_parameters() async {
@@ -592,7 +633,10 @@ void f(bool a, String b) {}
       ownedFiles: analysisContextCollection.ownedFiles,
       performance: performance,
     ).compute();
-    assertDeclarationsText(results, {testFile: 'testFile'}, r'''
+    assertDeclarationsText(
+      results,
+      {testFile: 'testFile'},
+      r'''
 testFile
   CLASS C
     offset: 6 1:7
@@ -610,7 +654,8 @@ testFile
     offset: 64 5:6
     codeOffset: 59 + 27
     parameters: (bool a, String b)
-''');
+''',
+    );
   }
 
   test_declarations_parameters_functionTyped() async {
@@ -629,7 +674,10 @@ void f4(bool Function(int, String) a) {}
       ownedFiles: analysisContextCollection.ownedFiles,
       performance: performance,
     ).compute();
-    assertDeclarationsText(results, {testFile: 'testFile'}, r'''
+    assertDeclarationsText(
+      results,
+      {testFile: 'testFile'},
+      r'''
 testFile
   FUNCTION f1
     offset: 5 1:6
@@ -647,7 +695,8 @@ testFile
     offset: 106 4:6
     codeOffset: 101 + 40
     parameters: (bool Function(int, String) a)
-''');
+''',
+    );
   }
 
   test_declarations_parameters_typeArguments() async {
@@ -667,7 +716,10 @@ class A<T, T2> {
       ownedFiles: analysisContextCollection.ownedFiles,
       performance: performance,
     ).compute();
-    assertDeclarationsText(results, {testFile: 'testFile'}, r'''
+    assertDeclarationsText(
+      results,
+      {testFile: 'testFile'},
+      r'''
 testFile
   CLASS A
     offset: 6 1:7
@@ -687,7 +739,8 @@ testFile
     codeOffset: 81 + 50
     className: A
     parameters: (Map<Map<T2, U2>, Map<U1, T>> a)
-''');
+''',
+    );
   }
 
   test_declarations_top() async {
@@ -708,7 +761,10 @@ typedef tf2<T> = int Function<S>(T tp, S sp);
       ownedFiles: analysisContextCollection.ownedFiles,
       performance: performance,
     ).compute();
-    assertDeclarationsText(results, {testFile: 'testFile'}, r'''
+    assertDeclarationsText(
+      results,
+      {testFile: 'testFile'},
+      r'''
 testFile
   GETTER g
     offset: 8 1:9
@@ -730,7 +786,8 @@ testFile
   TYPE_ALIAS tf2
     offset: 85 6:9
     codeOffset: 77 + 45
-''');
+''',
+    );
   }
 
   test_issue49951_references_dontAddToKnown_unrelated() async {
@@ -748,8 +805,9 @@ class A {}
 
     var myDriver = driverFor(myFile);
     var mySession = contextFor(myFile).currentSession;
-    var libraryElementResult =
-        await mySession.getLibraryByUri('package:my/my.dart');
+    var libraryElementResult = await mySession.getLibraryByUri(
+      'package:my/my.dart',
+    );
     libraryElementResult as LibraryElementResult;
 
     var A = libraryElementResult.element2.getClass2('A')!;
@@ -1063,10 +1121,11 @@ void f() {}
     await resolveTestCode('''
 export 'foo.dart';
 ''');
-    var element = findElement2
-        .export('package:test/foo.dart')
-        .exportedLibrary2!
-        .firstFragment;
+    var element =
+        findElement2
+            .export('package:test/foo.dart')
+            .exportedLibrary2!
+            .firstFragment;
     await assertLibraryFragmentReferencesText(element, r'''
 <testLibraryFragment>
   7 1:8 |'foo.dart'|
@@ -2913,8 +2972,10 @@ class F {}
     var a = findElement2.class_('A');
 
     // Search by 'type'.
-    List<SubtypeResult> subtypes =
-        await driver.search.subtypes(SearchedFiles(), type: a);
+    List<SubtypeResult> subtypes = await driver.search.subtypes(
+      SearchedFiles(),
+      type: a,
+    );
     expect(subtypes, hasLength(3));
 
     SubtypeResult b = subtypes.singleWhere((r) => r.name == 'B');
@@ -2935,8 +2996,10 @@ class F {}
 
     // Search by 'id'.
     {
-      List<SubtypeResult> subtypes =
-          await driver.search.subtypes(SearchedFiles(), subtype: b);
+      List<SubtypeResult> subtypes = await driver.search.subtypes(
+        SearchedFiles(),
+        subtype: b,
+      );
       expect(subtypes, hasLength(1));
       SubtypeResult e = subtypes.singleWhere((r) => r.name == 'E');
       expect(e.members, ['methodE']);
@@ -2992,8 +3055,10 @@ class A {
     var aClass = aLibraryResult.element2.getClass2('A')!;
 
     // Search by 'type'.
-    List<SubtypeResult> subtypes =
-        await driver.search.subtypes(SearchedFiles(), type: aClass);
+    List<SubtypeResult> subtypes = await driver.search.subtypes(
+      SearchedFiles(),
+      type: aClass,
+    );
     expect(subtypes, hasLength(3));
 
     SubtypeResult t1 = subtypes.singleWhere((r) => r.name == 'T1');
@@ -3045,11 +3110,13 @@ class C implements List {}
     var results = await driver.search.subTypes(listElement, searchedFiles);
 
     void assertHasResult(String uriStr, String name, {bool not = false}) {
-      var matcher = contains(predicate((SearchResult r) {
-        var element = r.enclosingFragment.element;
-        return element.library2!.uri.toString() == uriStr &&
-            element.name3 == name;
-      }));
+      var matcher = contains(
+        predicate((SearchResult r) {
+          var element = r.enclosingFragment.element;
+          return element.library2!.uri.toString() == uriStr &&
+              element.name3 == name;
+        }),
+      );
       expect(results, not ? isNot(matcher) : matcher);
     }
 
@@ -3077,8 +3144,10 @@ class A {}
 ''');
     var a = findElement2.class_('A');
 
-    List<SubtypeResult> subtypes =
-        await driver.search.subtypes(SearchedFiles(), type: a);
+    List<SubtypeResult> subtypes = await driver.search.subtypes(
+      SearchedFiles(),
+      type: a,
+    );
     expect(subtypes, hasLength(2));
 
     SubtypeResult b = subtypes.singleWhere((r) => r.name == 'B');
@@ -3232,11 +3301,13 @@ class NoMatchABCDEF {}
     var f = findElement2.function('f');
     var g = findElement2.topVar('g');
     RegExp regExp = RegExp(r'^[ABCDfg]$');
-    expect(await driver.search.topLevelElements(regExp),
-        unorderedEquals([a, b, c, d, f, g]));
+    expect(
+      await driver.search.topLevelElements(regExp),
+      unorderedEquals([a, b, c, d, f, g]),
+    );
   }
 
-  Future<List<Element2>> _findClassMembers(String name) {
+  Future<List<Element>> _findClassMembers(String name) {
     var searchedFiles = SearchedFiles();
     return driver.search.classMembers(name, searchedFiles);
   }
@@ -3299,20 +3370,21 @@ class NoMatchABCDEF {}
         .groupListsBy((result) => result.enclosingFragment)
         .entries
         .map((entry) {
-      var enclosingFragment = entry.key;
-      return _GroupToPrint(
-        enclosingFragment: enclosingFragment,
-        results: entry.value.sortedBy<num>((e) => e.offset),
-      );
-    }).sorted((first, second) {
-      var firstPath = first.path;
-      var secondPath = second.path;
-      var byPath = firstPath.compareTo(secondPath);
-      if (byPath != 0) {
-        return byPath;
-      }
-      return first.results.first.offset - second.results.first.offset;
-    });
+          var enclosingFragment = entry.key;
+          return _GroupToPrint(
+            enclosingFragment: enclosingFragment,
+            results: entry.value.sortedBy<num>((e) => e.offset),
+          );
+        })
+        .sorted((first, second) {
+          var firstPath = first.path;
+          var secondPath = second.path;
+          var byPath = firstPath.compareTo(secondPath);
+          if (byPath != 0) {
+            return byPath;
+          }
+          return first.results.first.offset - second.results.first.offset;
+        });
 
     var buffer = StringBuffer();
     var sink = TreeStringSink(sink: buffer, indent: '');
@@ -3361,22 +3433,23 @@ class NoMatchABCDEF {}
         .groupListsBy((result) => result.libraryFragment)
         .entries
         .map((entry) {
-      var enclosingFragment = entry.key;
-      return _GroupToPrint2(
-        enclosingFragment: enclosingFragment,
-        results: entry.value.sortedBy<num>((e) => e.range.offset),
-      );
-    }).sorted((first, second) {
-      var firstPath = first.path;
-      var secondPath = second.path;
-      var byPath = firstPath.compareTo(secondPath);
-      if (byPath != 0) {
-        return byPath;
-      }
-      var firstOffset = first.results.first.range.offset;
-      var secondOffset = second.results.first.range.offset;
-      return firstOffset - secondOffset;
-    });
+          var enclosingFragment = entry.key;
+          return _GroupToPrint2(
+            enclosingFragment: enclosingFragment,
+            results: entry.value.sortedBy<num>((e) => e.range.offset),
+          );
+        })
+        .sorted((first, second) {
+          var firstPath = first.path;
+          var secondPath = second.path;
+          var byPath = firstPath.compareTo(secondPath);
+          if (byPath != 0) {
+            return byPath;
+          }
+          var firstOffset = first.results.first.range.offset;
+          var secondOffset = second.results.first.range.offset;
+          return firstOffset - secondOffset;
+        });
 
     var buffer = StringBuffer();
     var sink = TreeStringSink(sink: buffer, indent: '');
@@ -3415,10 +3488,7 @@ class _GroupToPrint {
   final Fragment enclosingFragment;
   final List<SearchResult> results;
 
-  _GroupToPrint({
-    required this.enclosingFragment,
-    required this.results,
-  });
+  _GroupToPrint({required this.enclosingFragment, required this.results});
 
   String get path {
     return enclosingFragment.libraryFragment!.source.fullName;
@@ -3429,10 +3499,7 @@ class _GroupToPrint2 {
   final Fragment enclosingFragment;
   final List<LibraryFragmentSearchMatch> results;
 
-  _GroupToPrint2({
-    required this.enclosingFragment,
-    required this.results,
-  });
+  _GroupToPrint2({required this.enclosingFragment, required this.results});
 
   String get path {
     return enclosingFragment.libraryFragment!.source.fullName;

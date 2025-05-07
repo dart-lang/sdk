@@ -56,9 +56,7 @@ abstract class Client {
   void onRequest(Message message) =>
       // In JSON-RPC 2.0 messages with and id are Request and must be answered
       // http://www.jsonrpc.org/specification#notification
-      service
-      .routeRequest(service, message)
-      .then(post);
+      service.routeRequest(service, message).then(post);
 
   void onResponse(Message message) => service.routeResponse(message);
 
@@ -67,8 +65,7 @@ abstract class Client {
       // In JSON-RPC 2.0 messages without an id are Notification
       // and should not be answered
       // http://www.jsonrpc.org/specification#notification
-      service
-      .routeRequest(service, message);
+      service.routeRequest(service, message);
 
   // Sends a result to the client. Implemented in subclasses.
   //

@@ -21,8 +21,9 @@ testWriteAsBytesSync(dir) {
 }
 
 void testWriteAsBytesOutsideOf0to256Sync(dir) {
-  final f =
-      new File('${dir.path}${Platform.pathSeparator}outside_bytes_sync.txt');
+  final f = new File(
+    '${dir.path}${Platform.pathSeparator}outside_bytes_sync.txt',
+  );
   final data = [-256, -255, -1, 0, 255, 256];
 
   f.writeAsBytesSync(data);

@@ -16,12 +16,13 @@ void main() {
 @reflectiveTest
 class DocDirectiveHasExtraArgumentsTest extends PubPackageResolutionTest {
   test_animation_hasExtraArgument() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 /// {@animation 600 400 http://google.com foo}
 class C {}
-''', [
-      error(WarningCode.DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS, 42, 3),
-    ]);
+''',
+      [error(WarningCode.DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS, 42, 3)],
+    );
   }
 
   test_animation_noExtraArguments() async {
@@ -39,30 +40,33 @@ class C {}
   }
 
   test_macro_hasExtraArgument() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 /// {@macro one two}
 class C {}
-''', [
-      error(WarningCode.DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS, 16, 3),
-    ]);
+''',
+      [error(WarningCode.DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS, 16, 3)],
+    );
   }
 
   test_youtube_hasExtraArgument() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 /// {@youtube 600 400 https://www.youtube.com/watch?v=123 foo}
 class C {}
-''', [
-      error(WarningCode.DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS, 58, 3),
-    ]);
+''',
+      [error(WarningCode.DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS, 58, 3)],
+    );
   }
 
   test_youtube_hasExtraArgument_trailingWhitespace() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 /// {@youtube 600 400 https://www.youtube.com/watch?v=123 foo }
 class C {}
-''', [
-      error(WarningCode.DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS, 58, 3),
-    ]);
+''',
+      [error(WarningCode.DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS, 58, 3)],
+    );
   }
 
   test_youtube_noExtraArguments() async {

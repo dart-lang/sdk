@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -228,7 +228,7 @@ class RemoveUnusedLocalVariable extends ResolvedCorrectionProducer {
 
   bool _deleteReferences() {
     var element = _localVariableElement();
-    if (element is! LocalVariableElement2) {
+    if (element is! LocalVariableElement) {
       return false;
     }
 
@@ -280,7 +280,7 @@ class RemoveUnusedLocalVariable extends ResolvedCorrectionProducer {
     }
   }
 
-  LocalVariableElement2? _localVariableElement() {
+  LocalVariableElement? _localVariableElement() {
     var node = this.node;
     if (node is DeclaredVariablePattern) {
       return node.declaredElement2;

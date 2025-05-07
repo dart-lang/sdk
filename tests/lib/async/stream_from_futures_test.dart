@@ -41,14 +41,18 @@ void testErrors() {
   var stream = new Stream.fromFutures(cs.map((x) => x.future));
 
   int counter = 0;
-  stream.listen((_) {
-    Expect.fail("unexpected value");
-  }, onError: (e) {
-    Expect.equals(++counter, e);
-  }, onDone: () {
-    Expect.equals(3, counter);
-    asyncEnd();
-  });
+  stream.listen(
+    (_) {
+      Expect.fail("unexpected value");
+    },
+    onError: (e) {
+      Expect.equals(++counter, e);
+    },
+    onDone: () {
+      Expect.equals(3, counter);
+      asyncEnd();
+    },
+  );
 
   cs[1].completeError(1);
   cs[2].completeError(2);
@@ -61,16 +65,20 @@ void testMixed() {
   var stream = new Stream.fromFutures(cs.map((x) => x.future));
 
   int counter = 0;
-  stream.listen((v) {
-    Expect.isTrue(counter == 0 || counter == 2);
-    Expect.equals(++counter, v);
-  }, onError: (e) {
-    Expect.equals(++counter, 2);
-    Expect.equals(2, e);
-  }, onDone: () {
-    Expect.equals(3, counter);
-    asyncEnd();
-  });
+  stream.listen(
+    (v) {
+      Expect.isTrue(counter == 0 || counter == 2);
+      Expect.equals(++counter, v);
+    },
+    onError: (e) {
+      Expect.equals(++counter, 2);
+      Expect.equals(2, e);
+    },
+    onDone: () {
+      Expect.equals(3, counter);
+      asyncEnd();
+    },
+  );
 
   cs[1].complete(1);
   cs[2].completeError(2);
@@ -107,25 +115,33 @@ void testEmpty() {
   asyncStart();
   var stream = new Stream.fromFutures([]);
 
-  stream.listen((_) {
-    Expect.fail("unexpected value");
-  }, onError: (e) {
-    Expect.fail("unexpected error");
-  }, onDone: () {
-    asyncEnd();
-  });
+  stream.listen(
+    (_) {
+      Expect.fail("unexpected value");
+    },
+    onError: (e) {
+      Expect.fail("unexpected error");
+    },
+    onDone: () {
+      asyncEnd();
+    },
+  );
 }
 
 void testPrecompleted() {
   asyncStart();
   var stream = new Stream.fromFutures(
-      new Iterable.generate(3, (v) => new Future.value(v + 1)));
+    new Iterable.generate(3, (v) => new Future.value(v + 1)),
+  );
   var expected = new Set.from([1, 2, 3]);
-  stream.listen((v) {
-    Expect.isTrue(expected.contains(v));
-    expected.remove(v);
-  }, onDone: () {
-    Expect.isTrue(expected.isEmpty);
-    asyncEnd();
-  });
+  stream.listen(
+    (v) {
+      Expect.isTrue(expected.contains(v));
+      expected.remove(v);
+    },
+    onDone: () {
+      Expect.isTrue(expected.isEmpty);
+      asyncEnd();
+    },
+  );
 }

@@ -17,16 +17,16 @@ import 'package:collection/collection.dart';
 /// instance methods within a single compilation unit.
 class InstanceMemberInferrer {
   final InheritanceManager3 inheritance;
-  final Set<InterfaceElementImpl> elementsBeingInferred = {};
+  final Set<InterfaceFragmentImpl> elementsBeingInferred = {};
 
-  late InterfaceElementImpl currentInterfaceElement;
+  late InterfaceFragmentImpl currentInterfaceElement;
 
   /// Initialize a newly create inferrer.
   InstanceMemberInferrer(this.inheritance);
 
   /// Infer type information for all of the instance members in the given
   /// compilation [unit].
-  void inferCompilationUnit(CompilationUnitElementImpl unit) {
+  void inferCompilationUnit(LibraryFragmentImpl unit) {
     _inferClasses(unit.classes);
     _inferClasses(unit.enums);
     _inferExtensionTypes(unit.extensionTypes);
@@ -36,7 +36,9 @@ class InstanceMemberInferrer {
   /// Return `true` if the elements corresponding to the [elements] have the
   /// same kind as the [element].
   bool _allSameElementKind(
-      ExecutableElementImpl element, List<ExecutableElementImpl> elements) {
+    ExecutableFragmentImpl element,
+    List<ExecutableFragmentImpl> elements,
+  ) {
     var elementKind = element.kind;
     for (int i = 0; i < elements.length; i++) {
       if (elements[i].kind != elementKind) {
@@ -50,9 +52,10 @@ class InstanceMemberInferrer {
   /// given [parameter]. If the parameter is positional, then it appears at the
   /// given [index] in its enclosing element's list of parameters.
   ParameterElementMixin? _getCorrespondingParameter(
-      ParameterElementMixin parameter,
-      int index,
-      List<ParameterElementMixin> methodParameters) {
+    ParameterElementMixin parameter,
+    int index,
+    List<ParameterElementMixin> methodParameters,
+  ) {
     //
     // Find the corresponding parameter.
     //
@@ -61,8 +64,10 @@ class InstanceMemberInferrer {
       // If we're looking for a named parameter, only a named parameter with
       // the same name will be matched.
       //
-      return methodParameters.lastWhereOrNull((methodParameter) =>
-          methodParameter.isNamed && methodParameter.name == parameter.name);
+      return methodParameters.lastWhereOrNull(
+        (methodParameter) =>
+            methodParameter.isNamed && methodParameter.name == parameter.name,
+      );
     }
     //
     // If we're looking for a positional parameter we ignore the difference
@@ -83,8 +88,8 @@ class InstanceMemberInferrer {
   /// If the given [field] represents a non-synthetic instance field for
   /// which no type was provided, infer the type of the field.
   void _inferAccessorOrField({
-    PropertyAccessorElementImpl? accessor,
-    FieldElementImpl? field,
+    PropertyAccessorFragmentImpl? accessor,
+    FieldFragmentImpl? field,
   }) {
     Uri elementLibraryUri;
     String elementName;
@@ -111,9 +116,10 @@ class InstanceMemberInferrer {
       getterName,
     );
     if (overriddenGetters != null) {
-      overriddenGetters = overriddenGetters.where((e) {
-        return e is PropertyAccessorElementOrMember && e.isGetter;
-      }).toList();
+      overriddenGetters =
+          overriddenGetters.where((e) {
+            return e is PropertyAccessorElementOrMember && e.isGetter;
+          }).toList();
     } else {
       overriddenGetters = const [];
     }
@@ -129,7 +135,6 @@ class InstanceMemberInferrer {
       var combinedGetter = inheritance.combineSignatures(
         targetClass: currentInterfaceElement,
         candidates: overriddenGetters!,
-        doTopMerge: true,
         name: getterName,
       );
       if (combinedGetter != null) {
@@ -142,7 +147,6 @@ class InstanceMemberInferrer {
       var combinedSetter = inheritance.combineSignatures(
         targetClass: currentInterfaceElement,
         candidates: overriddenSetters!,
-        doTopMerge: true,
         name: setterName,
       );
       if (combinedSetter != null) {
@@ -226,8 +230,9 @@ class InstanceMemberInferrer {
 
     if (field != null) {
       if (field.setter != null) {
-        if (overriddenSetters
-            .any((s) => _isCovariantSetter(s.declarationImpl))) {
+        if (overriddenSetters.any(
+          (s) => _isCovariantSetter(s.declarationImpl),
+        )) {
           var parameter = field.setter!.parameters[0];
           parameter.inheritsCovariant = true;
         }
@@ -292,7 +297,7 @@ class InstanceMemberInferrer {
 
   /// Infer type information for all of the instance members in the given
   /// [classFragment].
-  void _inferClass(InterfaceElementImpl classFragment) {
+  void _inferClass(InterfaceFragmentImpl classFragment) {
     if (classFragment.isAugmentation) {
       return;
     }
@@ -327,14 +332,10 @@ class InstanceMemberInferrer {
       // TODO(scheglov): get other members from the container
       currentInterfaceElement = classFragment;
       for (var field in classFragment.fields) {
-        _inferAccessorOrField(
-          field: field,
-        );
+        _inferAccessorOrField(field: field);
       }
       for (var accessor in classFragment.accessors) {
-        _inferAccessorOrField(
-          accessor: accessor,
-        );
+        _inferAccessorOrField(accessor: accessor);
       }
       for (var method in classFragment.methods) {
         _inferExecutable(method);
@@ -352,7 +353,7 @@ class InstanceMemberInferrer {
     }
   }
 
-  void _inferClasses(List<InterfaceElementImpl> elements) {
+  void _inferClasses(List<InterfaceFragmentImpl> elements) {
     for (var element in elements) {
       try {
         _inferClass(element);
@@ -363,15 +364,15 @@ class InstanceMemberInferrer {
     }
   }
 
-  void _inferConstructor(ConstructorElementImpl constructor) {
+  void _inferConstructor(ConstructorFragmentImpl constructor) {
     for (var parameter in constructor.parameters) {
       if (parameter.hasImplicitType) {
-        if (parameter is FieldFormalParameterElementImpl) {
+        if (parameter is FieldFormalParameterFragmentImpl) {
           var field = parameter.field;
           if (field != null) {
             parameter.type = field.type;
           }
-        } else if (parameter is SuperFormalParameterElementImpl) {
+        } else if (parameter is SuperFormalParameterFragmentImpl) {
           var superParameter = parameter.superConstructorParameter;
           if (superParameter != null) {
             parameter.type = superParameter.type;
@@ -383,7 +384,7 @@ class InstanceMemberInferrer {
     }
 
     var classElement = constructor.enclosingElement3;
-    if (classElement is ClassElementImpl && classElement.isMixinApplication) {
+    if (classElement is ClassFragmentImpl && classElement.isMixinApplication) {
       _inferMixinApplicationConstructor(classElement, constructor);
     }
   }
@@ -391,7 +392,7 @@ class InstanceMemberInferrer {
   /// If the given [element] represents a non-synthetic instance method,
   /// getter or setter, infer the return type and any parameter type(s) where
   /// they were not provided.
-  void _inferExecutable(MethodElementImpl element) {
+  void _inferExecutable(MethodFragmentImpl element) {
     if (element.isSynthetic || element.isStatic) {
       return;
     }
@@ -402,20 +403,22 @@ class InstanceMemberInferrer {
       name,
     );
     if (overriddenElements == null ||
-        !_allSameElementKind(element,
-            overriddenElements.map((e) => e.declarationImpl).toList())) {
+        !_allSameElementKind(
+          element,
+          overriddenElements.map((e) => e.declarationImpl).toList(),
+        )) {
       return;
     }
 
     FunctionTypeImpl? combinedSignatureType;
-    var hasImplicitType = element.hasImplicitReturnType ||
+    var hasImplicitType =
+        element.hasImplicitReturnType ||
         element.parameters.any((e) => e.hasImplicitType);
     if (hasImplicitType) {
       var conflicts = <Conflict>[];
       var combinedSignature = inheritance.combineSignatures(
         targetClass: currentInterfaceElement,
         candidates: overriddenElements,
-        doTopMerge: true,
         name: name,
         conflicts: conflicts,
       );
@@ -430,11 +433,13 @@ class InstanceMemberInferrer {
         if (conflicts.length == 1) {
           var conflict = conflicts.single;
           if (conflict is CandidatesConflict) {
-            conflictExplanation = conflict.candidates.map((candidate) {
-              var className = candidate.enclosingElementImpl.name;
-              var typeStr = candidate.type.getDisplayString();
-              return '$className.${name.name} ($typeStr)';
-            }).join(', ');
+            conflictExplanation = conflict.candidates
+                .map((candidate) {
+                  var className = candidate.enclosingElementImpl.name;
+                  var typeStr = candidate.type.getDisplayString();
+                  return '$className.${name.name} ($typeStr)';
+                })
+                .join(', ');
           }
         }
 
@@ -470,10 +475,12 @@ class InstanceMemberInferrer {
     }
 
     _resetOperatorEqualParameterTypeToDynamic(
-        element, overriddenElements.map((e) => e.declarationImpl).toList());
+      element,
+      overriddenElements.map((e) => e.declarationImpl).toList(),
+    );
   }
 
-  void _inferExtensionTypes(List<ExtensionTypeElementImpl> extensionTypes) {
+  void _inferExtensionTypes(List<ExtensionTypeFragmentImpl> extensionTypes) {
     for (var extensionType in extensionTypes) {
       for (var constructor in extensionType.constructors) {
         _inferConstructor(constructor);
@@ -482,38 +489,44 @@ class InstanceMemberInferrer {
   }
 
   void _inferMixinApplicationConstructor(
-    ClassElementImpl classElement,
-    ConstructorElementImpl constructor,
+    ClassFragmentImpl classElement,
+    ConstructorFragmentImpl constructor,
   ) {
     var superType = classElement.supertype;
     if (superType != null) {
       var index = classElement.constructors.indexOf(constructor);
-      var superConstructors = superType.elementImpl.constructors
-          .where((element) =>
-              element.asElement2.isAccessibleIn2(classElement.library))
-          .toList();
+      var superConstructors =
+          superType.elementImpl.constructors
+              .where(
+                (element) =>
+                    element.asElement2.isAccessibleIn2(classElement.library),
+              )
+              .toList();
       if (index < superConstructors.length) {
         var baseConstructor = superConstructors[index];
         var substitution = Substitution.fromInterfaceType(superType);
-        forCorrespondingPairs<ParameterElementImpl, ParameterElementImpl>(
-          constructor.parameters,
-          baseConstructor.parameters,
-          (parameter, baseParameter) {
-            var type = substitution.substituteType(baseParameter.type);
-            parameter.type = type;
-          },
-        );
+        forCorrespondingPairs<
+          FormalParameterFragmentImpl,
+          FormalParameterFragmentImpl
+        >(constructor.parameters, baseConstructor.parameters, (
+          parameter,
+          baseParameter,
+        ) {
+          var type = substitution.substituteType(baseParameter.type);
+          parameter.type = type;
+        });
         // Update arguments of `SuperConstructorInvocation` to have the types
         // (which we have just set) of the corresponding formal parameters.
         // MixinApp(x, y) : super(x, y);
         var initializers = constructor.constantInitializers;
         var initializer = initializers.single as SuperConstructorInvocation;
-        forCorrespondingPairs<ParameterElementImpl, Expression>(
+        forCorrespondingPairs<FormalParameterFragmentImpl, Expression>(
           constructor.parameters,
           initializer.argumentList.arguments,
           (parameter, argument) {
-            (argument as SimpleIdentifierImpl)
-                .setPseudoExpressionStaticType(parameter.type);
+            (argument as SimpleIdentifierImpl).setPseudoExpressionStaticType(
+              parameter.type,
+            );
           },
         );
       }
@@ -521,8 +534,11 @@ class InstanceMemberInferrer {
   }
 
   /// If a parameter is covariant, any parameters that override it are too.
-  void _inferParameterCovariance(ParameterElementImpl parameter, int index,
-      Iterable<ExecutableElementOrMember> overridden) {
+  void _inferParameterCovariance(
+    FormalParameterFragmentImpl parameter,
+    int index,
+    Iterable<ExecutableElementOrMember> overridden,
+  ) {
     parameter.inheritsCovariant = overridden.any((f) {
       var param = _getCorrespondingParameter(parameter, index, f.parameters);
       return param != null && param.isCovariant;
@@ -532,8 +548,11 @@ class InstanceMemberInferrer {
   /// Set the type for the [parameter] at the given [index] from the given
   /// [combinedSignatureType], which might be `null` if there is no valid
   /// combined signature for signatures from direct superinterfaces.
-  void _inferParameterType(ParameterElementImpl parameter, int index,
-      FunctionTypeImpl? combinedSignatureType) {
+  void _inferParameterType(
+    FormalParameterFragmentImpl parameter,
+    int index,
+    FunctionTypeImpl? combinedSignatureType,
+  ) {
     if (combinedSignatureType != null) {
       var matchingParameter = _getCorrespondingParameter(
         parameter,
@@ -567,8 +586,8 @@ class InstanceMemberInferrer {
   ///
   /// https://github.com/dart-lang/language/issues/569
   void _resetOperatorEqualParameterTypeToDynamic(
-    MethodElementImpl element,
-    List<ExecutableElementImpl> overriddenElements,
+    MethodFragmentImpl element,
+    List<ExecutableFragmentImpl> overriddenElements,
   ) {
     if (element.name != '==') return;
 
@@ -590,13 +609,13 @@ class InstanceMemberInferrer {
       // Skip Object itself.
       var enclosingElement =
           ElementImplExtension(overridden).enclosingElementImpl;
-      if (enclosingElement is ClassElementImpl &&
+      if (enclosingElement is ClassFragmentImpl &&
           enclosingElement.isDartCoreObject) {
         continue;
       }
 
       // Keep the type if it is not directly from Object.
-      if (overridden is MethodElementImpl &&
+      if (overridden is MethodFragmentImpl &&
           !overridden.isOperatorEqualWithParameterTypeFromObject) {
         element.isOperatorEqualWithParameterTypeFromObject = false;
         return;
@@ -608,9 +627,9 @@ class InstanceMemberInferrer {
 
   /// Find and mark the induced modifier of an element, if the [classElement] is
   /// 'sealed'.
-  void _setInducedModifier(InterfaceElementImpl classElement) {
+  void _setInducedModifier(InterfaceFragmentImpl classElement) {
     // Only sealed elements propagate induced modifiers.
-    if (classElement is! ClassElementImpl || !classElement.isSealed) {
+    if (classElement is! ClassFragmentImpl || !classElement.isSealed) {
       return;
     }
 
@@ -664,9 +683,11 @@ class InstanceMemberInferrer {
     }
 
     if (interfaces.any(
-            (type) => type.elementImpl.isBase || type.elementImpl.isFinal) ||
+          (type) => type.elementImpl.isBase || type.elementImpl.isFinal,
+        ) ||
         mixins.any(
-            (type) => type.elementImpl.isBase || type.elementImpl.isFinal)) {
+          (type) => type.elementImpl.isBase || type.elementImpl.isFinal,
+        )) {
       // A sealed declaration is considered 'base' if it has a direct
       // superinterface which is 'base' or 'final'.
       classElement.isBase = true;
@@ -699,8 +720,10 @@ class InstanceMemberInferrer {
   /// we must express its parameter and return types in terms of its own
   /// parameters. For example, given `m<T>(t)` overriding `m<S>(S s)` we
   /// should infer this as `m<T>(T t)`.
-  FunctionTypeImpl? _toOverriddenFunctionType(ExecutableElementOrMember element,
-      ExecutableElementOrMember overriddenElement) {
+  FunctionTypeImpl? _toOverriddenFunctionType(
+    ExecutableElementOrMember element,
+    ExecutableElementOrMember overriddenElement,
+  ) {
     var elementTypeParameters = element.asElement2.typeParameters2;
     var overriddenTypeParameters = overriddenElement.typeParameters;
 
@@ -720,15 +743,15 @@ class InstanceMemberInferrer {
     );
   }
 
-  static bool _isCovariantSetter(ExecutableElementImpl element) {
-    if (element is PropertyAccessorElementImpl) {
+  static bool _isCovariantSetter(ExecutableFragmentImpl element) {
+    if (element is PropertyAccessorFragmentImpl) {
       var parameters = element.parameters;
       return parameters.isNotEmpty && parameters[0].isCovariant;
     }
     return false;
   }
 
-  static void _setFieldType(FieldElementImpl field, TypeImpl type) {
+  static void _setFieldType(FieldFragmentImpl field, TypeImpl type) {
     field.type = type;
   }
 }
@@ -736,22 +759,22 @@ class InstanceMemberInferrer {
 /// A class of exception that is not used anywhere else.
 class _CycleException implements Exception {}
 
-extension on InterfaceElementImpl {
+extension on InterfaceFragmentImpl {
   bool get isBase {
     var self = this;
-    if (self is ClassOrMixinElementImpl) return self.isBase;
+    if (self is ClassOrMixinFragmentImpl) return self.isBase;
     return false;
   }
 
   bool get isFinal {
     var self = this;
-    if (self is ClassElementImpl) return self.isFinal;
+    if (self is ClassFragmentImpl) return self.isFinal;
     return false;
   }
 
   bool get isInterface {
     var self = this;
-    if (self is ClassElementImpl) return self.isInterface;
+    if (self is ClassFragmentImpl) return self.isInterface;
     return false;
   }
 }

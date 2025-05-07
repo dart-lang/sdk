@@ -26,6 +26,7 @@ import '../api_prototype/experimental_flags.dart';
 import '../base/combinator.dart' show CombinatorBuilder;
 import '../base/export.dart' show Export;
 import '../base/import.dart' show Import;
+import '../base/lookup_result.dart';
 import '../base/messages.dart';
 import '../base/name_space.dart';
 import '../base/problems.dart' show unexpected, unhandled;
@@ -33,6 +34,7 @@ import '../base/scope.dart';
 import '../base/uri_offset.dart';
 import '../base/uris.dart';
 import '../builder/builder.dart';
+import '../builder/constructor_builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/dynamic_type_declaration_builder.dart';
 import '../builder/formal_parameter_builder.dart';
@@ -44,6 +46,7 @@ import '../builder/named_type_builder.dart';
 import '../builder/never_type_declaration_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/prefix_builder.dart';
+import '../builder/property_builder.dart';
 import '../builder/type_builder.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/internal_ast.dart';
@@ -650,26 +653,26 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       SourceClassBuilder classBuilder = classIterator.current;
       ClassInfo<Class> classInfo = fieldPromotability.addClass(classBuilder.cls,
           isAbstract: classBuilder.isAbstract);
-      Iterator<SourceMemberBuilder> memberIterator =
-          classBuilder.fullMemberIterator<SourceMemberBuilder>();
+      Iterator<SourcePropertyBuilder> memberIterator =
+          classBuilder.fullMemberIterator<SourcePropertyBuilder>();
       while (memberIterator.moveNext()) {
-        SourceMemberBuilder member = memberIterator.current;
+        SourcePropertyBuilder member = memberIterator.current;
         if (member.isStatic) continue;
-        if (member.isField) {
+        if (member.hasField) {
           if (member.isSynthesized) continue;
           PropertyNonPromotabilityReason? reason = fieldPromotability.addField(
               classInfo, member, member.name,
               isFinal: member.isFinal,
-              isAbstract: member.isAbstract,
-              isExternal: member.isExternal);
+              isAbstract: member.hasAbstractField,
+              isExternal: member.hasExternalField);
           if (reason != null) {
             individualPropertyReasons[member.readTarget!] = reason;
           }
-        } else if (member.isGetter) {
+        } else if (member.hasGetter) {
           if (member.isSynthetic) continue;
           PropertyNonPromotabilityReason? reason = fieldPromotability.addGetter(
               classInfo, member, member.name,
-              isAbstract: member.isAbstract);
+              isAbstract: member.hasAbstractGetter);
           if (reason != null) {
             individualPropertyReasons[member.readTarget!] = reason;
           }
@@ -686,7 +689,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       for (Builder member in extension_.nameSpace.localMembers) {
         if (member is SourcePropertyBuilder &&
             !member.isStatic &&
-            member.isGetter) {
+            member.hasExplicitGetter) {
           individualPropertyReasons[member.readTarget!] =
               member.memberName.isPrivate
                   ? PropertyNonPromotabilityReason.isNotField
@@ -707,9 +710,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             PropertyNonPromotabilityReason.isNotPrivate;
       }
       for (Builder member in extensionType.nameSpace.localMembers) {
-        if (member is SourceMemberBuilder &&
+        if (member is SourcePropertyBuilder &&
             !member.isStatic &&
-            member.isGetter) {
+            member.hasExplicitGetter) {
           individualPropertyReasons[member.readTarget!] =
               member.memberName.isPrivate
                   ? PropertyNonPromotabilityReason.isNotField
@@ -743,19 +746,19 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void becomeCoreLibrary() {
     assert(checkState(required: [SourceLibraryBuilderState.nameSpaceBuilt]));
 
-    if (libraryNameSpace.lookupLocalMember("dynamic", setter: false) == null) {
+    if (libraryNameSpace.lookupLocalMember("dynamic")?.getable == null) {
       libraryNameSpace.addLocalMember("dynamic",
           new DynamicTypeDeclarationBuilder(const DynamicType(), this, -1),
           setter: false);
     }
-    if (libraryNameSpace.lookupLocalMember("Never", setter: false) == null) {
+    if (libraryNameSpace.lookupLocalMember("Never")?.getable == null) {
       libraryNameSpace.addLocalMember(
           "Never",
           new NeverTypeDeclarationBuilder(
               const NeverType.nonNullable(), this, -1),
           setter: false);
     }
-    assert(libraryNameSpace.lookupLocalMember("Null", setter: false) != null,
+    assert(libraryNameSpace.lookupLocalMember("Null")?.getable != null,
         "No class 'Null' found in dart:core.");
   }
 
@@ -841,8 +844,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
-    compilationUnit.buildOutlineExpressions(library, createBodyBuilderContext(),
-        createFileUriExpression: false);
+    compilationUnit.buildOutlineExpressions(
+        annotatable: library,
+        annotatableFileUri: library.fileUri,
+        bodyBuilderContext: createBodyBuilderContext());
 
     Iterator<Builder> iterator = localMembersIterator;
     while (iterator.moveNext()) {
@@ -909,7 +914,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (!declaration.isDuplicate) {
         if (declaration.isUnnamedExtension) {
           declaration.extensionName.name =
-              '_extension#${library.extensions.length}';
+              '${NameScheme.unnamedExtensionNamePrefix}'
+              '${library.extensions.length}';
         }
         library.addExtension(extension);
       }

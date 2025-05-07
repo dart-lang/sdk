@@ -78,7 +78,7 @@ abstract class _Impl2&Object&Mixin = core::Object with mai::Mixin /*isAnonymousM
   const synthetic constructor •() → self::_Impl2&Object&Mixin
     : super core::Object::•()
     ;
-  mixin-super-stub method foo() → void
+  synthetic mixin-super-stub method foo() → void
     return super.{mai::Mixin::foo}();
 }
 static field dynamic x;
@@ -196,6 +196,14 @@ class C9 extends core::Object {
   static factory •() → mai::C9 /* redirection-target: mai::C9::_ */
     return new mai::C9::_();
 }
+extension Ext1 on core::int {
+  get isPositive = mai::Ext1|get#isPositive;
+}
+extension type ExtType1(core::int raw) {
+  abstract extension-type-member representation-field get raw() → core::int;
+  constructor • = mai::ExtType1|constructor#;
+  constructor tearoff • = mai::ExtType1|constructor#_#new#tearOff;
+}
 static field core::int field1;
 static field core::int field2;
 static const field mai::_C5 const1 = const mai::_C5::•(mai::_privateMethod1);
@@ -212,6 +220,12 @@ static method _privateMethodForC6() → void
   ;
 static method _privateMethodForC7() → void
   ;
+static extension-type-member method ExtType1|constructor#(core::int raw) → mai::ExtType1% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method ExtType1|constructor#_#new#tearOff(core::int raw) → mai::ExtType1% /* erasure=core::int, declared=! */
+  return mai::ExtType1|constructor#(raw);
+static extension-member method Ext1|get#isPositive(lowered final core::int #this) → core::bool
+  ;
 
 library;
 import self as self2;
@@ -219,7 +233,9 @@ import "main_lib3.dart" as mai2;
 additionalExports = (mai2::Lib3Class,
   mai2::lib3Method,
   mai2::lib3Field,
-  mai2::lib3Field)
+  mai2::lib3Field,
+  mai2::Lib3ExtType,
+  mai2::Lib3Ext)
 
 export "org-dartlang-testcase:///main_lib3.dart";
 
@@ -232,8 +248,22 @@ class Lib3Class extends core::Object {
   synthetic constructor •() → mai2::Lib3Class
     ;
 }
+extension Lib3Ext on core::int {
+  get lib3IsPositive = mai2::Lib3Ext|get#lib3IsPositive;
+}
+extension type Lib3ExtType(core::int raw) {
+  abstract extension-type-member representation-field get raw() → core::int;
+  constructor • = mai2::Lib3ExtType|constructor#;
+  constructor tearoff • = mai2::Lib3ExtType|constructor#_#new#tearOff;
+}
 static field core::int? lib3Field;
 static method lib3Method() → void
+  ;
+static extension-type-member method Lib3ExtType|constructor#(core::int raw) → mai2::Lib3ExtType% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method Lib3ExtType|constructor#_#new#tearOff(core::int raw) → mai2::Lib3ExtType% /* erasure=core::int, declared=! */
+  return mai2::Lib3ExtType|constructor#(raw);
+static extension-member method Lib3Ext|get#lib3IsPositive(lowered final core::int #this) → core::bool
   ;
 
 
@@ -244,4 +274,4 @@ Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main_lib1.dart:78:28
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main_lib1.dart:89:28 -> InstanceConstant(const _ConstForC7{_ConstForC7._f: _privateMethodForC7})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main_lib1.dart:67:16 -> InstanceConstant(const _C5{_C5.func: _privateMethod1})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main_lib1.dart:68:16 -> InstanceConstant(const _C5{_C5.func: _privateMethod2})
-Extra constant evaluation: evaluated: 12, effectively constant: 6
+Extra constant evaluation: evaluated: 16, effectively constant: 6

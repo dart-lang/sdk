@@ -16,5 +16,5 @@ class C<X extends core::Object? = dynamic, Y extends core::Object? = dynamic> = 
     ;
 }
 static field self::C<(dynamic, dynamic) → core::int, core::int> field;
-static method _#A#new#tearOff<T extends core::Object? = dynamic>(self::_#A#new#tearOff::T% x) → self::C<self::_#A#new#tearOff::T%, core::int>
+static synthetic method _#A#new#tearOff<T extends core::Object? = dynamic>(self::_#A#new#tearOff::T% x) → self::C<self::_#A#new#tearOff::T%, core::int>
   return new self::C::•<self::_#A#new#tearOff::T%, core::int>(x);

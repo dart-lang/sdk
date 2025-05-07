@@ -89,9 +89,6 @@ class FutureValueTypeTest extends AbstractTypeSystemTest {
 
   void _check(TypeImpl T, String expected) {
     var result = typeSystem.futureValueType(T);
-    expect(
-      result.getDisplayString(),
-      expected,
-    );
+    expect(result.getDisplayString(), expected);
   }
 }

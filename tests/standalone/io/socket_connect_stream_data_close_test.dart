@@ -35,15 +35,18 @@ void testConnectStreamDataClose(bool useDestroy) {
     Socket.connect("127.0.0.1", server.port).then((socket) {
       List<int> data = [];
       bool onDoneCalled = false;
-      socket.listen(data.addAll, onDone: () {
-        Expect.isFalse(onDoneCalled);
-        onDoneCalled = true;
-        if (!useDestroy) Expect.listEquals(sendData, data);
-        socket.add([0]);
-        socket.close();
-        server.close();
-        asyncEnd();
-      });
+      socket.listen(
+        data.addAll,
+        onDone: () {
+          Expect.isFalse(onDoneCalled);
+          onDoneCalled = true;
+          if (!useDestroy) Expect.listEquals(sendData, data);
+          socket.add([0]);
+          socket.close();
+          server.close();
+          asyncEnd();
+        },
+      );
     });
   });
 }

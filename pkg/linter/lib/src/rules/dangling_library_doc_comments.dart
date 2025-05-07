@@ -50,7 +50,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
       var docComment = firstDirective.documentationComment;
       if (docComment != null) {
-        rule.reportLintForToken(docComment.beginToken);
+        rule.reportAtToken(docComment.beginToken);
         return;
       }
 
@@ -63,7 +63,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       Token? endComment = node.endToken.precedingComments;
       while (endComment is CommentToken) {
         if (endComment is DocumentationCommentToken) {
-          rule.reportLintForToken(endComment);
+          rule.reportAtToken(endComment);
         }
         endComment = endComment.next;
       }
@@ -86,7 +86,7 @@ class _Visitor extends SimpleAstVisitor<void> {
             lineInfo.getLocation(followingCommentToken.offset).lineNumber;
         if (followingCommentLine > commentEndLine + 1) {
           // There is a blank line within the declaration's doc comments.
-          rule.reportLintForToken(commentToken);
+          rule.reportAtToken(commentToken);
           return;
         }
       }
@@ -106,7 +106,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (followingCommentLine > commentEndLine + 1) {
         // There is a blank line between the declaration's doc comment and the
         // declaration.
-        rule.reportLint(docComment);
+        rule.reportAtNode(docComment);
         return;
       }
 
@@ -129,7 +129,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (declarationStartLine > commentEndLine + 1) {
       // There is a blank line between the declaration's doc comment and the
       // declaration.
-      rule.reportLint(docComment);
+      rule.reportAtNode(docComment);
     }
   }
 }

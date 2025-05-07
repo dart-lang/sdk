@@ -40,12 +40,14 @@ class MemoryResourceProvider implements ResourceProvider {
   MemoryResourceProvider({
     pathos.Context? context,
     this.delayWatcherInitialization,
-  }) : _pathContext = context ??= pathos.style == pathos.Style.windows
-            // On Windows, ensure that the current drive matches
-            // the drive inserted by ResourceProvider.convertPath
-            // so that packages are mapped to the correct drive
-            ? pathos.Context(current: 'C:\\')
-            : pathos.context;
+  }) : _pathContext =
+           context ??=
+               pathos.style == pathos.Style.windows
+                   // On Windows, ensure that the current drive matches
+                   // the drive inserted by ResourceProvider.convertPath
+                   // so that packages are mapped to the correct drive
+                   ? pathos.Context(current: 'C:\\')
+                   : pathos.context;
 
   @override
   pathos.Context get pathContext => _pathContext;
@@ -218,8 +220,10 @@ class MemoryResourceProvider implements ResourceProvider {
   }
 
   void _notifyWatchers(String path, ChangeType changeType) {
-    _pathToWatchers.forEach((String watcherPath,
-        List<StreamController<WatchEvent>> streamControllers) {
+    _pathToWatchers.forEach((
+      String watcherPath,
+      List<StreamController<WatchEvent>> streamControllers,
+    ) {
       if (watcherPath == path || pathContext.isWithin(watcherPath, path)) {
         for (StreamController<WatchEvent> streamController
             in streamControllers) {
@@ -295,10 +299,7 @@ class MemoryResourceProvider implements ResourceProvider {
     _addToParentFolderData(parentData, path);
 
     var exists = _pathToData.containsKey(path);
-    _pathToData[path] = _FileData(
-      bytes: bytes,
-      timeStamp: nextStamp++,
-    );
+    _pathToData[path] = _FileData(bytes: bytes, timeStamp: nextStamp++);
     _notifyWatchers(path, exists ? ChangeType.MODIFY : ChangeType.ADD);
 
     return _MemoryFile(this, path);
@@ -309,10 +310,7 @@ class _FileData extends _ResourceData {
   final Uint8List bytes;
   final int timeStamp;
 
-  _FileData({
-    required this.bytes,
-    required this.timeStamp,
-  });
+  _FileData({required this.bytes, required this.timeStamp});
 }
 
 class _FolderData extends _ResourceData {
@@ -509,13 +507,9 @@ class _MemoryFolder extends _MemoryResource implements Folder {
       if (provider.pathContext.dirname(resourcePath) == path) {
         var target = provider.getResource(targetPath);
         if (target is File) {
-          children.add(
-            _MemoryFile(provider, resourcePath),
-          );
+          children.add(_MemoryFile(provider, resourcePath));
         } else if (target is Folder) {
-          children.add(
-            _MemoryFolder(provider, resourcePath),
-          );
+          children.add(_MemoryFolder(provider, resourcePath));
         }
       }
     });
@@ -629,8 +623,12 @@ abstract class _MemoryResource implements Resource {
       });
       ready.complete();
       if (provider.emitPathNotFoundExceptionsForPaths.contains(path)) {
-        streamController.addError(PathNotFoundException(
-            path, 'Simulated PathNotFoundException from _MemoryResource'));
+        streamController.addError(
+          PathNotFoundException(
+            path,
+            'Simulated PathNotFoundException from _MemoryResource',
+          ),
+        );
       }
     }
 

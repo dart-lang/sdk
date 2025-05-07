@@ -22,5 +22,6 @@ void testBigRegExp(String source) {
 main() {
   testBigRegExp("a" * (0x10000 - 128));
   testBigRegExp(
-      String.fromCharCodes(List.generate(0x10000 - 128, (x) => x + 128)));
+    String.fromCharCodes(List.generate(0x10000 - 128, (x) => x + 128)),
+  );
 }

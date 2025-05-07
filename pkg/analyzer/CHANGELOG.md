@@ -1,5 +1,30 @@
-## 7.3.1-wip
+## 8.0.0-dev
+* Remove deprecated element model V1.
+* Remove deprecated `DartType.isStructurallyEqualTo`.
+* Remove deprecated `RecordType.positionalTypes`.
+* Remove deprecated `RecordType.sortedNamedTypes`.
+* Remove `ElementLocation` class; its values are not returned anymore.
+* Deprecate `element2.dart` library; import `element.dart`.
+* Deprecate `XyzElement2` classes; use `XyzElement` instead.
+* Deprecate `AnalysisError.correction` field; use
+  `AnalysisError.correctionMessage` instead.
+* Deprecate `ErrorType`; use `DiagnosticType` instead.
+* Deprecate `ErrorSeverity`; use `DiagnosticSeverity` instead.
+* Change `ElementDirective` from `sealed` to `abstract`.
+  This allows the analyzer to have an internal implementation
+  class corresponding to `ElementDirective`.
+
+## 7.4.1
+* Restore `InstanceElement.augmented` getter.
+  This API was removed in 7.4.0 under the assumption that its removal would
+  not be a breaking change, because it was marked as `@experimental`.
+  But it turns out that some clients had been published to pub that relied
+  on it. So, these APIs were restored, and implemented on top of `Element2`.
+
+## 7.4.0
 * Updated SDK constraint to `^3.5.0`.
+* Deprecated element model V1.
+  See [migration guide](https://github.com/dart-lang/sdk/blob/main/pkg/analyzer/doc/element_model_migration_guide.md).
 
 ## 7.3.0
 * Add `flags` optional named parameter to `FeatureSet.latestLanguageVersion()`.

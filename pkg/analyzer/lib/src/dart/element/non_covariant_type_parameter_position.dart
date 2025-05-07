@@ -4,13 +4,13 @@
 
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     show Variance;
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 
 class NonCovariantTypeParameterPositionVisitor implements TypeVisitor<bool> {
-  final List<TypeParameterElement2> _typeParameters;
+  final List<TypeParameterElement> _typeParameters;
   Variance _variance;
 
   NonCovariantTypeParameterPositionVisitor(

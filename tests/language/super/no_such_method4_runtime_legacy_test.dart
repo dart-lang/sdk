@@ -17,8 +17,6 @@ class A {
 
 class B extends Object with A {
   noSuchMethod(im) => 87;
-
-
 }
 
 main() {

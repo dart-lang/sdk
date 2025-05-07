@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/analysis_options/error/option_codes.dart';
 import 'package:analyzer/src/lint/linter.dart';
@@ -46,7 +46,7 @@ class LinterRuleOptionsValidator extends OptionsValidator {
   }
 
   @override
-  List<AnalysisError> validate(ErrorReporter reporter, YamlMap options) {
+  List<Diagnostic> validate(ErrorReporter reporter, YamlMap options) {
     var node = options.valueAt(linter);
     if (node is YamlMap) {
       var rules = node.valueAt(rulesKey);
@@ -92,7 +92,7 @@ class LinterRuleOptionsValidator extends OptionsValidator {
         } else if (!seenRules.add(rule.name)) {
           reporter.atSourceSpan(
             node.span,
-            AnalysisOptionsHintCode.DUPLICATE_RULE,
+            AnalysisOptionsWarningCode.DUPLICATE_RULE,
             arguments: [value],
           );
         }
@@ -106,13 +106,13 @@ class LinterRuleOptionsValidator extends OptionsValidator {
           if (replacedBy != null) {
             reporter.atSourceSpan(
               node.span,
-              AnalysisOptionsHintCode.DEPRECATED_LINT_WITH_REPLACEMENT,
+              AnalysisOptionsWarningCode.DEPRECATED_LINT_WITH_REPLACEMENT,
               arguments: [value, replacedBy],
             );
           } else {
             reporter.atSourceSpan(
               node.span,
-              AnalysisOptionsHintCode.DEPRECATED_LINT,
+              AnalysisOptionsWarningCode.DEPRECATED_LINT,
               arguments: [value],
             );
           }

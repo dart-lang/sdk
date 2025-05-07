@@ -31,7 +31,6 @@ import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/correction/fix_performance.dart';
-import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/correction/refactoring_performance.dart';
 import 'package:analysis_server/src/services/dart_tooling_daemon/dtd_services.dart';
 import 'package:analysis_server/src/services/pub/pub_api.dart';
@@ -44,6 +43,7 @@ import 'package:analysis_server/src/services/search/search_engine_internal.dart'
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
 import 'package:analysis_server/src/services/user_prompts/survey_manager.dart';
 import 'package:analysis_server/src/services/user_prompts/user_prompts.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/file_string_sink.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
@@ -53,8 +53,7 @@ import 'package:analysis_server_plugin/src/correction/assist_performance.dart';
 import 'package:analysis_server_plugin/src/correction/performance.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
@@ -74,14 +73,12 @@ import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/analysis/status.dart' as analysis;
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
-import 'package:analyzer/src/dart/ast/element_locator.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/analysis_session.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
+import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart'
     as analyzer_plugin;
@@ -283,16 +280,14 @@ abstract class AnalysisServer {
     DartFixPromptManager? dartFixPromptManager,
     this.providedByteStore,
     PluginManager? pluginManager,
-    bool retainDataForTesting = false,
+    MessageSchedulerListener? messageSchedulerListener,
   }) : resourceProvider = OverlayResourceProvider(baseResourceProvider),
        pubApi = PubApi(
          instrumentationService,
          httpClient,
          Platform.environment['PUB_HOSTED_URL'],
        ),
-       messageScheduler = MessageScheduler(
-         testView: retainDataForTesting ? MessageSchedulerTestView() : null,
-       ) {
+       messageScheduler = MessageScheduler(listener: messageSchedulerListener) {
     messageScheduler.setServer(this);
     // Set the default URI converter. This uses the resource providers path
     // context (unlike the initialized value) which allows tests to override it.
@@ -644,23 +639,18 @@ abstract class AnalysisServer {
   /// Gets the current version number of a document (if known).
   int? getDocumentVersion(String path);
 
-  /// Return a [Future] that completes with the [Element2] at the given
+  /// Return a [Future] that completes with the [Element] at the given
   /// [offset] of the given [file], or with `null` if there is no node at the
   /// [offset] or the node does not have an element.
-  Future<Element2?> getElementAtOffset(String file, int offset) async {
+  Future<Element?> getElementAtOffset(String file, int offset) async {
+    var unitResult = await getResolvedUnit(file);
+    if (unitResult == null) {
+      return null;
+    }
+
     if (!priorityFiles.contains(file)) {
-      var driver = getAnalysisDriver(file);
-      if (driver == null) {
-        return null;
-      }
-
-      var unitElementResult = await driver.getUnitElement(file);
-      if (unitElementResult is! UnitElementResult) {
-        return null;
-      }
-
       var fragment = findFragmentByNameOffset(
-        unitElementResult.fragment,
+        unitResult.libraryFragment,
         offset,
       );
       if (fragment != null) {
@@ -668,44 +658,8 @@ abstract class AnalysisServer {
       }
     }
 
-    var node = await getNodeAtOffset(file, offset);
-    return getElementOfNode(node);
-  }
-
-  /// Returns the element associated with the [node].
-  ///
-  /// If [useMockForImport] is `true` then a [MockLibraryImportElement] will be
-  /// returned when an import directive or a prefix element is associated with
-  /// the [node]. The rename-prefix refactoring should be updated to not require
-  /// this work-around.
-  ///
-  /// Returns `null` if [node] is `null` or doesn't have an element.
-  Element2? getElementOfNode(AstNode? node, {bool useMockForImport = false}) {
-    if (node == null) {
-      return null;
-    }
-    if (node is SimpleIdentifier && node.parent is LibraryIdentifier) {
-      node = node.parent;
-    }
-    if (node is LibraryIdentifier) {
-      node = node.parent;
-    }
-    if (node is StringLiteral && node.parent is UriBasedDirective) {
-      return null;
-    }
-
-    Element2? element;
-    if (useMockForImport && node is ImportDirective) {
-      element = MockLibraryImportElement(node.libraryImport!);
-    } else {
-      element = ElementLocator.locate2(node);
-    }
-    if (useMockForImport &&
-        node is SimpleIdentifier &&
-        element is PrefixElement2) {
-      element = MockLibraryImportElement(getImportElement(node)!);
-    }
-    return element;
+    var node = unitResult.unit.nodeCovering(offset: offset);
+    return node?.getElement();
   }
 
   /// Return a [LineInfo] for the file with the given [path].
@@ -733,18 +687,6 @@ abstract class AnalysisServer {
 
       return null;
     }
-  }
-
-  /// Return a [Future] that completes with the resolved [AstNode] at the
-  /// given [offset] of the given [file], or with `null` if there is no node as
-  /// the [offset].
-  Future<AstNode?> getNodeAtOffset(String file, int offset) async {
-    var result = await getResolvedUnit(file);
-    var unit = result?.unit;
-    if (unit != null) {
-      return NodeLocator(offset).searchWithin(unit);
-    }
-    return null;
   }
 
   /// Return the unresolved unit for the file with the given [path].
@@ -1061,8 +1003,6 @@ abstract class CommonServerContextManagerCallbacks
   final Set<String> filesToFlush = {};
 
   CommonServerContextManagerCallbacks(this.resourceProvider);
-
-  AnalysisServer get analysisServer;
 
   @override
   @mustCallSuper

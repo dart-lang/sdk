@@ -34,7 +34,8 @@ main() {
     "a" == Uri.parse("\u2665");
   }
   print('fuzzvar8 runtime type: ${fuzzvar8.runtimeType}');
-  var x =
-      X1().foo1_0([for (int i = 0; i < 10; ++i) 0], bar(fuzzvar8, --fuzzvar1));
+  var x = X1().foo1_0([
+    for (int i = 0; i < 10; ++i) 0,
+  ], bar(fuzzvar8, --fuzzvar1));
   Expect.equals(1, x[0]);
 }

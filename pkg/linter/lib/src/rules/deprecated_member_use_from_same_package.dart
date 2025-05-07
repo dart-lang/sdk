@@ -8,7 +8,7 @@ library;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/error/deprecated_member_use_verifier.dart' // ignore: implementation_imports
     show BaseDeprecatedMemberUseVerifier;
 import 'package:analyzer/src/workspace/workspace.dart' // ignore: implementation_imports
@@ -52,11 +52,11 @@ class _DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
   @override
   void reportError2(
     SyntacticEntity errorEntity,
-    Element2 element,
+    Element element,
     String displayName,
     String? message,
   ) {
-    var library = element is LibraryElement2 ? element : element.library2;
+    var library = element is LibraryElement ? element : element.library2;
     if (library == null ||
         !_workspacePackage.contains(library.firstFragment.source)) {
       // In this case, `DEPRECATED_MEMBER_USE` is reported by the analyzer.
@@ -67,7 +67,7 @@ class _DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
     if (normalizedMessage == null ||
         normalizedMessage.isEmpty ||
         normalizedMessage == '.') {
-      _rule.reportLintForOffset(
+      _rule.reportAtOffset(
         errorEntity.offset,
         errorEntity.length,
         arguments: [displayName],
@@ -81,7 +81,7 @@ class _DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
           !normalizedMessage.endsWith('!')) {
         normalizedMessage = '$message.';
       }
-      _rule.reportLintForOffset(
+      _rule.reportAtOffset(
         errorEntity.offset,
         errorEntity.length,
         arguments: [displayName, normalizedMessage],

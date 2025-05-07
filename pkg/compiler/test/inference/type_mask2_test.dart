@@ -62,7 +62,7 @@ checkMasks(
       flattened,
       flattenResult,
       'Unexpected flattening of $disjoint: '
-      '$flattenResult, expected $flattened.',
+      '$flattenResult, expected $flattened with powerset $powerset.',
     );
   }
   dynamic union = UnionTypeMask.unionOf(masks, commonMasks);
@@ -154,8 +154,20 @@ Future testUnionTypeMaskFlatten() async {
       TypeMask.nonNullEmpty(domain, hasLateSentinel: true) as FlatTypeMask;
   final subclassObject =
       TypeMask.nonNullSubclass(Object_, domain) as FlatTypeMask;
+  final subclassObjectNotIntercepted =
+      subclassObject.withoutInterceptorProperty(
+            TypeMaskInterceptorProperty.interceptor,
+            domain,
+          )
+          as FlatTypeMask;
   final subclassObjectOrSentinel =
       TypeMask.nonNullSubclass(Object_, domain, hasLateSentinel: true)
+          as FlatTypeMask;
+  final subclassObjectOrSentinelNotIntercepted =
+      subclassObjectOrSentinel.withoutInterceptorProperty(
+            TypeMaskInterceptorProperty.interceptor,
+            domain,
+          )
           as FlatTypeMask;
   final exactA = TypeMask.nonNullExact(A, domain) as FlatTypeMask;
   final exactAOrSentinel =
@@ -199,7 +211,7 @@ Future testUnionTypeMaskFlatten() async {
   check(
     [exactA, exactB],
     disjointMasks: [exactA, exactB],
-    flattened: subclassObject,
+    flattened: subclassObjectNotIntercepted,
     containedClasses: [A, B],
   );
 
@@ -230,7 +242,7 @@ Future testUnionTypeMaskFlatten() async {
   check(
     [exactA, exactB, exactC],
     disjointMasks: [subclassA, exactB],
-    flattened: subclassObject,
+    flattened: subclassObjectNotIntercepted,
     containedClasses: [A, B, C],
   );
 
@@ -245,7 +257,7 @@ Future testUnionTypeMaskFlatten() async {
   check(
     [exactA, exactB, exactD],
     disjointMasks: [subtypeA, exactB],
-    flattened: subclassObject,
+    flattened: subclassObjectNotIntercepted,
     containedClasses: [A, B, C, D, E],
   );
 
@@ -260,28 +272,28 @@ Future testUnionTypeMaskFlatten() async {
   check(
     [exactA, exactB, exactE],
     disjointMasks: [subtypeA, exactB],
-    flattened: subclassObject,
+    flattened: subclassObjectNotIntercepted,
     containedClasses: [A, B, C, D, E],
   );
 
   check(
     [exactB, exactE, exactA],
     disjointMasks: [subclassB, exactA],
-    flattened: subclassObject,
+    flattened: subclassObjectNotIntercepted,
     containedClasses: [A, B, E],
   );
 
   check(
     [exactE, exactA, exactB],
     disjointMasks: [subtypeA, exactB],
-    flattened: subclassObject,
+    flattened: subclassObjectNotIntercepted,
     containedClasses: [A, B, C, D, E],
   );
 
   check(
     [exactE, exactB, exactA],
     disjointMasks: [subclassB, exactA],
-    flattened: subclassObject,
+    flattened: subclassObjectNotIntercepted,
     containedClasses: [A, B, E],
   );
 
@@ -336,14 +348,14 @@ Future testUnionTypeMaskFlatten() async {
   check(
     [exactAOrSentinel, exactB],
     disjointMasks: [exactA, exactB],
-    flattened: subclassObjectOrSentinel,
+    flattened: subclassObjectOrSentinelNotIntercepted,
     containedClasses: [A, B],
   );
 
   check(
     [exactAOrSentinel, exactBOrSentinel],
     disjointMasks: [exactA, exactB],
-    flattened: subclassObjectOrSentinel,
+    flattened: subclassObjectOrSentinelNotIntercepted,
     containedClasses: [A, B],
   );
 }

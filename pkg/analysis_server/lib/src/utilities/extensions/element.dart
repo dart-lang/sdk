@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 
-extension ClassElementExtensions on ClassElement2 {
+extension ClassElementExtensions on ClassElement {
   /// Return `true` if this element represents the class `Iterable` from
   /// `dart:core`.
   bool get isDartCoreIterable => name3 == 'Iterable' && library2.isDartCore;
@@ -22,7 +22,7 @@ extension ClassElementExtensions on ClassElement2 {
   bool get isDartCoreSet => name3 == 'Set' && library2.isDartCore;
 }
 
-extension ElementExtensions on Element2 {
+extension ElementExtensions on Element {
   /// The content of the documentation comment (including delimiters) for this
   /// element.
   ///
@@ -49,17 +49,17 @@ extension ElementExtensions on Element2 {
     }
 
     var ancestor = enclosingElement2;
-    if (ancestor is InterfaceElement2) {
+    if (ancestor is InterfaceElement) {
       if (ancestor.metadata2.hasDeprecated) {
         return true;
       }
       ancestor = ancestor.enclosingElement2;
     }
-    return ancestor is LibraryElement2 && ancestor.metadata2.hasDeprecated;
+    return ancestor is LibraryElement && ancestor.metadata2.hasDeprecated;
   }
 
   /// Return this element and all its enclosing elements.
-  Iterable<Element2> get withAncestors sync* {
+  Iterable<Element> get withAncestors sync* {
     var current = this;
     while (true) {
       yield current;
@@ -87,7 +87,7 @@ extension FragmentExtensions on Fragment {
   }
 }
 
-extension MethodElementExtensions on MethodElement2 {
+extension MethodElementExtensions on MethodElement {
   /// Return `true` if this element represents the method `cast` from either
   /// `Iterable`, `List`, `Map`, or `Set`.
   bool get isCastMethod {
@@ -95,7 +95,7 @@ extension MethodElementExtensions on MethodElement2 {
       return false;
     }
     var definingClass = enclosingElement2;
-    if (definingClass is! ClassElement2) {
+    if (definingClass is! ClassElement) {
       return false;
     }
     return definingClass.isDartCoreIterable ||
@@ -111,7 +111,7 @@ extension MethodElementExtensions on MethodElement2 {
       return false;
     }
     var definingClass = enclosingElement2;
-    if (definingClass is! ClassElement2) {
+    if (definingClass is! ClassElement) {
       return false;
     }
     return definingClass.isDartCoreIterable;
@@ -124,7 +124,7 @@ extension MethodElementExtensions on MethodElement2 {
       return false;
     }
     var definingClass = enclosingElement2;
-    if (definingClass is! ClassElement2) {
+    if (definingClass is! ClassElement) {
       return false;
     }
     return definingClass.isDartCoreIterable;

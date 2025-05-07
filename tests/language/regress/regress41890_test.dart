@@ -43,7 +43,8 @@ void test() {
     for (int i = 0; i < items.length; i++) {
       var item = items[i];
       String code = answers[i];
-      bool expected = code == 'T' ||
+      bool expected =
+          code == 'T' ||
           (code == 'S' && !unsoundNullSafety) ||
           (code == 'W' && hasUnsoundNullSafety);
       Expect.equals(expected, predicate(item), "$predicate '$code' $item");

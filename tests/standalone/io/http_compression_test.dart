@@ -25,9 +25,13 @@ Future<void> testServerCompress({bool clientAutoUncompress = true}) async {
     request.headers.set(HttpHeaders.acceptEncodingHeader, "gzip,deflate");
     final response = await request.close();
     Expect.equals(
-        "gzip", response.headers.value(HttpHeaders.contentEncodingHeader));
-    final list =
-        await response.fold<List<int>>(<int>[], (list, b) => list..addAll(b));
+      "gzip",
+      response.headers.value(HttpHeaders.contentEncodingHeader),
+    );
+    final list = await response.fold<List<int>>(
+      <int>[],
+      (list, b) => list..addAll(b),
+    );
     if (clientAutoUncompress) {
       Expect.listEquals(data, list);
     } else {
@@ -57,8 +61,10 @@ Future<void> testAcceptEncodingHeader() async {
     final request = await client.get("127.0.0.1", server.port, "/");
     request.headers.set(HttpHeaders.acceptEncodingHeader, encoding);
     final response = await request.close();
-    Expect.equals(valid,
-        ("gzip" == response.headers.value(HttpHeaders.contentEncodingHeader)));
+    Expect.equals(
+      valid,
+      ("gzip" == response.headers.value(HttpHeaders.contentEncodingHeader)),
+    );
     await response.listen((_) {}).asFuture();
     server.close();
     client.close();
@@ -83,7 +89,9 @@ Future<void> testDisableCompressTest() async {
   Expect.equals(false, server.autoCompress);
   server.listen((request) {
     Expect.equals(
-        'gzip', request.headers.value(HttpHeaders.acceptEncodingHeader));
+      'gzip',
+      request.headers.value(HttpHeaders.acceptEncodingHeader),
+    );
     request.response.write("data");
     request.response.close();
   });
@@ -91,7 +99,9 @@ Future<void> testDisableCompressTest() async {
   final request = await client.get("127.0.0.1", server.port, "/");
   final response = await request.close();
   Expect.equals(
-      null, response.headers.value(HttpHeaders.contentEncodingHeader));
+    null,
+    response.headers.value(HttpHeaders.contentEncodingHeader),
+  );
   await response.listen((_) {}).asFuture();
   server.close();
   client.close();

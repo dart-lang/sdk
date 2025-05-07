@@ -7,14 +7,8 @@
 
 // Test that a type parameter cannot be repeated.
 
-class Foo<
-    T
-
-    > {}
+class Foo<T> {}
 
 main() {
-  new Foo<
-      String
-
-      >();
+  new Foo<String>();
 }

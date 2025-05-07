@@ -26,11 +26,14 @@ flutter:
   }
 
   test_assetDirectoryDoesNotExist_error() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: sample
 flutter:
   assets:
     - assets/logos/
-''', [PubspecWarningCode.ASSET_DIRECTORY_DOES_NOT_EXIST]);
+''',
+      [PubspecWarningCode.ASSET_DIRECTORY_DOES_NOT_EXIST],
+    );
   }
 }

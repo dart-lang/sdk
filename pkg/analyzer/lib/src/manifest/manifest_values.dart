@@ -85,7 +85,7 @@ const unsupportedOrientations = <String>[
   'sensorLandscape',
   'sensorPortrait',
   'userLandscape',
-  'userPortrait'
+  'userPortrait',
 ];
 
 const String usesFeatureTag = 'uses-feature';

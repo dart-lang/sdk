@@ -78,8 +78,9 @@ abstract class AbstractDartSdk implements DartSdk {
 
   @override
   Source? fromFileUri(Uri uri) {
-    File file =
-        resourceProvider.getFile(resourceProvider.pathContext.fromUri(uri));
+    File file = resourceProvider.getFile(
+      resourceProvider.pathContext.fromUri(uri),
+    );
     String? path = _getPath(file);
     if (path == null) {
       return null;
@@ -89,8 +90,9 @@ abstract class AbstractDartSdk implements DartSdk {
       return FileSource(file, uri);
     } on FormatException catch (exception, stackTrace) {
       AnalysisEngine.instance.instrumentationService.logInfo(
-          "Failed to create URI: $path",
-          CaughtException(exception, stackTrace));
+        "Failed to create URI: $path",
+        CaughtException(exception, stackTrace),
+      );
     }
     return null;
   }
@@ -185,8 +187,10 @@ abstract class AbstractDartSdk implements DartSdk {
     for (var library in libraryMap.sdkLibraries) {
       var pathContext = resourceProvider.pathContext;
       if (pathContext.isAbsolute(library.path)) {
-        String? relativePathIfInside =
-            getRelativePathIfInside(library.path, file.path);
+        String? relativePathIfInside = getRelativePathIfInside(
+          library.path,
+          file.path,
+        );
         if (relativePathIfInside != null) {
           var relPath = relativePathIfInside.replaceAll(separator, '/');
           return '${library.shortName}/$relPath';
@@ -200,7 +204,10 @@ abstract class AbstractDartSdk implements DartSdk {
     }
 
     return getImportUriIfMatchesRelativeSdkPath(
-        libraryMap.sdkLibraries, filePath, separator);
+      libraryMap.sdkLibraries,
+      filePath,
+      separator,
+    );
   }
 }
 
@@ -324,7 +331,8 @@ class EmbedderSdk extends AbstractDartSdk {
     var embeddedLibs = map[_embeddedLibMapKey] as YamlNode;
     if (embeddedLibs is YamlMap) {
       embeddedLibs.forEach(
-          (k, v) => _processEmbeddedLibs(k as String, v as String, libDir));
+        (k, v) => _processEmbeddedLibs(k as String, v as String, libDir),
+      );
     }
   }
 }
@@ -400,7 +408,7 @@ class FolderBasedDartSdk extends AbstractDartSdk {
   /// Initialize a newly created SDK to represent the Dart SDK installed in the
   /// [sdkDirectory].
   FolderBasedDartSdk(ResourceProvider resourceProvider, Folder sdkDirectory)
-      : _sdkDirectory = sdkDirectory {
+    : _sdkDirectory = sdkDirectory {
     this.resourceProvider = resourceProvider;
     libraryMap = initialLibraryMap();
   }
@@ -424,9 +432,10 @@ class FolderBasedDartSdk extends AbstractDartSdk {
   @override
   Version get languageVersion {
     if (_languageVersion == null) {
-      var sdkVersionStr = _sdkDirectory
-          .getChildAssumingFile(_versionFileName)
-          .readAsStringSync();
+      var sdkVersionStr =
+          _sdkDirectory
+              .getChildAssumingFile(_versionFileName)
+              .readAsStringSync();
       _languageVersion = languageVersionFromSdkVersion(sdkVersionStr);
     }
 
@@ -435,8 +444,9 @@ class FolderBasedDartSdk extends AbstractDartSdk {
 
   /// Return the directory within the SDK directory that contains the libraries.
   Folder get libraryDirectory {
-    return _libraryDirectory ??=
-        _sdkDirectory.getChildAssumingFolder(_libDirectoryName);
+    return _libraryDirectory ??= _sdkDirectory.getChildAssumingFolder(
+      _libDirectoryName,
+    );
   }
 
   /// Return the file containing the Pub executable, or `null` if it does not
@@ -444,9 +454,9 @@ class FolderBasedDartSdk extends AbstractDartSdk {
   File get pubExecutable {
     return _pubExecutable ??= _sdkDirectory
         .getChildAssumingFolder(_binDirectoryName)
-        .getChildAssumingFile(OSUtilities.isWindows()
-            ? _pubExecutableNameWin
-            : _pubExecutableName);
+        .getChildAssumingFile(
+          OSUtilities.isWindows() ? _pubExecutableNameWin : _pubExecutableName,
+        );
   }
 
   /// Return the revision number of this SDK, or `"0"` if the revision number
@@ -519,7 +529,8 @@ class FolderBasedDartSdk extends AbstractDartSdk {
     }
     // TODO(39284): should this exception be silent?
     AnalysisEngine.instance.instrumentationService.logException(
-        SilentException(buffer.toString(), lastException, lastStackTrace));
+      SilentException(buffer.toString(), lastException, lastStackTrace),
+    );
     return LibraryMap();
   }
 

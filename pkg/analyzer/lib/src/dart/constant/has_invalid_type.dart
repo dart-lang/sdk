@@ -23,6 +23,8 @@ class _InvalidTypeVisitor extends RecursiveTypeVisitor {
   /// The result of whether any [InvalidType]s were found.
   bool result = false;
 
+  _InvalidTypeVisitor() : super(includeTypeAliasArguments: false);
+
   @override
   bool visitDartType(DartType dartType) {
     if (dartType is InvalidType) {

@@ -173,8 +173,7 @@ class ForwardHeapPointersVisitor : public ObjectVisitor {
 
 class ForwardHeapPointersHandleVisitor : public HandleVisitor {
  public:
-  explicit ForwardHeapPointersHandleVisitor(Thread* thread)
-      : HandleVisitor(thread) {}
+  ForwardHeapPointersHandleVisitor() : HandleVisitor() {}
 
   void VisitHandle(uword addr) override {
     FinalizablePersistentHandle* handle =
@@ -377,7 +376,7 @@ void Become::FollowForwardingPointers(Thread* thread) {
 #endif  // !PRODUCT
 
   // Weak persistent handles.
-  ForwardHeapPointersHandleVisitor handle_visitor(thread);
+  ForwardHeapPointersHandleVisitor handle_visitor;
   isolate_group->VisitWeakPersistentHandles(&handle_visitor);
 }
 

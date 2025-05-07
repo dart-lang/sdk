@@ -23,11 +23,23 @@ extension TrustMeExtension on TrustMe {
   external List<NonExistent> callFoos1(int ignored);
   external List<NonExistent> callFoos2(int ignored1, int ignored2);
   external List<NonExistent> callFoos3(
-      int ignored1, int ignored2, int ignored3);
+    int ignored1,
+    int ignored2,
+    int ignored3,
+  );
   external List<NonExistent> callFoos4(
-      int ignored1, int ignored2, int ignored3, int ignored4);
+    int ignored1,
+    int ignored2,
+    int ignored3,
+    int ignored4,
+  );
   external List<NonExistent> callFoos5(
-      int ignored1, int ignored2, int ignored3, int ignored4, int ignored5);
+    int ignored1,
+    int ignored2,
+    int ignored3,
+    int ignored4,
+    int ignored5,
+  );
   external String get fooPrimitive;
 }
 

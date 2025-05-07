@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -37,12 +37,12 @@ abstract class _AbstractUnnecessaryOverrideVisitor
 
   /// If [declaration] is an inherited member of interest, then this is set in
   /// [visitMethodDeclaration].
-  late ExecutableElement2 _inheritedMethod;
+  late ExecutableElement _inheritedMethod;
   late MethodDeclaration declaration;
 
   _AbstractUnnecessaryOverrideVisitor(this.rule);
 
-  ExecutableElement2? getInheritedElement(MethodDeclaration node);
+  ExecutableElement? getInheritedElement(MethodDeclaration node);
 
   @override
   void visitBlock(Block node) {
@@ -105,7 +105,7 @@ abstract class _AbstractUnnecessaryOverrideVisitor
   @override
   void visitSuperExpression(SuperExpression node) {
     if (node.beginToken.precedingComments != null) return;
-    rule.reportLintForToken(declaration.name);
+    rule.reportAtToken(declaration.name);
   }
 
   /// Returns whether [declaration] is annotated with any metadata (other than
@@ -181,11 +181,11 @@ class _UnnecessaryGetterOverrideVisitor
   _UnnecessaryGetterOverrideVisitor(super.rule);
 
   @override
-  ExecutableElement2? getInheritedElement(MethodDeclaration node) {
+  ExecutableElement? getInheritedElement(MethodDeclaration node) {
     var element = node.declaredFragment?.element;
     if (element == null) return null;
     var enclosingElement = element.enclosingElement2;
-    if (enclosingElement is! InterfaceElement2) return null;
+    if (enclosingElement is! InterfaceElement) return null;
     var getterName = element.name3;
     if (getterName == null) return null;
     return enclosingElement.thisType.lookUpGetter3(
@@ -209,12 +209,12 @@ class _UnnecessaryMethodOverrideVisitor
   _UnnecessaryMethodOverrideVisitor(super.rule);
 
   @override
-  ExecutableElement2? getInheritedElement(node) {
+  ExecutableElement? getInheritedElement(node) {
     var element = node.declaredFragment?.element;
     if (element == null) return null;
 
     var enclosingElement = element.enclosingElement2;
-    if (enclosingElement is! InterfaceElement2) return null;
+    if (enclosingElement is! InterfaceElement) return null;
 
     return enclosingElement.firstFragment.element.thisType.lookUpMethod3(
       node.name.lexeme,
@@ -243,11 +243,11 @@ class _UnnecessaryOperatorOverrideVisitor
   _UnnecessaryOperatorOverrideVisitor(super.rule);
 
   @override
-  ExecutableElement2? getInheritedElement(node) {
+  ExecutableElement? getInheritedElement(node) {
     var element = node.declaredFragment?.element;
     if (element == null) return null;
     var enclosingElement = element.enclosingElement2;
-    if (enclosingElement is! InterfaceElement2) return null;
+    if (enclosingElement is! InterfaceElement) return null;
     var methodName = element.name3;
     if (methodName == null) return null;
     return enclosingElement.thisType.lookUpMethod3(
@@ -292,11 +292,11 @@ class _UnnecessarySetterOverrideVisitor
   _UnnecessarySetterOverrideVisitor(super.rule);
 
   @override
-  ExecutableElement2? getInheritedElement(node) {
+  ExecutableElement? getInheritedElement(node) {
     var element = node.declaredFragment?.element;
     if (element == null) return null;
     var enclosingElement = element.enclosingElement2;
-    if (enclosingElement is! InterfaceElement2) return null;
+    if (enclosingElement is! InterfaceElement) return null;
     return enclosingElement.thisType.lookUpSetter3(
       node.name.lexeme,
       element.library2,

@@ -62,9 +62,7 @@ void f() async {
   await y.foo();
 }
 ''');
-    parseResult.assertErrors([
-      error(ParserErrorCode.EXPECTED_TOKEN, 30, 1),
-    ]);
+    parseResult.assertErrors([error(ParserErrorCode.EXPECTED_TOKEN, 30, 1)]);
 
     var node = parseResult.findNode.singleBlock;
     assertParsedNodeText(node, r'''
@@ -103,9 +101,7 @@ void f() {
   bar();
 }
 ''');
-    parseResult.assertErrors([
-      error(ParserErrorCode.EXPECTED_TOKEN, 21, 3),
-    ]);
+    parseResult.assertErrors([error(ParserErrorCode.EXPECTED_TOKEN, 21, 3)]);
 
     var node = parseResult.findNode.singleBlock;
     assertParsedNodeText(node, r'''

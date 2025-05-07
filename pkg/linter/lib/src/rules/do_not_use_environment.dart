@@ -51,7 +51,7 @@ class _Visitor extends SimpleAstVisitor<void> {
                 staticType.isDartCoreString) &&
             constructorName == 'fromEnvironment') ||
         (staticType.isDartCoreBool && constructorName == 'hasEnvironment')) {
-      rule.reportLint(constructorNameNode);
+      rule.reportAtNode(constructorNameNode);
     }
   }
 }

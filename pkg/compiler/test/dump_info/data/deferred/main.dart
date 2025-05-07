@@ -150,7 +150,7 @@ import 'lib.dart' deferred as lib;
     "external": false
   },
   "returnType": "dynamic",
-  "inferredReturnType": "[exact=_Future|powerset=0]",
+  "inferredReturnType": "[exact=_Future|powerset={N}]",
   "parameters": [],
   "sideEffects": "SideEffects(reads anything; writes anything)",
   "inlinedCount": 0,
@@ -173,11 +173,11 @@ import 'lib.dart' deferred as lib;
     "external": false
   },
   "returnType": "Null",
-  "inferredReturnType": "[null|powerset=1]",
+  "inferredReturnType": "[null|powerset={null}]",
   "parameters": [
     {
       "name": "_#wc0#formal",
-      "type": "[null|subclass=Object|powerset=1]",
+      "type": "[null|subclass=Object|powerset={null}{IN}]",
       "declaredType": "dynamic"
     }
   ],
@@ -191,7 +191,7 @@ import 'lib.dart' deferred as lib;
   {"id":"function/dart:_js_helper::loadDeferredLibrary"},
   {"id":"function/dart:_rti::_setArrayType"},
   {"id":"function/dart:_rti::findType"},
-  {"id":"function/dart:async::_Future.then","mask":"[exact=_Future|powerset=0]"},
+  {"id":"function/dart:async::_Future.then","mask":"[exact=_Future|powerset={N}]"},
   {"id":"function/memory:sdk/tests/web/native/main.dart::main.main_closure.call"},
   {"id":"function/memory:sdk/tests/web/native/main.dart::main.main_closure.call"}]
 */

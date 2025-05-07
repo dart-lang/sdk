@@ -13,7 +13,6 @@
 library;
 
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:meta/meta.dart';
 
@@ -69,11 +68,7 @@ abstract class DartObject {
   DartType? get type;
 
   /// If this object is the value of a constant variable, the variable.
-  @Deprecated('Use variable2 instead')
-  VariableElement? get variable;
-
-  /// If this object is the value of a constant variable, the variable.
-  VariableElement2? get variable2;
+  VariableElement? get variable2;
 
   /// Return a representation of the value of the field with the given [name].
   ///
@@ -106,17 +101,8 @@ abstract class DartObject {
   /// * this object is not of a function type,
   /// * the value of the object being represented is not known, or
   /// * the value of the object being represented is `null`.
-  @Deprecated('Use toFunctionValue2() instead')
-  ExecutableElement? toFunctionValue();
-
-  /// Return an element corresponding to the value of the object being
-  /// represented, or `null`
-  /// if
-  /// * this object is not of a function type,
-  /// * the value of the object being represented is not known, or
-  /// * the value of the object being represented is `null`.
   @experimental
-  ExecutableElement2? toFunctionValue2();
+  ExecutableElement? toFunctionValue2();
 
   /// Return an integer corresponding to the value of the object being
   /// represented, or `null` if
@@ -143,7 +129,7 @@ abstract class DartObject {
   /// If the object being represented is not a [Record] `null` is returned
   /// instead.
   ({List<DartObject> positional, Map<String, DartObject> named})?
-      toRecordValue();
+  toRecordValue();
 
   /// Return a set corresponding to the value of the object being represented,
   /// or `null` if

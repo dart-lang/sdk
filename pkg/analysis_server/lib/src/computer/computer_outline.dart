@@ -6,7 +6,7 @@ import 'package:analysis_server/src/collections.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart' as engine;
+import 'package:analyzer/dart/element/element.dart' as engine;
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -534,7 +534,7 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor<void> {
 
   /// Return `true` if the given [element] is the method 'group' defined in the
   /// test package.
-  bool isGroup(engine.ExecutableElement2? element) {
+  bool isGroup(engine.ExecutableElement? element) {
     if (element != null && element.metadata2.hasIsTestGroup) {
       return true;
     }
@@ -545,7 +545,7 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor<void> {
 
   /// Return `true` if the given [element] is the method 'test' defined in the
   /// test package.
-  bool isTest(engine.ExecutableElement2? element) {
+  bool isTest(engine.ExecutableElement? element) {
     if (element != null && element.metadata2.hasIsTest) {
       return true;
     }
@@ -597,7 +597,7 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor<void> {
     var nameNode = node.methodName;
 
     var nameElement = nameNode.element;
-    if (nameElement is! engine.ExecutableElement2) {
+    if (nameElement is! engine.ExecutableElement) {
       return;
     }
 

@@ -19,6 +19,7 @@ import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/name_iterator.dart';
 import '../builder/never_type_declaration_builder.dart';
+import '../builder/property_builder.dart';
 import '../codes/cfe_codes.dart'
     show LocatedMessage, Message, Severity, noLength, templateUnspecified;
 import '../kernel/constructor_tearoff_lowering.dart';
@@ -212,17 +213,17 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
 
   @override
   void becomeCoreLibrary() {
-    if (libraryNameSpace.lookupLocalMember("dynamic", setter: false) == null) {
+    if (libraryNameSpace.lookupLocalMember("dynamic")?.getable == null) {
       _addBuilder("dynamic",
           new DynamicTypeDeclarationBuilder(const DynamicType(), this, -1));
     }
-    if (libraryNameSpace.lookupLocalMember("Never", setter: false) == null) {
+    if (libraryNameSpace.lookupLocalMember("Never")?.getable == null) {
       _addBuilder(
           "Never",
           new NeverTypeDeclarationBuilder(
               const NeverType.nonNullable(), this, -1));
     }
-    assert(libraryNameSpace.lookupLocalMember("Null", setter: false) != null,
+    assert(libraryNameSpace.lookupLocalMember("Null")?.getable != null,
         "No class 'Null' found in dart:core.");
   }
 
@@ -321,15 +322,15 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   Builder? _addBuilder(String? name, Builder declaration) {
     if (name == null || name.isEmpty) return null;
 
-    bool isSetter = declaration.isSetter;
+    bool isSetter = isMappedAsSetter(declaration);
     if (isSetter) {
       libraryNameSpace.addLocalMember(name, declaration as MemberBuilder,
           setter: true);
     } else {
       libraryNameSpace.addLocalMember(name, declaration, setter: false);
     }
-    if (declaration.isExtension) {
-      libraryNameSpace.addExtension(declaration as ExtensionBuilder);
+    if (declaration is ExtensionBuilder) {
+      libraryNameSpace.addExtension(declaration);
     }
     if (!name.startsWith("_") && !name.contains('#')) {
       if (isSetter) {
@@ -369,11 +370,13 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
         assert(
             name == 'dynamic', "Unexpected export name for 'dynamic': '$name'");
         declaration = loader.coreLibrary.exportNameSpace
-            .lookupLocalMember(name, setter: false)!;
+            .lookupLocalMember(name)!
+            .getable!;
       } else if (messageText == exportNeverSentinel) {
         assert(name == 'Never', "Unexpected export name for 'Never': '$name'");
         declaration = loader.coreLibrary.exportNameSpace
-            .lookupLocalMember(name, setter: false)!;
+            .lookupLocalMember(name)!
+            .getable!;
       } else {
         Message message = templateUnspecified.withArguments(messageText);
         if (!suppressFinalizationErrors) {
@@ -402,9 +405,8 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
               "Unexpected: $declaration (${declaration.runtimeType}");
         }
 
-        if (declaration.isSetter) {
-          exportNameSpace.addLocalMember(name, declaration as MemberBuilder,
-              setter: true);
+        if (isMappedAsSetter(declaration)) {
+          exportNameSpace.addLocalMember(name, declaration, setter: true);
         } else {
           exportNameSpace.addLocalMember(name, declaration, setter: false);
         }
@@ -445,12 +447,12 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
             "No reference for source declaration of $node.");
         if (isSetter) {
           declaration =
-              library.exportNameSpace.lookupLocalMember(name, setter: true)!;
+              library.exportNameSpace.lookupLocalMember(name)!.setable!;
           exportNameSpace.addLocalMember(name, declaration as MemberBuilder,
               setter: true);
         } else {
           declaration =
-              library.exportNameSpace.lookupLocalMember(name, setter: false)!;
+              library.exportNameSpace.lookupLocalMember(name)!.getable!;
           exportNameSpace.addLocalMember(name, declaration, setter: false);
         }
       }

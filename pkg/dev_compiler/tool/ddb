@@ -349,14 +349,19 @@ sdk.dart.jsInteropNonNullAsserts($jsInteropNonNullAsserts);
         for (var output in outputs) '<script src="$output"></script>'
       ].join('\n');
       var ddcModulesHtml = '''
-<script src="$preamblesDir/seal_native_object.js"></script>
-<script src="$ddcPath/lib/js/ddc/ddc_module_loader.js"></script>
-<script src="$sdkJsPath/dart_sdk.js"></script>
-$ddcModuleScriptTags
-<script>
-$ddcModuleSdkOptions
-$ddcModuleRunMain
-</script>
+<html>
+  <head></head>
+  <body>
+    <script src="$preamblesDir/seal_native_object.js"></script>
+    <script src="$ddcPath/lib/js/ddc/ddc_module_loader.js"></script>
+    <script src="$sdkJsPath/dart_sdk.js"></script>
+    $ddcModuleScriptTags
+    <script>
+    $ddcModuleSdkOptions
+    $ddcModuleRunMain
+    </script>
+  </body>
+</html>
 ''';
       var htmlFile = p.setExtension(entryPoint, '.html');
       File(htmlFile)

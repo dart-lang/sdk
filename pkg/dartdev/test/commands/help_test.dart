@@ -22,7 +22,7 @@ void help() {
   ];
   DartdevRunner(['--suppress-analytics'])
       .commands
-      .forEach((String commandKey, Command command) {
+      .forEach((String commandKey, Command<int> command) {
     if (!commandsNotTested.contains(commandKey)) {
       test('(help $commandKey == $commandKey --help)', () async {
         p = project();
@@ -57,7 +57,7 @@ void help() {
   test('(--help flags also have -h abbr)', () {
     DartdevRunner(['--suppress-analytics'])
         .commands
-        .forEach((String commandKey, Command command) {
+        .forEach((String commandKey, Command<int> command) {
       var helpOption = command.argParser.options['help'];
       // Some commands (like pub which use
       // "argParser = ArgParser.allowAnything()") may not have the help Option

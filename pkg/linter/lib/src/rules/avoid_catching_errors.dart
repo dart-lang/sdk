@@ -40,12 +40,12 @@ class _Visitor extends SimpleAstVisitor<void> {
     var exceptionType = node.exceptionType?.type;
     if (exceptionType.implementsInterface('Error', 'dart.core')) {
       if (exceptionType.isSameAs('Error', 'dart.core')) {
-        rule.reportLint(
+        rule.reportAtNode(
           node,
           errorCode: LinterLintCode.avoid_catching_errors_class,
         );
       } else {
-        rule.reportLint(
+        rule.reportAtNode(
           node,
           errorCode: LinterLintCode.avoid_catching_errors_subclass,
           arguments: [exceptionType!.getDisplayString()],

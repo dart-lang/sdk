@@ -208,22 +208,22 @@ class Class extends core::Object {
   external constructor externalGenerative() → self::Class;
   @#C2
   external constructor nativeGenerative() → self::Class;
-  static method _#generative#tearOff() → self::Class
+  static synthetic method _#generative#tearOff() → self::Class
     return new self::Class::generative();
   static factory fact() → self::Class
     return (null as dynamic) as{TypeError,ForDynamic} self::Class;
-  static method _#fact#tearOff() → self::Class
+  static synthetic method _#fact#tearOff() → self::Class
     return self::Class::fact();
-  static method _#externalGenerative#tearOff() → self::Class
+  static synthetic method _#externalGenerative#tearOff() → self::Class
     return new self::Class::externalGenerative();
   external static factory externalFact() → self::Class;
-  static method _#externalFact#tearOff() → self::Class
+  static synthetic method _#externalFact#tearOff() → self::Class
     return self::Class::externalFact();
-  static method _#nativeGenerative#tearOff() → self::Class
+  static synthetic method _#nativeGenerative#tearOff() → self::Class
     return new self::Class::nativeGenerative();
   @#C2
   external static factory nativeFact() → self::Class;
-  static method _#nativeFact#tearOff() → self::Class
+  static synthetic method _#nativeFact#tearOff() → self::Class
     return self::Class::nativeFact();
   get instanceGetter() → dynamic
     return null;
@@ -263,22 +263,22 @@ class NativeClass extends core::Object {
   external constructor externalGenerative() → self::NativeClass;
   @#C2
   external constructor nativeGenerative() → self::NativeClass;
-  static method _#generative#tearOff() → self::NativeClass
+  static synthetic method _#generative#tearOff() → self::NativeClass
     return new self::NativeClass::generative();
   static factory fact() → self::NativeClass
     return (null as dynamic) as{TypeError,ForDynamic} self::NativeClass;
-  static method _#fact#tearOff() → self::NativeClass
+  static synthetic method _#fact#tearOff() → self::NativeClass
     return self::NativeClass::fact();
-  static method _#externalGenerative#tearOff() → self::NativeClass
+  static synthetic method _#externalGenerative#tearOff() → self::NativeClass
     return new self::NativeClass::externalGenerative();
   external static factory externalFact() → self::NativeClass;
-  static method _#externalFact#tearOff() → self::NativeClass
+  static synthetic method _#externalFact#tearOff() → self::NativeClass
     return self::NativeClass::externalFact();
-  static method _#nativeGenerative#tearOff() → self::NativeClass
+  static synthetic method _#nativeGenerative#tearOff() → self::NativeClass
     return new self::NativeClass::nativeGenerative();
   @#C2
   external static factory nativeFact() → self::NativeClass;
-  static method _#nativeFact#tearOff() → self::NativeClass
+  static synthetic method _#nativeFact#tearOff() → self::NativeClass
     return self::NativeClass::nativeFact();
   get instanceGetter() → dynamic
     return null;

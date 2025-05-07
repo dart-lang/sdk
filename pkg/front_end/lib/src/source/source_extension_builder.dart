@@ -108,14 +108,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get isConst => _modifiers.isConst;
-
-  @override
-  // Coverage-ignore(suite): Not run.
   bool get isStatic => _modifiers.isStatic;
-
-  @override
-  bool get isAugment => _modifiers.isAugment;
 
   @override
   void buildScopes(LibraryBuilder coreLibrary) {
@@ -167,12 +160,12 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   void _buildOutlineExpressionsForFragment(ExtensionFragment fragment,
       ClassHierarchy classHierarchy, BodyBuilderContext bodyBuilderContext) {
     MetadataBuilder.buildAnnotations(
-        extension,
-        fragment.metadata,
-        bodyBuilderContext,
-        libraryBuilder,
-        fragment.fileUri,
-        fragment.enclosingScope);
+        annotatable: extension,
+        annotatableFileUri: extension.fileUri,
+        metadata: fragment.metadata,
+        bodyBuilderContext: bodyBuilderContext,
+        libraryBuilder: libraryBuilder,
+        scope: fragment.enclosingScope);
   }
 
   void buildOutlineExpressions(ClassHierarchy classHierarchy,

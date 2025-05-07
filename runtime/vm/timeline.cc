@@ -77,7 +77,7 @@ DEFINE_FLAG(charp,
             nullptr,
             "Comma separated list of timeline streams to record. "
             "Valid values: all, API, Compiler, CompilerVerbose, Dart, "
-            "Debugger, Embedder, GC, Isolate, and VM.");
+            "Debugger, Embedder, GC, Isolate, Microtask, and VM.");
 DEFINE_FLAG(charp,
             timeline_recorder,
             DEFAULT_TIMELINE_RECORDER,
@@ -1076,7 +1076,7 @@ class TracePacketWriter : public ValueObject {
         for (intptr_t i = 0; i < event.GetNumArguments(); ++i) {
           perfetto::protos::pbzero::DebugAnnotation& debug_annotation =
               *track_event->add_debug_annotations();
-          SetDebugAnnotationName(debug_annotation, event.arguments()[0].name);
+          SetDebugAnnotationName(debug_annotation, event.arguments()[i].name);
           SetDebugAnnotationStringValue(debug_annotation,
                                         event.arguments()[i].value);
         }

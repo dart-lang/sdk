@@ -15,14 +15,11 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   final Linker _linker;
   final Scope _containerScope;
   final LibraryBuilder _libraryBuilder;
-  final CompilationUnitElementImpl _unitElement;
+  final LibraryFragmentImpl _unitElement;
   late Scope _scope;
 
-  MetadataResolver(
-    this._linker,
-    this._unitElement,
-    this._libraryBuilder,
-  ) : _containerScope = _unitElement.scope {
+  MetadataResolver(this._linker, this._unitElement, this._libraryBuilder)
+    : _containerScope = _unitElement.scope {
     _scope = _containerScope;
   }
 
@@ -31,8 +28,12 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
     var annotationElement = node.elementAnnotation;
     if (annotationElement is ElementAnnotationImpl) {
       var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
-      var astResolver =
-          AstResolver(_linker, _unitElement, _scope, analysisOptions);
+      var astResolver = AstResolver(
+        _linker,
+        _unitElement,
+        _scope,
+        analysisOptions,
+      );
       astResolver.resolveAnnotation(node);
       annotationElement.element2 = node.element2;
     }
@@ -96,10 +97,6 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   @override
   void visitExportDirective(covariant ExportDirectiveImpl node) {
     node.metadata.accept(this);
-    // We might have already accessed metadata flags, e.g. `hasDeprecated`,
-    // before we finished metadata resolution, during `PrefixScope` building.
-    // So, these flags are not accurate anymore, and we need to reset them.
-    node.libraryExport!.resetMetadataFlags();
   }
 
   @override

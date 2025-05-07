@@ -16,7 +16,8 @@ main() {
 @reflectiveTest
 class InstanceMemberAccessFromFactoryTest extends PubPackageResolutionTest {
   test_named_getter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int get foo => 0;
 
@@ -25,13 +26,14 @@ class A {
     throw 0;
   }
 }
-''', [
-      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY, 56, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY, 56, 3)],
+    );
   }
 
   test_named_getter_localFunction() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int get foo => 0;
 
@@ -43,13 +45,14 @@ class A {
     throw 0;
   }
 }
-''', [
-      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY, 73, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY, 73, 3)],
+    );
   }
 
   test_named_method() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void foo() {}
 
@@ -58,13 +61,14 @@ class A {
     throw 0;
   }
 }
-''', [
-      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY, 52, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY, 52, 3)],
+    );
   }
 
   test_named_method_functionExpression() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void foo() {}
 
@@ -73,13 +77,14 @@ class A {
     throw 0;
   }
 }
-''', [
-      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY, 58, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY, 58, 3)],
+    );
   }
 
   test_named_method_functionExpression_localVariable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void foo() {}
 
@@ -89,13 +94,14 @@ class A {
     throw 0;
   }
 }
-''', [
-      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY, 102, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY, 102, 3)],
+    );
   }
 
   test_unnamed_method() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void foo() {}
 
@@ -104,8 +110,8 @@ class A {
     throw 0;
   }
 }
-''', [
-      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY, 47, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY, 47, 3)],
+    );
   }
 }

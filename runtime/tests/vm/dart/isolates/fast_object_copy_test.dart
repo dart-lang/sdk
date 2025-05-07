@@ -56,19 +56,28 @@ Uint8List initializeUint8List(Uint8List l) {
   return l;
 }
 
-final Uint8List largeExternalTypedData =
-    initializeUint8List(File(Platform.resolvedExecutable).readAsBytesSync());
-final Uint8List largeInternalTypedData =
-    initializeUint8List(Uint8List(20 * 1024 * 1024));
+final Uint8List largeExternalTypedData = initializeUint8List(
+  File(Platform.resolvedExecutable).readAsBytesSync(),
+);
+final Uint8List largeInternalTypedData = initializeUint8List(
+  Uint8List(20 * 1024 * 1024),
+);
 
-final Uint8List smallExternalTypedData =
-    initializeUint8List(File(Platform.script.toFilePath()).readAsBytesSync());
-final Uint8List smallExternalTypedDataView =
-    Uint8List.view(smallExternalTypedData.buffer, 1, 1);
+final Uint8List smallExternalTypedData = initializeUint8List(
+  File(Platform.script.toFilePath()).readAsBytesSync(),
+);
+final Uint8List smallExternalTypedDataView = Uint8List.view(
+  smallExternalTypedData.buffer,
+  1,
+  1,
+);
 
 final Uint8List smallInternalTypedData = Uint8List.fromList([0, 1, 2]);
-final Uint8List smallInternalTypedDataView =
-    Uint8List.view(smallInternalTypedData.buffer, 1, 1);
+final Uint8List smallInternalTypedDataView = Uint8List.view(
+  smallInternalTypedData.buffer,
+  1,
+  1,
+);
 
 final Uint8List notAllocatableInTLAB = largeInternalTypedData;
 final Object invalidObject = ClassWithNativeFields();
@@ -264,10 +273,7 @@ class SendReceiveTest extends SendReceiveTestBase {
   Future testTransferrable() async {
     print('testTransferrable');
     final td = TransferableTypedData.fromList([Uint8List(10)..[0] = 42]);
-    final graph = [
-      td,
-      invalidObject,
-    ];
+    final graph = [td, invalidObject];
     Expect.throwsArgumentError(() => sendPort.send(graph));
     Expect.equals(42, td.materialize().asInt8List()[0]);
   }
@@ -275,11 +281,7 @@ class SendReceiveTest extends SendReceiveTestBase {
   Future testTransferrable2() async {
     print('testTransferrable2');
     final td = TransferableTypedData.fromList([Uint8List(10)..[0] = 42]);
-    final graph = [
-      td,
-      notAllocatableInTLAB,
-      invalidObject,
-    ];
+    final graph = [td, notAllocatableInTLAB, invalidObject];
     Expect.throwsArgumentError(() => sendPort.send(graph));
     Expect.equals(42, td.materialize().asInt8List()[0]);
   }
@@ -287,9 +289,7 @@ class SendReceiveTest extends SendReceiveTestBase {
   Future testTransferrable3() async {
     print('testTransferrable3');
     final td = TransferableTypedData.fromList([Uint8List(10)..[0] = 42]);
-    final graph = [
-      td,
-    ];
+    final graph = [td];
     final result = await sendReceive(graph);
     Expect.throwsArgumentError(() => td.materialize());
     final tdCopy = result[0];
@@ -299,10 +299,7 @@ class SendReceiveTest extends SendReceiveTestBase {
   Future testTransferrable4() async {
     print('testTransferrable4');
     final td = TransferableTypedData.fromList([Uint8List(10)..[0] = 42]);
-    final graph = [
-      notAllocatableInTLAB,
-      td,
-    ];
+    final graph = [notAllocatableInTLAB, td];
     final result = await sendReceive(graph);
     Expect.throwsArgumentError(() => td.materialize());
     final tdCopy = result[1] as TransferableTypedData;
@@ -319,10 +316,7 @@ class SendReceiveTest extends SendReceiveTestBase {
 
   Future testExternalTypedData() async {
     print('testExternalTypedData');
-    final graph = [
-      notAllocatableInTLAB,
-      largeExternalTypedData,
-    ];
+    final graph = [notAllocatableInTLAB, largeExternalTypedData];
     for (int i = 0; i < 10; ++i) {
       final result = await sendReceive(graph);
       final etd = result[1];
@@ -332,10 +326,7 @@ class SendReceiveTest extends SendReceiveTestBase {
 
   Future testExternalTypedData2() async {
     print('testExternalTypedData2');
-    final graph = [
-      largeExternalTypedData,
-      notAllocatableInTLAB,
-    ];
+    final graph = [largeExternalTypedData, notAllocatableInTLAB];
     for (int i = 0; i < 10; ++i) {
       final result = await sendReceive(graph);
       final etd = result[0];
@@ -345,20 +336,13 @@ class SendReceiveTest extends SendReceiveTestBase {
 
   Future testExternalTypedData3() async {
     print('testExternalTypedData3');
-    final graph = [
-      notAllocatableInTLAB,
-      largeExternalTypedData,
-      invalidObject,
-    ];
+    final graph = [notAllocatableInTLAB, largeExternalTypedData, invalidObject];
     Expect.throwsArgumentError(() => sendPort.send(graph));
   }
 
   Future testExternalTypedData4() async {
     print('testExternalTypedData4');
-    final graph = [
-      largeExternalTypedData,
-      invalidObject,
-    ];
+    final graph = [largeExternalTypedData, invalidObject];
     Expect.throwsArgumentError(() => sendPort.send(graph));
   }
 
@@ -382,10 +366,7 @@ class SendReceiveTest extends SendReceiveTestBase {
 
   Future testInternalTypedDataView() async {
     print('testInternalTypedDataView');
-    final graph = [
-      smallInternalTypedDataView,
-      smallInternalTypedData,
-    ];
+    final graph = [smallInternalTypedDataView, smallInternalTypedData];
     final copiedGraph = await sendReceive(graph);
     Expect.notIdentical(graph[0], copiedGraph[0]);
     Expect.notIdentical(graph[1], copiedGraph[1]);
@@ -395,10 +376,7 @@ class SendReceiveTest extends SendReceiveTestBase {
 
   Future testInternalTypedDataView2() async {
     print('testInternalTypedDataView2');
-    final graph = [
-      smallInternalTypedData,
-      smallInternalTypedDataView,
-    ];
+    final graph = [smallInternalTypedData, smallInternalTypedDataView];
     final copiedGraph = await sendReceive(graph);
     Expect.notIdentical(graph[0], copiedGraph[0]);
     Expect.notIdentical(graph[1], copiedGraph[1]);
@@ -436,10 +414,7 @@ class SendReceiveTest extends SendReceiveTestBase {
 
   Future testExternalTypedDataView() async {
     print('testExternalTypedDataView');
-    final graph = [
-      smallExternalTypedDataView,
-      smallExternalTypedData,
-    ];
+    final graph = [smallExternalTypedDataView, smallExternalTypedData];
     final copiedGraph = await sendReceive(graph);
     Expect.notIdentical(graph[0], copiedGraph[0]);
     Expect.notIdentical(graph[1], copiedGraph[1]);
@@ -449,10 +424,7 @@ class SendReceiveTest extends SendReceiveTestBase {
 
   Future testExternalTypedDataView2() async {
     print('testExternalTypedDataView2');
-    final graph = [
-      smallExternalTypedData,
-      smallExternalTypedDataView,
-    ];
+    final graph = [smallExternalTypedData, smallExternalTypedDataView];
     final copiedGraph = await sendReceive(graph);
     Expect.notIdentical(graph[0], copiedGraph[0]);
     Expect.notIdentical(graph[1], copiedGraph[1]);
@@ -512,7 +484,9 @@ class SendReceiveTest extends SendReceiveTestBase {
     Expect.equals(42, mapCopy.values.single);
     Expect.notIdentical(obj, mapCopy.keys.single);
     Expect.notEquals(
-        identityHashCode(obj), identityHashCode(mapCopy.keys.single));
+      identityHashCode(obj),
+      identityHashCode(mapCopy.keys.single),
+    );
     Expect.equals(null, mapCopy[obj]);
     Expect.equals(42, mapCopy[mapCopy.keys.single]);
   }
@@ -529,7 +503,9 @@ class SendReceiveTest extends SendReceiveTestBase {
     Expect.equals(42, mapCopy.values.single);
     Expect.notIdentical(obj, mapCopy.keys.single);
     Expect.notEquals(
-        identityHashCode(obj), identityHashCode(mapCopy.keys.single));
+      identityHashCode(obj),
+      identityHashCode(mapCopy.keys.single),
+    );
     Expect.equals(null, mapCopy[obj]);
     Expect.equals(42, mapCopy[mapCopy.keys.single]);
   }
@@ -582,7 +558,9 @@ class SendReceiveTest extends SendReceiveTestBase {
     Expect.equals(obj.runtimeType, setCopy.toList()[1].runtimeType);
     Expect.notIdentical(obj, setCopy.toList()[1]);
     Expect.notEquals(
-        identityHashCode(obj), identityHashCode(setCopy.toList()[1]));
+      identityHashCode(obj),
+      identityHashCode(setCopy.toList()[1]),
+    );
     Expect.isFalse(setCopy.contains(obj));
     Expect.isTrue(setCopy.contains(setCopy.toList()[1]));
   }
@@ -601,7 +579,9 @@ class SendReceiveTest extends SendReceiveTestBase {
     Expect.equals(obj.runtimeType, setCopy.toList()[1].runtimeType);
     Expect.notIdentical(obj, setCopy.toList()[1]);
     Expect.notEquals(
-        identityHashCode(obj), identityHashCode(setCopy.toList()[1]));
+      identityHashCode(obj),
+      identityHashCode(setCopy.toList()[1]),
+    );
     Expect.isFalse(setCopy.contains(obj));
     Expect.isTrue(setCopy.contains(setCopy.toList()[1]));
   }
@@ -632,12 +612,16 @@ class SendReceiveTest extends SendReceiveTestBase {
   Future testSlowOnly() async {
     print('testSlowOnly');
     for (final smallPrimitive in smallPrimitives) {
-      expectGraphsMatch([notAllocatableInTLAB, smallPrimitive],
-          await sendReceive([notAllocatableInTLAB, smallPrimitive]));
+      expectGraphsMatch([
+        notAllocatableInTLAB,
+        smallPrimitive,
+      ], await sendReceive([notAllocatableInTLAB, smallPrimitive]));
     }
     for (final smallContainer in smallContainers) {
-      expectGraphsMatch([notAllocatableInTLAB, smallContainer],
-          await sendReceive([notAllocatableInTLAB, smallContainer]));
+      expectGraphsMatch([
+        notAllocatableInTLAB,
+        smallContainer,
+      ], await sendReceive([notAllocatableInTLAB, smallContainer]));
     }
   }
 
@@ -654,10 +638,7 @@ class SendReceiveTest extends SendReceiveTestBase {
     expando4[expando4] = {'foo': 'bar'};
 
     {
-      final result = await sendReceive([
-        key,
-        expando1,
-      ]);
+      final result = await sendReceive([key, expando1]);
       final keyCopy = result[0];
       final expando1Copy = result[1] as Expando;
       final expando2Copy = expando1Copy[keyCopy] as Expando;
@@ -666,10 +647,7 @@ class SendReceiveTest extends SendReceiveTestBase {
       Expect.equals('bar', (expando4Copy[expando4Copy] as Map)['foo']);
     }
     {
-      final result = await sendReceive([
-        expando1,
-        key,
-      ]);
+      final result = await sendReceive([expando1, key]);
       final expando1Copy = result[0] as Expando;
       final keyCopy = result[1];
       final expando2Copy = expando1Copy[keyCopy] as Expando;
@@ -678,11 +656,7 @@ class SendReceiveTest extends SendReceiveTestBase {
       Expect.equals('bar', (expando4Copy[expando4Copy] as Map)['foo']);
     }
     {
-      final result = await sendReceive([
-        expando1,
-        notAllocatableInTLAB,
-        key,
-      ]);
+      final result = await sendReceive([expando1, notAllocatableInTLAB, key]);
       final expando1Copy = result[0] as Expando;
       final keyCopy = result[2];
       final expando2Copy = expando1Copy[keyCopy] as Expando;
@@ -691,11 +665,7 @@ class SendReceiveTest extends SendReceiveTestBase {
       Expect.equals('bar', (expando4Copy[expando4Copy] as Map)['foo']);
     }
     {
-      final result = await sendReceive([
-        key,
-        notAllocatableInTLAB,
-        expando1,
-      ]);
+      final result = await sendReceive([key, notAllocatableInTLAB, expando1]);
       final keyCopy = result[0];
       final expando1Copy = result[2] as Expando;
       final expando2Copy = expando1Copy[keyCopy] as Expando;
@@ -800,7 +770,8 @@ class SendReceiveTest extends SendReceiveTestBase {
     }
     for (final closure in nonCopyableClosures) {
       Expect.throwsArgumentError(
-          () => sendPort.send([notAllocatableInTLAB, closure]));
+        () => sendPort.send([notAllocatableInTLAB, closure]),
+      );
     }
   }
 }

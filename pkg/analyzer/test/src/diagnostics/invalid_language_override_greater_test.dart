@@ -23,16 +23,14 @@ class InvalidLanguageOverrideGreaterTest extends PubPackageResolutionTest {
 
   test_greaterThanLatest() async {
     var latestVersion = ExperimentStatus.currentVersion;
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 // @dart = ${latestVersion.major}.${latestVersion.minor + 1}
 class A {}
-''', [
-      error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER, 0, 14),
-    ]);
-    _assertUnitLanguageVersion(
-      package: latestVersion,
-      override: null,
+''',
+      [error(WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER, 0, 15)],
     );
+    _assertUnitLanguageVersion(package: latestVersion, override: null);
   }
 
   test_greaterThanPackage() async {

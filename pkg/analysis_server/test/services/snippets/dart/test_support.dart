@@ -92,6 +92,12 @@ abstract class DartSnippetProducerTest extends AbstractSingleUnitTest {
     expect(await producer.isValid(), isTrue);
     return producer.compute();
   }
+
+  @override
+  void setUp() {
+    useLineEndingsForPlatform = false;
+    super.setUp();
+  }
 }
 
 abstract class FlutterSnippetProducerTest extends DartSnippetProducerTest {

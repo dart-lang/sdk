@@ -106,8 +106,11 @@ void addInstance(var instance) {
   addInstanceMirror(reflect(instance));
 }
 
-void addInstanceMirror(InstanceMirror mirror,
-    [Candidate origin, String message]) {
+void addInstanceMirror(
+  InstanceMirror mirror, [
+  Candidate origin,
+  String message,
+]) {
   var c = new Candidate<InstanceMirror>();
   c.mirror = mirror;
   c.origin = origin;
@@ -230,12 +233,15 @@ void setupClasses() {
 
 MethodMirror randomMethodOf(receiver) {
   if (receiver is ClassMirror) {
-    return randomElementOf(receiver.declarations.values
-        .where((d) => d is MethodMirror && d.isStatic)
-        .toList());
+    return randomElementOf(
+      receiver.declarations.values
+          .where((d) => d is MethodMirror && d.isStatic)
+          .toList(),
+    );
   } else if (receiver is LibraryMirror) {
     return randomElementOf(
-        receiver.declarations.values.where((d) => d is MethodMirror).toList());
+      receiver.declarations.values.where((d) => d is MethodMirror).toList(),
+    );
   } else if (receiver is InstanceMirror) {
     var methods = [];
     var cls = receiver.type;

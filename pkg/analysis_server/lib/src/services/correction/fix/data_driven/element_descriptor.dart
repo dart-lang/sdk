@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart' hide ElementKind;
+import 'package:analyzer/dart/element/element.dart' hide ElementKind;
 import 'package:analyzer/dart/element/type.dart';
 
 /// A description of an element.
@@ -142,7 +142,7 @@ class ElementDescriptor {
           if (type == null && target is SimpleIdentifier) {
             var element = target.element;
             // TODO(brianwilkerson): Handle more than `InterfaceElement`.
-            if (element is InterfaceElement2) {
+            if (element is InterfaceElement) {
               type = element.thisType;
             }
           }

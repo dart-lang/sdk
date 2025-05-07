@@ -21,6 +21,7 @@ import '../source/source_class_builder.dart';
 import '../source/source_extension_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_member_builder.dart';
+import 'lookup_result.dart';
 import 'messages.dart';
 import 'name_space.dart';
 import 'uri_offset.dart';
@@ -123,145 +124,9 @@ enum ScopeKind {
 
 abstract class LookupScope {
   ScopeKind get kind;
-  Builder? lookupGetable(String name, int charOffset, Uri fileUri);
-  Builder? lookupSetable(String name, int charOffset, Uri fileUri);
+  LookupResult? lookup(String name, int fileOffset, Uri fileUri);
   // TODO(johnniwinther): Should this be moved to an outer scope interface?
   void forEachExtension(void Function(ExtensionBuilder) f);
-}
-
-/// Returns the correct value of the [getable] and [setable] found as a lookup
-/// of [name].
-///
-/// If [isSetter] is `true`, the lookup intends to find a setable. Otherwise it
-/// intends to find a getable.
-///
-/// This ensures that an [AmbiguousBuilder] is returned if the found builder is
-/// a duplicate.
-///
-/// If [forStaticAccess] is `true`, `null` is returned if the found builder is
-/// an instance member.
-Builder? normalizeLookup(
-    {required Builder? getable,
-    required Builder? setable,
-    required String name,
-    required int charOffset,
-    required Uri fileUri,
-    required String classNameOrDebugName,
-    required bool isSetter,
-    bool forStaticAccess = false}) {
-  if (getable == null && setable == null) {
-    return null;
-  }
-  Builder? thisBuilder;
-  Builder? otherBuilder;
-  if (isSetter) {
-    thisBuilder = setable;
-    otherBuilder = getable;
-  } else {
-    thisBuilder = getable;
-    otherBuilder = setable;
-  }
-  Builder? builder = _normalizeBuilderLookup(thisBuilder,
-      name: name,
-      charOffset: charOffset,
-      fileUri: fileUri,
-      classNameOrDebugName: classNameOrDebugName,
-      forStaticAccess: forStaticAccess);
-  if (builder != null) {
-    return builder;
-  }
-  builder = _normalizeCrossLookup(
-      _normalizeBuilderLookup(otherBuilder,
-          name: name,
-          charOffset: charOffset,
-          fileUri: fileUri,
-          classNameOrDebugName: classNameOrDebugName,
-          forStaticAccess: forStaticAccess),
-      name: name,
-      charOffset: charOffset,
-      fileUri: fileUri);
-  return builder;
-}
-
-/// Returns the correct value of [builder] found as a lookup of [name].
-///
-/// This ensures that an [AmbiguousBuilder] is returned if the found builder is
-/// a duplicate.
-///
-/// If [forStaticAccess] is `true`, `null` is returned if the found builder is
-/// an instance member.
-Builder? _normalizeBuilderLookup(Builder? builder,
-    {required String name,
-    required int charOffset,
-    required Uri fileUri,
-    required String classNameOrDebugName,
-    required bool forStaticAccess}) {
-  if (builder == null) return null;
-  if (builder.next != null) {
-    return new AmbiguousBuilder(name.isEmpty ? classNameOrDebugName : name,
-        builder, charOffset, fileUri);
-  } else if (forStaticAccess && builder.isDeclarationInstanceMember) {
-    return null;
-  } else if (builder is MemberBuilder && builder.isConflictingSetter) {
-    // TODO(johnniwinther): Use a variant of [AmbiguousBuilder] for this case.
-    return null;
-  } else {
-    return builder;
-  }
-}
-
-/// Returns the correct value of [builder] found as a lookup of [name] where
-/// [builder] is found as a setable in search of a getable or as a getable in
-/// search of a setable.
-///
-/// This ensures that an [AccessErrorBuilder] is returned if a non-problem
-/// builder was found.
-Builder? _normalizeCrossLookup(Builder? builder,
-    {required String name, required int charOffset, required Uri fileUri}) {
-  if (builder != null && !builder.hasProblem) {
-    return new AccessErrorBuilder(name, builder, charOffset, fileUri);
-  }
-  return builder;
-}
-
-mixin LookupScopeMixin implements LookupScope {
-  String get classNameOrDebugName;
-
-  Builder? lookupGetableIn(
-      String name, int charOffset, Uri fileUri, Map<String, Builder> getables) {
-    Builder? getable = getables[name];
-    if (getable == null) {
-      return null;
-    }
-    return normalizeLookup(
-        getable: getable,
-        setable: null,
-        name: name,
-        charOffset: charOffset,
-        fileUri: fileUri,
-        classNameOrDebugName: classNameOrDebugName,
-        isSetter: false);
-  }
-
-  Builder? lookupSetableIn(String name, int charOffset, Uri fileUri,
-      Map<String, Builder>? getables) {
-    Builder? getable = getables?[name];
-    if (getable == null) {
-      return null;
-    }
-    // Coverage-ignore(suite): Not run.
-    return normalizeLookup(
-        getable: getable,
-        setable: null,
-        name: name,
-        charOffset: charOffset,
-        fileUri: fileUri,
-        classNameOrDebugName: classNameOrDebugName,
-        isSetter: true);
-  }
-
-  @override
-  String toString() => "$runtimeType(${kind},$classNameOrDebugName)";
 }
 
 /// A [LookupScope] based directly on a [NameSpace].
@@ -278,39 +143,10 @@ abstract class BaseNameSpaceLookupScope implements LookupScope {
   LookupScope? get _parent;
 
   @override
-  Builder? lookupGetable(String name, int charOffset, Uri fileUri) {
-    Builder? getable = _nameSpace.lookupLocalMember(name, setter: false);
-    Builder? setable = _nameSpace.lookupLocalMember(name, setter: true);
-    Builder? builder;
-    if (getable != null || setable != null) {
-      builder = normalizeLookup(
-          getable: getable,
-          setable: setable,
-          name: name,
-          charOffset: charOffset,
-          fileUri: fileUri,
-          classNameOrDebugName: classNameOrDebugName,
-          isSetter: false);
-    }
-    return builder ?? _parent?.lookupGetable(name, charOffset, fileUri);
-  }
-
-  @override
-  Builder? lookupSetable(String name, int charOffset, Uri fileUri) {
-    Builder? getable = _nameSpace.lookupLocalMember(name, setter: false);
-    Builder? setable = _nameSpace.lookupLocalMember(name, setter: true);
-    Builder? builder;
-    if (getable != null || setable != null) {
-      builder = normalizeLookup(
-          getable: getable,
-          setable: setable,
-          name: name,
-          charOffset: charOffset,
-          fileUri: fileUri,
-          classNameOrDebugName: classNameOrDebugName,
-          isSetter: true);
-    }
-    return builder ?? _parent?.lookupSetable(name, charOffset, fileUri);
+  LookupResult? lookup(String name, int fileOffset, Uri fileUri) {
+    return _nameSpace.lookupLocal(name,
+            fileUri: fileUri, fileOffset: fileOffset, staticOnly: false) ??
+        _parent?.lookup(name, fileOffset, fileUri);
   }
 
   @override
@@ -340,48 +176,17 @@ abstract class AbstractTypeParameterScope implements LookupScope {
 
   AbstractTypeParameterScope(this._parent);
 
-  Builder? getTypeParameter(String name);
+  TypeParameterBuilder? getTypeParameter(String name);
 
   @override
   // Coverage-ignore(suite): Not run.
   ScopeKind get kind => ScopeKind.typeParameters;
 
   @override
-  Builder? lookupGetable(String name, int charOffset, Uri fileUri) {
-    Builder? typeParameter = getTypeParameter(name);
-    Builder? builder;
-    if (typeParameter != null) {
-      builder = normalizeLookup(
-          getable: typeParameter,
-          setable: null,
-          name: name,
-          charOffset: charOffset,
-          fileUri: fileUri,
-          classNameOrDebugName: classNameOrDebugName,
-          isSetter: false);
-    }
-    return builder ?? _parent.lookupGetable(name, charOffset, fileUri);
+  LookupResult? lookup(String name, int fileOffset, Uri fileUri) {
+    LookupResult? result = getTypeParameter(name);
+    return result ?? _parent.lookup(name, fileOffset, fileUri);
   }
-
-  @override
-  Builder? lookupSetable(String name, int charOffset, Uri fileUri) {
-    Builder? typeParameter = getTypeParameter(name);
-    Builder? builder;
-    if (typeParameter != null) {
-      // Coverage-ignore-block(suite): Not run.
-      builder = normalizeLookup(
-          getable: typeParameter,
-          setable: null,
-          name: name,
-          charOffset: charOffset,
-          fileUri: fileUri,
-          classNameOrDebugName: classNameOrDebugName,
-          isSetter: true);
-    }
-    return builder ?? _parent.lookupSetable(name, charOffset, fileUri);
-  }
-
-  String get classNameOrDebugName => "type parameter";
 
   @override
   void forEachExtension(void Function(ExtensionBuilder) f) {
@@ -389,91 +194,27 @@ abstract class AbstractTypeParameterScope implements LookupScope {
   }
 
   @override
-  String toString() => "$runtimeType(${kind},$classNameOrDebugName)";
+  String toString() => "$runtimeType(${kind},type parameter)";
 }
 
 class TypeParameterScope extends AbstractTypeParameterScope {
-  final Map<String, Builder> _typeParameters;
+  final Map<String, TypeParameterBuilder> _typeParameters;
 
   TypeParameterScope(super._parent, this._typeParameters);
 
   @override
-  Builder? getTypeParameter(String name) => _typeParameters[name];
+  TypeParameterBuilder? getTypeParameter(String name) => _typeParameters[name];
 
   static LookupScope fromList(
       LookupScope parent, List<TypeParameterBuilder>? typeParameterBuilders) {
     if (typeParameterBuilders == null) return parent;
-    Map<String, Builder> map = {};
+    Map<String, TypeParameterBuilder> map = {};
     for (TypeParameterBuilder typeParameterBuilder in typeParameterBuilders) {
       if (typeParameterBuilder.isWildcard) continue;
       map[typeParameterBuilder.name] = typeParameterBuilder;
     }
     return new TypeParameterScope(parent, map);
   }
-}
-
-class FixedLookupScope implements LookupScope {
-  final LookupScope? _parent;
-  @override
-  final ScopeKind kind;
-  final String classNameOrDebugName;
-  final Map<String, Builder>? _getables;
-  final Map<String, Builder>? _setables;
-
-  FixedLookupScope(this.kind, this.classNameOrDebugName,
-      {Map<String, Builder>? getables,
-      Map<String, Builder>? setables,
-      LookupScope? parent})
-      : this._getables = getables,
-        this._setables = setables,
-        this._parent = parent;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Builder? lookupGetable(String name, int charOffset, Uri fileUri) {
-    Builder? getable = _getables?[name];
-    Builder? setable = _setables?[name];
-    Builder? builder;
-    if (getable != null || setable != null) {
-      builder = normalizeLookup(
-          getable: getable,
-          setable: setable,
-          name: name,
-          charOffset: charOffset,
-          fileUri: fileUri,
-          classNameOrDebugName: classNameOrDebugName,
-          isSetter: false);
-    }
-    return builder ?? _parent?.lookupGetable(name, charOffset, fileUri);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Builder? lookupSetable(String name, int charOffset, Uri fileUri) {
-    Builder? getable = _getables?[name];
-    Builder? setable = _setables?[name];
-    Builder? builder;
-    if (getable != null || setable != null) {
-      builder = normalizeLookup(
-          getable: getable,
-          setable: setable,
-          name: name,
-          charOffset: charOffset,
-          fileUri: fileUri,
-          classNameOrDebugName: classNameOrDebugName,
-          isSetter: true);
-    }
-    return builder ?? _parent?.lookupSetable(name, charOffset, fileUri);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void forEachExtension(void Function(ExtensionBuilder) f) {
-    _parent?.forEachExtension(f);
-  }
-
-  @override
-  String toString() => "$runtimeType(${kind},$classNameOrDebugName)";
 }
 
 /// The import scope of a compilation unit.
@@ -607,16 +348,6 @@ Builder computeAmbiguousDeclarationForImport(ProblemReporting problemReporting,
   if (declaration == other) return declaration;
   if (declaration is InvalidTypeDeclarationBuilder) return declaration;
   if (other is InvalidTypeDeclarationBuilder) return other;
-  if (declaration is AccessErrorBuilder) {
-    // Coverage-ignore-block(suite): Not run.
-    AccessErrorBuilder error = declaration;
-    declaration = error.builder;
-  }
-  if (other is AccessErrorBuilder) {
-    // Coverage-ignore-block(suite): Not run.
-    AccessErrorBuilder error = other;
-    other = error.builder;
-  }
   Builder? preferred;
   Uri uri = computeLibraryUri(declaration);
   Uri otherUri = computeLibraryUri(other);
@@ -666,65 +397,10 @@ abstract class ProblemBuilder extends BuilderImpl {
 
   ProblemBuilder(this.name, this.builder, this.fileOffset, this.fileUri);
 
-  @override
-  bool get hasProblem => true;
-
   Message get message;
 
   @override
   String get fullNameForErrors => name;
-}
-
-/// Represents a [builder] that's being accessed incorrectly. For example, an
-/// attempt to write to a final field, or to read from a setter.
-class AccessErrorBuilder extends ProblemBuilder {
-  AccessErrorBuilder(String name, Builder builder, int charOffset, Uri fileUri)
-      : super(name, builder, charOffset, fileUri);
-
-  @override
-  Builder? get parent => builder.parent;
-
-  @override
-  bool get isField => builder.isField;
-
-  @override
-  bool get isRegularMethod => builder.isRegularMethod;
-
-  @override
-  bool get isGetter => !builder.isGetter;
-
-  @override
-  bool get isSetter => !builder.isSetter;
-
-  @override
-  bool get isDeclarationInstanceMember => builder.isDeclarationInstanceMember;
-
-  @override
-  bool get isClassInstanceMember => builder.isClassInstanceMember;
-
-  @override
-  bool get isExtensionInstanceMember => builder.isExtensionInstanceMember;
-
-  @override
-  bool get isExtensionTypeInstanceMember =>
-      builder.isExtensionTypeInstanceMember;
-
-  @override
-  bool get isStatic => builder.isStatic;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isTopLevel => builder.isTopLevel;
-
-  @override
-  bool get isTypeDeclaration => builder.isTypeDeclaration;
-
-  @override
-  bool get isLocal => builder.isLocal;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Message get message => templateAccessError.withArguments(name);
 }
 
 class AmbiguousBuilder extends ProblemBuilder {
@@ -738,7 +414,6 @@ class AmbiguousBuilder extends ProblemBuilder {
   @override
   Message get message => templateDuplicatedDeclarationUse.withArguments(name);
 
-  // Coverage-ignore(suite): Not run.
   // TODO(ahe): Also provide context.
 
   Builder getFirstDeclaration() {
@@ -797,27 +472,11 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get isAssignable => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isExternal => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isAbstract => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
   bool get isFinal => false;
 
   @override
   // Coverage-ignore(suite): Not run.
   bool get isSynthesized => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isEnumElement => false;
 
   @override
   bool get isConflictingSetter => false;
@@ -910,6 +569,14 @@ class AmbiguousMemberBuilder extends AmbiguousBuilder
   AmbiguousMemberBuilder(
       String name, Builder builder, int charOffset, Uri fileUri)
       : super(name, builder, charOffset, fileUri);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Builder get getable => this;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Builder get setable => this;
 }
 
 /// Iterator over builders mapped in a [Scope], including duplicates for each

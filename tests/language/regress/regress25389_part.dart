@@ -6,8 +6,11 @@ part of regress_25389;
 
 abstract class ComponentState<S extends ComponentState<S>> {}
 
-abstract class AbstractListEditorState<D,
-    S extends AbstractListEditorState<D, S>> extends ComponentState<S> {}
+abstract class AbstractListEditorState<
+  D,
+  S extends AbstractListEditorState<D, S>
+>
+    extends ComponentState<S> {}
 
 class IssueListEditorState
     extends AbstractListEditorState<String, IssueListEditorState>

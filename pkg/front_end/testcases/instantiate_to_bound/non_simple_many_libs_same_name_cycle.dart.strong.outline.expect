@@ -49,5 +49,5 @@ class A<TypeY extends self::A<dynamic>> extends core::Object {
   synthetic constructor •() → self2::A<self2::A::TypeY>
     ;
 }
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/integers_patch.dart */ _#C#fromEnvironment#tearOff<unrelated TypeY extends invalid-type>(core::String name, {has-declared-initializer core::int defaultValue}) → core::int
+static synthetic method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/integers_patch.dart */ _#C#fromEnvironment#tearOff<unrelated TypeY extends invalid-type>(core::String name, {has-declared-initializer core::int defaultValue}) → core::int
   return core::int::fromEnvironment(name, defaultValue: defaultValue);

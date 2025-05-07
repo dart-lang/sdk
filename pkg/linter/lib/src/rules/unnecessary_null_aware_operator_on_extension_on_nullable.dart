@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 
@@ -43,6 +43,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitIndexExpression(IndexExpression node) {
+    var question = node.question;
+    if (question == null) return;
     if (node.isNullAware &&
         _isExtensionOnNullableType(
           node.inSetterContext()
@@ -52,17 +54,19 @@ class _Visitor extends SimpleAstVisitor<void> {
                   ?.enclosingElement2
               : node.element?.enclosingElement2,
         )) {
-      rule.reportLintForToken(node.question);
+      rule.reportAtToken(question);
     }
   }
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
+    var operator = node.operator;
+    if (operator == null) return;
     if (node.isNullAware &&
         _isExtensionOnNullableType(
           node.methodName.element?.enclosingElement2,
         )) {
-      rule.reportLintForToken(node.operator);
+      rule.reportAtToken(operator);
     }
   }
 
@@ -77,12 +81,12 @@ class _Visitor extends SimpleAstVisitor<void> {
             ? realParent.writeElement2?.enclosingElement2
             : node.propertyName.element?.enclosingElement2,
       )) {
-        rule.reportLintForToken(node.operator);
+        rule.reportAtToken(node.operator);
       }
     }
   }
 
-  bool _isExtensionOnNullableType(Element2? enclosingElement) =>
-      enclosingElement is ExtensionElement2 &&
+  bool _isExtensionOnNullableType(Element? enclosingElement) =>
+      enclosingElement is ExtensionElement &&
       context.typeSystem.isNullable(enclosingElement.extendedType);
 }

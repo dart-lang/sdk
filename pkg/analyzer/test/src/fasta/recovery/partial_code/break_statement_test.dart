@@ -13,25 +13,28 @@ main() {
 class BreakStatementTest extends PartialCodeTest {
   buildAll() {
     buildTests(
-        'break_statement',
-        [
-          TestDescriptor(
-              'keyword',
-              'break',
-              [
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.BREAK_OUTSIDE_OF_LOOP
-              ],
-              "break;",
-              expectedErrorsInValidCode: [
-                ParserErrorCode.BREAK_OUTSIDE_OF_LOOP
-              ],
-              failing: ['labeled', 'localFunctionNonVoid']),
-          TestDescriptor(
-              'label', 'break a', [ParserErrorCode.EXPECTED_TOKEN], "break a;"),
-        ],
-        PartialCodeTest.statementSuffixes,
-        head: 'f() { ',
-        tail: ' }');
+      'break_statement',
+      [
+        TestDescriptor(
+          'keyword',
+          'break',
+          [
+            ParserErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.BREAK_OUTSIDE_OF_LOOP,
+          ],
+          "break;",
+          expectedDiagnosticsInValidCode: [
+            ParserErrorCode.BREAK_OUTSIDE_OF_LOOP,
+          ],
+          failing: ['labeled', 'localFunctionNonVoid'],
+        ),
+        TestDescriptor('label', 'break a', [
+          ParserErrorCode.EXPECTED_TOKEN,
+        ], "break a;"),
+      ],
+      PartialCodeTest.statementSuffixes,
+      head: 'f() { ',
+      tail: ' }',
+    );
   }
 }

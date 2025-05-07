@@ -350,8 +350,7 @@ class Page {
   friend class CheckStoreBufferEvacuateVisitor;
   friend class GCCompactor;
   friend class PageSpace;
-  template <bool>
-  friend class ScavengerVisitorBase;
+  friend class ScavengerVisitor;
   friend class SemiSpace;
   friend class UnwindingRecords;
 

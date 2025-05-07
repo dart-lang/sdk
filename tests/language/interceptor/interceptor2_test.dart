@@ -9,7 +9,8 @@ import "package:expect/expect.dart";
 // method call on an intercepted method were both used.
 
 class A {
-  get iterator => () => 499;
+  get iterator =>
+      () => 499;
 }
 
 main() {

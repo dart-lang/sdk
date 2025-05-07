@@ -18,11 +18,14 @@ const int VERSION = 1;
 
 Future<Database> createAndOpenDb() {
   return html.window.indexedDB!.deleteDatabase(DB_NAME).then((_) {
-    return html.window.indexedDB!.open(DB_NAME, version: VERSION,
-        onUpgradeNeeded: (VersionChangeEvent e) {
-      var db = e.target.result;
-      db.createObjectStore(STORE_NAME);
-    });
+    return html.window.indexedDB!.open(
+      DB_NAME,
+      version: VERSION,
+      onUpgradeNeeded: (VersionChangeEvent e) {
+        var db = e.target.result;
+        db.createObjectStore(STORE_NAME);
+      },
+    );
   });
 }
 

@@ -226,73 +226,73 @@ abstract class _E1&_Enum&A1 = core::_Enum with self::A1 /*isAnonymousMixin,hasCo
   const synthetic constructor •(core::int index, core::String _name) → self::_E1&_Enum&A1
     : super core::_Enum::•(index, _name)
     ;
-  mixin-super-stub get hashCode() → core::int
+  synthetic mixin-super-stub get hashCode() → core::int
     return super.{self::A1::hashCode};
 }
 abstract class _E2&_Enum&A2 = core::_Enum with self::A2 /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •(core::int index, core::String _name) → self::_E2&_Enum&A2
     : super core::_Enum::•(index, _name)
     ;
-  mixin-super-stub get values() → core::int
+  synthetic mixin-super-stub get values() → core::int
     return super.{self::A2::values};
 }
 abstract class _E3&_Enum&A3 = core::_Enum with self::A3 /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •(core::int index, core::String _name) → self::_E3&_Enum&A3
     : super core::_Enum::•(index, _name)
     ;
-  mixin-super-stub get index() → core::int
+  synthetic mixin-super-stub get index() → core::int
     return super.{self::A3::index};
 }
 abstract class _E4&_Enum&A4 = core::_Enum with self::A4 /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •(core::int index, core::String _name) → self::_E4&_Enum&A4
     : super core::_Enum::•(index, _name)
     ;
-  mixin-super-stub operator ==(core::Object other) → core::bool
+  synthetic mixin-super-stub operator ==(core::Object other) → core::bool
     return super.{self::A4::==}(other);
 }
 abstract class _E5&_Enum&M5 = core::_Enum with self::M5 /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •(core::int index, core::String _name) → self::_E5&_Enum&M5
     : super core::_Enum::•(index, _name)
     ;
-  mixin-super-stub get hashCode() → core::int
+  synthetic mixin-super-stub get hashCode() → core::int
     return super.{self::M5::hashCode};
 }
 abstract class _E6&_Enum&M6 = core::_Enum with self::M6 /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •(core::int index, core::String _name) → self::_E6&_Enum&M6
     : super core::_Enum::•(index, _name)
     ;
-  mixin-super-stub get values() → core::int
+  synthetic mixin-super-stub get values() → core::int
     return super.{self::M6::values};
 }
 abstract class _E7&_Enum&M7 = core::_Enum with self::M7 /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •(core::int index, core::String _name) → self::_E7&_Enum&M7
     : super core::_Enum::•(index, _name)
     ;
-  mixin-super-stub get index() → core::int
+  synthetic mixin-super-stub get index() → core::int
     return super.{self::M7::index};
 }
 abstract class _E8&_Enum&M8 = core::_Enum with self::M8 /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •(core::int index, core::String _name) → self::_E8&_Enum&M8
     : super core::_Enum::•(index, _name)
     ;
-  mixin-super-stub operator ==(core::Object other) → core::bool
+  synthetic mixin-super-stub operator ==(core::Object other) → core::bool
     return super.{self::M8::==}(other);
 }
 abstract class _E9&_Enum&A9 = core::_Enum with self::A9 /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •(core::int index, core::String _name) → self::_E9&_Enum&A9
     : super core::_Enum::•(index, _name)
     ;
-  abstract mixin-stub get index() → core::int; -> self::A9::index
-  abstract mixin-stub get hashCode() → core::int; -> self::A9::hashCode
-  abstract mixin-stub operator ==(core::Object other) → core::bool; -> self::A9::==
+  abstract synthetic mixin-stub get index() → core::int; -> self::A9::index
+  abstract synthetic mixin-stub get hashCode() → core::int; -> self::A9::hashCode
+  abstract synthetic mixin-stub operator ==(core::Object other) → core::bool; -> self::A9::==
 }
 abstract class _E10&_Enum&M10 = core::_Enum with self::M10 /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •(core::int index, core::String _name) → self::_E10&_Enum&M10
     : super core::_Enum::•(index, _name)
     ;
-  abstract mixin-stub get index() → core::int; -> self::M10::index
-  abstract mixin-stub get hashCode() → core::int; -> self::M10::hashCode
-  abstract mixin-stub operator ==(core::Object other) → core::bool; -> self::M10::==
+  abstract synthetic mixin-stub get index() → core::int; -> self::M10::index
+  abstract synthetic mixin-stub get hashCode() → core::int; -> self::M10::hashCode
+  abstract synthetic mixin-stub operator ==(core::Object other) → core::bool; -> self::M10::==
 }
 static method main() → dynamic {}
 

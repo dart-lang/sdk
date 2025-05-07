@@ -22,8 +22,10 @@ String localFile(path) => Platform.script.resolve(path).toFilePath();
 
 SecurityContext serverContext = new SecurityContext()
   ..useCertificateChain(localFile('certificates/server_chain.pem'))
-  ..usePrivateKey(localFile('certificates/server_key.pem'),
-      password: 'dartdart');
+  ..usePrivateKey(
+    localFile('certificates/server_key.pem'),
+    password: 'dartdart',
+  );
 
 SecurityContext clientContext = new SecurityContext()
   ..setTrustedCertificates(localFile('certificates/trusted_certs.pem'));
@@ -35,8 +37,10 @@ testSslReadError() async {
   final serverSocket = await RawServerSocket.bind(HOST, 0);
   serverSocket.forEach((socket) async {
     final secureSocket = await RawSecureSocket.secureServer(
-        socket, serverContext,
-        subscription: socket.listen((event) {}));
+      socket,
+      serverContext,
+      subscription: socket.listen((event) {}),
+    );
     secureSocket.write([1, 2, 3]);
     // Send content using the original unencrypted connection to provoke a
     // TtsException in the client.
@@ -46,15 +50,20 @@ testSslReadError() async {
   });
 
   final Socket clientSocket = await Socket.connect(HOST, serverSocket.port);
-  final secureClientSocket =
-      await SecureSocket.secure(clientSocket, context: clientContext);
-  secureClientSocket.listen((data) {
-    Expect.fail("expected TlsException");
-  }, onError: (err) {
-    Expect.isTrue(err is TlsException, "unexpected error: $err");
-    secureClientSocket.close();
-    clientSocket.close();
-  });
+  final secureClientSocket = await SecureSocket.secure(
+    clientSocket,
+    context: clientContext,
+  );
+  secureClientSocket.listen(
+    (data) {
+      Expect.fail("expected TlsException");
+    },
+    onError: (err) {
+      Expect.isTrue(err is TlsException, "unexpected error: $err");
+      secureClientSocket.close();
+      clientSocket.close();
+    },
+  );
 }
 
 main() {

@@ -46,7 +46,7 @@ class _Visitor extends SimpleAstVisitor<void> {
             parent.thisOrAncestorOfType<InstanceCreationExpression>();
         if (parentCreation != null) {
           if (isExactWidgetTypeContainer(parentCreation.staticType)) {
-            rule.reportLint(parentCreation.constructorName);
+            rule.reportAtNode(parentCreation.constructorName);
           }
         }
       }

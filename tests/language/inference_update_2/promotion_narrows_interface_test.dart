@@ -17,7 +17,8 @@ class A {
 }
 
 class B extends A {
-  int Function(num) get getter => (_) => 0;
+  int Function(num) get getter =>
+      (_) => 0;
   int method(num value) => 0;
   int call(num value) => 0;
   int operator [](num index) => 0;

@@ -22,12 +22,12 @@ class JSClass {
   static int? staticFieldWithJS;
 
   JSClass.constructor();
-//^
-// [web] JS interop classes do not support non-external constructors.
+  // [error column 3]
+  // [web] JS interop classes do not support non-external constructors.
   @JS()
   JSClass.constructorWithJS();
-//^
-// [web] JS interop classes do not support non-external constructors.
+  // [error column 3]
+  // [web] JS interop classes do not support non-external constructors.
 
   // Dart factories of a JS interop class are allowed.
   factory JSClass.fact() => JSClass.constructor();
@@ -40,25 +40,25 @@ class JSClass {
   factory JSClass.factoryWithJS() => JSClass.fact();
 
   int get getSet => 0;
-  //      ^^^^^^
+  //      ^
   // [web] This JS interop member must be annotated with `external`. Only factories and static methods can be non-external.
   @JS()
   int get getSetWithJS => 0;
-  //      ^^^^^^^^^
+  //      ^
   // [web] This JS interop member must be annotated with `external`. Only factories and static methods can be non-external.
   set getSet(int val) {}
-  //  ^^^^^^
+  //  ^
   // [web] This JS interop member must be annotated with `external`. Only factories and static methods can be non-external.
   @JS()
   set getSetWithJS(int val) {}
-  //  ^^^^^^^^^^^^
+  //  ^
   // [web] This JS interop member must be annotated with `external`. Only factories and static methods can be non-external.
   int method() => 0;
-  //  ^^^^^^
+  //  ^
   // [web] This JS interop member must be annotated with `external`. Only factories and static methods can be non-external.
   @JS()
   int methodWithJS() => 0;
-  //  ^^^^^^^^^^^^
+  //  ^
   // [web] This JS interop member must be annotated with `external`. Only factories and static methods can be non-external.
 
   // Static methods on JS interop classes are allowed.
@@ -82,12 +82,12 @@ class JSAnonymousClass {
   static int? staticFieldWithJS;
 
   JSAnonymousClass.constructor();
-//^
-// [web] JS interop classes do not support non-external constructors.
+  // [error column 3]
+  // [web] JS interop classes do not support non-external constructors.
   @JS()
   JSAnonymousClass.constructorWithJS();
-//^
-// [web] JS interop classes do not support non-external constructors.
+  // [error column 3]
+  // [web] JS interop classes do not support non-external constructors.
 
   factory JSAnonymousClass.fact() => JSAnonymousClass.constructor();
 
@@ -99,25 +99,25 @@ class JSAnonymousClass {
   factory JSAnonymousClass.factoryWithJS() => JSAnonymousClass.fact();
 
   int get getSet => 0;
-  //      ^^^^^^
+  //      ^
   // [web] This JS interop member must be annotated with `external`. Only factories and static methods can be non-external.
   @JS()
   int get getSetWithJS => 0;
-  //      ^^^^^^^^^^^^
+  //      ^
   // [web] This JS interop member must be annotated with `external`. Only factories and static methods can be non-external.
   set getSet(int val) {}
-  //  ^^^^^^
+  //  ^
   // [web] This JS interop member must be annotated with `external`. Only factories and static methods can be non-external.
   @JS()
   set getSetWithJS(int val) {}
-  //  ^^^^^^^^^^^^
+  //  ^
   // [web] This JS interop member must be annotated with `external`. Only factories and static methods can be non-external.
   int method() => 0;
-  //  ^^^^^^
+  //  ^
   // [web] This JS interop member must be annotated with `external`. Only factories and static methods can be non-external.
   @JS()
   int methodWithJS() => 0;
-  //  ^^^^^^^^^^^^
+  //  ^
   // [web] This JS interop member must be annotated with `external`. Only factories and static methods can be non-external.
 
   static int staticMethod() => 0;
@@ -139,12 +139,12 @@ abstract class JSAbstractClass {
   static int? staticFieldWithJS;
 
   JSAbstractClass.constructor();
-//^
-// [web] JS interop classes do not support non-external constructors.
+  // [error column 3]
+  // [web] JS interop classes do not support non-external constructors.
   @JS()
   JSAbstractClass.constructorWithJS();
-//^
-// [web] JS interop classes do not support non-external constructors.
+  // [error column 3]
+  // [web] JS interop classes do not support non-external constructors.
 
   factory JSAbstractClass.fact() => JSAbstractClass.factoryWithJS();
 

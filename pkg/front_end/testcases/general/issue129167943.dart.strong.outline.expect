@@ -30,7 +30,7 @@ class D2 extends core::Object implements self::A, self::C, self::B {
 abstract class D3 extends core::Object implements self::A, self::C, self::B {
   synthetic constructor •() → self::D3
     ;
-  abstract forwarding-stub method foo(covariant-by-declaration core::num x) → void;
+  abstract forwarding-stub synthetic method foo(covariant-by-declaration core::num x) → void;
 }
 abstract class D4 extends core::Object implements self::A, self::C, self::B {
   synthetic constructor •() → self::D4
@@ -66,7 +66,7 @@ class H2 extends core::Object implements self::A, self::E, self::G {
 abstract class H3 extends core::Object implements self::A, self::E, self::G {
   synthetic constructor •() → self::H3
     ;
-  abstract forwarding-stub set foo(covariant-by-declaration core::num x) → void;
+  abstract forwarding-stub synthetic set foo(covariant-by-declaration core::num x) → void;
 }
 abstract class H4 extends core::Object implements self::A, self::E, self::G {
   synthetic constructor •() → self::H4

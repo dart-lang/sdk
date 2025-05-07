@@ -15,6 +15,9 @@ void main() {
 @reflectiveTest
 class UnawaitedFuturesTest extends LintRuleTest {
   @override
+  bool get addMetaPackageDep => true;
+
+  @override
   String get lintRule => LintNames.unawaited_futures;
 
   test_binaryExpression_unawaited() async {
@@ -29,6 +32,19 @@ class C {
 ''',
       [lint(27, 6)],
     );
+  }
+
+  test_binaryExpression_unawaited_awaitNotRequired() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+void f(C a, C b) async {
+  a + b;
+}
+class C {
+  @awaitNotRequired
+  Future<int> operator +(C other) async => 7;
+}
+''');
   }
 
   test_boundToFuture_unawaited() async {
@@ -96,6 +112,17 @@ Future<int> g() => Future.value(0);
     );
   }
 
+  test_functionCall_interpolated_unawaited_awaitNotRequired() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+void f() async {
+  '${g()}';
+}
+@awaitNotRequired
+Future<int> g() => Future.value(0);
+''');
+  }
+
   test_functionCall_nullableFuture_unawaited() async {
     await assertDiagnostics(
       r'''
@@ -129,6 +156,31 @@ Future<int> g() => Future.value(0);
     );
   }
 
+  test_functionCall_unawaited_awaitNotRequired() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+void f() async {
+  g();
+}
+@awaitNotRequired
+Future<int> g() => Future.value(0);
+''');
+  }
+
+  test_functionCallInCascade() async {
+    await assertDiagnostics(
+      r'''
+void f() async {
+  C()..doAsync();
+}
+class C {
+  Future<void> doAsync() async {}
+}
+''',
+      [lint(22, 11)],
+    );
+  }
+
   test_functionCallInCascade_assignment() async {
     await assertNoDiagnostics(r'''
 void f() async {
@@ -141,18 +193,33 @@ class C {
 ''');
   }
 
-  test_functionCallInCascade_inAsync() async {
-    await assertDiagnostics(
-      r'''
+  test_functionCallInCascade_awaitNotRequired() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
 void f() async {
-  C()..doAsync();
+  C()..m();
 }
 class C {
-  Future<void> doAsync() async {}
+  @awaitNotRequired
+  Future<void> m() async {}
 }
-''',
-      [lint(22, 11)],
-    );
+''');
+  }
+
+  test_functionCallInCascade_awaitNotRequiredInherited() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+void f() async {
+  C()..m();
+}
+class C {
+  @awaitNotRequired
+  Future<void> m() async {}
+}
+class D {
+  Future<void> m() => Future.value();
+}
+''');
   }
 
   test_functionCallInCascade_indexAssignment() async {
@@ -193,6 +260,35 @@ abstract class C {
     );
   }
 
+  test_instanceProperty_unawaited_awaitNotRequired() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+void f(C c) async {
+  c.p;
+}
+abstract class C {
+  @awaitNotRequired
+  Future<int> get p;
+}
+''');
+  }
+
+  test_instanceProperty_unawaited_awaitNotRequiredInherited() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+void f(D d) async {
+  d.p;
+}
+abstract class C {
+  @awaitNotRequired
+  Future<int> get p;
+}
+class D extends C {
+  Future<int> p = Future.value(7);
+}
+''');
+  }
+
   test_parameter_unawaited() async {
     await assertDiagnostics(
       r'''
@@ -204,7 +300,7 @@ void f(Future<int> p) async {
     );
   }
 
-  test_unaryExpression_unawaited() async {
+  test_prefixExpression_unawaited() async {
     await assertDiagnostics(
       r'''
 void f(C a) async {
@@ -216,6 +312,19 @@ class C {
 ''',
       [lint(22, 3)],
     );
+  }
+
+  test_prefixExpression_unawaited_awaitNotRequired() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+void f(C a) async {
+  -a;
+}
+class C {
+  @awaitNotRequired
+  Future<int> operator -() async => 7;
+}
+''');
   }
 
   test_undefinedIdentifier() async {

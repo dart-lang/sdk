@@ -25,8 +25,9 @@ final dartDirectories = [
 main(List<String> args) async {
   final testFiles = await findValidTests(dartDirectories, true);
 
-  File(stressTestListJson)
-      .writeAsStringSync(const JsonEncoder.withIndent('  ').convert(testFiles));
+  File(
+    stressTestListJson,
+  ).writeAsStringSync(const JsonEncoder.withIndent('  ').convert(testFiles));
 }
 
 Future<List<String>> findValidTests(List<String> directories, bool nnbd) async {
@@ -34,8 +35,11 @@ Future<List<String>> findValidTests(List<String> directories, bool nnbd) async {
   final testFiles = <String>[];
   final failedOrTimedOut = <String>[];
   final filteredTests = <String>[];
-  await for (final testFile
-      in listTestFiles(sdkRoot, directories, filteredTests)) {
+  await for (final testFile in listTestFiles(
+    sdkRoot,
+    directories,
+    filteredTests,
+  )) {
     print(testFile);
     final duration = await run(sdkRoot, testFile, tempFile, nnbd);
     if (duration != null && duration.inSeconds < 6) {
@@ -51,10 +55,14 @@ Future<List<String>> findValidTests(List<String> directories, bool nnbd) async {
   filteredTests.sort();
 
   dumpTestList(testFiles, 'The following tests will be included:');
-  dumpTestList(failedOrTimedOut,
-      'The following tests will be excluded due to timeout or test failure:');
-  dumpTestList(filteredTests,
-      'The following tests were filtered due to using blacklisted things:');
+  dumpTestList(
+    failedOrTimedOut,
+    'The following tests will be excluded due to timeout or test failure:',
+  );
+  dumpTestList(
+    filteredTests,
+    'The following tests were filtered due to using blacklisted things:',
+  );
 
   for (int i = 0; i < testFiles.length; ++i) {
     testFiles[i] = path.relative(testFiles[i], from: thisDirectory);
@@ -74,11 +82,15 @@ void dumpTestList(List<String> testFiles, String message) {
   }
 }
 
-Stream<String> listTestFiles(String sdkRoot, List<String> directories,
-    List<String> filteredTests) async* {
+Stream<String> listTestFiles(
+  String sdkRoot,
+  List<String> directories,
+  List<String> filteredTests,
+) async* {
   for (final dir in directories) {
-    await for (final file
-        in Directory(path.join(sdkRoot, dir)).list(recursive: true)) {
+    await for (final file in Directory(
+      path.join(sdkRoot, dir),
+    ).list(recursive: true)) {
       if (file is File && file.path.endsWith('_test.dart')) {
         final contents = file.readAsStringSync();
         if (contents.contains(RegExp('//# .* compile-time error')) ||
@@ -101,7 +113,11 @@ Stream<String> listTestFiles(String sdkRoot, List<String> directories,
 }
 
 Future<Duration?> run(
-    String sdkRoot, String testFile, String wrapFile, bool nnbd) async {
+  String sdkRoot,
+  String testFile,
+  String wrapFile,
+  bool nnbd,
+) async {
   final env = Map<String, String>.from(Platform.environment);
   env['LD_LIBRARY_PATH'] = path.join(sdkRoot, 'out/ReleaseX64');
   final sw = Stopwatch()..start();
@@ -131,9 +147,10 @@ main() async {
   errors.close();
 }
 ''');
-  final Process process = await Process.start(Platform.executable,
-      <String>[nnbd ? '--sound-null-safety' : '--no-sound-null-safety', f.path],
-      environment: env);
+  final Process process = await Process.start(Platform.executable, <String>[
+    nnbd ? '--sound-null-safety' : '--no-sound-null-safety',
+    f.path,
+  ], environment: env);
   final timer = Timer(const Duration(seconds: 3), () => process.kill());
   bool good = false;
   final stdoutF = process.stdout

@@ -470,8 +470,7 @@ StringPtr Symbols::NewFormattedV(Thread* thread,
   intptr_t len = Utils::VSNPrint(nullptr, 0, format, args_copy);
   va_end(args_copy);
 
-  Zone* zone = Thread::Current()->zone();
-  char* buffer = zone->Alloc<char>(len + 1);
+  char* buffer = thread->zone()->Alloc<char>(len + 1);
   Utils::VSNPrint(buffer, (len + 1), format, args);
 
   return Symbols::New(thread, buffer);

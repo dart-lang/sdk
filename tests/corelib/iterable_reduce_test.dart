@@ -222,28 +222,24 @@ main() {
   testModification([3, 2, 1], add4, (x) => x.reversed);
   testModification({1: 1, 2: 2, 3: 3}, put4, (x) => x.keys);
   testModification({1: 1, 2: 2, 3: 3}, put4, (x) => x.values);
-  var hashMap =
-      new HashMap()
-        ..[1] = 1
-        ..[2] = 2
-        ..[3] = 3;
+  var hashMap = new HashMap()
+    ..[1] = 1
+    ..[2] = 2
+    ..[3] = 3;
   testModification(hashMap, put4, (x) => x.keys);
-  hashMap =
-      new HashMap()
-        ..[1] = 1
-        ..[2] = 2
-        ..[3] = 3;
+  hashMap = new HashMap()
+    ..[1] = 1
+    ..[2] = 2
+    ..[3] = 3;
   testModification(hashMap, put4, (x) => x.values);
-  var splayMap =
-      new SplayTreeMap()
-        ..[1] = 1
-        ..[2] = 2
-        ..[3] = 3;
+  var splayMap = new SplayTreeMap()
+    ..[1] = 1
+    ..[2] = 2
+    ..[3] = 3;
   testModification(splayMap, put4, (x) => x.keys);
-  splayMap =
-      new SplayTreeMap()
-        ..[1] = 1
-        ..[2] = 2
-        ..[3] = 3;
+  splayMap = new SplayTreeMap()
+    ..[1] = 1
+    ..[2] = 2
+    ..[3] = 3;
   testModification(splayMap, put4, (x) => x.values);
 }

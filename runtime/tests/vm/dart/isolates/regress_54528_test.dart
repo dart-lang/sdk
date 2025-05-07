@@ -32,8 +32,10 @@ void main() async {
     }
 
     // Generate an AOT snapshot.
-    final spawnTest =
-        path.join(sdkDir, 'runtime/tests/vm/dart/isolates/func.dart');
+    final spawnTest = path.join(
+      sdkDir,
+      'runtime/tests/vm/dart/isolates/func.dart',
+    );
     Expect.isTrue(File(spawnTest).existsSync(), "Can't locate $spawnTest");
     final kernelOutput = File.fromUri(d.uri.resolve('func.dill')).path;
     final aotOutput = File.fromUri(d.uri.resolve('func.aot')).path;

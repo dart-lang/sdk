@@ -9,7 +9,6 @@
 // VMOptions=--use-slow-path --stacktrace-every=100
 
 import 'dart:ffi';
-import 'dart:typed_data';
 
 import 'package:expect/expect.dart';
 import 'package:ffi/ffi.dart';

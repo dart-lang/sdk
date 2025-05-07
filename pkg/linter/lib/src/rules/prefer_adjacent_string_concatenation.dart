@@ -39,7 +39,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.operator.type.lexeme == '+' &&
         node.leftOperand is StringLiteral &&
         node.rightOperand is StringLiteral) {
-      rule.reportLintForToken(node.operator);
+      rule.reportAtToken(node.operator);
     }
   }
 }

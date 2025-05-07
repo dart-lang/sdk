@@ -155,8 +155,7 @@ JSObject getCurrentLibrary() =>
     // We can't use interop for this, as the lowering would be emitted as
     // `dart.global.eval('this')`, which does not evaluate to the same value as
     // `eval('this')`.
-    _foreign_helper
-    .JS('', 'this');
+    _foreign_helper.JS('', 'this');
 
 main() async {
   asyncStart();
@@ -268,11 +267,10 @@ window.PackageJSClass = function PackageJSClass(x) {
 
     addNestedFormatterGoldens('Iterable', iterable);
 
-    var s =
-        new Set()
-          ..add("foo")
-          ..add(42)
-          ..add(true);
+    var s = new Set()
+      ..add("foo")
+      ..add(42)
+      ..add(true);
     addNestedFormatterGoldens('Set', s);
   });
 
@@ -336,12 +334,6 @@ window.PackageJSClass = function PackageJSClass(x) {
 
   group('Library formatting', () {
     final lib = getCurrentLibrary();
-    if (dartDevEmbedder == null) {
-      // The new module format adds a `link` function to every library. Patch
-      // something like that in so we can have a consistent golden file for all
-      // module formats.
-      lib['link'] = () {}.toJS;
-    }
     addFormatterGoldens(
       'Test library',
       // TODO(srujzs): We have to construct a `Library` manually here,

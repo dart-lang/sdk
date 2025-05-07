@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/lint/constants.dart'; // ignore: implementation_imports
 
@@ -48,8 +48,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (element.metadata2.hasLiteral) return;
 
     var enclosingElement = element.enclosingElement2;
-    if (enclosingElement is ClassElement2 &&
-        enclosingElement.isDartCoreObject) {
+    if (enclosingElement is ClassElement && enclosingElement.isDartCoreObject) {
       // Skip lint for `new Object()`, because it can be used for ID creation.
       return;
     }
@@ -74,7 +73,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     if (node.canBeConst) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 }

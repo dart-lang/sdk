@@ -44,7 +44,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       parent = parent.parent;
     }
     if (parent is ListLiteral || (parent is SetOrMapLiteral && parent.isSet)) {
-      rule.reportLint(nodeToReplace);
+      rule.reportAtNode(nodeToReplace);
     }
   }
 }

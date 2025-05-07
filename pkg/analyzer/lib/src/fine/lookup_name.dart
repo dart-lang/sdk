@@ -15,6 +15,9 @@ extension type BaseName(String _it) {
     return BaseName(str);
   }
 
+  /// Returns the underlying [String] value, explicitly.
+  String get asString => _it;
+
   void write(BufferedSink sink) {
     sink.writeStringUtf8(_it);
   }
@@ -34,6 +37,14 @@ extension type LookupName(String _it) {
   }
 
   BaseName get asBaseName {
+    if (const {'==', '<=', '>='}.contains(_it)) {
+      return _it.asBaseName;
+    }
+
+    if (_it == '[]=') {
+      return '[]'.asBaseName;
+    }
+
     var str = _it.removeSuffix('=') ?? _it;
     return str.asBaseName;
   }
@@ -41,7 +52,15 @@ extension type LookupName(String _it) {
   /// Returns the underlying [String] value, explicitly.
   String get asString => _it;
 
+  bool get isIndexEq {
+    return _it == '[]=';
+  }
+
   bool get isPrivate => _it.startsWith('_');
+
+  bool get isSetter {
+    return _it.endsWith('=') && !const {'==', '<=', '>=', '[]='}.contains(_it);
+  }
 
   void write(BufferedSink sink) {
     sink.writeStringUtf8(_it);

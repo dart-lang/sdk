@@ -84,7 +84,9 @@ void testUnsignedTypedDataRange(bool check_throws) {
 }
 
 void testClampedUnsignedTypedDataRangeHelper(
-    Uint8ClampedList typed_data, bool check_throws) {
+  Uint8ClampedList typed_data,
+  bool check_throws,
+) {
   Uint8ClampedList typed_data;
   typed_data = new Uint8ClampedList(10);
 
@@ -108,7 +110,9 @@ void testClampedUnsignedTypedDataRangeHelper(
 
 void testClampedUnsignedTypedDataRange(bool check_throws) {
   testClampedUnsignedTypedDataRangeHelper(
-      new Uint8ClampedList(10), check_throws);
+    new Uint8ClampedList(10),
+    check_throws,
+  );
 }
 
 void testSetRangeHelper(typed_data) {
@@ -298,8 +302,11 @@ void testGetAtIndex(TypedData list, num initial_value) {
   }
 }
 
-void testSetAtIndex(TypedDataList list, num initial_value,
-    [bool use_double = false]) {
+void testSetAtIndex(
+  TypedDataList list,
+  num initial_value, [
+  bool use_double = false,
+]) {
   void validate([reinit = true]) {
     for (int i = 0; i < list.length; i++) {
       Expect.equals(initial_value, list[i]);
@@ -461,7 +468,7 @@ testCreationFromList() {
     0,
     128,
     256,
-    1000000000000000000
+    1000000000000000000,
   ];
   var intLists = [];
   intLists.add(new Int8List.fromList(intList));
@@ -477,7 +484,7 @@ testCreationFromList() {
     -123.0,
     0.0,
     123.0,
-    123123123123.123123123
+    123123123123.123123123,
   ];
   var doubleLists = [];
   doubleLists.add(new Float32List.fromList(doubleList));

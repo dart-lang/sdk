@@ -38,8 +38,8 @@ abstract class _MyMap&Object&MapMixin<K extends core::Object? = dynamic, V exten
   abstract operator /* from org-dartlang-sdk:///sdk/lib/collection/maps.dart */ [](core::Object? key) → self::_MyMap&Object&MapMixin::V?;
   abstract operator /* from org-dartlang-sdk:///sdk/lib/collection/maps.dart */ []=(covariant-by-class self::_MyMap&Object&MapMixin::K% key, covariant-by-class self::_MyMap&Object&MapMixin::V% value) → void;
   abstract method /* from org-dartlang-sdk:///sdk/lib/collection/maps.dart */ clear() → void;
-  abstract method /* from org-dartlang-sdk:///sdk/lib/collection/maps.dart */ remove(core::Object? key) → self::_MyMap&Object&MapMixin::V?;
   abstract get /* from org-dartlang-sdk:///sdk/lib/collection/maps.dart */ keys() → core::Iterable<self::_MyMap&Object&MapMixin::K%>;
+  abstract method /* from org-dartlang-sdk:///sdk/lib/collection/maps.dart */ remove(core::Object? key) → self::_MyMap&Object&MapMixin::V?;
   method /* from org-dartlang-sdk:///sdk/lib/collection/maps.dart */ cast<RK extends core::Object? = dynamic, RV extends core::Object? = dynamic>() → core::Map<self::_MyMap&Object&MapMixin::cast::RK%, self::_MyMap&Object&MapMixin::cast::RV%>
     return core::Map::castFrom<self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%, self::_MyMap&Object&MapMixin::cast::RK%, self::_MyMap&Object&MapMixin::cast::RV%>(this);
   method /* from org-dartlang-sdk:///sdk/lib/collection/maps.dart */ forEach((self::_MyMap&Object&MapMixin::K%, self::_MyMap&Object&MapMixin::V%) → void action) → void {
@@ -169,14 +169,14 @@ static method method(core::Map<core::int, core::String?> m) → core::int {
     synthesized core::bool #0#2;
     synthesized core::bool #0#2#isSet = false;
     {
-      if((!((#0#3#isSet ?{core::String?} #0#3{core::String?} : let final core::bool #t28 = #0#3#isSet = true in #0#3 = #0#0.{core::Map::[]}(#C3){(core::Object?) → core::String?}) == null) || null is core::String? && (#0#2#isSet ?{core::bool} #0#2{core::bool} : let final core::bool #t29 = #0#2#isSet = true in #0#2 = #0#0.{core::Map::containsKey}(#C3){(core::Object?) → core::bool})) && #C4 =={core::String::==}{(core::Object) → core::bool} (#0#3#isSet ?{core::String?} #0#3{core::String?} : let final core::bool #t30 = #0#3#isSet = true in #0#3 = #0#0.{core::Map::[]}(#C3){(core::Object?) → core::String?})) {
+      if((!((#0#3#isSet ?{core::String?} #0#3{core::String?} : let final dynamic #t28 = #0#3#isSet = true in #0#3 = #0#0.{core::Map::[]}(#C3){(core::Object?) → core::String?}) == null) || null is core::String? && (#0#2#isSet ?{core::bool} #0#2{core::bool} : let final dynamic #t29 = #0#2#isSet = true in #0#2 = #0#0.{core::Map::containsKey}(#C3){(core::Object?) → core::bool})) && #C4 =={core::String::==}{(core::Object) → core::bool} (#0#3#isSet ?{core::String?} #0#3{core::String?} : let final dynamic #t30 = #0#3#isSet = true in #0#3 = #0#0.{core::Map::[]}(#C3){(core::Object?) → core::String?})) {
         {
           return 0;
         }
       }
     }
     {
-      if((!((#0#3#isSet ?{core::String?} #0#3{core::String?} : let final core::bool #t31 = #0#3#isSet = true in #0#3 = #0#0.{core::Map::[]}(#C3){(core::Object?) → core::String?}) == null) || null is core::String? && (#0#2#isSet ?{core::bool} #0#2{core::bool} : let final core::bool #t32 = #0#2#isSet = true in #0#2 = #0#0.{core::Map::containsKey}(#C3){(core::Object?) → core::bool})) && #C5 =={core::String::==}{(core::Object) → core::bool} (#0#3#isSet ?{core::String?} #0#3{core::String?} : let final core::bool #t33 = #0#3#isSet = true in #0#3 = #0#0.{core::Map::[]}(#C3){(core::Object?) → core::String?})) {
+      if((!((#0#3#isSet ?{core::String?} #0#3{core::String?} : let final dynamic #t31 = #0#3#isSet = true in #0#3 = #0#0.{core::Map::[]}(#C3){(core::Object?) → core::String?}) == null) || null is core::String? && (#0#2#isSet ?{core::bool} #0#2{core::bool} : let final dynamic #t32 = #0#2#isSet = true in #0#2 = #0#0.{core::Map::containsKey}(#C3){(core::Object?) → core::bool})) && #C5 =={core::String::==}{(core::Object) → core::bool} (#0#3#isSet ?{core::String?} #0#3{core::String?} : let final dynamic #t33 = #0#3#isSet = true in #0#3 = #0#0.{core::Map::[]}(#C3){(core::Object?) → core::String?})) {
         {
           return 1;
         }

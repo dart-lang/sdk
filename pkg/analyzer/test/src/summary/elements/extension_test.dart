@@ -86,6 +86,7 @@ library
       getters
         synthetic static get x
           firstFragment: <testLibraryFragment>::@extension::E::@getter::x
+          returnType: int
 ''');
   }
 
@@ -139,6 +140,102 @@ library
       firstFragment: <testLibraryFragment>::@extension::E
       typeParameters
         T
+''');
+  }
+
+  test_getter_ofGeneric_refEnclosingTypeParameter_false() async {
+    var library = await buildLibrary('''
+extension E<T> on List<T> {
+  int get foo {}
+}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      extensions
+        extension E @10
+          reference: <testLibraryFragment>::@extension::E
+          element: <testLibrary>::@extension::E
+          typeParameters
+            T @12
+              element: T@12
+          fields
+            synthetic foo
+              reference: <testLibraryFragment>::@extension::E::@field::foo
+              element: <testLibraryFragment>::@extension::E::@field::foo#element
+              getter2: <testLibraryFragment>::@extension::E::@getter::foo
+          getters
+            get foo @38
+              reference: <testLibraryFragment>::@extension::E::@getter::foo
+              element: <testLibraryFragment>::@extension::E::@getter::foo#element
+  extensions
+    extension E
+      reference: <testLibrary>::@extension::E
+      firstFragment: <testLibraryFragment>::@extension::E
+      typeParameters
+        T
+      fields
+        synthetic foo
+          firstFragment: <testLibraryFragment>::@extension::E::@field::foo
+          type: int
+          getter: <testLibraryFragment>::@extension::E::@getter::foo#element
+      getters
+        get foo
+          firstFragment: <testLibraryFragment>::@extension::E::@getter::foo
+          returnType: int
+''');
+  }
+
+  test_getter_ofGeneric_refEnclosingTypeParameter_true() async {
+    var library = await buildLibrary('''
+extension E<T> on List<T> {
+  T get foo {}
+}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      extensions
+        extension E @10
+          reference: <testLibraryFragment>::@extension::E
+          element: <testLibrary>::@extension::E
+          typeParameters
+            T @12
+              element: T@12
+          fields
+            synthetic foo
+              reference: <testLibraryFragment>::@extension::E::@field::foo
+              element: <testLibraryFragment>::@extension::E::@field::foo#element
+              getter2: <testLibraryFragment>::@extension::E::@getter::foo
+          getters
+            get foo @36
+              reference: <testLibraryFragment>::@extension::E::@getter::foo
+              element: <testLibraryFragment>::@extension::E::@getter::foo#element
+  extensions
+    extension E
+      reference: <testLibrary>::@extension::E
+      firstFragment: <testLibraryFragment>::@extension::E
+      typeParameters
+        T
+      fields
+        synthetic foo
+          firstFragment: <testLibraryFragment>::@extension::E::@field::foo
+          hasEnclosingTypeParameterReference: true
+          type: T
+          getter: <testLibraryFragment>::@extension::E::@getter::foo#element
+      getters
+        get foo
+          firstFragment: <testLibraryFragment>::@extension::E::@getter::foo
+          hasEnclosingTypeParameterReference: true
+          returnType: T
 ''');
   }
 
@@ -237,6 +334,7 @@ library
       getters
         synthetic static get foo
           firstFragment: <testLibraryFragment>::@extension::E::@getter::foo
+          returnType: int
       methods
         bar
           firstFragment: <testLibraryFragment>::@extension::E::@method::bar
@@ -248,6 +346,7 @@ library
                 element: <testLibraryFragment>::@extension::E::@getter::foo#element
                 staticType: null
               element2: <testLibraryFragment>::@extension::E::@getter::foo#element
+          returnType: void
   topLevelVariables
     const hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
@@ -260,6 +359,7 @@ library
   getters
     synthetic static get foo
       firstFragment: <testLibraryFragment>::@getter::foo
+      returnType: int
 ''');
   }
 
@@ -325,6 +425,88 @@ library
   getters
     synthetic static get a
       firstFragment: <testLibraryFragment>::@getter::a
+      returnType: dynamic
+''');
+  }
+
+  test_method_ofGeneric_refEnclosingTypeParameter_false() async {
+    var library = await buildLibrary('''
+extension E<T> on List<T> {
+  void foo() {}
+}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      extensions
+        extension E @10
+          reference: <testLibraryFragment>::@extension::E
+          element: <testLibrary>::@extension::E
+          typeParameters
+            T @12
+              element: T@12
+          methods
+            foo @35
+              reference: <testLibraryFragment>::@extension::E::@method::foo
+              element: <testLibraryFragment>::@extension::E::@method::foo#element
+  extensions
+    extension E
+      reference: <testLibrary>::@extension::E
+      firstFragment: <testLibraryFragment>::@extension::E
+      typeParameters
+        T
+      methods
+        foo
+          firstFragment: <testLibraryFragment>::@extension::E::@method::foo
+          returnType: void
+''');
+  }
+
+  test_method_ofGeneric_refEnclosingTypeParameter_true() async {
+    var library = await buildLibrary('''
+extension E<T> on List<T> {
+  void foo(T _) {}
+}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      extensions
+        extension E @10
+          reference: <testLibraryFragment>::@extension::E
+          element: <testLibrary>::@extension::E
+          typeParameters
+            T @12
+              element: T@12
+          methods
+            foo @35
+              reference: <testLibraryFragment>::@extension::E::@method::foo
+              element: <testLibraryFragment>::@extension::E::@method::foo#element
+              formalParameters
+                _ @41
+                  element: <testLibraryFragment>::@extension::E::@method::foo::@parameter::_#element
+  extensions
+    extension E
+      reference: <testLibrary>::@extension::E
+      firstFragment: <testLibraryFragment>::@extension::E
+      typeParameters
+        T
+      methods
+        foo
+          firstFragment: <testLibraryFragment>::@extension::E::@method::foo
+          hasEnclosingTypeParameterReference: true
+          formalParameters
+            requiredPositional _
+              type: T
+          returnType: void
 ''');
   }
 
@@ -366,6 +548,7 @@ library
       getters
         get foo
           firstFragment: <testLibraryFragment>::@extension::E::@getter::foo
+          returnType: int
 ''');
   }
 
@@ -413,6 +596,7 @@ library
           formalParameters
             requiredPositional value
               type: int
+          returnType: void
 ''');
   }
 
@@ -427,7 +611,7 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       extensions
-        extension <null-name>
+        extension <null-name> (offset=0)
           reference: <testLibraryFragment>::@extension::0
           element: <testLibrary>::@extension::0
   extensions

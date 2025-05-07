@@ -11,11 +11,11 @@ extension type A(core::int value) {
 }
 static extension-type-member method A|constructor#_(core::int value) → self::A% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method A|constructor#_#_#tearOff(core::int value) → self::A% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method A|constructor#_#_#tearOff(core::int value) → self::A% /* erasure=core::int, declared=! */
   return self::A|constructor#_(value);
 static extension-type-member method A|constructor#name1(core::int value) → self::A% /* erasure=core::int, declared=! */
   ;
-static extension-type-member method A|constructor#_#name1#tearOff(core::int value) → self::A% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method A|constructor#_#name1#tearOff(core::int value) → self::A% /* erasure=core::int, declared=! */
   return self::A|constructor#name1(value);
 static method method() → void
   ;

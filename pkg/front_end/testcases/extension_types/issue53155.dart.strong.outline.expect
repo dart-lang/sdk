@@ -16,7 +16,7 @@ extension type V<X1 extends core::num, X2 extends core::Object>(X1 id) {
 }
 static extension-type-member method V|constructor#<X1 extends core::num, X2 extends core::Object>(self::V|constructor#::X1 id) → self::V<self::V|constructor#::X1, self::V|constructor#::X2>% /* erasure=self::V|constructor#::X1, declared=! */
   ;
-static extension-type-member method V|constructor#_#new#tearOff<X1 extends core::num, X2 extends core::Object>(self::V|constructor#_#new#tearOff::X1 id) → self::V<self::V|constructor#_#new#tearOff::X1, self::V|constructor#_#new#tearOff::X2>% /* erasure=self::V|constructor#_#new#tearOff::X1, declared=! */
+static extension-type-member synthetic method V|constructor#_#new#tearOff<X1 extends core::num, X2 extends core::Object>(self::V|constructor#_#new#tearOff::X1 id) → self::V<self::V|constructor#_#new#tearOff::X1, self::V|constructor#_#new#tearOff::X2>% /* erasure=self::V|constructor#_#new#tearOff::X1, declared=! */
   return self::V|constructor#<self::V|constructor#_#new#tearOff::X1, self::V|constructor#_#new#tearOff::X2>(id);
 static method foo<T extends self::V<core::num, core::Object>% /* erasure=core::num, declared=! */>(self::foo::T% t) → self::V<core::int, core::int>% /* erasure=core::int, declared=! */
   ;

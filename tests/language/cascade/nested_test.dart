@@ -14,10 +14,9 @@ class Bar {
 }
 
 main() {
-  var bar =
-      new Bar()
-        ..foo = (new Foo()..x = 42)
-        ..y = 38;
+  var bar = new Bar()
+    ..foo = (new Foo()..x = 42)
+    ..y = 38;
   Expect.isTrue(bar is Bar);
   Expect.isTrue(bar.foo is Foo);
   Expect.equals(bar.foo.x, 42);

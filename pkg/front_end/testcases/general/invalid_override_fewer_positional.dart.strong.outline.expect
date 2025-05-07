@@ -1,0 +1,26 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/invalid_override_fewer_positional.dart:10:3: Error: The method 'Sub.foo' has fewer positional arguments than those of overridden method 'Super.foo'.
+//   foo(Object x) {}
+//   ^
+// pkg/front_end/testcases/general/invalid_override_fewer_positional.dart:6:3: Context: This is the overridden method ('foo').
+//   foo(num x, bool y) {}
+//   ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Super extends core::Object {
+  synthetic constructor •() → self::Super
+    ;
+  method foo(core::num x, core::bool y) → dynamic
+    ;
+}
+class Sub extends self::Super {
+  synthetic constructor •() → self::Sub
+    ;
+  erroneous method foo(core::Object x) → dynamic
+    ;
+}

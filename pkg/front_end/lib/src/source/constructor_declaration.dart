@@ -4,6 +4,7 @@
 
 import 'package:kernel/ast.dart';
 
+import '../builder/constructor_builder.dart';
 import '../kernel/expression_generator_helper.dart';
 import '../type_inference/inference_results.dart';
 import 'source_member_builder.dart';
@@ -12,9 +13,8 @@ import 'source_property_builder.dart';
 /// Common interface for builders for generative constructor declarations in
 /// source code, such as a generative constructor in a regular class or a
 /// generative constructor in an extension type declaration.
-abstract class ConstructorDeclarationBuilder implements SourceMemberBuilder {
-  FunctionNode get function;
-
+abstract class ConstructorDeclarationBuilder
+    implements SourceMemberBuilder, ConstructorBuilder {
   /// Returns `true` if this constructor, including its augmentations, is
   /// external.
   ///
@@ -59,4 +59,11 @@ abstract class ConstructorDeclarationBuilder implements SourceMemberBuilder {
   /// variable referring to the class type parameters must be substituted for
   /// the synthesized constructor type parameters.
   DartType substituteFieldType(DartType fieldType);
+
+  /// Mark the constructor as erroneous.
+  ///
+  /// This is used during the compilation phase to set the appropriate flag on
+  /// the input AST node. The flag helps the verifier to skip apriori erroneous
+  /// members and to avoid reporting cascading errors.
+  void markAsErroneous();
 }

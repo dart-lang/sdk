@@ -6,7 +6,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/constant/value.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/constant/value.dart' show GenericState;
 import 'package:analyzer/src/lint/constants.dart';
@@ -225,15 +225,15 @@ class ColorComputer {
   }
 
   /// Checks whether this elements library is dart:ui.
-  bool _isDartUi(Element2? element) => element?.library2?.name3 == 'dart.ui';
+  bool _isDartUi(Element? element) => element?.library2?.name3 == 'dart.ui';
 
   /// Checks whether this elements library is Flutter Material colors.
-  bool _isFlutterMaterial(Element2? element) =>
+  bool _isFlutterMaterial(Element? element) =>
       element?.library2?.identifier ==
       'package:flutter/src/material/colors.dart';
 
   /// Checks whether this elements library is Flutter Painting colors.
-  bool _isFlutterPainting(Element2? element) =>
+  bool _isFlutterPainting(Element? element) =>
       element?.library2?.identifier ==
       'package:flutter/src/painting/colors.dart';
 

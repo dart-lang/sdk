@@ -14,6 +14,7 @@ import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../utils/lsp_protocol_extensions.dart';
 import '../utils/test_code_extensions.dart';
 import 'code_actions_abstract.dart';
 
@@ -91,7 +92,7 @@ bar
               request is plugin.EditGetFixesParams ? pluginResult : null,
     );
 
-    await verifyActionEdits(
+    await verifyCodeActionLiteralEdits(
       filePath: filePath,
       content,
       expectedContent,
@@ -124,10 +125,7 @@ MyCla^ss? a;
       mainFileUri,
       position: code.position.position,
     );
-    var codeActionTitles = codeActions.map(
-      (action) =>
-          action.map((command) => command.title, (action) => action.title),
-    );
+    var codeActionTitles = codeActions.map((action) => action.title);
 
     expect(
       codeActionTitles,
@@ -155,10 +153,7 @@ MyCla^ss? a;
       mainFileUri,
       position: code.position.position,
     );
-    var codeActionTitles = codeActions.map(
-      (action) =>
-          action.map((command) => command.title, (action) => action.title),
-    );
+    var codeActionTitles = codeActions.map((action) => action.title);
 
     expect(
       codeActionTitles,
@@ -182,10 +177,7 @@ MyCla^ss? a;
       mainFileUri,
       position: code.position.position,
     );
-    var codeActionTitles = codeActions.map(
-      (action) =>
-          action.map((command) => command.title, (action) => action.title),
-    );
+    var codeActionTitles = codeActions.map((action) => action.title);
 
     expect(
       codeActionTitles,
@@ -223,7 +215,7 @@ linter:
     - lines_longer_than_80_chars
 ''';
 
-      await verifyActionEdits(
+      await verifyCodeActionLiteralEdits(
         filePath: analysisOptionsPath,
         content,
         expectedContent,
@@ -251,7 +243,7 @@ import 'dart:async';
 Future foo;
 ''';
 
-    await verifyActionEdits(
+    await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
       kind: CodeActionKind('quickfix.remove.unusedImport'),
@@ -275,7 +267,7 @@ Future foo;
 ''';
 
     setDocumentChangesSupport(false);
-    await verifyActionEdits(
+    await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
       kind: CodeActionKind('quickfix.remove.unusedImport'),
@@ -294,7 +286,7 @@ import '[!newfile.dart!]';
 ''';
 
     setFileCreateSupport();
-    await verifyActionEdits(
+    await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
       kind: CodeActionKind('quickfix.create.file'),
@@ -335,7 +327,7 @@ void f(String a) {
 }
 ''';
 
-    var action = await expectAction(
+    var action = await expectCodeActionLiteral(
       content,
       kind: CodeActionKind('quickfix.remove.nonNullAssertion.multi'),
       title: "Remove '!'s in file",
@@ -427,7 +419,7 @@ void f(String a) {
 }
 ''';
 
-    await verifyActionEdits(
+    await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
       kind: CodeActionKind('quickfix.remove.nonNullAssertion.multi'),
@@ -450,7 +442,7 @@ void main() {
     var codeActions = await getCodeActions(mainFileUri, range: range);
     var codeActionKinds = codeActions.map(
       (item) =>
-          item.map((command) => null, (action) => action.kind?.toString()),
+          item.map((literal) => literal.kind?.toString(), (command) => null),
     );
 
     expect(
@@ -496,7 +488,7 @@ import 'dart:convert';
 Future foo;
 ''';
 
-    await verifyActionEdits(
+    await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
       kind: CodeActionKind('quickfix.ignore.file'),
@@ -520,7 +512,7 @@ import 'dart:convert';
 Future foo;
 ''';
 
-    await verifyActionEdits(
+    await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
       kind: CodeActionKind('quickfix.ignore.line'),
@@ -540,7 +532,7 @@ Future foo;
       range: code.range.range,
     );
     var fixAction =
-        findAction(
+        findCodeActionLiteral(
           codeActions,
           title: 'Remove unused import',
           kind: CodeActionKind('quickfix.remove.unusedImport'),
@@ -575,7 +567,7 @@ int foo() {
       mainFileUri,
       range: code.range.range,
     );
-    var fixAction = findAction(
+    var fixAction = findCodeActionLiteral(
       codeActions,
       title: 'Convert to expression body',
       kind: CodeActionKind('quickfix.convert.toExpressionBody'),
@@ -603,20 +595,19 @@ void f() {
       mainFileUri,
       position: code.position.position,
     );
-    var removeNnaAction = findAction(
-      codeActions,
-      title: "Remove the '!'",
-      kind: CodeActionKind('quickfix.remove.nonNullAssertion'),
-    );
-
-    // Expect only one of the fixes.
-    expect(removeNnaAction, isNotNull);
+    var removeNnaAction =
+        findCodeActionLiteral(
+          codeActions,
+          title: "Remove the '!'",
+          kind: CodeActionKind('quickfix.remove.nonNullAssertion'),
+        )!;
 
     // Ensure the action is for the diagnostic on the second bang which was
     // closest to the range requested.
+    var diagnostics = removeNnaAction.diagnostics;
     var secondBangPos = positionFromOffset(code.code.indexOf('!);'), code.code);
-    expect(removeNnaAction!.diagnostics, hasLength(1));
-    var diagStart = removeNnaAction.diagnostics!.first.range.start;
+    expect(diagnostics, hasLength(1));
+    var diagStart = diagnostics!.first.range.start;
     expect(diagStart, equals(secondBangPos));
   }
 
@@ -632,14 +623,14 @@ var a = [Test, Test, Te[!!]st];
       mainFileUri,
       range: code.range.range,
     );
-    var createClassActions = findAction(
-      codeActions,
-      title: "Create class 'Test'",
-      kind: CodeActionKind('quickfix.create.class'),
-    );
+    var createClassAction =
+        findCodeActionLiteral(
+          codeActions,
+          title: "Create class 'Test'",
+          kind: CodeActionKind('quickfix.create.class'),
+        )!;
 
-    expect(createClassActions, isNotNull);
-    expect(createClassActions!.diagnostics, hasLength(3));
+    expect(createClassAction.diagnostics, hasLength(3));
   }
 
   Future<void> test_noDuplicates_withDocumentChangesSupport() async {
@@ -658,14 +649,14 @@ var a = [Test, Test, Te[!!]st];
       mainFileUri,
       range: code.range.range,
     );
-    var createClassActions = findAction(
-      codeActions,
-      title: "Create class 'Test'",
-      kind: CodeActionKind('quickfix.create.class'),
-    );
+    var createClassActions =
+        findCodeActionLiteral(
+          codeActions,
+          title: "Create class 'Test'",
+          kind: CodeActionKind('quickfix.create.class'),
+        )!;
 
-    expect(createClassActions, isNotNull);
-    expect(createClassActions!.diagnostics, hasLength(3));
+    expect(createClassActions.diagnostics, hasLength(3));
   }
 
   Future<void> test_organizeImportsFix_namedOrganizeImports() async {
@@ -693,7 +684,7 @@ Completer a;
 ProcessInfo b;
 ''';
 
-    await verifyActionEdits(
+    await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
       kind: CodeActionKind('quickfix.organize.imports'),
@@ -761,10 +752,7 @@ ProcessInfo b;
       mainFileUri,
       range: code.range.range,
     );
-    var codeActionTitles = codeActions.map(
-      (action) =>
-          action.map((command) => command.title, (action) => action.title),
-    );
+    var codeActionTitles = codeActions.map((action) => action.title);
 
     expect(
       codeActionTitles,
@@ -779,7 +767,7 @@ ProcessInfo b;
 name: my_project
 ''';
 
-    await verifyActionEdits(
+    await verifyCodeActionLiteralEdits(
       filePath: pubspecFilePath,
       content,
       expectedContent,
@@ -806,7 +794,7 @@ class A {
 ''';
 
     setSnippetTextEditSupport();
-    await verifyActionEdits(
+    await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
       kind: CodeActionKind('quickfix.create.method'),
@@ -839,7 +827,7 @@ class B extends A {
 ''';
 
     setSnippetTextEditSupport();
-    await verifyActionEdits(
+    await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
       kind: CodeActionKind('quickfix.create.missingOverrides'),
@@ -867,7 +855,7 @@ useFunction(int g(a, b)) {}
 ''';
 
     setSnippetTextEditSupport();
-    await verifyActionEdits(
+    await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
       kind: CodeActionKind('quickfix.create.localVariable'),

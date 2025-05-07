@@ -125,10 +125,18 @@ void test() {
   // Allowed - target of redirecting factory is callable.
   print(C9());
 
+  // Not allowed.
+  print(ExtType1);
+  print(ExtType1(42));
+  print(42.isPositive);
+
   // Allowed - re-exported through main_lib2.dart
   print(Lib3Class());
   lib3Method();
   lib3Field = 42;
+  print(Lib3ExtType);
+  print(Lib3ExtType(42));
+  print(42.lib3IsPositive);
 }
 
 void main() {}

@@ -6,10 +6,9 @@ class B<T> extends C<T> {
   B();
   factory B.foo() = B<T>;
   factory B.foo() = B<T>;
-//        ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.DUPLICATE_CONSTRUCTOR
-//        ^
-// [cfe] 'B.foo' is already declared in this scope.
+  //      ^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_CONSTRUCTOR
+  // [cfe] 'B.foo' is already declared in this scope.
 }
 
 class C<K> {

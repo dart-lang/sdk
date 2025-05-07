@@ -11,15 +11,18 @@ class NoSuchMethodInfo {
   Symbol name;
   List args;
   NoSuchMethodInfo(Object r, Symbol m, List a)
-      : receiver = r,
-        name = m,
-        args = a;
+    : receiver = r,
+      name = m,
+      args = a;
 }
 
 class A {
   noSuchMethod(Invocation invocation) {
     topLevelInfo = new NoSuchMethodInfo(
-        this, invocation.memberName, invocation.positionalArguments);
+      this,
+      invocation.memberName,
+      invocation.positionalArguments,
+    );
     return topLevelInfo;
   }
 

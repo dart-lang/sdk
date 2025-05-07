@@ -9,7 +9,7 @@ import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
@@ -253,7 +253,7 @@ abstract class RecordField {
 }
 
 class _ReferenceFinder extends RecursiveAstVisitor<void> {
-  final LocalVariableElement2? element;
+  final LocalVariableElement? element;
   final objectReferences = <AstNode>[];
   final propertyReferences = <String, List<AstNode>>{};
 
@@ -288,7 +288,7 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
   }
 }
 
-extension on LocalVariableElement2 {
+extension on LocalVariableElement {
   ({
     List<AstNode> objectReferences,
     Map<String, List<AstNode>> propertyReferences,

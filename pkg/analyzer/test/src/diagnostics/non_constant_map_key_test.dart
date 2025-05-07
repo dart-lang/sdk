@@ -19,31 +19,34 @@ class NonConstantMapKeyTest extends PubPackageResolutionTest
 
 mixin NonConstantMapKeyTestCases on PubPackageResolutionTest {
   test_const_ifElement_thenTrue_elseFinal() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 final dynamic a = 0;
 const cond = true;
 var v = const {if (cond) 0: 1 else a : 0};
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, 75, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, 75, 1)],
+    );
   }
 
   test_const_ifElement_thenTrue_thenFinal() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 final dynamic a = 0;
 const cond = true;
 var v = const {if (cond) a : 0};
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, 65, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, 65, 1)],
+    );
   }
 
   test_const_topLevel() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 final dynamic a = 0;
 var v = const {a : 0};
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, 36, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, 36, 1)],
+    );
   }
 }

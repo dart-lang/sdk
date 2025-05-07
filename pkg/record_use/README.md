@@ -69,7 +69,7 @@ This information can then be accessed in a link hook as follows:
 ```dart
 import 'dart:convert';
 
-import 'package:native_assets_cli/native_assets_cli.dart';
+import 'package:hooks/hooks.dart';
 import 'package:record_use/record_use_internal.dart';
 
 final methodId = Identifier(
@@ -103,6 +103,15 @@ void main(List<String> arguments){
   });
 }
 ```
+
+## Limitations
+As this is designed to work on both web and native platforms, we have to adapt 
+to the platform pecularities. One of them is that javascript does not support
+named arguments, so the dart2js compiler rewrites functions to only accept named
+parameters.
+While you can use named parameters to record functions, we advise caution as the
+retrieval behavior might change once we work around this dart2js limitation and
+implement separate positional and named parameters.
 
 ## Contributing
 Contributions are welcome! Please open an issue or submit a pull request.

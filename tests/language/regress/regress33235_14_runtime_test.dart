@@ -12,17 +12,11 @@ class A {
   void set n(int x) {}
 }
 
-class B extends A {
+class B extends A {}
 
-}
-
-abstract class B2 implements A {
-
-}
+abstract class B2 implements A {}
 
 class C {
-
-
   void set n(int x) {}
 }
 

@@ -16,7 +16,8 @@ main() {
 @reflectiveTest
 class BreakLabelOnSwitchMemberTest extends PubPackageResolutionTest {
   test_it() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int x) {
   switch (x) {
     L: case 0:
@@ -25,13 +26,14 @@ void f(int x) {
       break L;
   }
 }
-''', [
-      error(CompileTimeErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER, 83, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER, 83, 1)],
+    );
   }
 
   test_it_language219() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // @dart = 2.19
 void f(int x) {
   switch (x) {
@@ -41,8 +43,8 @@ void f(int x) {
       break L;
   }
 }
-''', [
-      error(CompileTimeErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER, 99, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER, 99, 1)],
+    );
   }
 }

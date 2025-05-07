@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -80,15 +80,15 @@ abstract class SearchEngine {
   /// If [allSubtypes] already contains an element it is assumed that it
   /// contains the entire subtree and the element won't be search on further.
   Future<void> appendAllSubtypes(
-    InterfaceElement2 type,
-    Set<InterfaceElement2> allSubtypes,
+    InterfaceElement type,
+    Set<InterfaceElement> allSubtypes,
     OperationPerformanceImpl performance,
   );
 
   /// If the [type] has subtypes, return the set of names of members which these
   /// subtypes declare, possibly empty.  If the [type] does not have subtypes,
   /// return `null`.
-  Future<Set<String>?> membersOfSubtypes(InterfaceElement2 type);
+  Future<Set<String>?> membersOfSubtypes(InterfaceElement type);
 
   /// Returns references to the given [fragment].
   Future<List<LibraryFragmentSearchMatch>> searchLibraryFragmentReferences(
@@ -115,20 +115,20 @@ abstract class SearchEngine {
   /// compilation units in the [library]. The returned set will include an empty
   /// string if the element is referenced without a prefix.
   Future<Set<String>> searchPrefixesUsedInLibrary(
-    LibraryElement2 library,
-    Element2 element,
+    LibraryElement library,
+    Element element,
   );
 
   /// Returns references to the given [element].
-  Future<List<SearchMatch>> searchReferences(Element2 element);
+  Future<List<SearchMatch>> searchReferences(Element element);
 
   /// Returns direct subtypes of the given [type].
   ///
-  /// [type] - the [InterfaceElement2] being subtyped by the found matches.
+  /// [type] - the [InterfaceElement] being subtyped by the found matches.
   /// [cache] - the [SearchEngineCache] used to speeding up the computation. If
   ///    empty it will be filled out and can be used on any subsequent query.
   Future<List<SearchMatch>> searchSubtypes(
-    InterfaceElement2 type,
+    InterfaceElement type,
     SearchEngineCache cache, {
     OperationPerformanceImpl? performance,
   });
@@ -151,7 +151,7 @@ class SearchEngineCache {
 /// [SearchEngine].
 abstract class SearchMatch {
   /// Return the element containing the match.
-  Element2 get element;
+  Element get element;
 
   /// The absolute path of the file containing the match.
   String get file;
@@ -159,14 +159,14 @@ abstract class SearchMatch {
   /// Is `true` if field or method access is done using qualifier.
   bool get isQualified;
 
-  /// Is `true` if the match is a resolved reference to some [Element2].
+  /// Is `true` if the match is a resolved reference to some [Element].
   bool get isResolved;
 
   /// The kind of the match.
   MatchKind get kind;
 
   /// Return the library element for the [file].
-  LibraryElement2 get libraryElement;
+  LibraryElement get libraryElement;
 
   /// The library [Source] of the reference.
   Source get librarySource;

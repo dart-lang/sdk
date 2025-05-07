@@ -16,7 +16,7 @@ void main() {
 @reflectiveTest
 class AvoidShadowingTypeParametersTest extends LintRuleTest {
   @override
-  List<ErrorCode> get ignoredErrorCodes => [
+  List<DiagnosticCode> get ignoredErrorCodes => [
     WarningCode.UNUSED_ELEMENT,
     WarningCode.UNUSED_LOCAL_VARIABLE,
   ];

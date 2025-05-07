@@ -1805,7 +1805,7 @@ static void TrySwitchInstanceCall(Thread* thread,
 
 #if !defined(PRODUCT)
   // Monomorphic/megamorphic do not check the isolate's stepping flag.
-  if (thread->isolate()->has_attempted_stepping()) return;
+  if (thread->isolate_group()->has_attempted_stepping()) return;
 #endif
 
   // Monomorphic/megamorphic calls are only for unoptimized code.
@@ -3186,11 +3186,10 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethod, 4) {
 //  - garbage collection
 //  - hot reload
 static void HandleStackOverflowTestCases(Thread* thread) {
-  auto isolate = thread->isolate();
   auto isolate_group = thread->isolate_group();
 
   if (FLAG_shared_slow_path_triggers_gc) {
-    isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging);
+    isolate_group->heap()->CollectAllGarbage(GCReason::kDebugging);
   }
 
   bool do_deopt = false;
@@ -3198,10 +3197,10 @@ static void HandleStackOverflowTestCases(Thread* thread) {
   bool do_reload = false;
   bool do_gc = false;
   const intptr_t isolate_reload_every =
-      isolate->group()->reload_every_n_stack_overflow_checks();
+      isolate_group->reload_every_n_stack_overflow_checks();
   if ((FLAG_deoptimize_every > 0) || (FLAG_stacktrace_every > 0) ||
       (FLAG_gc_every > 0) || (isolate_reload_every > 0)) {
-    if (!Isolate::IsSystemIsolate(isolate)) {
+    if (!IsolateGroup::IsSystemIsolateGroup(isolate_group)) {
       // TODO(turnidge): To make --deoptimize_every and
       // --stacktrace-every faster we could move this increment/test to
       // the generated code.
@@ -3216,7 +3215,8 @@ static void HandleStackOverflowTestCases(Thread* thread) {
         do_gc = true;
       }
       if ((isolate_reload_every > 0) && (count % isolate_reload_every) == 0) {
-        do_reload = isolate->group()->CanReload();
+        do_reload =
+            isolate_group->CanReload() && !isolate_group->has_seen_oom();
       }
     }
   }
@@ -3275,14 +3275,14 @@ static void HandleStackOverflowTestCases(Thread* thread) {
     JSONStream js;
     const bool success =
         isolate_group->ReloadSources(&js, /*force_reload=*/true, script_uri);
-    if (!success && !Dart::IsShuttingDown()) {
+    if (!success && !Dart::IsShuttingDown() && !isolate_group->has_seen_oom()) {
       FATAL("*** Isolate reload failed:\n%s\n", js.ToCString());
     }
   }
   if (do_stacktrace) {
     String& var_name = String::Handle();
     Instance& var_value = Instance::Handle();
-    DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
+    DebuggerStackTrace* stack = DebuggerStackTrace::Collect();
     intptr_t num_frames = stack->Length();
     for (intptr_t i = 0; i < num_frames; i++) {
       ActivationFrame* frame = stack->FrameAt(i);
@@ -3305,7 +3305,7 @@ static void HandleStackOverflowTestCases(Thread* thread) {
     }
   }
   if (do_gc) {
-    isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging);
+    isolate_group->heap()->CollectAllGarbage(GCReason::kDebugging);
   }
 }
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
@@ -3426,8 +3426,8 @@ DEFINE_RUNTIME_ENTRY(InterruptOrStackOverflow, 0) {
 
     // Use the preallocated stack overflow exception to avoid calling
     // into dart code.
-    const Instance& exception =
-        Instance::Handle(isolate->group()->object_store()->stack_overflow());
+    const Instance& exception = Instance::Handle(
+        thread->isolate_group()->object_store()->stack_overflow());
     Exceptions::Throw(thread, exception);
     UNREACHABLE();
   }
@@ -3825,7 +3825,6 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t,
                           uword is_lazy_deopt) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
   StackZone zone(thread);
 
   // All registers have been saved below last-fp as if they were locals.
@@ -3880,7 +3879,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t,
   DeoptContext* deopt_context = new DeoptContext(
       caller_frame, optimized_code, DeoptContext::kDestIsOriginalFrame,
       fpu_registers, cpu_registers, is_lazy_deopt != 0, deoptimizing_code);
-  isolate->set_deopt_context(deopt_context);
+  thread->set_deopt_context(deopt_context);
 
   // Stack size (FP - SP) in bytes.
   return deopt_context->DestStackAdjustment() * kWordSize;
@@ -3896,10 +3895,9 @@ END_LEAF_RUNTIME_ENTRY
 DEFINE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, 1, uword last_fp) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
   StackZone zone(thread);
 
-  DeoptContext* deopt_context = isolate->deopt_context();
+  DeoptContext* deopt_context = thread->deopt_context();
   DartFrameIterator iterator(last_fp, thread,
                              StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* caller_frame = iterator.NextFrame();
@@ -3946,9 +3944,9 @@ DEFINE_RUNTIME_ENTRY(DeoptimizeMaterialize, 0) {
     ValidateFrames();
   }
 #endif
-  DeoptContext* deopt_context = isolate->deopt_context();
+  DeoptContext* deopt_context = thread->deopt_context();
   intptr_t deopt_arg_count = deopt_context->MaterializeDeferredObjects();
-  isolate->set_deopt_context(nullptr);
+  thread->set_deopt_context(nullptr);
   delete deopt_context;
 
   // Return value tells deoptimization stub to remove the given number of bytes

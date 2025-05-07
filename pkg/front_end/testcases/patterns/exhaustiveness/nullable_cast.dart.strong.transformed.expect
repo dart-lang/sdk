@@ -13,7 +13,7 @@ static method exhaustiveNonNullableTypeVariable<T extends core::Object>(core::in
     #L1:
     {
       {
-        if(let final self::exhaustiveNonNullableTypeVariable::T #t2 = #0#0 as self::exhaustiveNonNullableTypeVariable::T in (#0#0 as self::exhaustiveNonNullableTypeVariable::T) is core::int) {
+        if(let final dynamic #t2 = #0#0 as self::exhaustiveNonNullableTypeVariable::T in (#0#0 as self::exhaustiveNonNullableTypeVariable::T) is core::int) {
           #t1 = 0;
           break #L1;
         }
@@ -27,7 +27,7 @@ static method exhaustiveNonNullableType(core::int? o) → dynamic
     #L2:
     {
       {
-        if(let final core::int #t4 = let core::int? #t5 = #0#0 in #t5 == null ?{core::int} #t5 as core::int : #t5{core::int} in true) {
+        if(let final dynamic #t4 = let core::int? #t5 = #0#0 in #t5 == null ?{core::int} #t5 as core::int : #t5{core::int} in true) {
           #t3 = 0;
           break #L2;
         }
@@ -41,7 +41,7 @@ static method exhaustiveNonNullableSuperType(core::int? o) → dynamic
     #L3:
     {
       {
-        if(let final core::num #t7 = let core::int? #t8 = #0#0 in #t8 == null ?{core::num} #t8 as core::num : #t8{core::num} in (let core::int? #t9 = #0#0 in #t9 == null ?{core::num} #t9 as core::num : #t9{core::num}) is core::int) {
+        if(let final dynamic #t7 = let core::int? #t8 = #0#0 in #t8 == null ?{core::num} #t8 as core::num : #t8{core::num} in (let core::int? #t9 = #0#0 in #t9 == null ?{core::num} #t9 as core::num : #t9{core::num}) is core::int) {
           #t6 = 0;
           break #L3;
         }
@@ -55,7 +55,7 @@ static method exhaustiveNonNullableFutureOr1(FutureOr<core::int>? o) → dynamic
     #L4:
     {
       {
-        if(let final FutureOr<core::int>#t11 = let FutureOr<core::int>? #t12 = #0#0 in #t12 == null ?{FutureOr<core::int>} #t12 as FutureOr<core::int> : #t12{FutureOr<core::int>} in true) {
+        if(let final dynamic #t11 = let FutureOr<core::int>? #t12 = #0#0 in #t12 == null ?{FutureOr<core::int>} #t12 as FutureOr<core::int> : #t12{FutureOr<core::int>} in true) {
           #t10 = 0;
           break #L4;
         }
@@ -69,7 +69,7 @@ static method exhaustiveNonNullableFutureOr2(FutureOr<core::int?>o) → dynamic
     #L5:
     {
       {
-        if(let final FutureOr<core::int>#t14 = #0#0 as FutureOr<core::int> in true) {
+        if(let final dynamic #t14 = #0#0 as FutureOr<core::int> in true) {
           #t13 = 0;
           break #L5;
         }
@@ -83,7 +83,7 @@ static method exhaustiveNonNullableFutureOrTypeVariable1<T extends core::Object>
     #L6:
     {
       {
-        if(let final FutureOr<self::exhaustiveNonNullableFutureOrTypeVariable1::T>#t16 = let FutureOr<self::exhaustiveNonNullableFutureOrTypeVariable1::T>? #t17 = #0#0 in #t17 == null ?{FutureOr<self::exhaustiveNonNullableFutureOrTypeVariable1::T>} #t17 as FutureOr<self::exhaustiveNonNullableFutureOrTypeVariable1::T> : #t17{FutureOr<self::exhaustiveNonNullableFutureOrTypeVariable1::T>} in true) {
+        if(let final dynamic #t16 = let FutureOr<self::exhaustiveNonNullableFutureOrTypeVariable1::T>? #t17 = #0#0 in #t17 == null ?{FutureOr<self::exhaustiveNonNullableFutureOrTypeVariable1::T>} #t17 as FutureOr<self::exhaustiveNonNullableFutureOrTypeVariable1::T> : #t17{FutureOr<self::exhaustiveNonNullableFutureOrTypeVariable1::T>} in true) {
           #t15 = 0;
           break #L6;
         }
@@ -97,7 +97,7 @@ static method exhaustiveNonNullableFutureOrTypeVariable2<T extends core::Object>
     #L7:
     {
       {
-        if(let final FutureOr<self::exhaustiveNonNullableFutureOrTypeVariable2::T>#t19 = #0#0 as FutureOr<self::exhaustiveNonNullableFutureOrTypeVariable2::T> in true) {
+        if(let final dynamic #t19 = #0#0 as FutureOr<self::exhaustiveNonNullableFutureOrTypeVariable2::T> in true) {
           #t18 = 0;
           break #L7;
         }

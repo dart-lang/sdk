@@ -288,7 +288,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
 
   void inferMethodSignature(ClassMembersBuilder membersBuilder,
       ClassMember declaredMember, Iterable<ClassMember> overriddenMembers) {
-    assert(!declaredMember.isGetter && !declaredMember.isSetter);
+    assert(!declaredMember.isProperty);
     // Trigger computation of method type.
     Procedure declaredProcedure =
         declaredMember.getMember(membersBuilder) as Procedure;
@@ -299,24 +299,15 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
     }
   }
 
-  void inferGetterSignature(ClassMembersBuilder membersBuilder,
+  void inferPropertySignature(ClassMembersBuilder membersBuilder,
       ClassMember declaredMember, Iterable<ClassMember> overriddenMembers) {
-    assert(declaredMember.isGetter);
-    // Trigger computation of the getter type.
-    declaredMember.getMember(membersBuilder);
-    // Otherwise nothing to do. Getters have no variance.
-  }
-
-  void inferSetterSignature(ClassMembersBuilder membersBuilder,
-      ClassMember declaredMember, Iterable<ClassMember> overriddenMembers) {
-    assert(declaredMember.isSetter);
-    // Trigger computation of the getter type.
-    Procedure declaredSetter =
-        declaredMember.getMember(membersBuilder) as Procedure;
+    assert(declaredMember.isProperty);
+    // Trigger computation of the property type.
+    Member declaredProperty = declaredMember.getMember(membersBuilder);
     for (ClassMember overriddenMember
         in toSet(declaredMember.declarationBuilder, overriddenMembers)) {
       Covariance covariance = overriddenMember.getCovariance(membersBuilder);
-      covariance.applyCovariance(declaredSetter);
+      covariance.applyCovariance(declaredProperty);
     }
   }
 
@@ -401,7 +392,20 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
       // Erroneous case.
       return;
     }
-    FormalParameterBuilder parameter = formals.first;
+
+    // Only infer the parameter type if it's the first required positional.
+    FormalParameterBuilder? parameter;
+    for (FormalParameterBuilder formal in formals) {
+      if (formal.isRequiredPositional) {
+        parameter = formal;
+        break;
+      }
+    }
+    if (parameter == null) {
+      // Erroneous case.
+      return;
+    }
+
     if (parameter.type is InferableTypeBuilder) {
       DartType? inferredType;
 
@@ -546,18 +550,6 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
     }
   }
 
-  /// Infers the field signature of [declaredMember] based on
-  /// [overriddenMembers].
-  void inferFieldSignature(ClassMembersBuilder membersBuilder,
-      ClassMember declaredMember, Iterable<ClassMember> overriddenMembers) {
-    Field declaredField = declaredMember.getMember(membersBuilder) as Field;
-    for (ClassMember overriddenMember
-        in toSet(declaredMember.declarationBuilder, overriddenMembers)) {
-      Covariance covariance = overriddenMember.getCovariance(membersBuilder);
-      covariance.applyCovariance(declaredField);
-    }
-  }
-
   /// Registers that the current class has an interface member without a
   /// corresponding class member.
   ///
@@ -580,36 +572,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
   ///
   void registerAbstractMember(
       List<ClassMember> abstractMembers, ClassMember abstractMember) {
-    if (!abstractMember.isInternalImplementation) {
-      /// If `isInternalImplementation` is `true`, the member is synthesized
-      /// implementation that does not require implementation in other
-      /// classes.
-      ///
-      /// This is for instance used for late lowering where
-      ///
-      ///    class Interface {
-      ///      late int? field;
-      ///    }
-      ///    class Class implements Interface {
-      ///      int? field;
-      ///    }
-      ///
-      /// is encoded as
-      ///
-      ///    class Interface {
-      ///      bool _#field#isSet = false;
-      ///      int? _#field = null;
-      ///      int? get field => _#field#isSet ? _#field : throw ...;
-      ///      void set field(int? value) { ... }
-      ///    }
-      ///    class Class implements Interface {
-      ///      int? field;
-      ///    }
-      ///
-      /// and `Class` should not be required to implement
-      /// `Interface._#field#isSet` and `Interface._#field`.
-      abstractMembers.add(abstractMember);
-    }
+    abstractMembers.add(abstractMember);
   }
 
   /// Set to `true` during [build] if the class needs interfaces, that is, if it
@@ -979,24 +942,57 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
 
         /// Declared members must be checked to validly override the
         /// overridden members.
+
+        /// In case error is found, the corresponding local member, either
+        /// synthesized or declared, is marked erroneous.
+        ClassMember? localMember = classMember.forSetter
+            ? (interfaceSetterMap?[classMember.name])
+            : (interfaceMemberMap?[classMember.name]);
+
+        if (localMember?.declarationBuilder != classBuilder) {
+          localMember = null;
+        }
         _membersBuilder.registerOverrideCheck(
-            classBuilder as SourceClassBuilder, classMember, overriddenMembers);
+            classBuilder as SourceClassBuilder, classMember, overriddenMembers,
+            localMember: localMember);
       });
 
       mixinApplicationOverridesMap.forEach(
           (ClassMember classMember, Set<ClassMember> overriddenMembers) {
         /// Declared mixed in members must be checked to validly override the
         /// overridden members.
+
+        /// In case error is found, the corresponding local member, either
+        /// synthesized or declared, is marked erroneous.
+        ClassMember? localMember = classMember.forSetter
+            ? (interfaceSetterMap?[classMember.name])
+            : (interfaceMemberMap?[classMember.name]);
+
+        if (localMember?.declarationBuilder != classBuilder) {
+          localMember = null;
+        }
         _membersBuilder.registerOverrideCheck(
-            classBuilder as SourceClassBuilder, classMember, overriddenMembers);
+            classBuilder as SourceClassBuilder, classMember, overriddenMembers,
+            localMember: localMember);
       });
 
       inheritedImplementsMap.forEach(
           (ClassMember classMember, Set<ClassMember> overriddenMembers) {
         /// Concrete members must be checked to validly override the overridden
         /// members in concrete classes.
+
+        /// In case error is found, the corresponding local member, either
+        /// synthesized or declared, is marked erroneous.
+        ClassMember? localMember = classMember.forSetter
+            ? (interfaceSetterMap?[classMember.name])
+            : (interfaceMemberMap?[classMember.name]);
+
+        if (localMember?.declarationBuilder != classBuilder) {
+          localMember = null;
+        }
         _membersBuilder.registerOverrideCheck(
-            classBuilder as SourceClassBuilder, classMember, overriddenMembers);
+            classBuilder as SourceClassBuilder, classMember, overriddenMembers,
+            localMember: localMember);
       });
     }
 

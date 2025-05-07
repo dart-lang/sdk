@@ -8,7 +8,7 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -71,7 +71,7 @@ class DocumentColorPresentationHandler
   Future<ColorPresentation> _createColorPresentation({
     required ResolvedUnitResult unit,
     required SourceRange editRange,
-    required InterfaceElement2 colorType,
+    required InterfaceElement colorType,
     required String typeName,
     required String invocationString,
     required bool includeConstKeyword,
@@ -250,8 +250,8 @@ class DocumentColorPresentationHandler
           parent is PrefixedIdentifier ? parent.element : node.element;
 
       return switch (element) {
-        PropertyAccessorElement2(:var variable3) => variable3?.isConst ?? false,
-        VariableElement2() => element.isConst,
+        PropertyAccessorElement(:var variable3) => variable3?.isConst ?? false,
+        VariableElement() => element.isConst,
         _ => false,
       };
     } else {

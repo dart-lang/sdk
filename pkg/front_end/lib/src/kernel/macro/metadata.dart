@@ -19,12 +19,11 @@ import '../../builder/declaration_builders.dart';
 import '../../builder/dynamic_type_declaration_builder.dart';
 import '../../builder/future_or_type_declaration_builder.dart';
 import '../../builder/member_builder.dart';
+import '../../builder/method_builder.dart';
 import '../../builder/never_type_declaration_builder.dart';
 import '../../builder/null_type_declaration_builder.dart';
 import '../../builder/prefix_builder.dart';
-import '../../builder/procedure_builder.dart';
 import '../../builder/property_builder.dart';
-import '../../source/source_method_builder.dart';
 import '../../source/source_property_builder.dart';
 
 // Coverage-ignore(suite): Not run.
@@ -90,9 +89,7 @@ shared.Expression? getFieldInitializer(shared.FieldReference reference) {
 shared.Proto builderToProto(Builder builder, String name) {
   if (builder is PropertyBuilder) {
     return new shared.FieldProto(new PropertyReference(builder));
-  } else if (builder is ProcedureBuilder) {
-    return new shared.FunctionProto(new FunctionReference(builder));
-  } else if (builder is SourceMethodBuilder) {
+  } else if (builder is MethodBuilder) {
     return new shared.FunctionProto(new MethodReference(builder));
   } else if (builder is PrefixBuilder) {
     return new shared.PrefixProto(name, new PrefixScope(builder));
@@ -173,7 +170,7 @@ class AnnotationScope implements shared.Scope {
   shared.Proto lookup(String name) {
     int fileOffset = -1;
     Uri fileUri = dummyUri;
-    Builder? builder = scope.lookupGetable(name, fileOffset, fileUri);
+    Builder? builder = scope.lookup(name, fileOffset, fileUri)?.getable;
     if (builder == null) {
       return new shared.UnresolvedIdentifier(this, name);
     } else {
@@ -325,7 +322,7 @@ class PrefixScope implements shared.Scope {
   shared.Proto lookup(String name) {
     int fileOffset = -1;
     Uri fileUri = dummyUri;
-    Builder? builder = prefixBuilder.lookup(name, fileOffset, fileUri);
+    Builder? builder = prefixBuilder.lookup(name, fileOffset, fileUri)?.getable;
     if (builder == null) {
       return new shared.UnresolvedIdentifier(this, name);
     } else {
@@ -345,18 +342,8 @@ class PropertyReference extends shared.FieldReference {
 }
 
 // Coverage-ignore(suite): Not run.
-class FunctionReference extends shared.FunctionReference {
-  final ProcedureBuilder builder;
-
-  FunctionReference(this.builder);
-
-  @override
-  String get name => builder.name;
-}
-
-// Coverage-ignore(suite): Not run.
 class MethodReference extends shared.FunctionReference {
-  final SourceMethodBuilder builder;
+  final MethodBuilder builder;
 
   MethodReference(this.builder);
 

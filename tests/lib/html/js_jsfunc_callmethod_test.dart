@@ -35,15 +35,17 @@ main() {
   });
 
   test('callMethod with many arguments', () {
-    expect(context.callMethod('varArgs', [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
-        equals(55));
+    expect(
+      context.callMethod('varArgs', [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
+      equals(55),
+    );
   });
 
   test('access a property of a function', () {
     expect(context.callMethod('Bar'), "ret_value");
     expect(context['Bar']['foo'], "property_value");
   });
-/*
+  /*
  TODO(jacobr): evaluate whether we should be in the business of throwing
  ArgumentError outside of checked mode. In unchecked mode this should just
  return a NoSuchMethodError as the class lacks a method "true".

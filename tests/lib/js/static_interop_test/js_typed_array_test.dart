@@ -18,16 +18,9 @@ const isJSBackend = const bool.fromEnvironment('dart.library.html');
 //    `JSTypedDataImpl`.
 // 3) Test should ensure both receivers and arguments for all [TypedData]
 //    operations will be `JSTypedDataImpl`.
-enum TestMode {
-  jsReceiver,
-  jsArgument,
-  jsReceiverAndArguments,
-}
+enum TestMode { jsReceiver, jsArgument, jsReceiverAndArguments }
 
-enum Position {
-  jsReceiver,
-  jsArgument,
-}
+enum Position { jsReceiver, jsArgument }
 
 bool useJSType(Position pos, TestMode mode) =>
     (pos == Position.jsReceiver &&
@@ -183,10 +176,14 @@ void arrayBufferTest() {
   byteDataView1.setFloat32(0, 1.3456789);
   Expect.equals(1.3456789255142212, byteDataView1.getFloat32(0));
   Expect.equals(
-      7.140369575608929e-7, byteDataView1.getFloat32(0, Endian.little));
+    7.140369575608929e-7,
+    byteDataView1.getFloat32(0, Endian.little),
+  );
   Expect.equals(-2.7172153416188394e-12, byteDataView2.getFloat32(0));
   Expect.equals(
-      4.890122461342029e-39, byteDataView2.getFloat32(0, Endian.little));
+    4.890122461342029e-39,
+    byteDataView2.getFloat32(0, Endian.little),
+  );
   Expect.equals(63, backingStore[0]);
 
   byteDataView1.setFloat32(0, 1.3456789, Endian.little);
@@ -194,16 +191,22 @@ void arrayBufferTest() {
   Expect.equals(1.3456789255142212, byteDataView1.getFloat32(0, Endian.little));
   Expect.equals(1.345672607421875, byteDataView2.getFloat32(0));
   Expect.equals(
-      5.847426513737849e-39, byteDataView2.getFloat32(0, Endian.little));
+    5.847426513737849e-39,
+    byteDataView2.getFloat32(0, Endian.little),
+  );
   Expect.equals(53, backingStore[0]);
 
   byteDataView1.setFloat64(0, 1.3456789);
   Expect.equals(1.3456789, byteDataView1.getFloat64(0));
   Expect.equals(
-      6.76493079866339e-214, byteDataView1.getFloat64(0, Endian.little));
+    6.76493079866339e-214,
+    byteDataView1.getFloat64(0, Endian.little),
+  );
   Expect.equals(-1.4354837282357192e+258, byteDataView2.getFloat64(0));
   Expect.equals(
-      2.736336068096061e-308, byteDataView2.getFloat64(0, Endian.little));
+    2.736336068096061e-308,
+    byteDataView2.getFloat64(0, Endian.little),
+  );
   Expect.equals(63, backingStore[0]);
 
   byteDataView1.setFloat64(0, 1.3456789, Endian.little);
@@ -211,7 +214,9 @@ void arrayBufferTest() {
   Expect.equals(1.3456789, byteDataView1.getFloat64(0, Endian.little));
   Expect.equals(-3.4672273430894385e-91, byteDataView2.getFloat64(0));
   Expect.equals(
-      1.777784223095324e-307, byteDataView2.getFloat64(0, Endian.little));
+    1.777784223095324e-307,
+    byteDataView2.getFloat64(0, Endian.little),
+  );
   Expect.equals(19, backingStore[0]);
 }
 
@@ -295,8 +300,16 @@ void testSimd() {
   Expect.equals(2, sf32[0].y);
   Expect.equals(3, sf32[0].z);
   Expect.equals(4, sf32[0].w);
-  Expect.listEquals(
-      [1065353216, 1073741824, 1077936128, 1082130432, 5, 6, 7, 8], a);
+  Expect.listEquals([
+    1065353216,
+    1073741824,
+    1077936128,
+    1082130432,
+    5,
+    6,
+    7,
+    8,
+  ], a);
 
   var sf32a = sf32.sublist(0, 1);
   Expect.equals(1, sf32a.length);
@@ -315,7 +328,7 @@ void testSimd() {
     1084227584,
     1086324736,
     1088421888,
-    1090519040
+    1090519040,
   ], a);
   Expect.equals(5, sf32a[0].x);
   Expect.equals(6, sf32a[0].y);
@@ -333,7 +346,7 @@ void testSimd() {
     1084227584,
     1086324736,
     1088421888,
-    1090519040
+    1090519040,
   ], a);
 
   var sf64a = sf64.sublist(0, 1);
@@ -343,8 +356,16 @@ void testSimd() {
 
   sf64[1] = Float64x2(3, 4);
   sf64a = sf64.sublist(1, 2);
-  Expect.listEquals(
-      [0, 1072693248, 0, 1073741824, 0, 1074266112, 0, 1074790400], a);
+  Expect.listEquals([
+    0,
+    1072693248,
+    0,
+    1073741824,
+    0,
+    1074266112,
+    0,
+    1074790400,
+  ], a);
   Expect.equals(3, sf64a[0].x);
   Expect.equals(4, sf64a[0].y);
 }
@@ -457,7 +478,7 @@ void main() {
   for (final mode in [
     TestMode.jsReceiver,
     TestMode.jsArgument,
-    TestMode.jsReceiverAndArguments
+    TestMode.jsReceiverAndArguments,
   ]) {
     uint8ArrayBasicTest(mode);
   }

@@ -56,7 +56,6 @@ void test1() {
   A a = new E();
   if (a is B) {
     print(a.a);
-
   }
   void foo() {
     a = new D();
@@ -71,7 +70,6 @@ void test2() {
 
   if (a is B) {
     print(a.a);
-
   }
 }
 
@@ -89,7 +87,6 @@ void test3() {
     }
 
     print(a.a);
-
   }
 }
 
@@ -107,14 +104,12 @@ void test3a() {
     }
 
     print(a.a);
-
   }
 }
 
 void test4() {
   A a = new E();
   if (a is B) {
-
     print(a.a);
     print(a.b);
   }
@@ -123,7 +118,6 @@ void test4() {
 void test5() {
   A a = new E();
   if (a is B) {
-
     print(a.a);
   }
   a = A();
@@ -134,7 +128,6 @@ void test6() {
   if (a is B) {
     func(() => a);
     print(a.a);
-
   }
   a = A();
 }
@@ -144,7 +137,6 @@ void test6a() {
   if (((a) is B)) {
     func(() => a);
     print(a.a);
-
   }
   a = A();
 }
@@ -160,9 +152,7 @@ void test7() {
 
 void test8() {
   A a = new E();
-  if (a is B
-
-      ) {
+  if (a is B) {
     print(a.a);
   }
   a = A();
@@ -178,7 +168,6 @@ void test10() {
   List<A> a = <E>[new E()];
   if (a is List<B>) {
     func(() => a[0]);
-
   }
   a = [];
 }
@@ -187,7 +176,6 @@ void test11() {
   List<A> a = <E>[new E()];
   if (a is List<B>) {
     func(() => a[0] = E());
-
   }
   a = [];
 }
@@ -197,7 +185,6 @@ void test12() {
   if (a is B) {
     func(() => a++);
     print(a.a);
-
   }
   a = A();
 }

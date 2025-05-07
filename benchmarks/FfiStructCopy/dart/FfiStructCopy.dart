@@ -83,13 +83,8 @@ abstract class StructCopyBenchmark {
   void run(int batchSize);
 }
 
-final argParser =
-    ArgParser()..addFlag(
-      'verbose',
-      abbr: 'v',
-      help: 'Verbose output',
-      defaultsTo: false,
-    );
+final argParser = ArgParser()
+  ..addFlag('verbose', abbr: 'v', help: 'Verbose output', defaultsTo: false);
 
 void main(List<String> args) {
   final results = argParser.parse(args);

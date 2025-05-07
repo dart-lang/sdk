@@ -40,24 +40,14 @@ class C<V> extends B<V> {
 
     var B = findElement2.unnamedConstructor('B');
     var B_key = B.superFormalParameter('key');
-    assertElement(
-      B_key_member,
-      declaration: B_key,
-      substitution: {'U': 'V'},
-    );
+    assertElement(B_key_member, declaration: B_key, substitution: {'U': 'V'});
 
     var A_key_member = B_key_member.superConstructorParameter2;
     A_key_member as ParameterMember;
 
     var A = findElement2.unnamedConstructor('A');
     var A_key = A.parameter('key');
-    assertElement(
-      A_key_member,
-      declaration: A_key,
-      substitution: {
-        'T': 'V',
-      },
-    );
+    assertElement(A_key_member, declaration: A_key, substitution: {'T': 'V'});
   }
 
   test_functionTyped() async {
@@ -105,11 +95,18 @@ SuperFormalParameter
   }
 
   test_invalid_notConstructor() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(super.a) {}
-''', [
-      error(CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION, 7, 5),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION,
+          7,
+          5,
+        ),
+      ],
+    );
 
     var node = findNode.superFormalParameter('super.');
     assertResolvedNodeText(node, r'''

@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -36,13 +36,13 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   _Visitor(this.rule, this.context);
 
-  void check(Element2? element, Token target) {
+  void check(Element? element, Token target) {
     if (element == null) return;
     if (element case Annotatable a when a.metadata2.hasOverride) return;
 
     var member = context.inheritanceManager.overriddenMember(element);
     if (member != null) {
-      rule.reportLintForToken(target, arguments: [member.name3!]);
+      rule.reportAtToken(target, arguments: [member.name3!]);
     }
   }
 

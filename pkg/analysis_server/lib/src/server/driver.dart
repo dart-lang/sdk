@@ -207,20 +207,23 @@ class Driver implements ServerStarter {
     var defaultSdk = _createDefaultSdk(defaultSdkPath);
 
     // Create the analytics manager.
-    AnalyticsManager analyticsManager;
+    Analytics analytics;
     if (disableAnalyticsForSession) {
-      analyticsManager = AnalyticsManager(NoOpAnalytics());
+      analytics = NoOpAnalytics();
     } else {
-      // TODO(jcollins): implement a full map of `clientId`s to tools to cover
-      // more analyzer entry points than vscode.
-      if (clientId == 'VS-Code' || clientId == 'VS-Code-Remote') {
-        analyticsManager = AnalyticsManager(
-          _createAnalytics(defaultSdk, defaultSdkPath, DashTool.vscodePlugins),
-        );
+      var tool = switch (clientId) {
+        'VS-Code' || 'VS-Code-Remote' => DashTool.vscodePlugins,
+        'IntelliJ-IDEA' => DashTool.intellijPlugins,
+        'Android-Studio' => DashTool.androidStudioPlugins,
+        _ => null,
+      };
+      if (tool != null) {
+        analytics = _createAnalytics(defaultSdk, defaultSdkPath, tool);
       } else {
-        analyticsManager = AnalyticsManager(NoOpAnalytics());
+        analytics = NoOpAnalytics();
       }
     }
+    var analyticsManager = AnalyticsManager(analytics);
 
     bool shouldSendCallback() {
       // Check sdkConfig to optionally force reporting on.

@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -101,7 +101,7 @@ class AddMissingEnumLikeCaseClauses extends ResolvedCorrectionProducer {
   }
 
   /// Return the names of the constants defined in [classElement].
-  List<String> _constantNames(InterfaceElement2 classElement) {
+  List<String> _constantNames(InterfaceElement classElement) {
     var type = classElement.thisType;
     var constantNames = <String>[];
     for (var field in classElement.fields2) {

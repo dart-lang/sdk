@@ -34,13 +34,13 @@ abstract class _Class&Superclass&Mixin = self::Superclass with self::Mixin /*isA
   synthetic constructor •() → self::_Class&Superclass&Mixin
     : super self::Superclass::•()
     ;
-  mixin-super-stub method method1(core::num argument1, core::num argument2) → core::String
+  synthetic mixin-super-stub method method1(core::num argument1, core::num argument2) → core::String
     return super.{self::Mixin::method1}(argument1, argument2);
-  mixin-super-stub method method2(covariant-by-declaration core::int argument1, core::num argument2) → core::String
+  synthetic mixin-super-stub method method2(covariant-by-declaration core::int argument1, core::num argument2) → core::String
     return super.{self::Mixin::method2}(argument1, argument2);
-  forwarding-stub method method3(core::num argument1, covariant-by-declaration core::num argument2) → core::String
+  forwarding-stub synthetic method method3(core::num argument1, covariant-by-declaration core::num argument2) → core::String
     return super.{self::Mixin::method3}(argument1, argument2);
-  forwarding-stub method method4(covariant-by-declaration core::int argument1, covariant-by-declaration core::int argument2) → core::String
+  forwarding-stub synthetic method method4(covariant-by-declaration core::int argument1, covariant-by-declaration core::int argument2) → core::String
     return super.{self::Mixin::method4}(argument1, argument2);
 }
 static method main() → dynamic {

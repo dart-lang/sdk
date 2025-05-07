@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -20,45 +20,55 @@ main() {
     group('error code reporting', () {
       test('reportLintForToken (custom)', () {
         var rule = TestRule();
-        var reporter =
-            CollectingReporter(GatheringErrorListener(), _MockSource('mock'));
+        var reporter = CollectingReporter(
+          GatheringErrorListener(),
+          _MockSource('mock'),
+        );
         rule.reporter = reporter;
 
-        rule.reportLintForToken(Token.eof(0),
-            errorCode: customCode, ignoreSyntheticTokens: false);
+        rule.reportAtToken(
+          SimpleToken(TokenType.SEMICOLON, 0),
+          errorCode: customCode,
+        );
         expect(reporter.code, customCode);
       });
       test('reportLintForToken (default)', () {
         var rule = TestRule();
-        var reporter =
-            CollectingReporter(GatheringErrorListener(), _MockSource('mock'));
+        var reporter = CollectingReporter(
+          GatheringErrorListener(),
+          _MockSource('mock'),
+        );
         rule.reporter = reporter;
 
-        rule.reportLintForToken(Token.eof(0), ignoreSyntheticTokens: false);
+        rule.reportAtToken(SimpleToken(TokenType.SEMICOLON, 0));
         expect(reporter.code, rule.lintCode);
       });
       test('reportLint (custom)', () {
         var rule = TestRule();
-        var reporter =
-            CollectingReporter(GatheringErrorListener(), _MockSource('mock'));
+        var reporter = CollectingReporter(
+          GatheringErrorListener(),
+          _MockSource('mock'),
+        );
         rule.reporter = reporter;
 
         var node = EmptyStatementImpl(
           semicolon: SimpleToken(TokenType.SEMICOLON, 0),
         );
-        rule.reportLint(node, errorCode: customCode);
+        rule.reportAtNode(node, errorCode: customCode);
         expect(reporter.code, customCode);
       });
       test('reportLint (default)', () {
         var rule = TestRule();
-        var reporter =
-            CollectingReporter(GatheringErrorListener(), _MockSource('mock'));
+        var reporter = CollectingReporter(
+          GatheringErrorListener(),
+          _MockSource('mock'),
+        );
         rule.reporter = reporter;
 
         var node = EmptyStatementImpl(
           semicolon: SimpleToken(TokenType.SEMICOLON, 0),
         );
-        rule.reportLint(node);
+        rule.reportAtNode(node);
         expect(reporter.code, rule.lintCode);
       });
     });
@@ -66,57 +76,58 @@ main() {
 }
 
 const LintCode customCode = LintCode(
-    'hash_and_equals', 'Override `==` if overriding `hashCode`.',
-    correctionMessage: 'Implement `==`.');
+  'hash_and_equals',
+  'Override `==` if overriding `hashCode`.',
+  correctionMessage: 'Implement `==`.',
+);
 
 class CollectingReporter extends ErrorReporter {
-  ErrorCode? code;
+  DiagnosticCode? code;
 
   CollectingReporter(super.listener, super.source);
 
   @override
   void atElement2(
-    Element2 element,
-    ErrorCode errorCode, {
+    Element element,
+    DiagnosticCode diagnosticCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     Object? data,
   }) {
-    code = errorCode;
+    code = diagnosticCode;
   }
 
   @override
   void atNode(
     AstNode node,
-    ErrorCode errorCode, {
+    DiagnosticCode diagnosticCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     Object? data,
   }) {
-    code = errorCode;
+    code = diagnosticCode;
   }
 
   @override
   void atToken(
     Token token,
-    ErrorCode errorCode, {
+    DiagnosticCode diagnosticCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     Object? data,
   }) {
-    code = errorCode;
+    code = diagnosticCode;
   }
 }
 
 class TestRule extends LintRule {
-  static const LintCode code =
-      LintCode('test_rule', 'Test rule.', correctionMessage: 'Try test rule.');
+  static const LintCode code = LintCode(
+    'test_rule',
+    'Test rule.',
+    correctionMessage: 'Try test rule.',
+  );
 
-  TestRule()
-      : super(
-          name: 'test_rule',
-          description: '',
-        );
+  TestRule() : super(name: 'test_rule', description: '');
 
   @override
   LintCode get lintCode => code;

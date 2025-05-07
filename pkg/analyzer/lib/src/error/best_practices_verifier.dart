@@ -13,7 +13,7 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/constant/value.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -33,6 +33,7 @@ import 'package:analyzer/src/error/doc_comment_verifier.dart';
 import 'package:analyzer/src/error/error_handler_verifier.dart';
 import 'package:analyzer/src/error/must_call_super_verifier.dart';
 import 'package:analyzer/src/error/null_safe_api_verifier.dart';
+import 'package:analyzer/src/error/widget_preview_verifier.dart';
 import 'package:analyzer/src/lint/constants.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
@@ -44,7 +45,7 @@ import 'package:meta/meta.dart';
 class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// The class containing the AST nodes being visited, or `null` if we are not
   /// in the scope of a class.
-  InterfaceElement2? _enclosingClass;
+  InterfaceElement? _enclosingClass;
 
   /// A flag indicating whether a surrounding member is annotated as
   /// `@doNotStore`.
@@ -77,8 +78,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   final NullSafeApiVerifier _nullSafeApiVerifier;
 
-  late final DocCommentVerifier _docCommentVerifier =
-      DocCommentVerifier(_errorReporter);
+  late final DocCommentVerifier _docCommentVerifier = DocCommentVerifier(
+    _errorReporter,
+  );
+
+  final WidgetPreviewVerifier _widgetPreviewVerifier;
 
   /// The [WorkspacePackage] in which [_currentLibrary] is declared.
   final WorkspacePackage? _workspacePackage;
@@ -87,7 +91,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   final bool _strictInference;
 
   /// Whether [_currentLibrary] is part of its containing package's public API.
-  late final bool _inPackagePublicApi = _workspacePackage != null &&
+  late final bool _inPackagePublicApi =
+      _workspacePackage != null &&
       _workspacePackage.sourceIsInPublicApi(_currentLibrary.source);
 
   BestPracticesVerifier(
@@ -99,30 +104,46 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     required InheritanceManager3 inheritanceManager,
     required AnalysisOptions analysisOptions,
     required WorkspacePackage? workspacePackage,
-  })  : _nullType = typeProvider.nullType,
-        _typeSystem = typeSystem,
-        _strictInference = analysisOptions.strictInference,
-        _inheritanceManager = inheritanceManager,
-        _annotationVerifier = AnnotationVerifier(
-            _errorReporter, _currentLibrary, workspacePackage),
-        _deprecatedVerifier = DeprecatedMemberUseVerifier(
-            workspacePackage, _errorReporter,
-            strictCasts: analysisOptions.strictCasts),
-        _errorHandlerVerifier = ErrorHandlerVerifier(
-            _errorReporter, typeProvider, typeSystem,
-            strictCasts: analysisOptions.strictCasts),
-        _invalidAccessVerifier = _InvalidAccessVerifier(
-            _errorReporter, unit, _currentLibrary, workspacePackage),
-        _mustCallSuperVerifier = MustCallSuperVerifier(_errorReporter),
-        _nullSafeApiVerifier = NullSafeApiVerifier(_errorReporter, typeSystem),
-        _workspacePackage = workspacePackage {
-    _deprecatedVerifier.pushInDeprecatedValue(_currentLibrary.hasDeprecated);
-    _inDoNotStoreMember = _currentLibrary.hasDoNotStore;
+  }) : _nullType = typeProvider.nullType,
+       _typeSystem = typeSystem,
+       _strictInference = analysisOptions.strictInference,
+       _inheritanceManager = inheritanceManager,
+       _annotationVerifier = AnnotationVerifier(
+         _errorReporter,
+         _currentLibrary,
+         workspacePackage,
+       ),
+       _deprecatedVerifier = DeprecatedMemberUseVerifier(
+         workspacePackage,
+         _errorReporter,
+         strictCasts: analysisOptions.strictCasts,
+       ),
+       _errorHandlerVerifier = ErrorHandlerVerifier(
+         _errorReporter,
+         typeProvider,
+         typeSystem,
+         strictCasts: analysisOptions.strictCasts,
+       ),
+       _invalidAccessVerifier = _InvalidAccessVerifier(
+         _errorReporter,
+         unit,
+         _currentLibrary,
+         workspacePackage,
+       ),
+       _mustCallSuperVerifier = MustCallSuperVerifier(_errorReporter),
+       _nullSafeApiVerifier = NullSafeApiVerifier(_errorReporter, typeSystem),
+       _widgetPreviewVerifier = WidgetPreviewVerifier(_errorReporter),
+       _workspacePackage = workspacePackage {
+    _deprecatedVerifier.pushInDeprecatedValue(
+      _currentLibrary.metadata2.hasDeprecated,
+    );
+    _inDoNotStoreMember = _currentLibrary.metadata2.hasDoNotStore;
   }
 
   @override
   void visitAnnotation(Annotation node) {
     _annotationVerifier.checkAnnotation(node);
+    _widgetPreviewVerifier.checkAnnotation(node);
     super.visitAnnotation(node);
   }
 
@@ -135,19 +156,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitAsExpression(AsExpression node) {
     if (_isUnnecessaryCast(node, _typeSystem)) {
-      _errorReporter.atNode(
-        node,
-        WarningCode.UNNECESSARY_CAST,
-      );
+      _errorReporter.atNode(node, WarningCode.UNNECESSARY_CAST);
     }
     var type = node.type.type;
     if (type != null &&
         _typeSystem.isNonNullable(type) &&
         node.expression.typeOrThrow.isDartCoreNull) {
-      _errorReporter.atNode(
-        node,
-        WarningCode.CAST_FROM_NULL_ALWAYS_FAILS,
-      );
+      _errorReporter.atNode(node, WarningCode.CAST_FROM_NULL_ALWAYS_FAILS);
     }
     super.visitAsExpression(node);
   }
@@ -175,10 +190,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         _typeSystem.isNonNullable(type) &&
         matchedValueType != null &&
         matchedValueType.isDartCoreNull) {
-      _errorReporter.atNode(
-        node,
-        WarningCode.CAST_FROM_NULL_ALWAYS_FAILS,
-      );
+      _errorReporter.atNode(node, WarningCode.CAST_FROM_NULL_ALWAYS_FAILS);
     }
     super.visitCastPattern(node);
   }
@@ -219,7 +231,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     _checkForImmutable(node);
     _checkForInvalidSealedSuperclass(node);
     _deprecatedVerifier.pushInDeprecatedValue(
-        node.declaredFragment!.element.metadata2.hasDeprecated);
+      node.declaredFragment!.element.metadata2.hasDeprecated,
+    );
 
     try {
       super.visitClassTypeAlias(node);
@@ -255,10 +268,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitConstantPattern(ConstantPattern node) {
     if (node.expression.isDoubleNan) {
-      _errorReporter.atNode(
-        node,
-        WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE,
-      );
+      _errorReporter.atNode(node, WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE);
     }
     super.visitConstantPattern(node);
   }
@@ -266,8 +276,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitConstructorDeclaration(covariant ConstructorDeclaration node) {
     var element = node.declaredFragment!.element;
-    _checkStrictInferenceInParameters(node.parameters,
-        body: node.body, initializers: node.initializers);
+    _checkStrictInferenceInParameters(
+      node.parameters,
+      body: node.body,
+      initializers: node.initializers,
+    );
     _deprecatedVerifier.pushInDeprecatedValue(element.metadata2.hasDeprecated);
     try {
       super.visitConstructorDeclaration(node);
@@ -303,7 +316,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       }
     }
     _deprecatedVerifier.pushInDeprecatedValue(
-        node.declaredFragment!.element.metadata2.hasDeprecated);
+      node.declaredFragment!.element.metadata2.hasDeprecated,
+    );
 
     try {
       super.visitDefaultFormalParameter(node);
@@ -315,7 +329,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
     _deprecatedVerifier.pushInDeprecatedValue(
-        node.declaredFragment!.element.metadata2.hasDeprecated);
+      node.declaredFragment!.element.metadata2.hasDeprecated,
+    );
 
     try {
       super.visitEnumDeclaration(node);
@@ -342,7 +357,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     _deprecatedVerifier.pushInDeprecatedValue(
-        node.declaredFragment!.element.metadata2.hasDeprecated);
+      node.declaredFragment!.element.metadata2.hasDeprecated,
+    );
 
     try {
       super.visitExtensionDeclaration(node);
@@ -360,7 +376,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
     _deprecatedVerifier.pushInDeprecatedValue(
-        node.declaredFragment!.element.metadata2.hasDeprecated);
+      node.declaredFragment!.element.metadata2.hasDeprecated,
+    );
 
     try {
       super.visitExtensionTypeDeclaration(node);
@@ -376,9 +393,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     try {
       super.visitFieldDeclaration(node);
       for (var field in node.fields.variables) {
-        ExecutableElement2? getOverriddenPropertyAccessor() {
+        ExecutableElement? getOverriddenPropertyAccessor() {
           var element = field.declaredFragment!.element;
-          if (element is PropertyAccessorElement2 || element is FieldElement2) {
+          if (element is PropertyAccessorElement || element is FieldElement) {
             var name = element.name3;
             if (name == null) {
               return null;
@@ -386,15 +403,20 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
             var nameObj = Name(_currentLibrary.source.uri, name);
             var enclosingElement = element.enclosingElement2!;
             var enclosingDeclaration = enclosingElement;
-            if (enclosingDeclaration is InterfaceElement2) {
-              var overridden = _inheritanceManager
-                  .getMember4(enclosingDeclaration, nameObj, forSuper: true);
+            if (enclosingDeclaration is InterfaceElement) {
+              var overridden = _inheritanceManager.getMember4(
+                enclosingDeclaration,
+                nameObj,
+                forSuper: true,
+              );
               // Check for a setter.
               if (overridden == null) {
                 var setterName = Name(_currentLibrary.source.uri, '$name=');
                 overridden = _inheritanceManager.getMember4(
-                    enclosingDeclaration, setterName,
-                    forSuper: true);
+                  enclosingDeclaration,
+                  setterName,
+                  forSuper: true,
+                );
               }
               return overridden;
             }
@@ -413,7 +435,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
             WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER,
             arguments: [
               field.name.lexeme,
-              overriddenElement.enclosingElement2!.displayName
+              overriddenElement.enclosingElement2!.displayName,
             ],
           );
         }
@@ -450,10 +472,15 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       // Return types are inferred only on non-recursive local functions.
       if (node.parent is CompilationUnit && !node.isSetter) {
         _checkStrictInferenceReturnType(
-            node.returnType, node, node.name.lexeme);
+          node.returnType,
+          node,
+          node.name.lexeme,
+        );
       }
-      _checkStrictInferenceInParameters(node.functionExpression.parameters,
-          body: node.functionExpression.body);
+      _checkStrictInferenceInParameters(
+        node.functionExpression.parameters,
+        body: node.functionExpression.body,
+      );
       super.visitFunctionDeclaration(node);
     } finally {
       _deprecatedVerifier.popInDeprecated();
@@ -489,7 +516,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     _checkStrictInferenceReturnType(node.returnType, node, node.name.lexeme);
     _checkStrictInferenceInParameters(node.parameters);
     _deprecatedVerifier.pushInDeprecatedValue(
-        node.declaredFragment!.element.metadata2.hasDeprecated);
+      node.declaredFragment!.element.metadata2.hasDeprecated,
+    );
 
     try {
       super.visitFunctionTypeAlias(node);
@@ -519,10 +547,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void visitGenericTypeAlias(covariant GenericTypeAliasImpl node) {
     if (node.functionType != null) {
       _checkStrictInferenceReturnType(
-          node.functionType!.returnType, node, node.name.lexeme);
+        node.functionType!.returnType,
+        node,
+        node.name.lexeme,
+      );
     }
     _deprecatedVerifier.pushInDeprecatedValue(
-        node.declaredFragment!.element.metadata2.hasDeprecated);
+      node.declaredFragment!.element.metadata2.hasDeprecated,
+    );
 
     try {
       super.visitGenericTypeAlias(node);
@@ -550,7 +582,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(
-      covariant InstanceCreationExpressionImpl node) {
+    covariant InstanceCreationExpressionImpl node,
+  ) {
     _deprecatedVerifier.instanceCreationExpression(node);
     _nullSafeApiVerifier.instanceCreation(node);
     _checkForLiteralConstructorUse(node);
@@ -584,26 +617,33 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       }
 
       var elementIsOverride = false;
-      if (enclosingElement is InterfaceElement2) {
-        if (element is MethodElement2 || element is PropertyAccessorElement2) {
+      if (enclosingElement is InterfaceElement) {
+        if (element is MethodElement || element is PropertyAccessorElement) {
           elementIsOverride =
               _inheritanceManager.getOverridden4(enclosingElement, name) !=
-                  null;
+              null;
         }
       }
 
       if (!node.isSetter && !elementIsOverride) {
         _checkStrictInferenceReturnType(
-            node.returnType, node, node.name.lexeme);
+          node.returnType,
+          node,
+          node.name.lexeme,
+        );
       }
       if (!elementIsOverride) {
         _checkStrictInferenceInParameters(node.parameters, body: node.body);
       }
 
-      var overriddenElement = enclosingElement is InterfaceElement2
-          ? _inheritanceManager.getMember4(enclosingElement, name,
-              forSuper: true)
-          : null;
+      var overriddenElement =
+          enclosingElement is InterfaceElement
+              ? _inheritanceManager.getMember4(
+                enclosingElement,
+                name,
+                forSuper: true,
+              )
+              : null;
 
       if (overriddenElement != null &&
           _hasNonVirtualAnnotation(overriddenElement)) {
@@ -615,7 +655,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER,
           arguments: [
             node.name.lexeme,
-            overriddenElement.enclosingElement2!.displayName
+            overriddenElement.enclosingElement2!.displayName,
           ],
         );
       }
@@ -689,10 +729,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     _deprecatedVerifier.postfixExpression(node);
     if (node.operator.type == TokenType.BANG &&
         node.operand.typeOrThrow.isDartCoreNull) {
-      _errorReporter.atNode(
-        node,
-        WarningCode.NULL_CHECK_ALWAYS_FAILS,
-      );
+      _errorReporter.atNode(node, WarningCode.NULL_CHECK_ALWAYS_FAILS);
     }
     super.visitPostfixExpression(node);
   }
@@ -705,7 +742,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitRedirectingConstructorInvocation(
-      RedirectingConstructorInvocation node) {
+    RedirectingConstructorInvocation node,
+  ) {
     _deprecatedVerifier.redirectingConstructorInvocation(node);
     super.visitRedirectingConstructorInvocation(node);
   }
@@ -827,10 +865,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   void _checkFinalParameter(FormalParameter node, Token? keyword) {
     if (node.isFinal) {
-      _errorReporter.atToken(
-        keyword!,
-        WarningCode.UNNECESSARY_FINAL,
-      );
+      _errorReporter.atToken(keyword!, WarningCode.UNNECESSARY_FINAL);
     }
   }
 
@@ -856,22 +891,23 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       // This case is covered by the ErrorVerifier.
       return;
     }
-    var expressions = node.isSet
-        ? node.elements.whereType<Expression>()
-        : node.elements.whereType<MapLiteralEntry>().map((entry) => entry.key);
+    var expressions =
+        node.isSet
+            ? node.elements.whereType<Expression>()
+            : node.elements.whereType<MapLiteralEntry>().map(
+              (entry) => entry.key,
+            );
     var alreadySeen = <DartObject>{};
     for (var expression in expressions) {
       var constEvaluation = expression.computeConstantValue();
       if (constEvaluation.errors.isEmpty) {
         var value = constEvaluation.value;
         if (value != null && !alreadySeen.add(value)) {
-          var errorCode = node.isSet
-              ? WarningCode.EQUAL_ELEMENTS_IN_SET
-              : WarningCode.EQUAL_KEYS_IN_MAP;
-          _errorReporter.atNode(
-            expression,
-            errorCode,
-          );
+          var errorCode =
+              node.isSet
+                  ? WarningCode.EQUAL_ELEMENTS_IN_SET
+                  : WarningCode.EQUAL_KEYS_IN_MAP;
+          _errorReporter.atNode(expression, errorCode);
         }
       }
     }
@@ -887,7 +923,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     /// Return `true` if the given class [element] or any superclass of it is
     /// annotated with the `@immutable` annotation.
     bool isOrInheritsImmutable(
-        InterfaceElement2 element, Set<InterfaceElement2> visited) {
+      InterfaceElement element,
+      Set<InterfaceElement> visited,
+    ) {
       if (visited.add(element)) {
         if (element.metadata2.hasImmutable) {
           return true;
@@ -909,34 +947,46 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       return false;
     }
 
-    Iterable<String> nonFinalInstanceFields(InterfaceElement2 element) {
+    Iterable<String> nonFinalInstanceFields(InterfaceElement element) {
       return element.fields2
-          .where((FieldElement2 field) =>
-              !field.isSynthetic && !field.isFinal && !field.isStatic)
-          .map((FieldElement2 field) => '${element.name3}.${field.name3}');
+          .where(
+            (FieldElement field) =>
+                !field.isSynthetic && !field.isFinal && !field.isStatic,
+          )
+          .map((FieldElement field) => '${element.name3}.${field.name3}');
     }
 
     Iterable<String> definedOrInheritedNonFinalInstanceFields(
-        InterfaceElement2 element, Set<InterfaceElement2> visited) {
+      InterfaceElement element,
+      Set<InterfaceElement> visited,
+    ) {
       Iterable<String> nonFinalFields = [];
       if (visited.add(element)) {
         nonFinalFields = nonFinalInstanceFields(element);
-        nonFinalFields = nonFinalFields.followedBy(element.mixins.expand(
-            (InterfaceType mixin) => nonFinalInstanceFields(mixin.element3)));
+        nonFinalFields = nonFinalFields.followedBy(
+          element.mixins.expand(
+            (InterfaceType mixin) => nonFinalInstanceFields(mixin.element3),
+          ),
+        );
         if (element.supertype != null) {
           nonFinalFields = nonFinalFields.followedBy(
-              definedOrInheritedNonFinalInstanceFields(
-                  element.supertype!.element3, visited));
+            definedOrInheritedNonFinalInstanceFields(
+              element.supertype!.element3,
+              visited,
+            ),
+          );
         }
       }
       return nonFinalFields;
     }
 
-    var element = node.declaredFragment!.element as InterfaceElement2;
-    if (isOrInheritsImmutable(element, HashSet<InterfaceElement2>())) {
+    var element = node.declaredFragment!.element as InterfaceElement;
+    if (isOrInheritsImmutable(element, HashSet<InterfaceElement>())) {
       Iterable<String> nonFinalFields =
           definedOrInheritedNonFinalInstanceFields(
-              element, HashSet<InterfaceElement2>());
+            element,
+            HashSet<InterfaceElement>(),
+          );
       if (nonFinalFields.isNotEmpty) {
         _errorReporter.atToken(
           node.name,
@@ -965,9 +1015,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         arguments: [libraryElement.displayName],
       );
     }
-    var exportNamespace =
-        NamespaceBuilder().createExportNamespaceForDirective2(libraryExport);
-    exportNamespace.definedNames2.forEach((String name, Element2 element) {
+    var exportNamespace = NamespaceBuilder().createExportNamespaceForDirective2(
+      libraryExport,
+    );
+    exportNamespace.definedNames2.forEach((String name, Element element) {
       if (element case Annotatable annotatable) {
         if (annotatable.metadata2.hasInternal) {
           _errorReporter.atNode(
@@ -978,7 +1029,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           return;
         }
       }
-      if (element is ExecutableElement2) {
+      if (element is ExecutableElement) {
         var signatureTypes = [
           ...element.formalParameters.map((p) => p.type),
           element.returnType,
@@ -999,7 +1050,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _checkForInvalidSealedSuperclass(NamedCompilationUnitMember node) {
-    bool currentPackageContains(Element2 element) {
+    bool currentPackageContains(Element element) {
       return _isLibraryInWorkspacePackage(element.library2);
     }
 
@@ -1007,14 +1058,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     // ClassElement, but [_checkForInvalidSealedSuperclass] should only be
     // called with a [ClassOrMixinDeclaration], or a [ClassTypeAlias]. The
     // `declaredElement` of these specific classes is a [ClassElement].
-    var element = node.declaredFragment!.element as InterfaceElement2;
+    var element = node.declaredFragment!.element as InterfaceElement;
     // TODO(srawlins): Perhaps replace this with a getter on Element, like
     // `Element.hasOrInheritsSealed`?
     for (InterfaceType supertype in element.allSupertypes) {
       var superclass = supertype.element3;
       if (superclass.metadata2.hasSealed) {
         if (!currentPackageContains(superclass)) {
-          if (element is MixinElement2 &&
+          if (element is MixinElement &&
               element.superclassConstraints.contains(supertype)) {
             // This is a special violation of the sealed class contract,
             // requiring specific messaging.
@@ -1038,7 +1089,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   void _checkForInvariantNanComparison(BinaryExpression node) {
     void reportStartEnd(
-      ErrorCode errorCode,
+      DiagnosticCode diagnosticCode,
       SyntacticEntity startEntity,
       SyntacticEntity endEntity,
     ) {
@@ -1046,15 +1097,15 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       _errorReporter.atOffset(
         offset: offset,
         length: endEntity.end - offset,
-        errorCode: errorCode,
+        errorCode: diagnosticCode,
       );
     }
 
-    void checkLeftRight(ErrorCode errorCode) {
+    void checkLeftRight(DiagnosticCode diagnosticCode) {
       if (node.leftOperand.isDoubleNan) {
-        reportStartEnd(errorCode, node.leftOperand, node.operator);
+        reportStartEnd(diagnosticCode, node.leftOperand, node.operator);
       } else if (node.rightOperand.isDoubleNan) {
-        reportStartEnd(errorCode, node.operator, node.rightOperand);
+        reportStartEnd(diagnosticCode, node.operator, node.rightOperand);
       }
     }
 
@@ -1117,14 +1168,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       if (constructorName.name != null) {
         fullConstructorName = '$fullConstructorName.${constructorName.name}';
       }
-      var warning = node.keyword?.keyword == Keyword.NEW
-          ? WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW
-          : WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR;
-      _errorReporter.atNode(
-        node,
-        warning,
-        arguments: [fullConstructorName],
-      );
+      var warning =
+          node.keyword?.keyword == Keyword.NEW
+              ? WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW
+              : WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR;
+      _errorReporter.atNode(node, warning, arguments: [fullConstructorName]);
     }
   }
 
@@ -1137,7 +1185,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   ///         node
   /// See [HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION].
   bool _checkForLoadLibraryFunction(
-      ImportDirective node, LibraryImport importElement) {
+    ImportDirective node,
+    LibraryImport importElement,
+  ) {
     var importedLibrary = importElement.importedLibrary2;
     var prefix = importElement.prefix2?.element;
     if (importedLibrary == null || prefix == null) {
@@ -1149,7 +1199,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
     var importNamespace = importElement.namespace;
     var loadLibraryElement = importNamespace.getPrefixed2(
-        prefixName, TopLevelFunctionElement.LOAD_LIBRARY_NAME);
+      prefixName,
+      TopLevelFunctionElement.LOAD_LIBRARY_NAME,
+    );
     if (loadLibraryElement != null) {
       _errorReporter.atNode(
         node,
@@ -1217,9 +1269,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
     var expressionMap = _getSubExpressionsMarkedDoNotStore(expression);
     if (expressionMap.isNotEmpty) {
-      var parent = expression!.thisOrAncestorMatching(
-              (e) => e is FunctionDeclaration || e is MethodDeclaration)
-          as Declaration?;
+      var parent =
+          expression!.thisOrAncestorMatching(
+                (e) => e is FunctionDeclaration || e is MethodDeclaration,
+              )
+              as Declaration?;
       if (parent == null) {
         return;
       }
@@ -1244,7 +1298,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   ///
   /// Returns `true` if a warning code is generated for [node].
   bool _checkForUnnecessaryNoSuchMethod(MethodDeclaration node) {
-    if (node.name.lexeme != MethodElement2.NO_SUCH_METHOD_METHOD_NAME) {
+    if (node.name.lexeme != MethodElement.NO_SUCH_METHOD_METHOD_NAME) {
       return false;
     }
     bool isNonObjectNoSuchMethodInvocation(Expression? invocation) {
@@ -1252,11 +1306,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           invocation.target is SuperExpression &&
           invocation.argumentList.arguments.length == 1) {
         SimpleIdentifier name = invocation.methodName;
-        if (name.name == MethodElement2.NO_SUCH_METHOD_METHOD_NAME) {
+        if (name.name == MethodElement.NO_SUCH_METHOD_METHOD_NAME) {
           var methodElement = name.element;
           var classElement = methodElement?.enclosingElement2;
-          return methodElement is MethodElement2 &&
-              classElement is ClassElement2 &&
+          return methodElement is MethodElement &&
+              classElement is ClassElement &&
               !classElement.isDartCoreObject;
         }
       }
@@ -1293,7 +1347,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// [ExpressionFunctionBody], having a single expression,
   /// for a function of `void` return type.
   void _checkForUnnecessarySetLiteral(
-      FunctionBody body, FunctionExpression node) {
+    FunctionBody body,
+    FunctionExpression node,
+  ) {
     if (body is ExpressionFunctionBodyImpl) {
       var parameterType = node.correspondingParameter?.type;
 
@@ -1332,9 +1388,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   void _checkRequiredParameter(FormalParameterList node) {
     var requiredParameters = node.parameters.where(
-        (p) => p.declaredFragment?.element.metadata2.hasRequired == true);
-    var nonNamedParamsWithRequired =
-        requiredParameters.where((p) => p.isPositional);
+      (p) => p.declaredFragment?.element.metadata2.hasRequired == true,
+    );
+    var nonNamedParamsWithRequired = requiredParameters.where(
+      (p) => p.isPositional,
+    );
     var namedParamsWithRequiredAndDefault = requiredParameters
         .where((p) => p.isNamed)
         .where((p) => p is DefaultFormalParameter && p.defaultValue != null);
@@ -1368,8 +1426,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// reported. If [initializers] and [body] are both null, the parameters are
   /// assumed to originate from a typedef, function-typed parameter, or function
   /// which is abstract or external.
-  void _checkStrictInferenceInParameters(FormalParameterList? parameters,
-      {List<ConstructorInitializer>? initializers, FunctionBody? body}) {
+  void _checkStrictInferenceInParameters(
+    FormalParameterList? parameters, {
+    List<ConstructorInitializer>? initializers,
+    FunctionBody? body,
+  }) {
     _UsedParameterVisitor? usedParameterVisitor;
 
     bool isParameterReferenced(SimpleFormalParameter parameter) {
@@ -1381,9 +1442,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       if (usedParameterVisitor == null) {
         // Visit the function body and initializers once to determine whether
         // each of the parameters is referenced.
-        usedParameterVisitor = _UsedParameterVisitor(parameters!.parameters
-            .map((p) => p.declaredFragment!.element)
-            .toSet());
+        usedParameterVisitor = _UsedParameterVisitor(
+          parameters!.parameters
+              .map((p) => p.declaredFragment!.element)
+              .toSet(),
+        );
         body?.accept(usedParameterVisitor!);
         for (var initializer in initializers ?? <ConstructorInitializer>[]) {
           initializer.accept(usedParameterVisitor!);
@@ -1420,7 +1483,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   /// In "strict-inference" mode, check that [returnType] is specified.
   void _checkStrictInferenceReturnType(
-      AstNode? returnType, AstNode reportNode, String displayName) {
+    AstNode? returnType,
+    AstNode reportNode,
+    String displayName,
+  ) {
     if (!_strictInference || returnType != null) {
       return;
     }
@@ -1449,18 +1515,19 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   /// Return subexpressions that are marked `@doNotStore`, as a map so that
   /// corresponding elements can be used in the diagnostic message.
-  Map<Expression, Element2> _getSubExpressionsMarkedDoNotStore(
-      Expression? expression,
-      {Map<Expression, Element2>? addTo}) {
-    var expressions = addTo ?? <Expression, Element2>{};
+  Map<Expression, Element> _getSubExpressionsMarkedDoNotStore(
+    Expression? expression, {
+    Map<Expression, Element>? addTo,
+  }) {
+    var expressions = addTo ?? <Expression, Element>{};
 
-    Element2? element;
+    Element? element;
     if (expression is PropertyAccess) {
       element = expression.propertyName.element;
       // Tear-off.
       if (element is LocalFunctionElement ||
           element is TopLevelFunctionElement ||
-          element is MethodElement2) {
+          element is MethodElement) {
         element = null;
       }
     } else if (expression is MethodInvocation) {
@@ -1470,26 +1537,34 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       // Tear-off.
       if (element is LocalFunctionElement ||
           element is TopLevelFunctionElement ||
-          element is MethodElement2) {
+          element is MethodElement) {
         element = null;
       }
     } else if (expression is ConditionalExpression) {
-      _getSubExpressionsMarkedDoNotStore(expression.elseExpression,
-          addTo: expressions);
-      _getSubExpressionsMarkedDoNotStore(expression.thenExpression,
-          addTo: expressions);
+      _getSubExpressionsMarkedDoNotStore(
+        expression.elseExpression,
+        addTo: expressions,
+      );
+      _getSubExpressionsMarkedDoNotStore(
+        expression.thenExpression,
+        addTo: expressions,
+      );
     } else if (expression is BinaryExpression) {
-      _getSubExpressionsMarkedDoNotStore(expression.leftOperand,
-          addTo: expressions);
-      _getSubExpressionsMarkedDoNotStore(expression.rightOperand,
-          addTo: expressions);
+      _getSubExpressionsMarkedDoNotStore(
+        expression.leftOperand,
+        addTo: expressions,
+      );
+      _getSubExpressionsMarkedDoNotStore(
+        expression.rightOperand,
+        addTo: expressions,
+      );
     } else if (expression is FunctionExpression) {
       var body = expression.body;
       if (body is ExpressionFunctionBody) {
         _getSubExpressionsMarkedDoNotStore(body.expression, addTo: expressions);
       }
     }
-    if (element is PropertyAccessorElement2 && element.isSynthetic) {
+    if (element is PropertyAccessorElement && element.isSynthetic) {
       element = element.variable3;
     }
 
@@ -1500,7 +1575,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     return expressions;
   }
 
-  bool _isLibraryInWorkspacePackage(LibraryElement2? library) {
+  bool _isLibraryInWorkspacePackage(LibraryElement? library) {
     if (_workspacePackage == null || library == null) {
       // Better to not make a big claim that they _are_ in the same package,
       // if we were unable to determine what package [_currentLibrary] is in.
@@ -1513,8 +1588,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     return node.name?.lexeme ?? '';
   }
 
-  static bool _hasNonVirtualAnnotation(ExecutableElement2 element) {
-    if (element is PropertyAccessorElement2 && element.isSynthetic) {
+  static bool _hasNonVirtualAnnotation(ExecutableElement element) {
+    if (element is PropertyAccessorElement && element.isSynthetic) {
       var variable = element.variable3;
       if (variable != null && variable.metadata2.hasNonVirtual) {
         return true;
@@ -1569,19 +1644,23 @@ class _InvalidAccessVerifier {
   static final _templateExtension = '.template';
 
   final ErrorReporter _errorReporter;
-  final LibraryElement2 _library;
+  final LibraryElement _library;
   final WorkspacePackage? _workspacePackage;
 
   final bool _inTemplateSource;
   final bool _inTestDirectory;
 
-  InterfaceElement2? _enclosingClass;
+  InterfaceElement? _enclosingClass;
 
-  _InvalidAccessVerifier(this._errorReporter, CompilationUnit unit,
-      this._library, this._workspacePackage)
-      : _inTemplateSource =
-            _library.firstFragment.source.fullName.contains(_templateExtension),
-        _inTestDirectory = unit.inTestDir;
+  _InvalidAccessVerifier(
+    this._errorReporter,
+    CompilationUnit unit,
+    this._library,
+    this._workspacePackage,
+  ) : _inTemplateSource = _library.firstFragment.source.fullName.contains(
+        _templateExtension,
+      ),
+      _inTestDirectory = unit.inTestDir;
 
   /// Produces a warning if [identifier] is accessed from an invalid location.
   ///
@@ -1609,13 +1688,15 @@ class _InvalidAccessVerifier {
     }
     var grandparent = parent?.parent;
 
-    var element = grandparent is ConstructorName
-        ? grandparent.element
-        : identifier.writeOrReadElement2;
+    var element =
+        grandparent is ConstructorName
+            ? grandparent.element
+            : identifier.writeOrReadElement2;
 
     if (element == null) {
       return;
     }
+
     _checkForInvalidDoNotSubmitAccess(identifier, element);
 
     if (_inCurrentLibrary(element)) {
@@ -1744,7 +1825,7 @@ class _InvalidAccessVerifier {
     }
   }
 
-  void _checkForInvalidDoNotSubmitAccess(AstNode node, Element2 element) {
+  void _checkForInvalidDoNotSubmitAccess(AstNode node, Element element) {
     if (element is FormalParameterElement || !_hasDoNotSubmit(element)) {
       return;
     }
@@ -1773,7 +1854,7 @@ class _InvalidAccessVerifier {
     _errorReporter.atOffset(
       offset: errorEntity.offset,
       length: errorEntity.length,
-      errorCode: WarningCode.invalid_use_of_do_not_submit_member,
+      errorCode: WarningCode.INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER,
       arguments: [name],
     );
   }
@@ -1818,14 +1899,14 @@ class _InvalidAccessVerifier {
           _errorReporter.atOffset(
             offset: errorEntity.offset,
             length: errorEntity.length,
-            errorCode: WarningCode.invalid_use_of_do_not_submit_member,
+            errorCode: WarningCode.INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER,
             arguments: [name],
           );
         } else {
           // For positional arguments.
           _errorReporter.atNode(
             argument,
-            WarningCode.invalid_use_of_do_not_submit_member,
+            WarningCode.INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER,
             arguments: [element.displayName],
           );
         }
@@ -1836,7 +1917,7 @@ class _InvalidAccessVerifier {
   void _checkForInvalidInternalAccess({
     required AstNode? parent,
     required Token nameToken,
-    required Element2 element,
+    required Element element,
   }) {
     if (element.isInternal && !_isLibraryInWorkspacePackage(element.library2)) {
       String name;
@@ -1860,10 +1941,10 @@ class _InvalidAccessVerifier {
     }
   }
 
-  void _checkForOtherInvalidAccess(AstNode node, Element2 element) {
+  void _checkForOtherInvalidAccess(AstNode node, Element element) {
     var hasProtected = element.isProtected;
     if (hasProtected) {
-      var definingClass = element.enclosingElement2 as InterfaceElement2;
+      var definingClass = element.enclosingElement2 as InterfaceElement;
       if (_hasTypeOrSuperType(_enclosingClass, definingClass)) {
         return;
       }
@@ -1909,11 +1990,10 @@ class _InvalidAccessVerifier {
     }
 
     if (hasProtected) {
-      var libraryFragment = definingClass.firstFragment.libraryFragment!;
       _errorReporter.atEntity(
         errorEntity,
         WarningCode.INVALID_USE_OF_PROTECTED_MEMBER,
-        arguments: [name, libraryFragment.source.uri],
+        arguments: [name, definingClass.displayName],
       );
     }
 
@@ -1944,13 +2024,13 @@ class _InvalidAccessVerifier {
     }
   }
 
-  bool _hasDoNotSubmit(Element2 element) {
+  bool _hasDoNotSubmit(Element element) {
     if (element case Annotatable annotatable) {
       if (annotatable.metadata2.hasDoNotSubmit) {
         return true;
       }
     }
-    if (element is PropertyAccessorElement2) {
+    if (element is PropertyAccessorElement) {
       var variable = element.variable3;
       return variable != null && variable.metadata2.hasDoNotSubmit;
     }
@@ -1958,8 +2038,8 @@ class _InvalidAccessVerifier {
   }
 
   bool _hasTypeOrSuperType(
-    InterfaceElement2? element,
-    InterfaceElement2 superElement,
+    InterfaceElement? element,
+    InterfaceElement superElement,
   ) {
     if (element == null) {
       return false;
@@ -1967,14 +2047,14 @@ class _InvalidAccessVerifier {
     return element.thisType.asInstanceOf2(superElement) != null;
   }
 
-  bool _hasVisibleForOverriding(Element2 element) {
+  bool _hasVisibleForOverriding(Element element) {
     if (element case Annotatable annotatable) {
       if (annotatable.metadata2.hasVisibleForOverriding) {
         return true;
       }
     }
 
-    if (element is PropertyAccessorElement2) {
+    if (element is PropertyAccessorElement) {
       var variable = element.variable3;
       return variable != null && variable.metadata2.hasVisibleForOverriding;
     }
@@ -1982,7 +2062,7 @@ class _InvalidAccessVerifier {
     return false;
   }
 
-  bool _hasVisibleForTemplate(Element2? element) {
+  bool _hasVisibleForTemplate(Element? element) {
     if (element == null) {
       return false;
     }
@@ -1991,7 +2071,7 @@ class _InvalidAccessVerifier {
         return true;
       }
     }
-    if (element is PropertyAccessorElement2) {
+    if (element is PropertyAccessorElement) {
       var variable = element.variable3;
       if (variable != null && variable.metadata2.hasVisibleForTemplate) {
         return true;
@@ -2004,13 +2084,13 @@ class _InvalidAccessVerifier {
     return false;
   }
 
-  bool _hasVisibleOutsideTemplate(Element2 element) {
+  bool _hasVisibleOutsideTemplate(Element element) {
     if (element case Annotatable annotatable) {
       if (annotatable.metadata2.hasVisibleOutsideTemplate) {
         return true;
       }
     }
-    if (element is PropertyAccessorElement2) {
+    if (element is PropertyAccessorElement) {
       var variable = element.variable3;
       if (variable != null && variable.metadata2.hasVisibleOutsideTemplate) {
         return true;
@@ -2029,12 +2109,12 @@ class _InvalidAccessVerifier {
     return parent is CommentReference || parent?.parent is CommentReference;
   }
 
-  bool _inCurrentLibrary(Element2 element) => element.library2 == _library;
+  bool _inCurrentLibrary(Element element) => element.library2 == _library;
 
   bool _inExportDirective(AstNode node) =>
       node.parent is Combinator && node.parent!.parent is ExportDirective;
 
-  bool _isLibraryInWorkspacePackage(LibraryElement2? library) {
+  bool _isLibraryInWorkspacePackage(LibraryElement? library) {
     if (_workspacePackage == null || library == null) {
       // Better to not make a big claim that they _are_ in the same package,
       // if we were unable to determine what package [_currentLibrary] is in.
@@ -2043,18 +2123,18 @@ class _InvalidAccessVerifier {
     return _workspacePackage.contains(library.firstFragment.source);
   }
 
-  /// Check if @visibleForTemplate is applied to the given [Element2].
+  /// Check if @visibleForTemplate is applied to the given [Element].
   ///
-  /// [ClassElement2], [EnumElement2] and [MixinElement2] are excluded from the
+  /// [ClassElement], [EnumElement] and [MixinElement] are excluded from the
   /// @visibleForTemplate access checks. Instead, the access restriction is
   /// cascaded to all the corresponding members not annotated by
   /// @visibleOutsideTemplate.
   /// For other types of elements, check if they are annotated based on
   /// `hasVisibleForTemplate` value.
-  bool _isVisibleForTemplateApplied(Element2 element) {
-    if (element is ClassElement2 ||
-        element is EnumElement2 ||
-        element is MixinElement2) {
+  bool _isVisibleForTemplateApplied(Element element) {
+    if (element is ClassElement ||
+        element is EnumElement ||
+        element is MixinElement) {
       return false;
     } else {
       return _hasVisibleForTemplate(element) &&
@@ -2064,7 +2144,7 @@ class _InvalidAccessVerifier {
 
   static (String, SyntacticEntity) _getIdentifierNameAndErrorEntity(
     AstNode node,
-    Element2 element,
+    Element element,
   ) {
     String name;
     SyntacticEntity errorEntity = node;

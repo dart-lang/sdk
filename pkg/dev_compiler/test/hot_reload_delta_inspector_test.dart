@@ -4,6 +4,7 @@
 
 import 'package:dev_compiler/src/kernel/hot_reload_delta_inspector.dart';
 import 'package:kernel/ast.dart';
+import 'package:kernel/library_index.dart';
 import 'package:test/test.dart';
 
 import 'memory_compiler.dart';
@@ -256,6 +257,95 @@ Future<void> main() async {
           await compileComponents(initialSource, deltaSource);
       expect(() => deltaInspector.compareGenerations(initial, delta),
           returnsNormally);
+    });
+  });
+  group('deleted top level members appear in delta library metadata', () {
+    final deltaInspector = HotReloadDeltaInspector();
+    test('method', () async {
+      final initialSource = '''
+          void retainedMethod() {}
+
+          dynamic get retainedGetter => null;
+
+          set retainedSetter(dynamic value) {}
+
+          void deleted() {}
+          ''';
+      final deltaSource = '''
+          void retainedMethod() {}
+
+          dynamic get retainedGetter => null;
+
+          set retainedSetter(dynamic value) {}
+          ''';
+      final (:initial, :delta) =
+          await compileComponents(initialSource, deltaSource);
+      expect(() => deltaInspector.compareGenerations(initial, delta),
+          returnsNormally);
+      final repo = delta.metadata[hotReloadLibraryMetadataTag]
+          as HotReloadLibraryMetadataRepository;
+      repo.mapToIndexedNodes(LibraryIndex.all(delta));
+      final metadata = repo.mapping[delta.libraries
+          .firstWhere((l) => l.importUri.toString() == 'memory:///main.dart')]!;
+      expect(metadata.deletedStaticProcedureNames, orderedEquals(['deleted']));
+    });
+    test('getter', () async {
+      final initialSource = '''
+          void retainedMethod() {}
+
+          dynamic get retainedGetter => null;
+
+          set retainedSetter(dynamic value) {}
+
+          dynamic get deletedGetter => null;
+          ''';
+      final deltaSource = '''
+          void retainedMethod() {}
+
+          dynamic get retainedGetter => null;
+
+          set retainedSetter(dynamic value) {}
+          ''';
+      final (:initial, :delta) =
+          await compileComponents(initialSource, deltaSource);
+      expect(() => deltaInspector.compareGenerations(initial, delta),
+          returnsNormally);
+      final repo = delta.metadata[hotReloadLibraryMetadataTag]
+          as HotReloadLibraryMetadataRepository;
+      repo.mapToIndexedNodes(LibraryIndex.all(delta));
+      final metadata = repo.mapping[delta.libraries
+          .firstWhere((l) => l.importUri.toString() == 'memory:///main.dart')]!;
+      expect(metadata.deletedStaticProcedureNames,
+          orderedEquals(['deletedGetter']));
+    });
+    test('setter', () async {
+      final initialSource = '''
+          void retainedMethod() {}
+
+          dynamic get retainedGetter => null;
+
+          set retainedSetter(dynamic value) {}
+
+          set deletedSetter(dynamic value) {}
+          ''';
+      final deltaSource = '''
+          void retainedMethod() {}
+
+          dynamic get retainedGetter => null;
+
+          set retainedSetter(dynamic value) {}
+          ''';
+      final (:initial, :delta) =
+          await compileComponents(initialSource, deltaSource);
+      expect(() => deltaInspector.compareGenerations(initial, delta),
+          returnsNormally);
+      final repo = delta.metadata[hotReloadLibraryMetadataTag]
+          as HotReloadLibraryMetadataRepository;
+      repo.mapToIndexedNodes(LibraryIndex.all(delta));
+      final metadata = repo.mapping[delta.libraries
+          .firstWhere((l) => l.importUri.toString() == 'memory:///main.dart')]!;
+      expect(metadata.deletedStaticProcedureNames,
+          orderedEquals(['deletedSetter']));
     });
   });
 }

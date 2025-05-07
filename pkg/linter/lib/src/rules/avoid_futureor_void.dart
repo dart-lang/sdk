@@ -61,7 +61,7 @@ class _FutureOrVarianceChecker extends VarianceChecker {
       var typeArguments = staticType.typeArguments;
       if (typeArguments.length != 1) return; // Just to be safe.
       if (typeArguments.first is VoidType) {
-        rule.reportLint(typeAnnotation);
+        rule.reportAtNode(typeAnnotation);
       }
     }
   }

@@ -107,6 +107,7 @@ class _BottomType extends _Type {
   _Type get _asNullable => _literal<Null>();
 
   @override
+  @pragma("wasm:static-dispatch")
   bool _checkInstance(Object o) => false;
 
   @override
@@ -450,6 +451,7 @@ class _FunctionType extends _Type {
   );
 
   @override
+  @pragma("wasm:static-dispatch")
   bool _checkInstance(Object o) {
     if (ClassID.getID(o) != ClassID.cid_Closure) return false;
     return _TypeUniverse.isFunctionSubtype(
@@ -581,6 +583,7 @@ class _RecordType extends _Type {
 
   @override
   @pragma('dyn-module:callable')
+  @pragma("wasm:static-dispatch")
   bool _checkInstance(Object o) {
     if (!_isRecordClassId(ClassID.getID(o))) return false;
     return unsafeCast<Record>(o)._checkRecordType(fieldTypes, names);
@@ -1210,7 +1213,6 @@ abstract class _TypeUniverse {
     return _checkSubclassRelationshipViaTable(sId, tId);
   }
 
-  @pragma('wasm:prefer-inline')
   static WasmI32 _checkSubclassRelationshipViaTable(WasmI32 sId, WasmI32 tId) {
     final sModuleId = classIdToModuleId(sId);
     final tModuleId = classIdToModuleId(tId);
@@ -1582,10 +1584,9 @@ bool _isTypeSubtype(_Type s, _Type t) {
 @pragma("wasm:entry-point")
 @pragma("wasm:prefer-inline")
 void _asSubtype(Object? o, bool onlyNullabilityCheck, _Type t) {
-  final bool success =
-      onlyNullabilityCheck
-          ? _isNullabilityCheck(o, t.isDeclaredNullable)
-          : _isSubtype(o, t);
+  final bool success = onlyNullabilityCheck
+      ? _isNullabilityCheck(o, t.isDeclaredNullable)
+      : _isSubtype(o, t);
   if (success) return;
   _throwAsCheckError(o, t);
 }
@@ -1599,10 +1600,9 @@ void _asInterfaceSubtype(
   WasmI32 tId,
   WasmArray<_Type> typeArguments,
 ) {
-  final bool success =
-      onlyNullabilityCheck
-          ? _isNullabilityCheck(o, isDeclaredNullable)
-          : _isInterfaceSubtype(o, isDeclaredNullable, tId, typeArguments);
+  final bool success = onlyNullabilityCheck
+      ? _isNullabilityCheck(o, isDeclaredNullable)
+      : _isInterfaceSubtype(o, isDeclaredNullable, tId, typeArguments);
   if (success) return;
   _throwInterfaceTypeAsCheckError(o, isDeclaredNullable, tId, typeArguments);
 }
@@ -1615,10 +1615,9 @@ void _asInterfaceSubtype0(
   bool isDeclaredNullable,
   WasmI32 tId,
 ) {
-  final bool success =
-      onlyNullabilityCheck
-          ? _isNullabilityCheck(o, isDeclaredNullable)
-          : _isInterfaceSubtype0(o, isDeclaredNullable, tId);
+  final bool success = onlyNullabilityCheck
+      ? _isNullabilityCheck(o, isDeclaredNullable)
+      : _isInterfaceSubtype0(o, isDeclaredNullable, tId);
   if (success) return;
   _throwInterfaceTypeAsCheckError0(o, isDeclaredNullable, tId);
 }
@@ -1632,10 +1631,9 @@ void _asInterfaceSubtype1(
   WasmI32 tId,
   _Type typeArgument0,
 ) {
-  final bool success =
-      onlyNullabilityCheck
-          ? _isNullabilityCheck(o, isDeclaredNullable)
-          : _isInterfaceSubtype1(o, isDeclaredNullable, tId, typeArgument0);
+  final bool success = onlyNullabilityCheck
+      ? _isNullabilityCheck(o, isDeclaredNullable)
+      : _isInterfaceSubtype1(o, isDeclaredNullable, tId, typeArgument0);
   if (success) return;
   _throwInterfaceTypeAsCheckError1(o, isDeclaredNullable, tId, typeArgument0);
 }
@@ -1650,16 +1648,15 @@ void _asInterfaceSubtype2(
   _Type typeArgument0,
   _Type typeArgument1,
 ) {
-  final bool success =
-      onlyNullabilityCheck
-          ? _isNullabilityCheck(o, isDeclaredNullable)
-          : _isInterfaceSubtype2(
-            o,
-            isDeclaredNullable,
-            tId,
-            typeArgument0,
-            typeArgument1,
-          );
+  final bool success = onlyNullabilityCheck
+      ? _isNullabilityCheck(o, isDeclaredNullable)
+      : _isInterfaceSubtype2(
+          o,
+          isDeclaredNullable,
+          tId,
+          typeArgument0,
+          typeArgument1,
+        );
   if (success) return;
   _throwInterfaceTypeAsCheckError2(
     o,

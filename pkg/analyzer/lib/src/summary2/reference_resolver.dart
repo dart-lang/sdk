@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -51,7 +51,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
         var prefixElement = scope.lookup(prefixNode.name).getter2;
         prefixNode.element = prefixElement;
 
-        if (prefixElement is PrefixElement2) {
+        if (prefixElement is PrefixElement) {
           var name = identifier.identifier.name;
           var element = prefixElement.scope.lookup(name).getter2;
           identifier.identifier.element = element;
@@ -205,7 +205,8 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitExtensionTypeDeclaration(
-      covariant ExtensionTypeDeclarationImpl node) {
+    covariant ExtensionTypeDeclarationImpl node,
+  ) {
     var outerScope = scope;
 
     var fragment = node.declaredFragment!;
@@ -308,7 +309,8 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitFunctionTypedFormalParameter(
-      covariant FunctionTypedFormalParameterImpl node) {
+    covariant FunctionTypedFormalParameterImpl node,
+  ) {
     var outerScope = scope;
 
     var fragment = node.declaredFragment!;
@@ -368,7 +370,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var aliasedType = node.type;
     if (aliasedType is GenericFunctionTypeImpl) {
       fragment.encloseElement(
-        aliasedType.declaredFragment as GenericFunctionTypeElementImpl,
+        aliasedType.declaredFragment as GenericFunctionTypeFragmentImpl,
       );
     }
 
@@ -433,7 +435,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitNamedType(covariant NamedTypeImpl node) {
-    Element2? element;
+    Element? element;
     var importPrefix = node.importPrefix;
     if (importPrefix != null) {
       var prefixToken = importPrefix.name;
@@ -441,7 +443,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
       var prefixElement = scope.lookup(prefixName).getter2;
       importPrefix.element2 = prefixElement;
 
-      if (prefixElement is PrefixElement2) {
+      if (prefixElement is PrefixElement) {
         var name = node.name2.lexeme;
         element = prefixElement.scope.lookup(name).getter2;
       }

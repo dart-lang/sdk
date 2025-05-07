@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 
@@ -61,7 +61,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
       if (iterableType.typeArguments.isNotEmpty &&
           iterableType.typeArguments.first == staticType) {
-        rule.reportLint(loopVariableType);
+        rule.reportAtNode(loopVariableType);
       }
     }
   }
@@ -93,7 +93,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         return;
       }
     }
-    rule.reportLint(node.type);
+    rule.reportAtNode(node.type);
   }
 }
 

@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -64,10 +64,14 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
+    if (expr.isAwaitNotRequired) {
+      return;
+    }
+
     if (_isEnclosedInAsyncFunctionBody(node)) {
       // Future expression statement that isn't awaited in an async function:
       // while this is legal, it's a very frequent sign of an error.
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 
@@ -89,8 +93,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       expr.constructorName.name?.name == 'delayed' &&
       expr.argumentList.arguments.length == 2;
 
-  bool _isMapClass(Element2? e) =>
-      e is ClassElement2 && e.name3 == 'Map' && e.library2.name3 == 'dart.core';
+  bool _isMapClass(Element? e) =>
+      e is ClassElement && e.name3 == 'Map' && e.library2.name3 == 'dart.core';
 
   /// Detects Map.putIfAbsent invocations.
   bool _isMapPutIfAbsentInvocation(Expression expr) =>
@@ -99,11 +103,15 @@ class _Visitor extends SimpleAstVisitor<void> {
       _isMapClass(expr.methodName.element?.enclosingElement2);
 
   void _visit(Expression expr) {
+    if (expr.isAwaitNotRequired) {
+      return;
+    }
+
     // TODO(srawlins): Check whether `expr`'s static type _implements_ `Future`.
     if ((expr.staticType?.isDartAsyncFuture ?? false) &&
         _isEnclosedInAsyncFunctionBody(expr) &&
         expr is! AssignmentExpression) {
-      rule.reportLint(expr);
+      rule.reportAtNode(expr);
     }
   }
 }

@@ -6,9 +6,9 @@
 
 class A<T> {
   static int method() {
-  //         ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.BODY_MIGHT_COMPLETE_NORMALLY
-  // [cfe] A non-null value must be returned since the return type 'int' doesn't allow null.
+    //       ^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.BODY_MIGHT_COMPLETE_NORMALLY
+    // [cfe] A non-null value must be returned since the return type 'int' doesn't allow null.
 
     // error, can't reference a type variable in a static context
     var foo = new T();

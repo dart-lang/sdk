@@ -48,43 +48,43 @@ static method checkClass() → void
   ;
 static extension-type-member method E|constructor#<T extends core::Object? = dynamic>(self::E|constructor#::T% value) → self::E<self::E|constructor#::T%>% /* erasure=self::E|constructor#::T%, declared=! */
   ;
-static extension-type-member method E|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::E|constructor#_#new#tearOff::T% value) → self::E<self::E|constructor#_#new#tearOff::T%>% /* erasure=self::E|constructor#_#new#tearOff::T%, declared=! */
+static extension-type-member synthetic method E|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::E|constructor#_#new#tearOff::T% value) → self::E<self::E|constructor#_#new#tearOff::T%>% /* erasure=self::E|constructor#_#new#tearOff::T%, declared=! */
   return self::E|constructor#<self::E|constructor#_#new#tearOff::T%>(value);
 static extension-type-member method E|constructor#named<T extends core::Object? = dynamic>(self::E|constructor#named::T% value) → self::E<self::E|constructor#named::T%>% /* erasure=self::E|constructor#named::T%, declared=! */
   ;
-static extension-type-member method E|constructor#_#named#tearOff<T extends core::Object? = dynamic>(self::E|constructor#_#named#tearOff::T% value) → self::E<self::E|constructor#_#named#tearOff::T%>% /* erasure=self::E|constructor#_#named#tearOff::T%, declared=! */
+static extension-type-member synthetic method E|constructor#_#named#tearOff<T extends core::Object? = dynamic>(self::E|constructor#_#named#tearOff::T% value) → self::E<self::E|constructor#_#named#tearOff::T%>% /* erasure=self::E|constructor#_#named#tearOff::T%, declared=! */
   return self::E|constructor#named<self::E|constructor#_#named#tearOff::T%>(value);
 static extension-type-member method E|constructor#redirect<T extends core::Object? = dynamic>(self::E|constructor#redirect::T% value) → self::E<self::E|constructor#redirect::T%>% /* erasure=self::E|constructor#redirect::T%, declared=! */
   ;
-static extension-type-member method E|constructor#_#redirect#tearOff<T extends core::Object? = dynamic>(self::E|constructor#_#redirect#tearOff::T% value) → self::E<self::E|constructor#_#redirect#tearOff::T%>% /* erasure=self::E|constructor#_#redirect#tearOff::T%, declared=! */
+static extension-type-member synthetic method E|constructor#_#redirect#tearOff<T extends core::Object? = dynamic>(self::E|constructor#_#redirect#tearOff::T% value) → self::E<self::E|constructor#_#redirect#tearOff::T%>% /* erasure=self::E|constructor#_#redirect#tearOff::T%, declared=! */
   return self::E|constructor#redirect<self::E|constructor#_#redirect#tearOff::T%>(value);
 static extension-type-member method E|constructor#factory<T extends core::Object? = dynamic>(self::E|constructor#factory::T% value) → self::E<self::E|constructor#factory::T%>% /* erasure=self::E|constructor#factory::T%, declared=! */
   ;
-static extension-type-member method E|constructor#_#factory#tearOff<T extends core::Object? = dynamic>(self::E|constructor#_#factory#tearOff::T% value) → self::E<self::E|constructor#_#factory#tearOff::T%>% /* erasure=self::E|constructor#_#factory#tearOff::T%, declared=! */
+static extension-type-member synthetic method E|constructor#_#factory#tearOff<T extends core::Object? = dynamic>(self::E|constructor#_#factory#tearOff::T% value) → self::E<self::E|constructor#_#factory#tearOff::T%>% /* erasure=self::E|constructor#_#factory#tearOff::T%, declared=! */
   return self::E|constructor#factory<self::E|constructor#_#factory#tearOff::T%>(value);
 static extension-type-member method E|constructor#factoryRedirect<T extends core::Object? = dynamic>(self::E|constructor#factoryRedirect::T% value) → self::E<self::E|constructor#factoryRedirect::T%>% /* erasure=self::E|constructor#factoryRedirect::T%, declared=! */ /* redirection-target: self::E|constructor#<self::E|constructor#factoryRedirect::T%>*/
   return self::E|constructor#<self::E|constructor#factoryRedirect::T%>(value);
-static extension-type-member method E|constructor#_#factoryRedirect#tearOff<T extends core::Object? = dynamic>(self::E|constructor#_#factoryRedirect#tearOff::T% value) → self::E<self::E|constructor#_#factoryRedirect#tearOff::T%>% /* erasure=self::E|constructor#_#factoryRedirect#tearOff::T%, declared=! */
+static extension-type-member synthetic method E|constructor#_#factoryRedirect#tearOff<T extends core::Object? = dynamic>(self::E|constructor#_#factoryRedirect#tearOff::T% value) → self::E<self::E|constructor#_#factoryRedirect#tearOff::T%>% /* erasure=self::E|constructor#_#factoryRedirect#tearOff::T%, declared=! */
   return self::E|constructor#<self::E|constructor#_#factoryRedirect#tearOff::T%>(value);
 static method checkExtensionType() → void
   ;
-static method _#ACN#new#tearOff<T extends core::num>(self::_#ACN#new#tearOff::T value) → self::C<self::_#ACN#new#tearOff::T>
+static synthetic method _#ACN#new#tearOff<T extends core::num>(self::_#ACN#new#tearOff::T value) → self::C<self::_#ACN#new#tearOff::T>
   return new self::C::•<self::_#ACN#new#tearOff::T>(value);
-static method _#ACN#named#tearOff<T extends core::num>(self::_#ACN#named#tearOff::T value) → self::C<self::_#ACN#named#tearOff::T>
+static synthetic method _#ACN#named#tearOff<T extends core::num>(self::_#ACN#named#tearOff::T value) → self::C<self::_#ACN#named#tearOff::T>
   return new self::C::named<self::_#ACN#named#tearOff::T>(value);
-static method _#ACN#redirect#tearOff<T extends core::num>(self::_#ACN#redirect#tearOff::T value) → self::C<self::_#ACN#redirect#tearOff::T>
+static synthetic method _#ACN#redirect#tearOff<T extends core::num>(self::_#ACN#redirect#tearOff::T value) → self::C<self::_#ACN#redirect#tearOff::T>
   return new self::C::redirect<self::_#ACN#redirect#tearOff::T>(value);
-static method _#ACN#factory#tearOff<T extends core::num>(self::_#ACN#factory#tearOff::T value) → self::C<self::_#ACN#factory#tearOff::T>
+static synthetic method _#ACN#factory#tearOff<T extends core::num>(self::_#ACN#factory#tearOff::T value) → self::C<self::_#ACN#factory#tearOff::T>
   return self::C::factory<self::_#ACN#factory#tearOff::T>(value);
-static method _#ACN#factoryRedirect#tearOff<T extends core::num>(self::_#ACN#factoryRedirect#tearOff::T value) → self::C<self::_#ACN#factoryRedirect#tearOff::T>
+static synthetic method _#ACN#factoryRedirect#tearOff<T extends core::num>(self::_#ACN#factoryRedirect#tearOff::T value) → self::C<self::_#ACN#factoryRedirect#tearOff::T>
   return self::C::factoryRedirect<self::_#ACN#factoryRedirect#tearOff::T>(value);
-static method _#AEN#new#tearOff<T extends core::num>(self::_#AEN#new#tearOff::T value) → self::E<self::_#AEN#new#tearOff::T>% /* erasure=self::_#AEN#new#tearOff::T, declared=! */
+static synthetic method _#AEN#new#tearOff<T extends core::num>(self::_#AEN#new#tearOff::T value) → self::E<self::_#AEN#new#tearOff::T>% /* erasure=self::_#AEN#new#tearOff::T, declared=! */
   return self::E|constructor#<self::_#AEN#new#tearOff::T>(value);
-static method _#AEN#named#tearOff<T extends core::num>(self::_#AEN#named#tearOff::T value) → self::E<self::_#AEN#named#tearOff::T>% /* erasure=self::_#AEN#named#tearOff::T, declared=! */
+static synthetic method _#AEN#named#tearOff<T extends core::num>(self::_#AEN#named#tearOff::T value) → self::E<self::_#AEN#named#tearOff::T>% /* erasure=self::_#AEN#named#tearOff::T, declared=! */
   return self::E|constructor#named<self::_#AEN#named#tearOff::T>(value);
-static method _#AEN#redirect#tearOff<T extends core::num>(self::_#AEN#redirect#tearOff::T value) → self::E<self::_#AEN#redirect#tearOff::T>% /* erasure=self::_#AEN#redirect#tearOff::T, declared=! */
+static synthetic method _#AEN#redirect#tearOff<T extends core::num>(self::_#AEN#redirect#tearOff::T value) → self::E<self::_#AEN#redirect#tearOff::T>% /* erasure=self::_#AEN#redirect#tearOff::T, declared=! */
   return self::E|constructor#redirect<self::_#AEN#redirect#tearOff::T>(value);
-static method _#AEN#factory#tearOff<T extends core::num>(self::_#AEN#factory#tearOff::T value) → self::E<self::_#AEN#factory#tearOff::T>% /* erasure=self::_#AEN#factory#tearOff::T, declared=! */
+static synthetic method _#AEN#factory#tearOff<T extends core::num>(self::_#AEN#factory#tearOff::T value) → self::E<self::_#AEN#factory#tearOff::T>% /* erasure=self::_#AEN#factory#tearOff::T, declared=! */
   return self::E|constructor#factory<self::_#AEN#factory#tearOff::T>(value);
-static method _#AEN#factoryRedirect#tearOff<T extends core::num>(self::_#AEN#factoryRedirect#tearOff::T value) → self::E<self::_#AEN#factoryRedirect#tearOff::T>% /* erasure=self::_#AEN#factoryRedirect#tearOff::T, declared=! */
+static synthetic method _#AEN#factoryRedirect#tearOff<T extends core::num>(self::_#AEN#factoryRedirect#tearOff::T value) → self::E<self::_#AEN#factoryRedirect#tearOff::T>% /* erasure=self::_#AEN#factoryRedirect#tearOff::T, declared=! */
   return self::E|constructor#_#factoryRedirect#tearOff<self::_#AEN#factoryRedirect#tearOff::T>(value);

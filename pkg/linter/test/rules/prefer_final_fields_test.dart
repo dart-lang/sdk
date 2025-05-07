@@ -70,7 +70,7 @@ extension type E(Object o) {
 @reflectiveTest
 class PreferFinalFieldsTest extends LintRuleTest {
   @override
-  List<ErrorCode> get ignoredErrorCodes => [
+  List<DiagnosticCode> get ignoredErrorCodes => [
     WarningCode.UNUSED_FIELD,
     WarningCode.UNUSED_LOCAL_VARIABLE,
   ];

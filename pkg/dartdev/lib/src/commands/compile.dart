@@ -6,16 +6,15 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:code_assets/code_assets.dart' show Architecture, OS;
 import 'package:dart2native/generate.dart';
 import 'package:dartdev/src/unified_analytics.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show Verbosity;
+import 'package:hooks_runner/hooks_runner.dart' show Target;
 import 'package:http/http.dart' as http;
-import 'package:native_assets_cli/code_assets_builder.dart'
-    show Architecture, OS, Target;
 import 'package:path/path.dart' as path;
 import 'package:vm/target_os.dart';
-import 'package:yaml/yaml.dart';
 
 import '../core.dart';
 import '../experiments.dart';
@@ -620,24 +619,9 @@ Remove debugging information from the output and save it separately to the speci
       );
       if (runPackageName != null) {
         final pubspecUri =
-            await DartNativeAssetsBuilder.findPubspec(Directory.current.uri);
-        final Map? pubspec;
-        if (pubspecUri == null) {
-          pubspec = null;
-        } else {
-          pubspec =
-              loadYaml(File.fromUri(pubspecUri).readAsStringSync()) as Map;
-          final pubspecErrors =
-              DartNativeAssetsBuilder.validateHooksUserDefinesFromPubspec(
-                  pubspec);
-          if (pubspecErrors.isNotEmpty) {
-            log.stderr('Errors in pubspec:');
-            pubspecErrors.forEach(log.stderr);
-            return 255;
-          }
-        }
+            await DartNativeAssetsBuilder.findWorkspacePubspec(packageConfig);
         final builder = DartNativeAssetsBuilder(
-            pubspec: pubspec,
+            pubspecUri: pubspecUri,
             packageConfigUri: packageConfig,
             runPackageName: runPackageName,
             verbose: verbose,

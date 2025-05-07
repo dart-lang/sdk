@@ -24,13 +24,23 @@ class DelayedOverrideCheck implements DelayedCheck {
   final SourceClassBuilder _classBuilder;
   final ClassMember _declaredMember;
   final Set<ClassMember> _overriddenMembers;
+  final ClassMember? _localMember;
 
   DelayedOverrideCheck(
-      this._classBuilder, this._declaredMember, this._overriddenMembers);
+      this._classBuilder, this._declaredMember, this._overriddenMembers,
+      {required ClassMember? localMember})
+      : this._localMember = localMember;
 
   @override
   void check(ClassMembersBuilder membersBuilder) {
     Member declaredMember = _declaredMember.getMember(membersBuilder);
+    Member? localMember = _localMember?.getMember(membersBuilder);
+
+    // If the local [ClassMember] didn't produce a local [Member], don't mark
+    // any member as erroneous.
+    if (localMember?.enclosingTypeDeclaration != _classBuilder.cls) {
+      localMember = null;
+    }
 
     /// If [_declaredMember] is a class member that is declared in an opt-in
     /// library but inherited to [_classBuilder] through an opt-out class then
@@ -65,7 +75,8 @@ class DelayedOverrideCheck implements DelayedCheck {
     void callback(Member interfaceMember, bool isSetter) {
       _classBuilder.checkOverride(membersBuilder.hierarchyBuilder.types,
           membersBuilder, declaredMember, interfaceMember, isSetter, callback,
-          isInterfaceCheck: !_classBuilder.isMixinApplication);
+          isInterfaceCheck: !_classBuilder.isMixinApplication,
+          localMember: localMember);
     }
 
     for (ClassMember overriddenMember in _overriddenMembers) {
@@ -315,14 +326,8 @@ class DelayedTypeComputation {
     if (_computed) return;
     declaredMember.inferType(membersBuilder);
     _computed = true;
-    if (declaredMember.isField) {
-      builder.inferFieldSignature(
-          membersBuilder, declaredMember, overriddenMembers);
-    } else if (declaredMember.isGetter) {
-      builder.inferGetterSignature(
-          membersBuilder, declaredMember, overriddenMembers);
-    } else if (declaredMember.isSetter) {
-      builder.inferSetterSignature(
+    if (declaredMember.isProperty) {
+      builder.inferPropertySignature(
           membersBuilder, declaredMember, overriddenMembers);
     } else {
       builder.inferMethodSignature(

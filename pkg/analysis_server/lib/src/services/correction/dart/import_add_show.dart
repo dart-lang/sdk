@@ -10,7 +10,7 @@ import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -59,7 +59,7 @@ class ImportAddShow extends ResolvedCorrectionProducer {
 }
 
 class _ReferenceFinder extends RecursiveAstVisitor<void> {
-  final Map<String, Element2> namespace;
+  final Map<String, Element> namespace;
 
   Set<String> referencedNames = SplayTreeSet<String>();
 
@@ -132,15 +132,15 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
     _addName(node.token, element);
   }
 
-  void _addImplicitExtensionName(Element2? enclosingElement) {
-    if (enclosingElement is ExtensionElement2) {
+  void _addImplicitExtensionName(Element? enclosingElement) {
+    if (enclosingElement is ExtensionElement) {
       if (namespace[enclosingElement.name3] == enclosingElement) {
         referencedNames.add(enclosingElement.displayName);
       }
     }
   }
 
-  void _addName(Token nameToken, Element2? element) {
+  void _addName(Token nameToken, Element? element) {
     if (element != null) {
       var name = nameToken.lexeme;
       if (namespace[name] == element || namespace['$name='] == element) {

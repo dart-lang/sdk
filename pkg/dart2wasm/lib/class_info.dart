@@ -374,13 +374,13 @@ class ClassInfoCollector {
       info = ClassInfo(cls, classId, superInfo.depth + 1, struct, superInfo,
           typeParameterMatch: typeParameterMatch);
       if (translator.dynamicModuleSupportEnabled &&
-          cls.isDynamicModuleExtendable(translator.coreTypes)) {
-        // If a class is extendable in a dynamic module then we have to be
+          cls.isDynamicSubmoduleExtendable(translator.coreTypes)) {
+        // If a class is extendable in a submodule then we have to be
         // conservative and mark it as not being final.
         struct.hasAnySubtypes = true;
       }
 
-      if (translator.isDynamicModule) {
+      if (translator.isDynamicSubmodule) {
         final brandIndex = translator
             .dynamicModuleInfo!.metadata.classMetadata[cls]?.brandIndex;
         if (brandIndex != null) {
@@ -504,7 +504,7 @@ class ClassInfoCollector {
     // Class infos by class-id, will be populated by the calls to
     // [_createStructForClass] and [_createStructForRecordClass] below.
     translator.classes = List<ClassInfo>.filled(
-        (classIdNumbering.maxDynamicModuleClassId ??
+        (classIdNumbering.maxDynamicSubmoduleClassId ??
                 classIdNumbering.maxClassId) +
             1,
         topInfo);
@@ -540,10 +540,10 @@ class ClassInfoCollector {
     for (final cls in dfsOrder) {
       ClassInfo? representation;
       if (translator.dynamicModuleSupportEnabled &&
-          cls.isDynamicModuleExtendable(translator.coreTypes)) {
+          cls.isDynamicSubmoduleExtendable(translator.coreTypes)) {
         assert(!translator.builtinTypes.containsKey(cls));
 
-        // If a class is extendable in a dynamic module then we have to be
+        // If a class is extendable in a dynamic submodule then we have to be
         // conservative and assume it might be a subclass of Object. The Object
         // class maps to topInfo because boxed values are a subtype of Object in
         // Dart but not of the object struct.
@@ -567,16 +567,16 @@ class ClassInfoCollector {
         final mainModuleConcreteRange =
             classIdNumbering.getConcreteClassIdRangeForMainModule(cls);
         // Only non-extendable classes can get here so they should only have
-        // concrete implementations in either the main module or the dynamic
-        // module, not both.
-        if (translator.isDynamicModule && mainModuleConcreteRange.isEmpty) {
-          final dynamicModuleConcreteRange =
-              classIdNumbering.getConcreteClassIdRangeForDynamicModule(cls);
-          assert(dynamicModuleConcreteRange.isNotEmpty);
-          addRanges(dynamicModuleConcreteRange);
+        // concrete implementations in either the main module or the submodule,
+        // not both.
+        if (translator.isDynamicSubmodule && mainModuleConcreteRange.isEmpty) {
+          final submoduleConcreteRange =
+              classIdNumbering.getConcreteClassIdRangeForDynamicSubmodule(cls);
+          assert(submoduleConcreteRange.isNotEmpty);
+          addRanges(submoduleConcreteRange);
         } else {
           assert(classIdNumbering
-              .getConcreteClassIdRangeForDynamicModule(cls)
+              .getConcreteClassIdRangeForDynamicSubmodule(cls)
               .isEmpty);
           addRanges(mainModuleConcreteRange);
         }
@@ -608,31 +608,31 @@ class ClassIdNumbering {
   final Map<Class, List<Class>> _subclasses;
   final Map<Class, List<Class>> _implementors;
   final Map<Class, List<Range>> _concreteSubclassIdRange;
-  final Map<Class, List<Range>> _concreteSubclassIdRangeForDynamicModule;
+  final Map<Class, List<Range>> _concreteSubclassIdRangeForDynamicSubmodule;
   final Set<Class> _masqueraded;
 
   final List<Class> dfsOrder;
   final Map<Class, ClassId> classIds;
   final int maxConcreteClassId;
   final int maxClassId;
-  final int? maxDynamicModuleConcreteClassId;
-  final int? maxDynamicModuleClassId;
+  final int? maxDynamicSubmoduleConcreteClassId;
+  final int? maxDynamicSubmoduleClassId;
 
-  int get firstDynamicModuleClassId => maxClassId + 1;
+  int get firstDynamicSubmoduleClassId => maxClassId + 1;
 
   ClassIdNumbering._(
       this.translator,
       this._subclasses,
       this._implementors,
       this._concreteSubclassIdRange,
-      this._concreteSubclassIdRangeForDynamicModule,
+      this._concreteSubclassIdRangeForDynamicSubmodule,
       this._masqueraded,
       this.dfsOrder,
       this.classIds,
       this.maxConcreteClassId,
       this.maxClassId,
-      this.maxDynamicModuleConcreteClassId,
-      this.maxDynamicModuleClassId);
+      this.maxDynamicSubmoduleConcreteClassId,
+      this.maxDynamicSubmoduleClassId);
 
   final Map<Class, Set<Class>> _transitiveImplementors = {};
   Set<Class> _getTransitiveImplementors(Class klass) {
@@ -670,17 +670,17 @@ class ClassIdNumbering {
         klass, _concreteClassIdRanges, _concreteSubclassIdRange);
   }
 
-  final Map<Class, List<Range>> _concreteClassIdRangesForDynamicModule = {};
-  List<Range> getConcreteClassIdRangeForDynamicModule(Class klass) {
+  final Map<Class, List<Range>> _concreteClassIdRangesForDynamicSubmodule = {};
+  List<Range> getConcreteClassIdRangeForDynamicSubmodule(Class klass) {
     return _getConcreteClassIdRange(
         klass,
-        _concreteClassIdRangesForDynamicModule,
-        _concreteSubclassIdRangeForDynamicModule);
+        _concreteClassIdRangesForDynamicSubmodule,
+        _concreteSubclassIdRangeForDynamicSubmodule);
   }
 
   List<Range> getConcreteClassIdRangeForCurrentModule(Class klass) {
-    return translator.isDynamicModule
-        ? getConcreteClassIdRangeForDynamicModule(klass)
+    return translator.isDynamicSubmodule
+        ? getConcreteClassIdRangeForDynamicSubmodule(klass)
         : getConcreteClassIdRangeForMainModule(klass);
   }
 
@@ -727,7 +727,7 @@ class ClassIdNumbering {
     final implementors = <Class, List<Class>>{};
     final classIds = <Class, ClassId>{};
 
-    if (translator.isDynamicModule) {
+    if (translator.isDynamicSubmodule) {
       final savedMapping = translator.dynamicModuleInfo!.metadata.classMetadata;
       savedMapping.forEach((cls, metadata) {
         final classId = metadata.classId;
@@ -832,7 +832,7 @@ class ClassIdNumbering {
     // Maps any class to a dense range of concrete class ids that are subclasses
     // of that class.
     final concreteSubclassRanges = <Class, List<Range>>{};
-    final concreteSubclassRangesForDynamicModule = <Class, List<Range>>{};
+    final concreteSubclassRangesForDynamicSubmodule = <Class, List<Range>>{};
 
     int nextConcreteClassId = (savedMaxClassId ?? (firstClassId - 1)) + 1;
     int nextAbstractClassId = nextConcreteClassId + concreteClassCount;
@@ -867,7 +867,7 @@ class ClassIdNumbering {
     }
 
     final subclassesRangesToBuild = savedMaxClassId != null
-        ? concreteSubclassRangesForDynamicModule
+        ? concreteSubclassRangesForDynamicSubmodule
         : concreteSubclassRanges;
 
     dfs(root, (Class cls) {
@@ -911,7 +911,7 @@ class ClassIdNumbering {
         subclasses,
         implementors,
         concreteSubclassRanges,
-        concreteSubclassRangesForDynamicModule,
+        concreteSubclassRangesForDynamicSubmodule,
         masqueraded,
         dfsOrder,
         classIds,

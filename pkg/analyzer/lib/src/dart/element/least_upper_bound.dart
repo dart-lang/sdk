@@ -6,7 +6,7 @@ import 'dart:math' show max;
 
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     show Variance;
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -78,15 +78,19 @@ class InterfaceLeastUpperBoundHelper {
           if (!typeSystem.isSubtypeOf(args1[i], args2[i]) ||
               !typeSystem.isSubtypeOf(args2[i], args1[i])) {
             // No bound will be valid, find bound at the interface level.
-            return _computeLeastUpperBound(type1, type2)
-                .withNullability(nullability);
+            return _computeLeastUpperBound(
+              type1,
+              type2,
+            ).withNullability(nullability);
           }
           // TODO(kallentu): : Fix asymmetric bounds behavior for invariant type
           //  parameters.
           args.add(args1[i]);
         } else {
-          throw StateError('Type parameter ${params[i]} has unknown '
-              'variance $parameterVariance for bounds calculation.');
+          throw StateError(
+            'Type parameter ${params[i]} has unknown '
+            'variance $parameterVariance for bounds calculation.',
+          );
         }
       }
 
@@ -121,7 +125,7 @@ class InterfaceLeastUpperBoundHelper {
       return;
     }
 
-    if (type.element3 is ExtensionTypeElement2) {
+    if (type.element3 is ExtensionTypeElement) {
       set.add(typeSystem.objectQuestion);
     }
 
@@ -177,7 +181,7 @@ class InterfaceLeastUpperBoundHelper {
   /// Object.
   @visibleForTesting
   static int computeLongestInheritancePathToObject(InterfaceType type) {
-    return _computeLongestInheritancePathToObject(type, <InterfaceElement2>{});
+    return _computeLongestInheritancePathToObject(type, <InterfaceElement>{});
   }
 
   static NullabilitySuffix _chooseNullability(
@@ -199,7 +203,9 @@ class InterfaceLeastUpperBoundHelper {
   /// The set of [visitedElements] is used to prevent infinite recursion in the
   /// case of a cyclic type structure.
   static int _computeLongestInheritancePathToObject(
-      InterfaceType type, Set<InterfaceElement2> visitedElements) {
+    InterfaceType type,
+    Set<InterfaceElement> visitedElements,
+  ) {
     var element = type.element3;
     // recursion
     if (visitedElements.contains(element)) {
@@ -210,14 +216,14 @@ class InterfaceLeastUpperBoundHelper {
       return 1;
     }
     // Object case
-    if (element is ClassElement2) {
+    if (element is ClassElement) {
       if (element.isDartCoreObject) {
         return type.nullabilitySuffix == NullabilitySuffix.none ? 1 : 0;
       }
     }
 
     // Extension type without interfaces, implicit `Object?`
-    if (element is ExtensionTypeElement2) {
+    if (element is ExtensionTypeElement) {
       if (element.interfaces.isEmpty) {
         return 1;
       }
@@ -229,10 +235,12 @@ class InterfaceLeastUpperBoundHelper {
 
       // loop through each of the superinterfaces recursively calling this
       // method and keeping track of the longest path to return
-      if (element is MixinElement2) {
+      if (element is MixinElement) {
         for (InterfaceType interface in element.superclassConstraints) {
           var pathLength = _computeLongestInheritancePathToObject(
-              interface, visitedElements);
+            interface,
+            visitedElements,
+          );
           longestPath = max(longestPath, 1 + pathLength);
         }
       }
@@ -240,12 +248,14 @@ class InterfaceLeastUpperBoundHelper {
       // loop through each of the superinterfaces recursively calling this
       // method and keeping track of the longest path to return
       for (InterfaceType interface in element.interfaces) {
-        var pathLength =
-            _computeLongestInheritancePathToObject(interface, visitedElements);
+        var pathLength = _computeLongestInheritancePathToObject(
+          interface,
+          visitedElements,
+        );
         longestPath = max(longestPath, 1 + pathLength);
       }
 
-      if (element is! ClassElement2) {
+      if (element is! ClassElement) {
         return longestPath;
       }
 
@@ -254,8 +264,10 @@ class InterfaceLeastUpperBoundHelper {
         return longestPath;
       }
 
-      var superLength =
-          _computeLongestInheritancePathToObject(supertype, visitedElements);
+      var superLength = _computeLongestInheritancePathToObject(
+        supertype,
+        visitedElements,
+      );
 
       var mixins = element.mixins;
       for (var i = 0; i < mixins.length; i++) {
@@ -608,10 +620,7 @@ class LeastUpperBoundHelper {
     // UP(T1, T2) = T1 if T2 <: T1
     // And other, more complex variants of interface types.
     var helper = InterfaceLeastUpperBoundHelper(_typeSystem);
-    return helper.compute(
-      T1 as InterfaceTypeImpl,
-      T2 as InterfaceTypeImpl,
-    );
+    return helper.compute(T1 as InterfaceTypeImpl, T2 as InterfaceTypeImpl);
   }
 
   /// Compute the least upper bound of function types [f] and [g].
@@ -655,9 +664,7 @@ class LeastUpperBoundHelper {
           fIndex++;
           gIndex++;
           parameters.add(
-            fParameter.copyWith(
-              type: _parameterType(fParameter, gParameter),
-            ),
+            fParameter.copyWith(type: _parameterType(fParameter, gParameter)),
           );
         } else {
           break;
@@ -667,9 +674,7 @@ class LeastUpperBoundHelper {
           fIndex++;
           gIndex++;
           parameters.add(
-            fParameter.copyWith(
-              type: _parameterType(fParameter, gParameter),
-            ),
+            fParameter.copyWith(type: _parameterType(fParameter, gParameter)),
           );
         } else {
           break;
@@ -689,9 +694,10 @@ class LeastUpperBoundHelper {
             parameters.add(
               fParameter.copyWith(
                 type: _parameterType(fParameter, gParameter),
-                kind: fParameter.isRequiredNamed || gParameter.isRequiredNamed
-                    ? ParameterKind.NAMED_REQUIRED
-                    : ParameterKind.NAMED,
+                kind:
+                    fParameter.isRequiredNamed || gParameter.isRequiredNamed
+                        ? ParameterKind.NAMED_REQUIRED
+                        : ParameterKind.NAMED,
               ),
             );
           } else if (compareNames < 0) {
@@ -741,21 +747,25 @@ class LeastUpperBoundHelper {
   }
 
   TypeImpl? _futureOr(TypeImpl T1, TypeImpl T2) {
-    var T1_futureOr = T1 is InterfaceTypeImpl && T1.isDartAsyncFutureOr
-        ? T1.typeArguments[0]
-        : null;
+    var T1_futureOr =
+        T1 is InterfaceTypeImpl && T1.isDartAsyncFutureOr
+            ? T1.typeArguments[0]
+            : null;
 
-    var T1_future = T1 is InterfaceTypeImpl && T1.isDartAsyncFuture
-        ? T1.typeArguments[0]
-        : null;
+    var T1_future =
+        T1 is InterfaceTypeImpl && T1.isDartAsyncFuture
+            ? T1.typeArguments[0]
+            : null;
 
-    var T2_futureOr = T2 is InterfaceTypeImpl && T2.isDartAsyncFutureOr
-        ? T2.typeArguments[0]
-        : null;
+    var T2_futureOr =
+        T2 is InterfaceTypeImpl && T2.isDartAsyncFutureOr
+            ? T2.typeArguments[0]
+            : null;
 
-    var T2_future = T2 is InterfaceTypeImpl && T2.isDartAsyncFuture
-        ? T2.typeArguments[0]
-        : null;
+    var T2_future =
+        T2 is InterfaceTypeImpl && T2.isDartAsyncFuture
+            ? T2.typeArguments[0]
+            : null;
 
     // UP(FutureOr<T1>, FutureOr<T2>) = FutureOr<T3> where T3 = UP(T1, T2)
     if (T1_futureOr != null && T2_futureOr != null) {
@@ -791,7 +801,9 @@ class LeastUpperBoundHelper {
   }
 
   TypeImpl _parameterType(
-      FormalParameterElementMixin a, FormalParameterElementMixin b) {
+    FormalParameterElementMixin a,
+    FormalParameterElementMixin b,
+  ) {
     return _typeSystem.greatestLowerBound(a.type, b.type);
   }
 
@@ -813,11 +825,7 @@ class LeastUpperBoundHelper {
       var field1 = positional1[i];
       var field2 = positional2[i];
       var type = getLeastUpperBound(field1.type, field2.type);
-      positionalFields.add(
-        RecordTypePositionalFieldImpl(
-          type: type,
-        ),
-      );
+      positionalFields.add(RecordTypePositionalFieldImpl(type: type));
     }
 
     var namedFields = <RecordTypeNamedFieldImpl>[];
@@ -828,12 +836,7 @@ class LeastUpperBoundHelper {
         return _typeSystem.typeProvider.recordType;
       }
       var type = getLeastUpperBound(field1.type, field2.type);
-      namedFields.add(
-        RecordTypeNamedFieldImpl(
-          name: field1.name,
-          type: type,
-        ),
-      );
+      namedFields.add(RecordTypeNamedFieldImpl(name: field1.name, type: type));
     }
 
     return RecordTypeImpl(

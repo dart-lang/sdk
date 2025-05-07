@@ -25,20 +25,17 @@ void main() {
 
 /// allocates each coordinate separately in c memory
 void testStructAllocate() {
-  final c1 =
-      calloc<Coordinate>()
-        ..ref.x = 10.0
-        ..ref.y = 10.0;
-  final c2 =
-      calloc<Coordinate>()
-        ..ref.x = 20.0
-        ..ref.y = 20.0
-        ..ref.next = c1;
-  final c3 =
-      calloc<Coordinate>()
-        ..ref.x = 30.0
-        ..ref.y = 30.0
-        ..ref.next = c2;
+  final c1 = calloc<Coordinate>()
+    ..ref.x = 10.0
+    ..ref.y = 10.0;
+  final c2 = calloc<Coordinate>()
+    ..ref.x = 20.0
+    ..ref.y = 20.0
+    ..ref.next = c1;
+  final c3 = calloc<Coordinate>()
+    ..ref.x = 30.0
+    ..ref.y = 30.0
+    ..ref.next = c2;
   c1.ref.next = c3;
 
   Coordinate currentCoordinate = c1.ref;
@@ -58,8 +55,8 @@ void testStructAllocate() {
 /// allocates coordinates consecutively in c memory
 void testStructFromAddress() {
   Pointer<Coordinate> c1 = calloc(3);
-  Pointer<Coordinate> c2 = c1.elementAt(1);
-  Pointer<Coordinate> c3 = c1.elementAt(2);
+  Pointer<Coordinate> c2 = c1 + 1;
+  Pointer<Coordinate> c3 = c1 + 2;
   c1.ref
     ..x = 10.0
     ..y = 10.0
@@ -115,10 +112,9 @@ void testStructFromAddressWithOperator() {
 }
 
 void testStructWithNulls() {
-  final coordinate =
-      calloc<Coordinate>()
-        ..ref.x = 10.0
-        ..ref.y = 10.0;
+  final coordinate = calloc<Coordinate>()
+    ..ref.x = 10.0
+    ..ref.y = 10.0;
   Expect.equals(coordinate.ref.next, nullptr);
   coordinate.ref.next = coordinate;
   Expect.notEquals(coordinate.ref.next, nullptr);

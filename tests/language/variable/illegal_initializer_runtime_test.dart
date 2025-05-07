@@ -11,35 +11,15 @@ class A {
 }
 
 class B extends A {
-  B.c1()
-      : super.foo
-
-        ()
-
-  ;
+  B.c1() : super.foo();
 
   B.foo();
-  B.c2()
-      : this.foo
+  B.c2() : this.foo();
 
-        ()
-
-  ;
-
-  B.c3()
-      : super
-
-        ()
-
-  ;
+  B.c3() : super();
 
   B();
-  B.c4()
-      : this
-
-        ()
-
-  ;
+  B.c4() : this();
 }
 
 main() {

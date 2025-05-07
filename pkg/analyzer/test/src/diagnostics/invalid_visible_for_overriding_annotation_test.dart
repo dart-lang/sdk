@@ -23,101 +23,119 @@ class InvalidVisibleForOverridingAnnotationTest
   }
 
   test_invalid_class() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta.dart';
 @visibleForOverriding
 class C {}
-''', [error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 34, 20)]);
+''',
+      [error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 34, 20)],
+    );
   }
 
   test_invalid_constructor() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 class C {
   @visibleForOverriding
   C();
 }
-''', [
-      error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 46, 20),
-    ]);
+''',
+      [error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 46, 20)],
+    );
   }
 
   test_invalid_extension_unnamed() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta.dart';
 @visibleForOverriding
 extension on double {}
-''', [error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 34, 20)]);
+''',
+      [error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 34, 20)],
+    );
   }
 
   test_invalid_extensionMember() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 extension E on String {
   @visibleForOverriding
   void foo() {}
 }
-''', [
-      error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 60, 20),
-    ]);
+''',
+      [error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 60, 20)],
+    );
   }
 
   test_invalid_extensionType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta.dart';
 @visibleForOverriding
 extension type E(int i) {}
-''', [error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 34, 20)]);
+''',
+      [error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 34, 20)],
+    );
   }
 
   test_invalid_extensionType_member() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta.dart';
 
 extension type E(int i) { 
   @visibleForOverriding
   void f() { }
 }
-''', [error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 64, 20)]);
+''',
+      [error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 64, 20)],
+    );
   }
 
   test_invalid_staticMember() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 class C {
   @visibleForOverriding
   static void m() {}
 }
-''', [
-      error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 46, 20),
-    ]);
+''',
+      [error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 46, 20)],
+    );
   }
 
   test_invalid_topLevelFunction() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 @visibleForOverriding void foo() {}
-''', [
-      error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 34, 20),
-    ]);
+''',
+      [error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 34, 20)],
+    );
   }
 
   test_invalid_topLevelVariable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 @visibleForOverriding final a = 1;
-''', [
-      error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 34, 20),
-    ]);
+''',
+      [error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 34, 20)],
+    );
   }
 
   test_invalid_topLevelVariable_multi() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 @visibleForOverriding var a = 1, b;
-''', [
-      error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 34, 20),
-    ]);
+''',
+      [error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 34, 20)],
+    );
   }
 
   test_valid() async {

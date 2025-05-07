@@ -4,7 +4,7 @@
 
 import 'dart:collection';
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -87,7 +87,7 @@ class LinkedElementFactory {
     Uri uri,
     List<ExportedReference> exportedReferences,
   ) {
-    var exportedNames = <String, Element2>{};
+    var exportedNames = <String, Element>{};
 
     for (var exportedReference in exportedReferences) {
       var element = elementOfReference(exportedReference.reference);
@@ -124,10 +124,7 @@ class LinkedElementFactory {
       }
       var readers = _libraryReaders.keys.map((uri) => uri.toString()).toList();
       if (readers.length > 50) {
-        readers = [
-          ...readers.take(50),
-          '... (${readers.length} total)',
-        ];
+        readers = [...readers.take(50), '... (${readers.length} total)'];
       }
       throw ArgumentError(
         'Missing library: $uri\n'
@@ -138,9 +135,7 @@ class LinkedElementFactory {
       );
     }
 
-    var libraryElement = reader.readElement(
-      librarySource: librarySource,
-    );
+    var libraryElement = reader.readElement(librarySource: librarySource);
     setLibraryTypeSystem(libraryElement);
     return libraryElement;
   }
@@ -177,7 +172,7 @@ class LinkedElementFactory {
   }
 
   // TODO(scheglov): Why would this method return `null`?
-  ElementImpl? elementOfReference(Reference reference) {
+  FragmentImpl? elementOfReference(Reference reference) {
     if (reference.element case var element?) {
       return element;
     }
@@ -194,7 +189,7 @@ class LinkedElementFactory {
     var parentElement = elementOfReference(parentRef);
 
     // Only classes delay creating children.
-    if (parentElement is ClassElementImpl) {
+    if (parentElement is ClassFragmentImpl) {
       parentElement.linkedData?.readMembers(parentElement);
     }
 
@@ -206,7 +201,7 @@ class LinkedElementFactory {
   }
 
   // TODO(scheglov): Why would this method return `null`?
-  Element2? elementOfReference2(Reference reference) {
+  Element? elementOfReference2(Reference reference) {
     return elementOfReference(reference)?.asElement2;
   }
 
@@ -295,5 +290,5 @@ class LinkedElementFactory {
     libraryElement.hasTypeProviderSystemSet = true;
   }
 
-  void _disposeLibrary(ElementImpl? libraryElement) {}
+  void _disposeLibrary(FragmentImpl? libraryElement) {}
 }

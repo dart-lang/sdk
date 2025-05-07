@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
@@ -42,7 +42,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     for (var variable in node.fields.variables) {
       var parent = variable.declaredFragment?.element.enclosingElement2;
-      if (parent is InterfaceElement2) {
+      if (parent is InterfaceElement) {
         var overriddenMember = inheritanceManager.getMember4(
           parent,
           Name(parent.library2.uri, variable.name.lexeme),
@@ -51,7 +51,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (overriddenMember is GetterElement2OrMember &&
             overriddenMember.isSynthetic) {
           var definingInterface = overriddenMember.enclosingElement2;
-          rule.reportLintForToken(
+          rule.reportAtToken(
             variable.name,
             arguments: [definingInterface.displayName],
           );

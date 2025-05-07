@@ -205,10 +205,11 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
     Builder? member;
     String? qualifier = typeName.qualifier;
     if (qualifier != null) {
-      Builder? prefix = scope.lookupGetable(qualifier, charOffset, fileUri);
+      Builder? prefix = scope.lookup(qualifier, charOffset, fileUri)?.getable;
       if (prefix is PrefixBuilder) {
         _isDeferred = prefix.deferred;
-        member = prefix.lookup(typeName.name, typeName.nameOffset, fileUri);
+        member =
+            prefix.lookup(typeName.name, typeName.nameOffset, fileUri)?.getable;
       } else {
         // Attempt to use a member or type parameter as a prefix.
         int nameOffset = typeName.fullNameOffset;
@@ -223,7 +224,8 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         return;
       }
     } else {
-      member = scope.lookupGetable(typeName.name, typeName.nameOffset, fileUri);
+      member =
+          scope.lookup(typeName.name, typeName.nameOffset, fileUri)?.getable;
     }
     if (member is TypeDeclarationBuilder) {
       bind(problemReporting, member);
@@ -282,7 +284,8 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       }
     }
     // TODO(johnniwinther): Remove check for `is SourceLibraryBuilder`.
-    if (_declaration!.isExtension && problemReporting is SourceLibraryBuilder) {
+    if (_declaration is ExtensionBuilder &&
+        problemReporting is SourceLibraryBuilder) {
       String nameText = typeName.name;
       int nameOffset = typeName.nameOffset;
       int nameLength = typeName.nameLength;

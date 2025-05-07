@@ -17,11 +17,15 @@ class Foo extends core::Object {
   field core::int x2;
   @invalid-expression "pkg/front_end/testcases/regress/invalid_this_reference_05.dart:8:4: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
   @x2
-   ^" in this.{self::Foo::x2}{core::int}
+   ^" in invalid-expression "pkg/front_end/testcases/regress/invalid_this_reference_05.dart:8:4: Error: Not a constant expression.
+  @x2
+   ^^"
   field core::int? a;
   @invalid-expression "pkg/front_end/testcases/regress/invalid_this_reference_05.dart:8:4: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
   @x2
-   ^" in this.{self::Foo::x2}{core::int}
+   ^" in invalid-expression "pkg/front_end/testcases/regress/invalid_this_reference_05.dart:8:4: Error: Not a constant expression.
+  @x2
+   ^^"
   field core::int? b;
   synthetic constructor •() → self::Foo
     ;

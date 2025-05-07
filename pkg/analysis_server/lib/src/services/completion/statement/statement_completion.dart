@@ -14,16 +14,16 @@ import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element2.dart';
-import 'package:analyzer/error/error.dart' as engine;
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart' as engine;
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:collection/collection.dart';
 
@@ -146,7 +146,7 @@ class StatementCompletionProcessor {
   // have to test.
   StatementCompletion? completion;
   SourceChange change = SourceChange('statement-completion');
-  List<engine.AnalysisError> errors = [];
+  List<engine.Diagnostic> diagnostics = [];
   final Map<String, LinkedEditGroup> linkedPositionGroups =
       <String, LinkedEditGroup>{};
   Position? exitPosition;
@@ -190,14 +190,14 @@ class StatementCompletionProcessor {
     for (var error in statementContext.resolveResult.errors) {
       if (error.offset >= node.offset && error.offset <= node.end) {
         if (error.errorCode is! HintCode && error.errorCode is! WarningCode) {
-          errors.add(error);
+          diagnostics.add(error);
         }
       }
     }
 
     _checkExpressions(node);
     if (node is Statement) {
-      if (errors.isEmpty) {
+      if (diagnostics.isEmpty) {
         if (_complete_ifStatement(node) ||
             _complete_forStatement2(node) ||
             _complete_whileStatement(node) ||
@@ -219,7 +219,7 @@ class StatementCompletionProcessor {
         }
       }
     } else if (node is Declaration) {
-      if (errors.isNotEmpty) {
+      if (diagnostics.isNotEmpty) {
         if (_complete_classDeclaration(node) ||
             _complete_variableDeclaration(node) ||
             _complete_simpleSemicolon(node) ||
@@ -299,8 +299,11 @@ class StatementCompletionProcessor {
   void _checkExpressions(AstNode node) {
     // Note: This may queue edits that have to be accounted for later.
     // See _lengthOfInsertions().
-    AstNode? errorMatching(ErrorCode errorCode, {Pattern? partialMatch}) {
-      var error = _findError(errorCode, partialMatch: partialMatch);
+    AstNode? diagnosticMatching(
+      DiagnosticCode diagnosticCode, {
+      Pattern? partialMatch,
+    }) {
+      var error = _findError(diagnosticCode, partialMatch: partialMatch);
       if (error == null) {
         return null;
       }
@@ -310,7 +313,7 @@ class StatementCompletionProcessor {
           : null;
     }
 
-    var expr = errorMatching(ScannerErrorCode.UNTERMINATED_STRING_LITERAL);
+    var expr = diagnosticMatching(ScannerErrorCode.UNTERMINATED_STRING_LITERAL);
     if (expr != null) {
       var source = utils.getNodeText(expr);
       var content = source;
@@ -340,8 +343,14 @@ class StatementCompletionProcessor {
       _addInsertEdit(loc, delimiter);
     }
     expr =
-        errorMatching(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "']'") ??
-        errorMatching(ScannerErrorCode.EXPECTED_TOKEN, partialMatch: "']'");
+        diagnosticMatching(
+          ParserErrorCode.EXPECTED_TOKEN,
+          partialMatch: "']'",
+        ) ??
+        diagnosticMatching(
+          ScannerErrorCode.EXPECTED_TOKEN,
+          partialMatch: "']'",
+        );
     if (expr != null) {
       expr = expr.thisOrAncestorOfType<ListLiteral>();
       if (expr is ListLiteral) {
@@ -392,7 +401,7 @@ class StatementCompletionProcessor {
     if (node is! ClassDeclaration) {
       return false;
     }
-    if (node.leftBracket.isSynthetic && errors.length == 1) {
+    if (node.leftBracket.isSynthetic && diagnostics.length == 1) {
       // The space before the left brace is assumed to exist, even if it does not.
       var sb = SourceBuilder(file, node.end - 1);
       sb.append(' ');
@@ -425,7 +434,7 @@ class StatementCompletionProcessor {
     }
     var previousInsertions = _lengthOfInsertions();
     var delta = 0;
-    if (errors.isNotEmpty) {
+    if (diagnostics.isNotEmpty) {
       var error = _findError(
         ParserErrorCode.EXPECTED_TOKEN,
         partialMatch: "';'",
@@ -715,7 +724,7 @@ class StatementCompletionProcessor {
     } else if (body is Block) {
       if (body.rightBracket.end <= selectionOffset) {
         // emptyInitializersAfterBody
-        errors = []; // Ignore errors; they are for previous statement.
+        diagnostics = []; // Ignore errors; they are for previous statement.
         return false; // If cursor is after closing brace just add newline.
       }
     }
@@ -922,8 +931,7 @@ class StatementCompletionProcessor {
     var argList =
         _selectedNode(
           at: selectionOffset,
-        )?.thisOrAncestorOfType<ArgumentList>();
-    argList ??=
+        )?.thisOrAncestorOfType<ArgumentList>() ??
         _selectedNode(
           at: parenError.offset,
         )?.thisOrAncestorOfType<ArgumentList>();
@@ -957,7 +965,7 @@ class StatementCompletionProcessor {
 
   bool _complete_simpleEnter() {
     int offset;
-    if (errors.isNotEmpty) {
+    if (diagnostics.isNotEmpty) {
       offset = selectionOffset;
     } else {
       var indent = utils.getLinePrefix(selectionOffset);
@@ -970,7 +978,7 @@ class StatementCompletionProcessor {
   }
 
   bool _complete_simpleSemicolon(AstNode node) {
-    if (errors.length != 1) {
+    if (diagnostics.length != 1) {
       return false;
     }
     var error = _findError(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "';'");
@@ -1162,8 +1170,8 @@ class StatementCompletionProcessor {
     );
   }
 
-  engine.AnalysisError? _findError(ErrorCode code, {Pattern? partialMatch}) {
-    return errors.firstWhereOrNull(
+  engine.Diagnostic? _findError(DiagnosticCode code, {Pattern? partialMatch}) {
+    return diagnostics.firstWhereOrNull(
       (err) =>
           err.errorCode == code &&
           (partialMatch == null ? true : err.message.contains(partialMatch)),
@@ -1265,15 +1273,15 @@ class StatementCompletionProcessor {
     return Position(file, offset);
   }
 
-  void _removeError(ErrorCode errorCode, {Pattern? partialMatch}) {
-    var error = _findError(errorCode, partialMatch: partialMatch);
+  void _removeError(DiagnosticCode diagnosticCode, {Pattern? partialMatch}) {
+    var error = _findError(diagnosticCode, partialMatch: partialMatch);
     if (error != null) {
-      errors.remove(error);
+      diagnostics.remove(error);
     }
   }
 
   AstNode? _selectedNode({int? at}) =>
-      NodeLocator(at ?? selectionOffset).searchWithin(unit);
+      unit.nodeCovering(offset: at ?? selectionOffset);
 
   void _setCompletion(StatementCompletionKind kind) {
     assert(exitPosition != null);

@@ -53,9 +53,12 @@ main() {
     expect(js_util.typeofEquals(undefinedObject, 'object'), isFalse);
 
     expect(
-        js_util.typeofEquals(
-            js_util.getProperty(js_util.globalThis, 'Foo'), 'function'),
-        isTrue);
+      js_util.typeofEquals(
+        js_util.getProperty(js_util.globalThis, 'Foo'),
+        'function',
+      ),
+      isTrue,
+    );
   });
 
   test('not', () {

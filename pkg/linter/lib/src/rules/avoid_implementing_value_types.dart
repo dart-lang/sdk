@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
@@ -47,12 +47,12 @@ class _Visitor extends SimpleAstVisitor<void> {
       var interfaceType = interface.type;
       if (interfaceType is InterfaceType &&
           _overridesEquals(interfaceType.element3)) {
-        rule.reportLint(interface);
+        rule.reportAtNode(interface);
       }
     }
   }
 
-  bool _overridesEquals(InterfaceElement2 element) {
+  bool _overridesEquals(InterfaceElement element) {
     var member = inheritanceManager.getMember4(
       element,
       equalsName,

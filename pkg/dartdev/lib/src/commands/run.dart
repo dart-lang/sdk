@@ -12,7 +12,6 @@ import 'package:frontend_server/resident_frontend_server_utils.dart'
     show invokeReplaceCachedDill;
 import 'package:path/path.dart';
 import 'package:pub/pub.dart';
-import 'package:yaml/yaml.dart';
 
 import '../core.dart';
 import '../experiments.dart';
@@ -154,8 +153,9 @@ class RunCommand extends DartdevCommand {
           'timeline-streams',
           help: 'Enables recording for specific timeline streams.\n'
               'Valid streams include: all, API, Compiler, CompilerVerbose, Dart, '
-              'Debugger, Embedder, GC, Isolate, VM.\n'
-              'Defaults to "Compiler, Dart, GC" when --observe is provided.',
+              'Debugger, Embedder, GC, Isolate, Microtask, VM.\n'
+              'Defaults to "Compiler, Dart, GC, Microtask" when --observe is '
+              'provided.',
           valueHelp: 'str1, str2, ...',
           hide: !verbose,
         );
@@ -393,24 +393,9 @@ class RunCommand extends DartdevCommand {
           );
       if (runPackageName != null) {
         final pubspecUri =
-            await DartNativeAssetsBuilder.findPubspec(Directory.current.uri);
-        final Map? pubspec;
-        if (pubspecUri == null) {
-          pubspec = null;
-        } else {
-          pubspec =
-              loadYaml(File.fromUri(pubspecUri).readAsStringSync()) as Map;
-          final pubspecErrors =
-              DartNativeAssetsBuilder.validateHooksUserDefinesFromPubspec(
-                  pubspec);
-          if (pubspecErrors.isNotEmpty) {
-            log.stderr('Errors in pubspec:');
-            pubspecErrors.forEach(log.stderr);
-            return errorExitCode;
-          }
-        }
+            await DartNativeAssetsBuilder.findWorkspacePubspec(packageConfig);
         final builder = DartNativeAssetsBuilder(
-          pubspec: pubspec,
+          pubspecUri: pubspecUri,
           packageConfigUri: packageConfig,
           runPackageName: runPackageName,
           verbose: verbose,

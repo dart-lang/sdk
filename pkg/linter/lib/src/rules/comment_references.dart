@@ -70,7 +70,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         var reference = comment.substring(leftIndex + 1, rightIndex);
         if (_isParserSpecialCase(reference)) {
           var nameOffset = token.offset + leftIndex + 1;
-          rule.reportLintForOffset(nameOffset, reference.length);
+          rule.reportAtOffset(nameOffset, reference.length);
         }
 
         referenceIndices = comment.referenceIndices(rightIndex);
@@ -87,14 +87,14 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (expression is Identifier &&
         expression.element == null &&
         !linkReferences.contains(expression.name)) {
-      rule.reportLint(expression);
+      rule.reportAtNode(expression);
     } else if (expression is PropertyAccess &&
         expression.propertyName.element == null) {
       var target = expression.target;
       if (target is PrefixedIdentifier) {
         var name = '${target.name}.${expression.propertyName.name}';
         if (!linkReferences.contains(name)) {
-          rule.reportLint(expression);
+          rule.reportAtNode(expression);
         }
       }
     }

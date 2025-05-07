@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 
@@ -51,7 +51,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     if (isTestInvocation(lastBodyStatement, 'fail') &&
         node.finallyBlock == null) {
-      rule.reportLint(lastBodyStatement);
+      rule.reportAtNode(lastBodyStatement);
     }
   }
 }

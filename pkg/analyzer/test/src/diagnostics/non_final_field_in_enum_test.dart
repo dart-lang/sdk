@@ -16,14 +16,15 @@ main() {
 @reflectiveTest
 class NonFinalFieldInEnumTest extends PubPackageResolutionTest {
   test_instance_notFinal() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v;
   int foo = 0;
 }
-''', [
-      error(CompileTimeErrorCode.NON_FINAL_FIELD_IN_ENUM, 20, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_FINAL_FIELD_IN_ENUM, 20, 3)],
+    );
   }
 
   test_static_notFinal() async {

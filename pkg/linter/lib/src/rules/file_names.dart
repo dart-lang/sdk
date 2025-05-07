@@ -37,7 +37,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (element != null) {
       var fileName = element.library2.firstFragment.source.shortName;
       if (!isValidDartFileName(fileName)) {
-        rule.reportLintForOffset(0, 0, arguments: [fileName]);
+        rule.reportAtOffset(0, 0, arguments: [fileName]);
       }
     }
   }

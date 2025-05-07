@@ -368,10 +368,10 @@ final class JSStringImpl implements String, StringUncheckedOperationsBase {
     if (from is js.JSSyntaxRegExp) {
       return startIndex == 0
           ? _jsStringReplace(
-            toExternRef,
-            (js.regExpGetNative(from) as js.JSValue).toExternRef,
-            to.toExternRef,
-          )
+              toExternRef,
+              (js.regExpGetNative(from) as js.JSValue).toExternRef,
+              to.toExternRef,
+            )
           : _replaceFirstRE(from, to, startIndex);
     }
     Iterator<Match> matches = from.allMatches(this, startIndex).iterator;
@@ -856,12 +856,12 @@ String _jsStringReplace(
 );
 
 WasmExternRef? _jsStringToLowerCase(WasmExternRef? string) =>
-// Note: Special cased in V8 to be fast as `F.p.c.b`.
-// Do not change to `s => s.toLowerCase()`!
-js.JS<WasmExternRef?>(
-  'Function.prototype.call.bind(String.prototype.toLowerCase)',
-  string,
-);
+    // Note: Special cased in V8 to be fast as `F.p.c.b`.
+    // Do not change to `s => s.toLowerCase()`!
+    js.JS<WasmExternRef?>(
+      'Function.prototype.call.bind(String.prototype.toLowerCase)',
+      string,
+    );
 
 WasmExternRef? _jsStringToUpperCase(WasmExternRef? string) =>
     js.JS<WasmExternRef?>('s => s.toUpperCase()', string);
@@ -905,15 +905,14 @@ int _jsStringLastIndexOf(
   WasmExternRef? string,
   WasmExternRef? pattern,
   int start,
-) =>
-    js
-        .JS<double>(
-          '(s, p, i) => s.lastIndexOf(p, i)',
-          string,
-          pattern,
-          start.toDouble(),
-        )
-        .toInt();
+) => js
+    .JS<double>(
+      '(s, p, i) => s.lastIndexOf(p, i)',
+      string,
+      pattern,
+      start.toDouble(),
+    )
+    .toInt();
 
 // TODO(joshualitt): Create a subtype of `JSArrayImpl` that can support lazily
 // converting arguments `toDart` and return that here.
@@ -921,10 +920,9 @@ int _jsStringLastIndexOf(
 List<String> _jsStringSplitToDart(
   WasmExternRef? string,
   WasmExternRef? token,
-) =>
-    (js.JSValue(_jsStringSplit(string, token)) as JSArray).toDart
-        .map((JSAny? a) => (a as JSString).toDart)
-        .toList();
+) => (js.JSValue(_jsStringSplit(string, token)) as JSArray).toDart
+    .map((JSAny? a) => (a as JSString).toDart)
+    .toList();
 
 WasmExternRef? _jsStringSplit(WasmExternRef? string, WasmExternRef? token) =>
     js.JS<WasmExternRef?>(

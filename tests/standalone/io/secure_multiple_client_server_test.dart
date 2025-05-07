@@ -23,8 +23,10 @@ String localFile(path) => Platform.script.resolve(path).toFilePath();
 
 SecurityContext serverContext = new SecurityContext()
   ..useCertificateChain(localFile('certificates/server_chain.pem'))
-  ..usePrivateKey(localFile('certificates/server_key.pem'),
-      password: 'dartdart');
+  ..usePrivateKey(
+    localFile('certificates/server_key.pem'),
+    password: 'dartdart',
+  );
 
 SecurityContext clientContext = new SecurityContext()
   ..setTrustedCertificates(localFile('certificates/trusted_certs.pem'));
@@ -33,27 +35,30 @@ Future startServer() {
   return SecureServerSocket.bind(HOST, 0, serverContext).then((server) {
     SERVER = server;
     SERVER.listen((SecureSocket client) {
-      client.fold<List<int>>(
-          <int>[], (message, data) => message..addAll(data)).then((message) {
-        String received = new String.fromCharCodes(message);
-        Expect.isTrue(received.contains("Hello from client "));
-        String name = received.substring(received.indexOf("client ") + 7);
-        client.add("Welcome, client $name".codeUnits);
-        client.close();
-      });
+      client
+          .fold<List<int>>(<int>[], (message, data) => message..addAll(data))
+          .then((message) {
+            String received = new String.fromCharCodes(message);
+            Expect.isTrue(received.contains("Hello from client "));
+            String name = received.substring(received.indexOf("client ") + 7);
+            client.add("Welcome, client $name".codeUnits);
+            client.close();
+          });
     });
   });
 }
 
 Future testClient(name) {
-  return SecureSocket.connect(HOST, SERVER.port, context: clientContext)
-      .then((socket) {
+  return SecureSocket.connect(HOST, SERVER.port, context: clientContext).then((
+    socket,
+  ) {
     socket.add("Hello from client $name".codeUnits);
     socket.close();
-    return socket.fold<List<int>>(
-        <int>[], (message, data) => message..addAll(data)).then((message) {
-      Expect.listEquals("Welcome, client $name".codeUnits, message);
-    });
+    return socket
+        .fold<List<int>>(<int>[], (message, data) => message..addAll(data))
+        .then((message) {
+          Expect.listEquals("Welcome, client $name".codeUnits, message);
+        });
   });
 }
 

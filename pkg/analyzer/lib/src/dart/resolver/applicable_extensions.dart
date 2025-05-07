@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/generic_inferrer.dart';
@@ -26,13 +26,10 @@ class InstantiatedExtensionWithMember {
   );
 
   ExtensionResolutionResult get asResolutionResult {
-    return SingleExtensionResolutionResult(
-      getter2: getter,
-      setter2: setter,
-    );
+    return SingleExtensionResolutionResult(getter2: getter, setter2: setter);
   }
 
-  ExtensionElement2 get extension => candidate.extension;
+  ExtensionElement get extension => candidate.extension;
 
   ExecutableElement2OrMember? get getter {
     var getter = candidate.getter;
@@ -52,7 +49,7 @@ class InstantiatedExtensionWithMember {
 }
 
 class InstantiatedExtensionWithoutMember {
-  final ExtensionElement2 extension;
+  final ExtensionElement extension;
   final MapSubstitution substitution;
   final DartType extendedType;
 
@@ -76,12 +73,14 @@ abstract class _NotInstantiatedExtension<R> {
 
 class _NotInstantiatedExtensionWithMember
     extends _NotInstantiatedExtension<InstantiatedExtensionWithMember> {
-  final ExecutableElement2? getter;
-  final ExecutableElement2? setter;
+  final ExecutableElement? getter;
+  final ExecutableElement? setter;
 
-  _NotInstantiatedExtensionWithMember(super.extension,
-      {this.getter, this.setter})
-      : assert(getter != null || setter != null);
+  _NotInstantiatedExtensionWithMember(
+    super.extension, {
+    this.getter,
+    this.setter,
+  }) : assert(getter != null || setter != null);
 
   @override
   InstantiatedExtensionWithMember instantiate({
@@ -92,7 +91,7 @@ class _NotInstantiatedExtensionWithMember
   }
 }
 
-/// [_NotInstantiatedExtension] for any [ExtensionElement2].
+/// [_NotInstantiatedExtension] for any [ExtensionElement].
 class _NotInstantiatedExtensionWithoutMember
     extends _NotInstantiatedExtension<InstantiatedExtensionWithoutMember> {
   _NotInstantiatedExtensionWithoutMember(super.extension);
@@ -103,26 +102,31 @@ class _NotInstantiatedExtensionWithoutMember
     required DartType extendedType,
   }) {
     return InstantiatedExtensionWithoutMember(
-        extension, substitution, extendedType);
+      extension,
+      substitution,
+      extendedType,
+    );
   }
 }
 
-extension ExtensionsExtensions on Iterable<ExtensionElement2> {
+extension ExtensionsExtensions on Iterable<ExtensionElement> {
   /// Extensions that can be applied, within [targetLibrary], to [targetType].
   List<InstantiatedExtensionWithoutMember> applicableTo({
-    required LibraryElement2 targetLibrary,
+    required LibraryElement targetLibrary,
     required TypeImpl targetType,
     required bool strictCasts,
   }) {
     targetLibrary as LibraryElementImpl;
-    return map((e) => _NotInstantiatedExtensionWithoutMember(
-            // TODO(paulberry): eliminate this cast by changing the extension to
-            // apply only to `Iterable<ExtensionElementImpl>`.
-            e as ExtensionElementImpl2))
-        .applicableTo(targetLibrary: targetLibrary, targetType: targetType);
+    return map(
+      (e) => _NotInstantiatedExtensionWithoutMember(
+        // TODO(paulberry): eliminate this cast by changing the extension to
+        // apply only to `Iterable<ExtensionElementImpl>`.
+        e as ExtensionElementImpl2,
+      ),
+    ).applicableTo(targetLibrary: targetLibrary, targetType: targetType);
   }
 
-  /// Returns the sublist of [ExtensionElement2]s that have an instance member
+  /// Returns the sublist of [ExtensionElement]s that have an instance member
   /// named [baseName].
   List<_NotInstantiatedExtensionWithMember> havingMemberWithBaseName(
     Name baseName,
@@ -130,8 +134,8 @@ extension ExtensionsExtensions on Iterable<ExtensionElement2> {
     var result = <_NotInstantiatedExtensionWithMember>[];
     for (var extension in this) {
       if (baseName.name == '[]') {
-        ExecutableElement2? getter;
-        ExecutableElement2? setter;
+        ExecutableElement? getter;
+        ExecutableElement? setter;
         for (var method in extension.methods2) {
           if (method.name3 == '[]') {
             getter = method;
@@ -196,7 +200,7 @@ extension NotInstantiatedExtensionsExtensions<R>
     on Iterable<_NotInstantiatedExtension<R>> {
   /// Extensions that can be applied, within [targetLibrary], to [targetType].
   List<R> applicableTo({
-    required LibraryElement2 targetLibrary,
+    required LibraryElement targetLibrary,
     required TypeImpl targetType,
   }) {
     if (identical(targetType, NeverTypeImpl.instance)) {
@@ -221,11 +225,15 @@ extension NotInstantiatedExtensionsExtensions<R>
       var freshTypeParameters = freshTypes.freshTypeParameters;
       var rawExtendedType = freshTypes.substitute(extension.extendedType);
       // Casts aren't relevant in extension applicability.
-      var typeSystemOperations =
-          TypeSystemOperations(typeSystem, strictCasts: false);
+      var typeSystemOperations = TypeSystemOperations(
+        typeSystem,
+        strictCasts: false,
+      );
 
       inferenceLogWriter?.enterGenericInference(
-          freshTypeParameters, rawExtendedType);
+        freshTypeParameters,
+        rawExtendedType,
+      );
       var inferrer = GenericInferrer(
         typeSystem,
         freshTypeParameters,
@@ -250,9 +258,7 @@ extension NotInstantiatedExtensionsExtensions<R>
         extension.typeParameters2,
         inferredTypes,
       );
-      var extendedType = substitution.substituteType(
-        extension.extendedType,
-      );
+      var extendedType = substitution.substituteType(extension.extendedType);
 
       if (!typeSystem.isSubtypeOf(targetType, extendedType)) {
         continue;

@@ -11,7 +11,7 @@ import '../base/name_space.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
-import '../builder/function_builder.dart';
+import '../builder/factory_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../codes/cfe_codes.dart';
 import '../fragment/factory/declaration.dart';
@@ -22,11 +22,10 @@ import '../type_inference/type_inference_engine.dart';
 import 'name_scheme.dart';
 import 'source_class_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
-import 'source_loader.dart' show SourceLoader;
 import 'source_member_builder.dart';
 
 class SourceFactoryBuilder extends SourceMemberBuilderImpl
-    implements FunctionBuilder {
+    implements FactoryBuilder {
   final Modifiers modifiers;
 
   @override
@@ -108,36 +107,18 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   bool get isAugmentation => modifiers.isAugment;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  bool get isExternal => modifiers.isExternal;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isAbstract => modifiers.isAbstract;
-
-  @override
   bool get isConst => modifiers.isConst;
 
   @override
   bool get isStatic => modifiers.isStatic;
 
   @override
-  bool get isAugment => modifiers.isAugment;
-
-  @override
-  bool get isConstructor => false;
+  // Coverage-ignore(suite): Not run.
+  Builder get getable => this;
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get isAssignable => false;
-
-  void becomeNative(SourceLoader loader) {
-    _introductory.becomeNative(loader: loader, annotatables: annotatables);
-    for (FactoryDeclaration augmentation in _augmentations) {
-      // Coverage-ignore-block(suite): Not run.
-      augmentation.becomeNative(loader: loader, annotatables: annotatables);
-    }
-  }
+  Builder? get setable => null;
 
   @override
   Builder get parent => declarationBuilder;
@@ -145,23 +126,6 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   @override
   // Coverage-ignore(suite): Not run.
   Name get memberName => _memberName.name;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isRegularMethod => false;
-
-  @override
-  bool get isGetter => false;
-
-  @override
-  bool get isSetter => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isOperator => false;
-
-  @override
-  bool get isFactory => true;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -174,10 +138,6 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   @override
   // Coverage-ignore(suite): Not run.
   bool get isSynthesized => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isEnumElement => false;
 
   Procedure get _procedure => _lastDeclaration.procedure;
 
@@ -211,16 +171,6 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   @override
   // Coverage-ignore(suite): Not run.
   Iterable<Reference> get exportedMemberReferences => [_procedure.reference];
-
-  // Coverage-ignore(suite): Not run.
-  /// If this is an extension instance method or constructor with lowering
-  /// enabled, the tear off parameter corresponding to the [index]th parameter
-  /// on the instance method or constructor is returned.
-  ///
-  /// This is used to update the default value for the closure parameter when
-  /// it has been computed for the original parameter.
-  VariableDeclaration? getTearOffParameter(int index) =>
-      _introductory.getTearOffParameter(index);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -347,16 +297,16 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
         factoryBuilder: this,
         classHierarchy: classHierarchy,
         delayedDefaultValueCloners: delayedDefaultValueCloners,
-        createFileUriExpression:
-            _introductory.fileUri != _lastDeclaration.fileUri);
+        annotatables: annotatables,
+        annotatablesFileUri: _procedure.fileUri);
     for (FactoryDeclaration augmentation in _augmentations) {
       augmentation.buildOutlineExpressions(
           libraryBuilder: libraryBuilder,
           factoryBuilder: this,
           classHierarchy: classHierarchy,
           delayedDefaultValueCloners: delayedDefaultValueCloners,
-          createFileUriExpression:
-              augmentation.fileUri != _lastDeclaration.fileUri);
+          annotatables: annotatables,
+          annotatablesFileUri: _procedure.fileUri);
     }
   }
 

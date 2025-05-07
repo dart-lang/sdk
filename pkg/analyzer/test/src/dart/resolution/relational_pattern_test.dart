@@ -116,7 +116,8 @@ RelationalPattern
   }
 
   test_greaterThan_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 
 void f(A x) {
@@ -125,9 +126,9 @@ void f(A x) {
       break;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 50, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 50, 1)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RelationalPattern
@@ -193,7 +194,8 @@ RelationalPattern
   }
 
   test_greaterThanOrEqualTo_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 
 void f(A x) {
@@ -202,9 +204,9 @@ void f(A x) {
       break;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 50, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 50, 2)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RelationalPattern
@@ -292,7 +294,8 @@ RelationalPattern
   }
 
   test_lessThan_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 
 void f(A x) {
@@ -301,9 +304,9 @@ void f(A x) {
       break;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 50, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 50, 1)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RelationalPattern
@@ -369,7 +372,8 @@ RelationalPattern
   }
 
   test_lessThanOrEqualTo_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 
 void f(A x) {
@@ -378,9 +382,9 @@ void f(A x) {
       break;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 50, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 50, 2)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RelationalPattern
@@ -442,17 +446,23 @@ RelationalPattern
   }
 
   test_rewrite_operand() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(x, int Function() a) {
   switch (x) {
     case == a():
       break;
   }
 }
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION, 57,
-          3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION,
+          57,
+          3,
+        ),
+      ],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 RelationalPattern

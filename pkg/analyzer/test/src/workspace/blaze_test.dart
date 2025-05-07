@@ -44,45 +44,27 @@ class BlazeFileUriResolverTest with ResourceProviderMixin {
   }
 
   void test_resolveAbsolute_notFile_dartUri() {
-    _addResources([
-      '/workspace/${file_paths.blazeWorkspaceMarker}',
-    ]);
+    _addResources(['/workspace/${file_paths.blazeWorkspaceMarker}']);
     Uri uri = Uri(scheme: 'dart', path: 'core');
     var source = resolver.resolveAbsolute(uri);
     expect(source, isNull);
   }
 
   void test_resolveAbsolute_notFile_httpsUri() {
-    _addResources([
-      '/workspace/${file_paths.blazeWorkspaceMarker}',
-    ]);
+    _addResources(['/workspace/${file_paths.blazeWorkspaceMarker}']);
     Uri uri = Uri(scheme: 'https', path: '127.0.0.1/test.dart');
     var source = resolver.resolveAbsolute(uri);
     expect(source, isNull);
   }
 
   void test_resolveAbsolute_outsideOfWorkspace() {
-    _addResources([
-      '/workspace/${file_paths.blazeWorkspaceMarker}',
-    ]);
-    expect(
-      resolver.resolveAbsolute(
-        toUri('/foo'),
-      ),
-      isNull,
-    );
+    _addResources(['/workspace/${file_paths.blazeWorkspaceMarker}']);
+    expect(resolver.resolveAbsolute(toUri('/foo')), isNull);
   }
 
   void test_resolveAbsolute_workspaceRoot() {
-    _addResources([
-      '/workspace/${file_paths.blazeWorkspaceMarker}',
-    ]);
-    expect(
-      resolver.resolveAbsolute(
-        toUri('/workspace'),
-      ),
-      isNull,
-    );
+    _addResources(['/workspace/${file_paths.blazeWorkspaceMarker}']);
+    expect(resolver.resolveAbsolute(toUri('/workspace')), isNull);
   }
 
   void test_resolveAbsolute_writableUri_blazeBin_hasWritable() {
@@ -143,9 +125,7 @@ class BlazeFileUriResolverTest with ResourceProviderMixin {
   }
 
   void test_resolveAbsolute_writableUri_writable_doesNotExist() {
-    _addResources([
-      '/workspace/${file_paths.blazeWorkspaceMarker}',
-    ]);
+    _addResources(['/workspace/${file_paths.blazeWorkspaceMarker}']);
     _assertResolve(
       toUriStr('/workspace/my/lib/a.dart'),
       getFile('/workspace/my/lib/a.dart'),
@@ -161,10 +141,8 @@ class BlazeFileUriResolverTest with ResourceProviderMixin {
         newFile(path, '');
       }
     }
-    workspace = BlazeWorkspace.find(
-      resourceProvider,
-      getFolder('/workspace').path,
-    )!;
+    workspace =
+        BlazeWorkspace.find(resourceProvider, getFolder('/workspace').path)!;
     resolver = BlazeFileUriResolver(workspace);
   }
 
@@ -201,10 +179,7 @@ language = struct(
 ''');
 
     await resolveFileCode('$myPackageRootPath/lib/a.dart', '');
-    _assertLanguageVersion(
-      package: Version.parse('3.1.0'),
-      override: null,
-    );
+    _assertLanguageVersion(package: Version.parse('3.1.0'), override: null);
   }
 
   void _assertLanguageVersion({
@@ -227,20 +202,24 @@ class BlazePackageUriResolverTest with ResourceProviderMixin {
       '/workspace/${file_paths.blazeWorkspaceMarker}',
       '/workspace/blaze-genfiles/',
       '/workspace/my/foo/lib/foo1.dart',
-      '/workspace/blaze-bin/my/foo/lib/foo1.dart'
+      '/workspace/blaze-bin/my/foo/lib/foo1.dart',
     ]);
-    _assertResolve('package:my.foo/foo1.dart',
-        '/workspace/blaze-bin/my/foo/lib/foo1.dart');
+    _assertResolve(
+      'package:my.foo/foo1.dart',
+      '/workspace/blaze-bin/my/foo/lib/foo1.dart',
+    );
   }
 
   void test_resolveAbsolute_bin_notInWorkspace() {
     _addResources([
       '/workspace/${file_paths.blazeWorkspaceMarker}',
       '/workspace/blaze-genfiles/',
-      '/workspace/blaze-bin/my/foo/lib/foo1.dart'
+      '/workspace/blaze-bin/my/foo/lib/foo1.dart',
     ]);
-    _assertResolve('package:my.foo/foo1.dart',
-        '/workspace/blaze-bin/my/foo/lib/foo1.dart');
+    _assertResolve(
+      'package:my.foo/foo1.dart',
+      '/workspace/blaze-bin/my/foo/lib/foo1.dart',
+    );
   }
 
   void test_resolveAbsolute_file_bin_pathHasSpace() {
@@ -248,38 +227,45 @@ class BlazePackageUriResolverTest with ResourceProviderMixin {
       '/workspace/${file_paths.blazeWorkspaceMarker}',
       '/workspace/my/foo/test',
     ]);
-    _assertResolve(toUriStr('/workspace/blaze-bin/my/test/a .dart'),
-        '/workspace/my/test/a .dart',
-        exists: false, restore: false);
+    _assertResolve(
+      toUriStr('/workspace/blaze-bin/my/test/a .dart'),
+      '/workspace/my/test/a .dart',
+      exists: false,
+      restore: false,
+    );
   }
 
   void test_resolveAbsolute_file_bin_to_genfiles() {
     _addResources([
       '/workspace/${file_paths.blazeWorkspaceMarker}',
       '/workspace/blaze-genfiles/my/foo/test/foo1.dart',
-      '/workspace/blaze-bin/'
+      '/workspace/blaze-bin/',
     ]);
-    _assertResolve(toUriStr('/workspace/blaze-bin/my/foo/test/foo1.dart'),
-        '/workspace/blaze-genfiles/my/foo/test/foo1.dart',
-        restore: false);
+    _assertResolve(
+      toUriStr('/workspace/blaze-bin/my/foo/test/foo1.dart'),
+      '/workspace/blaze-genfiles/my/foo/test/foo1.dart',
+      restore: false,
+    );
   }
 
   void test_resolveAbsolute_file_genfiles_to_workspace() {
     _addResources([
       '/workspace/${file_paths.blazeWorkspaceMarker}',
       '/workspace/blaze-genfiles/',
-      '/workspace/my/foo/test/foo1.dart'
+      '/workspace/my/foo/test/foo1.dart',
     ]);
-    _assertResolve(toUriStr('/workspace/blaze-genfiles/my/foo/test/foo1.dart'),
-        '/workspace/my/foo/test/foo1.dart',
-        restore: false);
+    _assertResolve(
+      toUriStr('/workspace/blaze-genfiles/my/foo/test/foo1.dart'),
+      '/workspace/my/foo/test/foo1.dart',
+      restore: false,
+    );
   }
 
   void test_resolveAbsolute_file_not_in_workspace() {
     _addResources([
       '/workspace/${file_paths.blazeWorkspaceMarker}',
       '/workspace/blaze-genfiles/',
-      '/other/my/foo/test/foo1.dart'
+      '/other/my/foo/test/foo1.dart',
     ]);
     _assertNoResolve(toUriStr('/other/my/foo/test/foo1.dart'));
   }
@@ -287,11 +273,13 @@ class BlazePackageUriResolverTest with ResourceProviderMixin {
   void test_resolveAbsolute_file_workspace_to_genfiles() {
     _addResources([
       '/workspace/${file_paths.blazeWorkspaceMarker}',
-      '/workspace/blaze-genfiles/my/foo/test/foo1.dart'
+      '/workspace/blaze-genfiles/my/foo/test/foo1.dart',
     ]);
-    _assertResolve(toUriStr('/workspace/my/foo/test/foo1.dart'),
-        '/workspace/blaze-genfiles/my/foo/test/foo1.dart',
-        restore: false);
+    _assertResolve(
+      toUriStr('/workspace/my/foo/test/foo1.dart'),
+      '/workspace/blaze-genfiles/my/foo/test/foo1.dart',
+      restore: false,
+    );
   }
 
   void test_resolveAbsolute_genfiles() {
@@ -299,20 +287,24 @@ class BlazePackageUriResolverTest with ResourceProviderMixin {
       '/workspace/${file_paths.blazeWorkspaceMarker}',
       '/workspace/blaze-genfiles/',
       '/workspace/my/foo/lib/foo1.dart',
-      '/workspace/blaze-genfiles/my/foo/lib/foo1.dart'
+      '/workspace/blaze-genfiles/my/foo/lib/foo1.dart',
     ]);
-    _assertResolve('package:my.foo/foo1.dart',
-        '/workspace/blaze-genfiles/my/foo/lib/foo1.dart');
+    _assertResolve(
+      'package:my.foo/foo1.dart',
+      '/workspace/blaze-genfiles/my/foo/lib/foo1.dart',
+    );
   }
 
   void test_resolveAbsolute_genfiles_notInWorkspace() {
     _addResources([
       '/workspace/${file_paths.blazeWorkspaceMarker}',
       '/workspace/blaze-genfiles/',
-      '/workspace/blaze-genfiles/my/foo/lib/foo1.dart'
+      '/workspace/blaze-genfiles/my/foo/lib/foo1.dart',
     ]);
-    _assertResolve('package:my.foo/foo1.dart',
-        '/workspace/blaze-genfiles/my/foo/lib/foo1.dart');
+    _assertResolve(
+      'package:my.foo/foo1.dart',
+      '/workspace/blaze-genfiles/my/foo/lib/foo1.dart',
+    );
   }
 
   void test_resolveAbsolute_null_doubleDot() {
@@ -336,9 +328,7 @@ class BlazePackageUriResolverTest with ResourceProviderMixin {
   }
 
   void test_resolveAbsolute_null_emptyFileUriPart() {
-    _addResources([
-      '/workspace/${file_paths.blazeWorkspaceMarker}',
-    ]);
+    _addResources(['/workspace/${file_paths.blazeWorkspaceMarker}']);
     var uri = Uri.parse('package:foo.bar/');
     var source = resolver.resolveAbsolute(uri);
     expect(source, isNull);
@@ -379,8 +369,10 @@ class BlazePackageUriResolverTest with ResourceProviderMixin {
       '/workspace/third_party/dart/foo/lib/foo1.dart',
       '/workspace/blaze-bin/third_party/dart/foo/lib/foo1.dart',
     ]);
-    _assertResolve('package:foo/foo1.dart',
-        '/workspace/blaze-bin/third_party/dart/foo/lib/foo1.dart');
+    _assertResolve(
+      'package:foo/foo1.dart',
+      '/workspace/blaze-bin/third_party/dart/foo/lib/foo1.dart',
+    );
   }
 
   void test_resolveAbsolute_thirdParty_bin_notInWorkspace() {
@@ -389,8 +381,10 @@ class BlazePackageUriResolverTest with ResourceProviderMixin {
       '/workspace/blaze-genfiles/',
       '/workspace/blaze-bin/third_party/dart/foo/lib/foo1.dart',
     ]);
-    _assertResolve('package:foo/foo1.dart',
-        '/workspace/blaze-bin/third_party/dart/foo/lib/foo1.dart');
+    _assertResolve(
+      'package:foo/foo1.dart',
+      '/workspace/blaze-bin/third_party/dart/foo/lib/foo1.dart',
+    );
   }
 
   void test_resolveAbsolute_thirdParty_doesNotExist() {
@@ -399,9 +393,11 @@ class BlazePackageUriResolverTest with ResourceProviderMixin {
       '/workspace/blaze-genfiles/',
       '/workspace/third_party/dart/foo/lib/foo1.dart',
     ]);
-    _assertResolve('package:foo/foo2.dart',
-        '/workspace/third_party/dart/foo/lib/foo2.dart',
-        exists: false);
+    _assertResolve(
+      'package:foo/foo2.dart',
+      '/workspace/third_party/dart/foo/lib/foo2.dart',
+      exists: false,
+    );
   }
 
   void test_resolveAbsolute_thirdParty_exists() {
@@ -410,8 +406,10 @@ class BlazePackageUriResolverTest with ResourceProviderMixin {
       '/workspace/blaze-genfiles/',
       '/workspace/third_party/dart/foo/lib/foo1.dart',
     ]);
-    _assertResolve('package:foo/foo1.dart',
-        '/workspace/third_party/dart/foo/lib/foo1.dart');
+    _assertResolve(
+      'package:foo/foo1.dart',
+      '/workspace/third_party/dart/foo/lib/foo1.dart',
+    );
   }
 
   void test_resolveAbsolute_thirdParty_genfiles() {
@@ -421,8 +419,10 @@ class BlazePackageUriResolverTest with ResourceProviderMixin {
       '/workspace/third_party/dart/foo/lib/foo1.dart',
       '/workspace/blaze-genfiles/third_party/dart/foo/lib/foo1.dart',
     ]);
-    _assertResolve('package:foo/foo1.dart',
-        '/workspace/blaze-genfiles/third_party/dart/foo/lib/foo1.dart');
+    _assertResolve(
+      'package:foo/foo1.dart',
+      '/workspace/blaze-genfiles/third_party/dart/foo/lib/foo1.dart',
+    );
   }
 
   void test_resolveAbsolute_thirdParty_genfiles_notInWorkspace() {
@@ -431,8 +431,10 @@ class BlazePackageUriResolverTest with ResourceProviderMixin {
       '/workspace/blaze-genfiles/',
       '/workspace/blaze-genfiles/third_party/dart/foo/lib/foo1.dart',
     ]);
-    _assertResolve('package:foo/foo1.dart',
-        '/workspace/blaze-genfiles/third_party/dart/foo/lib/foo1.dart');
+    _assertResolve(
+      'package:foo/foo1.dart',
+      '/workspace/blaze-genfiles/third_party/dart/foo/lib/foo1.dart',
+    );
   }
 
   void test_resolveAbsolute_workspace_doesNotExist() {
@@ -440,9 +442,11 @@ class BlazePackageUriResolverTest with ResourceProviderMixin {
       '/workspace/${file_paths.blazeWorkspaceMarker}',
       '/workspace/blaze-genfiles/',
     ]);
-    _assertResolve('package:my.foo/doesNotExist.dart',
-        '/workspace/my/foo/lib/doesNotExist.dart',
-        exists: false);
+    _assertResolve(
+      'package:my.foo/doesNotExist.dart',
+      '/workspace/my/foo/lib/doesNotExist.dart',
+      exists: false,
+    );
   }
 
   void test_resolveAbsolute_workspace_exists() {
@@ -452,7 +456,9 @@ class BlazePackageUriResolverTest with ResourceProviderMixin {
       '/workspace/my/foo/lib/foo1.dart',
     ]);
     _assertResolve(
-        'package:my.foo/foo1.dart', '/workspace/my/foo/lib/foo1.dart');
+      'package:my.foo/foo1.dart',
+      '/workspace/my/foo/lib/foo1.dart',
+    );
   }
 
   void test_resolveAbsolute_workspace_exists_hasSpace() {
@@ -462,8 +468,10 @@ class BlazePackageUriResolverTest with ResourceProviderMixin {
       '/workspace/my/foo/lib/foo .dart',
     ]);
     _assertResolve(
-        'package:my.foo/foo .dart', '/workspace/my/foo/lib/foo .dart',
-        restore: false);
+      'package:my.foo/foo .dart',
+      '/workspace/my/foo/lib/foo .dart',
+      restore: false,
+    );
   }
 
   void test_restoreAbsolute_noPackageName_workspace() {
@@ -519,8 +527,10 @@ class BlazePackageUriResolverTest with ResourceProviderMixin {
       '/workspace/blaze-genfiles/',
       '/workspace/third_party/something/lib/foo.dart',
     ]);
-    _assertRestore('/workspace/third_party/something/lib/foo.dart',
-        'package:third_party.something/foo.dart');
+    _assertRestore(
+      '/workspace/third_party/something/lib/foo.dart',
+      'package:third_party.something/foo.dart',
+    );
   }
 
   void test_restoreAbsolute_workspace_nestedLib() {
@@ -528,12 +538,16 @@ class BlazePackageUriResolverTest with ResourceProviderMixin {
       '/workspace/${file_paths.blazeWorkspaceMarker}',
       '/workspace/my/components/lib/src/foo/lib/foo.dart',
     ]);
-    _assertRestore('/workspace/my/components/lib/src/foo/lib/foo.dart',
-        'package:my.components.lib.src.foo/foo.dart');
+    _assertRestore(
+      '/workspace/my/components/lib/src/foo/lib/foo.dart',
+      'package:my.components.lib.src.foo/foo.dart',
+    );
   }
 
-  void _addResources(List<String> paths,
-      {String workspacePath = '/workspace'}) {
+  void _addResources(
+    List<String> paths, {
+    String workspacePath = '/workspace',
+  }) {
     for (String path in paths) {
       if (path.endsWith('/')) {
         newFolder(path.substring(0, path.length - 1));
@@ -551,8 +565,12 @@ class BlazePackageUriResolverTest with ResourceProviderMixin {
     expect(resolver.resolveAbsolute(uri), isNull);
   }
 
-  void _assertResolve(String uriStr, String posixPath,
-      {bool exists = true, bool restore = true}) {
+  void _assertResolve(
+    String uriStr,
+    String posixPath, {
+    bool exists = true,
+    bool restore = true,
+  }) {
     Uri uri = Uri.parse(uriStr);
     var source = resolver.resolveAbsolute(uri)!;
     var path = source.fullName;
@@ -589,21 +607,14 @@ class BlazeWorkspacePackageTest with ResourceProviderMixin {
     // A file that is _not_ in this package is not required to have a BUILD
     // file above it, for simplicity and reduced I/O.
     expect(
-      package!.contains(
-        _testSource('/ws/some/other/code/file.dart'),
-      ),
+      package!.contains(_testSource('/ws/some/other/code/file.dart')),
       isFalse,
     );
   }
 
   void test_contains_differentWorkspace() {
     _setUpPackage();
-    expect(
-      package!.contains(
-        _testSource('/ws2/some/file.dart'),
-      ),
-      isFalse,
-    );
+    expect(package!.contains(_testSource('/ws2/some/file.dart')), isFalse);
   }
 
   void test_contains_samePackage() {
@@ -636,9 +647,7 @@ class BlazeWorkspacePackageTest with ResourceProviderMixin {
     newFile('/ws/some/code/testing/lib/testing.dart', '');
 
     expect(
-      package!.contains(
-        _testSource('/ws/some/code/testing/lib/testing.dart'),
-      ),
+      package!.contains(_testSource('/ws/some/code/testing/lib/testing.dart')),
       isFalse,
     );
   }
@@ -657,10 +666,11 @@ class BlazeWorkspacePackageTest with ResourceProviderMixin {
       '/ws/blaze-out/host/bin/some/code/code.dart',
       '/ws/blaze-bin/some/code/code.dart',
     ]);
-    workspace = BlazeWorkspace.find(
-      resourceProvider,
-      convertPath('/ws/some/code/testing'),
-    )!;
+    workspace =
+        BlazeWorkspace.find(
+          resourceProvider,
+          convertPath('/ws/some/code/testing'),
+        )!;
 
     // Make sure that we can find the package of the generated file.
     var file = workspace.findFile(convertPath('/ws/some/code/code.dart'));
@@ -672,8 +682,9 @@ class BlazeWorkspacePackageTest with ResourceProviderMixin {
   }
 
   void test_findPackageFor_inBlazeOut_notPackage() {
-    var path =
-        convertPath('/ws/blaze-out/k8-opt/bin/news/lib/news_base.pb.dart');
+    var path = convertPath(
+      '/ws/blaze-out/k8-opt/bin/news/lib/news_base.pb.dart',
+    );
     newFile('/ws/news/BUILD', '');
     newFile(path, '');
     workspace = BlazeWorkspace.find(resourceProvider, path)!;
@@ -687,10 +698,8 @@ class BlazeWorkspacePackageTest with ResourceProviderMixin {
       '/ws/${file_paths.blazeWorkspaceMarker}',
       '/ws/blaze-genfiles',
     ]);
-    workspace = BlazeWorkspace.find(
-      resourceProvider,
-      convertPath('/ws/some/code'),
-    )!;
+    workspace =
+        BlazeWorkspace.find(resourceProvider, convertPath('/ws/some/code'))!;
     var targetFile = newFile('/ws/some/code/lib/code.dart', '');
 
     package = workspace.findPackageFor(targetFile.path);
@@ -702,11 +711,12 @@ class BlazeWorkspacePackageTest with ResourceProviderMixin {
       '/ws/blaze-out/host/bin/some/code/code.packages',
       '/ws/some/code/lib/code.dart',
     ]);
-    workspace = BlazeWorkspace.find(
-      resourceProvider,
-      convertPath('/ws/some/code'),
-      lookForBuildFileSubstitutes: false,
-    )!;
+    workspace =
+        BlazeWorkspace.find(
+          resourceProvider,
+          convertPath('/ws/some/code'),
+          lookForBuildFileSubstitutes: false,
+        )!;
 
     package = workspace.findPackageFor(
       convertPath('/ws/some/code/lib/code.dart'),
@@ -720,10 +730,8 @@ class BlazeWorkspacePackageTest with ResourceProviderMixin {
       '/ws/blaze-out/k8-opt/bin/some/code/',
       '/ws/some/code/lib/code.dart',
     ]);
-    workspace = BlazeWorkspace.find(
-      resourceProvider,
-      convertPath('/ws/some/code'),
-    )!;
+    workspace =
+        BlazeWorkspace.find(resourceProvider, convertPath('/ws/some/code'))!;
 
     package = workspace.findPackageFor(
       convertPath('/ws/some/code/lib/code.dart'),
@@ -738,10 +746,8 @@ class BlazeWorkspacePackageTest with ResourceProviderMixin {
       '/ws/blaze-out/host/bin/some/code/code.packages',
       '/ws/some/code/lib/code.dart',
     ]);
-    workspace = BlazeWorkspace.find(
-      resourceProvider,
-      convertPath('/ws/some/code'),
-    )!;
+    workspace =
+        BlazeWorkspace.find(resourceProvider, convertPath('/ws/some/code'))!;
 
     package = workspace.findPackageFor(
       convertPath('/ws/some/code/lib/code.dart'),
@@ -758,10 +764,11 @@ class BlazeWorkspacePackageTest with ResourceProviderMixin {
       '/ws/some/code/lib/code.dart',
       '/ws/some/code/testing/lib/testing.dart',
     ]);
-    workspace = BlazeWorkspace.find(
-      resourceProvider,
-      convertPath('/ws/some/code/testing'),
-    )!;
+    workspace =
+        BlazeWorkspace.find(
+          resourceProvider,
+          convertPath('/ws/some/code/testing'),
+        )!;
 
     package = workspace.findPackageFor(
       convertPath('/ws/some/code/testing/lib/testing.dart'),
@@ -775,16 +782,12 @@ class BlazeWorkspacePackageTest with ResourceProviderMixin {
     _setUpPackage();
 
     expect(
-      package!.isInTestDirectory(
-        getFile('/ws/some/code/lib/a.dart'),
-      ),
+      package!.isInTestDirectory(getFile('/ws/some/code/lib/a.dart')),
       isFalse,
     );
 
     expect(
-      package!.isInTestDirectory(
-        getFile('/ws/some/code/test/a.dart'),
-      ),
+      package!.isInTestDirectory(getFile('/ws/some/code/test/a.dart')),
       isTrue,
     );
   }
@@ -824,10 +827,8 @@ class BlazeWorkspacePackageTest with ResourceProviderMixin {
       '/ws/some/code/lib/code.dart',
     ]);
 
-    workspace = BlazeWorkspace.find(
-      resourceProvider,
-      convertPath('/ws/some/code'),
-    )!;
+    workspace =
+        BlazeWorkspace.find(resourceProvider, convertPath('/ws/some/code'))!;
     package = workspace.findPackageFor(
       convertPath('/ws/some/code/lib/code.dart'),
     );
@@ -848,8 +849,11 @@ class BlazeWorkspaceTest with ResourceProviderMixin {
       '/workspace/${file_paths.blazeWorkspaceMarker}',
       '/workspace/blaze-bin/my/module/test1.dart',
     ]);
-    var workspace = BlazeWorkspace.find(
-        resourceProvider, convertPath('/workspace/my/module'))!;
+    var workspace =
+        BlazeWorkspace.find(
+          resourceProvider,
+          convertPath('/workspace/my/module'),
+        )!;
     var notifications = StreamQueue(workspace.blazeCandidateFiles);
 
     var file1 =
@@ -858,11 +862,12 @@ class BlazeWorkspaceTest with ResourceProviderMixin {
     var info = await notifications.next;
     expect(info.requestedPath, convertPath('my/module/test1.dart'));
     expect(
-        info.candidatePaths,
-        containsAll([
-          convertPath('/workspace/blaze-bin/my/module/test1.dart'),
-          convertPath('/workspace/blaze-genfiles/my/module/test1.dart'),
-        ]));
+      info.candidatePaths,
+      containsAll([
+        convertPath('/workspace/blaze-bin/my/module/test1.dart'),
+        convertPath('/workspace/blaze-genfiles/my/module/test1.dart'),
+      ]),
+    );
 
     var file2 =
         workspace.findFile(convertPath('/workspace/my/module/test2.dart'))!;
@@ -870,18 +875,19 @@ class BlazeWorkspaceTest with ResourceProviderMixin {
     info = await notifications.next;
     expect(info.requestedPath, convertPath('my/module/test2.dart'));
     expect(
-        info.candidatePaths,
-        containsAll([
-          convertPath('/workspace/blaze-bin/my/module/test2.dart'),
-          convertPath('/workspace/blaze-genfiles/my/module/test2.dart'),
-        ]));
+      info.candidatePaths,
+      containsAll([
+        convertPath('/workspace/blaze-bin/my/module/test2.dart'),
+        convertPath('/workspace/blaze-genfiles/my/module/test2.dart'),
+      ]),
+    );
   }
 
   void test_find_fail_notAbsolute() {
     expect(
-        () =>
-            BlazeWorkspace.find(resourceProvider, convertPath('not_absolute')),
-        throwsA(const TypeMatcher<ArgumentError>()));
+      () => BlazeWorkspace.find(resourceProvider, convertPath('not_absolute')),
+      throwsA(const TypeMatcher<ArgumentError>()),
+    );
   }
 
   void test_find_hasBlazeBinFolderInOutFolder() {
@@ -889,18 +895,25 @@ class BlazeWorkspaceTest with ResourceProviderMixin {
       '/workspace/blaze-out/host/bin/',
       '/workspace/my/module/BUILD',
     ]);
-    var workspace = BlazeWorkspace.find(
-        resourceProvider, convertPath('/workspace/my/module'))!;
+    var workspace =
+        BlazeWorkspace.find(
+          resourceProvider,
+          convertPath('/workspace/my/module'),
+        )!;
     expect(workspace.root, convertPath('/workspace'));
     expect(
-        workspace.binPaths.first, convertPath('/workspace/blaze-out/host/bin'));
+      workspace.binPaths.first,
+      convertPath('/workspace/blaze-out/host/bin'),
+    );
     expect(workspace.genfiles, convertPath('/workspace/blaze-genfiles'));
     expect(
-        workspace
-            .findPackageFor(convertPath(
-                '/workspace/blaze-out/host/bin/my/module/lib/foo.dart'))!
-            .root,
-        convertPath('/workspace/my/module'));
+      workspace
+          .findPackageFor(
+            convertPath('/workspace/blaze-out/host/bin/my/module/lib/foo.dart'),
+          )!
+          .root,
+      convertPath('/workspace/my/module'),
+    );
   }
 
   void test_find_hasBlazeOutFolder_missingBinFolder() {
@@ -909,8 +922,11 @@ class BlazeWorkspaceTest with ResourceProviderMixin {
       '/workspace/blaze-out/',
       '/workspace/my/module/',
     ]);
-    var workspace = BlazeWorkspace.find(
-        resourceProvider, convertPath('/workspace/my/module'))!;
+    var workspace =
+        BlazeWorkspace.find(
+          resourceProvider,
+          convertPath('/workspace/my/module'),
+        )!;
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.binPaths.single, convertPath('/workspace/blaze-bin'));
     expect(workspace.genfiles, convertPath('/workspace/blaze-genfiles'));
@@ -922,14 +938,21 @@ class BlazeWorkspaceTest with ResourceProviderMixin {
       '/workspace/blaze-out/k8-fastbuild/bin/',
       '/workspace/my/module/',
     ]);
-    var workspace = BlazeWorkspace.find(
-        resourceProvider, convertPath('/workspace/my/module'))!;
+    var workspace =
+        BlazeWorkspace.find(
+          resourceProvider,
+          convertPath('/workspace/my/module'),
+        )!;
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.binPaths, hasLength(3));
-    expect(workspace.binPaths,
-        contains(convertPath('/workspace/blaze-out/host/bin')));
-    expect(workspace.binPaths,
-        contains(convertPath('/workspace/blaze-out/k8-fastbuild/bin')));
+    expect(
+      workspace.binPaths,
+      contains(convertPath('/workspace/blaze-out/host/bin')),
+    );
+    expect(
+      workspace.binPaths,
+      contains(convertPath('/workspace/blaze-out/k8-fastbuild/bin')),
+    );
     expect(workspace.binPaths, contains(convertPath('/workspace/blaze-bin')));
     expect(workspace.genfiles, convertPath('/workspace/blaze-genfiles'));
   }
@@ -939,8 +962,11 @@ class BlazeWorkspaceTest with ResourceProviderMixin {
       '/workspace/${file_paths.blazeWorkspaceMarker}',
       '/workspace/blaze-genfiles/',
     ]);
-    var workspace = BlazeWorkspace.find(
-        resourceProvider, convertPath('/workspace/my/module'))!;
+    var workspace =
+        BlazeWorkspace.find(
+          resourceProvider,
+          convertPath('/workspace/my/module'),
+        )!;
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.binPaths.single, convertPath('/workspace/blaze-bin'));
     expect(workspace.genfiles, convertPath('/workspace/blaze-genfiles'));
@@ -951,8 +977,11 @@ class BlazeWorkspaceTest with ResourceProviderMixin {
       '/workspace/${file_paths.blazeWorkspaceMarker}',
       '/workspace/blaze-genfiles/',
     ]);
-    var workspace = BlazeWorkspace.find(
-        resourceProvider, convertPath('/workspace/my/module'))!;
+    var workspace =
+        BlazeWorkspace.find(
+          resourceProvider,
+          convertPath('/workspace/my/module'),
+        )!;
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.binPaths.single, convertPath('/workspace/blaze-bin'));
     expect(workspace.genfiles, convertPath('/workspace/blaze-genfiles'));
@@ -984,7 +1013,9 @@ class BlazeWorkspaceTest with ResourceProviderMixin {
 
   void test_find_null_noWorkspaceMarkers() {
     var workspace = BlazeWorkspace.find(
-        resourceProvider, convertPath('/workspace/my/module'));
+      resourceProvider,
+      convertPath('/workspace/my/module'),
+    );
     expect(workspace, isNull);
   }
 
@@ -995,8 +1026,11 @@ class BlazeWorkspaceTest with ResourceProviderMixin {
 
   void test_find_null_symlinkPrefix() {
     newFile('/workspace/${file_paths.blazeWorkspaceMarker}', '');
-    var workspace = BlazeWorkspace.find(
-        resourceProvider, convertPath('/workspace/my/module'))!;
+    var workspace =
+        BlazeWorkspace.find(
+          resourceProvider,
+          convertPath('/workspace/my/module'),
+        )!;
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.binPaths.single, convertPath('/workspace/blaze-bin'));
     expect(workspace.genfiles, convertPath('/workspace/blaze-genfiles'));
@@ -1011,21 +1045,28 @@ class BlazeWorkspaceTest with ResourceProviderMixin {
       '/workspace/blaze-bin/my/module/test2.dart',
       '/workspace/blaze-genfiles/my/module/test3.dart',
     ]);
-    workspace = BlazeWorkspace.find(
-        resourceProvider, convertPath('/workspace/my/module'))!;
-    _expectFindFile('/workspace/my/module/test1.dart',
-        equals: '/workspace/my/module/test1.dart');
-    _expectFindFile('/workspace/my/module/test2.dart',
-        equals: '/workspace/blaze-bin/my/module/test2.dart');
-    _expectFindFile('/workspace/my/module/test3.dart',
-        equals: '/workspace/blaze-genfiles/my/module/test3.dart');
+    workspace =
+        BlazeWorkspace.find(
+          resourceProvider,
+          convertPath('/workspace/my/module'),
+        )!;
+    _expectFindFile(
+      '/workspace/my/module/test1.dart',
+      equals: '/workspace/my/module/test1.dart',
+    );
+    _expectFindFile(
+      '/workspace/my/module/test2.dart',
+      equals: '/workspace/blaze-bin/my/module/test2.dart',
+    );
+    _expectFindFile(
+      '/workspace/my/module/test3.dart',
+      equals: '/workspace/blaze-genfiles/my/module/test3.dart',
+    );
   }
 
   void test_forBuild() {
     // We don't have to create any resources, `forBuild()` does not check.
-    var workspace = BlazeWorkspace.forBuild(
-      root: getFolder('/workspace'),
-    );
+    var workspace = BlazeWorkspace.forBuild(root: getFolder('/workspace'));
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.binPaths.single, convertPath('/workspace/blaze-bin'));
     expect(workspace.genfiles, convertPath('/workspace/blaze-genfiles'));

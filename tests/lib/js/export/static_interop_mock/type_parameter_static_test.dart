@@ -58,44 +58,46 @@ class InvalidCovariant {
 
 void main() {
   createStaticInteropMock<
-//^
-// [web] Type argument 'Params<JSArray<JSAny?>, Params<JSObject, Supertype<JSObject>>>' has type parameters that do not match their bound. createStaticInteropMock requires instantiating all type parameters to their bound to ensure mocking conformance.
-// [web] Type argument 'ParamsImpl<JSArray<JSAny?>, JSArray<JSAny?>, Params<JSObject, Supertype<JSObject>>>' has type parameters that do not match their bound. createStaticInteropMock requires instantiating all type parameters to their bound to ensure mocking conformance.
-          Params<JSArray, Params>,
-          ParamsImpl<JSArray, JSArray, Params>>(
-      ParamsImpl<JSArray, JSArray, Params>());
-  createStaticInteropMock<Params<JSObject, Supertype>,
-          ParamsImpl<JSObject, JSObject, Supertype>>(
-      ParamsImpl<JSObject, JSObject, Supertype>());
+    // [error column 3]
+    // [web] Type argument 'Params<JSArray<JSAny?>, Params<JSObject, Supertype<JSObject>>>' has type parameters that do not match their bound. createStaticInteropMock requires instantiating all type parameters to their bound to ensure mocking conformance.
+    // [web] Type argument 'ParamsImpl<JSArray<JSAny?>, JSArray<JSAny?>, Params<JSObject, Supertype<JSObject>>>' has type parameters that do not match their bound. createStaticInteropMock requires instantiating all type parameters to their bound to ensure mocking conformance.
+    Params<JSArray, Params>,
+    ParamsImpl<JSArray, JSArray, Params>
+  >(ParamsImpl<JSArray, JSArray, Params>());
+  createStaticInteropMock<
+    Params<JSObject, Supertype>,
+    ParamsImpl<JSObject, JSObject, Supertype>
+  >(ParamsImpl<JSObject, JSObject, Supertype>());
 
   // Note that this is fine, but might fail at runtime due to runtime covariant
   // checks. This is no different than casting a `List<JSObject>` to `List` and
   // trying to add a `JSString`. On the JS backends, this will fail, and on
   // dart2wasm, this will succeed because all JS types get erased to JSValue.
   createStaticInteropMock<Params, ParamsImpl>(
-      ParamsImpl<JSArray, JSArray, Supertype>());
+    ParamsImpl<JSArray, JSArray, Supertype>(),
+  );
   createStaticInteropMock<Params, ParamsImpl>(ParamsImpl());
   createStaticInteropMock<Params, Valid>(Valid());
 
   createStaticInteropMock<Params, Invalid>(Invalid());
-//^
-// [web] Dart class 'Invalid' does not have any members that implement any of the following extension member(s) with export name 'genericMethod': ParamsExtension.genericMethod (FunctionType(JSObject Function(JSObject))).
-// [web] Dart class 'Invalid' does not have any members that implement any of the following extension member(s) with export name 'getSet': ParamsExtension.getSet (FunctionType(JSObject Function())), ParamsExtension.getSet= (FunctionType(void Function(JSObject))).
-// [web] Dart class 'Invalid' does not have any members that implement any of the following extension member(s) with export name 'interopTypeMethod': ParamsExtension.interopTypeMethod (FunctionType(Supertype<JSObject> Function(Supertype<JSObject>))).
-// [web] Dart class 'Invalid' does not have any members that implement any of the following extension member(s) with export name 'method': ParamsExtension.method (FunctionType(JSObject Function(JSObject))).
-// [web] Dart class 'Invalid' does not have any members that implement any of the following extension member(s) with export name 'superMethod': SupertypeExtension.superMethod (FunctionType(JSObject Function(JSObject))).
+  // [error column 3]
+  // [web] Dart class 'Invalid' does not have any members that implement any of the following extension member(s) with export name 'genericMethod': ParamsExtension.genericMethod (FunctionType(JSObject Function(JSObject))).
+  // [web] Dart class 'Invalid' does not have any members that implement any of the following extension member(s) with export name 'getSet': ParamsExtension.getSet (FunctionType(JSObject Function())), ParamsExtension.getSet= (FunctionType(void Function(JSObject))).
+  // [web] Dart class 'Invalid' does not have any members that implement any of the following extension member(s) with export name 'interopTypeMethod': ParamsExtension.interopTypeMethod (FunctionType(Supertype<JSObject> Function(Supertype<JSObject>))).
+  // [web] Dart class 'Invalid' does not have any members that implement any of the following extension member(s) with export name 'method': ParamsExtension.method (FunctionType(JSObject Function(JSObject))).
+  // [web] Dart class 'Invalid' does not have any members that implement any of the following extension member(s) with export name 'superMethod': SupertypeExtension.superMethod (FunctionType(JSObject Function(JSObject))).
   createStaticInteropMock<Params, InvalidContravariant>(InvalidContravariant());
-//^
-// [web] Dart class 'InvalidContravariant' does not have any members that implement any of the following extension member(s) with export name 'genericMethod': ParamsExtension.genericMethod (FunctionType(JSObject Function(JSObject))).
-// [web] Dart class 'InvalidContravariant' does not have any members that implement any of the following extension member(s) with export name 'interopTypeMethod': ParamsExtension.interopTypeMethod (FunctionType(Supertype<JSObject> Function(Supertype<JSObject>))).
-// [web] Dart class 'InvalidContravariant' does not have any members that implement any of the following extension member(s) with export name 'method': ParamsExtension.method (FunctionType(JSObject Function(JSObject))).
-// [web] Dart class 'InvalidContravariant' does not have any members that implement any of the following extension member(s) with export name 'superMethod': SupertypeExtension.superMethod (FunctionType(JSObject Function(JSObject))).
-// [web] Dart class 'InvalidContravariant' has a getter, but does not have a setter to implement any of the following extension member(s) with export name 'getSet': ParamsExtension.getSet= (FunctionType(void Function(JSObject))).
+  // [error column 3]
+  // [web] Dart class 'InvalidContravariant' does not have any members that implement any of the following extension member(s) with export name 'genericMethod': ParamsExtension.genericMethod (FunctionType(JSObject Function(JSObject))).
+  // [web] Dart class 'InvalidContravariant' does not have any members that implement any of the following extension member(s) with export name 'interopTypeMethod': ParamsExtension.interopTypeMethod (FunctionType(Supertype<JSObject> Function(Supertype<JSObject>))).
+  // [web] Dart class 'InvalidContravariant' does not have any members that implement any of the following extension member(s) with export name 'method': ParamsExtension.method (FunctionType(JSObject Function(JSObject))).
+  // [web] Dart class 'InvalidContravariant' does not have any members that implement any of the following extension member(s) with export name 'superMethod': SupertypeExtension.superMethod (FunctionType(JSObject Function(JSObject))).
+  // [web] Dart class 'InvalidContravariant' has a getter, but does not have a setter to implement any of the following extension member(s) with export name 'getSet': ParamsExtension.getSet= (FunctionType(void Function(JSObject))).
   createStaticInteropMock<Params, InvalidCovariant>(InvalidCovariant());
-//^
-// [web] Dart class 'InvalidCovariant' does not have any members that implement any of the following extension member(s) with export name 'genericMethod': ParamsExtension.genericMethod (FunctionType(JSObject Function(JSObject))).
-// [web] Dart class 'InvalidCovariant' does not have any members that implement any of the following extension member(s) with export name 'interopTypeMethod': ParamsExtension.interopTypeMethod (FunctionType(Supertype<JSObject> Function(Supertype<JSObject>))).
-// [web] Dart class 'InvalidCovariant' does not have any members that implement any of the following extension member(s) with export name 'method': ParamsExtension.method (FunctionType(JSObject Function(JSObject))).
-// [web] Dart class 'InvalidCovariant' does not have any members that implement any of the following extension member(s) with export name 'superMethod': SupertypeExtension.superMethod (FunctionType(JSObject Function(JSObject))).
-// [web] Dart class 'InvalidCovariant' has a setter, but does not have a getter to implement any of the following extension member(s) with export name 'getSet': ParamsExtension.getSet (FunctionType(JSObject Function())).
+  // [error column 3]
+  // [web] Dart class 'InvalidCovariant' does not have any members that implement any of the following extension member(s) with export name 'genericMethod': ParamsExtension.genericMethod (FunctionType(JSObject Function(JSObject))).
+  // [web] Dart class 'InvalidCovariant' does not have any members that implement any of the following extension member(s) with export name 'interopTypeMethod': ParamsExtension.interopTypeMethod (FunctionType(Supertype<JSObject> Function(Supertype<JSObject>))).
+  // [web] Dart class 'InvalidCovariant' does not have any members that implement any of the following extension member(s) with export name 'method': ParamsExtension.method (FunctionType(JSObject Function(JSObject))).
+  // [web] Dart class 'InvalidCovariant' does not have any members that implement any of the following extension member(s) with export name 'superMethod': SupertypeExtension.superMethod (FunctionType(JSObject Function(JSObject))).
+  // [web] Dart class 'InvalidCovariant' has a setter, but does not have a getter to implement any of the following extension member(s) with export name 'getSet': ParamsExtension.getSet (FunctionType(JSObject Function())).
 }

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor2.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -60,7 +60,7 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
   }
 
   @override
-  void visitElement(Element2 element) {
+  void visitElement(Element element) {
     if (element case Annotatable annotatable) {
       for (var annotation in annotatable.metadata2.annotations) {
         var ast = (annotation as ElementAnnotationImpl).annotationAst;
@@ -80,9 +80,7 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
   }
 
   @override
-  void visitFormalParameterElement(
-    FormalParameterElement element,
-  ) {
+  void visitFormalParameterElement(FormalParameterElement element) {
     _detachConstVariable(element);
     super.visitFormalParameterElement(element);
   }
@@ -96,7 +94,7 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
   }
 
   @override
-  void visitPropertyInducingElement(PropertyInducingElement2 element) {
+  void visitPropertyInducingElement(PropertyInducingElement element) {
     for (var fragment in element.fragments) {
       if (fragment is PropertyInducingElementImpl) {
         fragment.typeInference = null;
@@ -119,7 +117,7 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
             fragment.constantInitializer = initializer;
 
             ConstantContextForExpressionImpl(
-              fragment as VariableElementImpl,
+              fragment as VariableFragmentImpl,
               initializer,
             );
           }

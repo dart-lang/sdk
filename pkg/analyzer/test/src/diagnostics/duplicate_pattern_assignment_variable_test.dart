@@ -16,44 +16,69 @@ main() {
 @reflectiveTest
 class DuplicatePatternAssignmentVariableTest extends PubPackageResolutionTest {
   test_nested() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   int a;
   (a && int(sign: a)) = 0;
   a;
 }
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE, 38, 1,
-          contextMessages: [message(testFile, 23, 1)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE,
+          38,
+          1,
+          contextMessages: [message(testFile, 23, 1)],
+        ),
+      ],
+    );
   }
 
   test_record_2() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   int a;
   (a, a) = (1, 2);
   a;
 }
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE, 26, 1,
-          contextMessages: [message(testFile, 23, 1)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE,
+          26,
+          1,
+          contextMessages: [message(testFile, 23, 1)],
+        ),
+      ],
+    );
   }
 
   test_record_3() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   int a;
   (a, a, a) = (1, 2, 3);
   a;
 }
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE, 26, 1,
-          contextMessages: [message(testFile, 23, 1)]),
-      error(CompileTimeErrorCode.DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE, 29, 1,
-          contextMessages: [message(testFile, 23, 1)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE,
+          26,
+          1,
+          contextMessages: [message(testFile, 23, 1)],
+        ),
+        error(
+          CompileTimeErrorCode.DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE,
+          29,
+          1,
+          contextMessages: [message(testFile, 23, 1)],
+        ),
+      ],
+    );
   }
 
   test_separate() async {

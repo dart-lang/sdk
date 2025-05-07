@@ -16,7 +16,8 @@ main() {
 @reflectiveTest
 class UndefinedOperatorTest extends PubPackageResolutionTest {
   test_assignmentExpression_undefined() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 class B {
   f(A a) {
@@ -24,35 +25,38 @@ class B {
     a += a2;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 58, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 58, 2)],
+    );
   }
 
   test_binaryExpression() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 f(var a) {
   if (a is A) {
     a + 1;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 44, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 44, 1)],
+    );
   }
 
   test_binaryExpression_enum() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E { A }
 f(E e) => e + 1;
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 25, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 25, 1)],
+    );
   }
 
   test_binaryExpression_inSubtype() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 class B extends A {
   operator +(B b) {}
@@ -62,31 +66,35 @@ f(var a) {
     a + 1;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 87, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 87, 1)],
+    );
   }
 
   test_binaryExpression_mixin() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M {}
 f(M m) => m + 1;
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 23, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 23, 1)],
+    );
   }
 
   test_index_both() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 
 f(A a) {
   a[0]++;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 24, 3),
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 24, 3),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 24, 3),
+        error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 24, 3),
+      ],
+    );
   }
 
   test_index_defined() async {
@@ -103,14 +111,15 @@ f(A a) {
   }
 
   test_index_enum() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E { A }
 f(E e) {
   e[0];
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 25, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 25, 3)],
+    );
   }
 
   test_index_get_extendedHasNone_extensionHasGetter() async {
@@ -128,7 +137,8 @@ f(A a) {
   }
 
   test_index_get_extendedHasSetter_extensionHasGetter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void operator[]=(int index, int value) {}
 }
@@ -140,46 +150,50 @@ extension E on A {
 f(A a) {
   a[0];
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 125, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 125, 3)],
+    );
   }
 
   test_index_getter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 
 f(A a) {
   a[0];
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 24, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 24, 3)],
+    );
   }
 
   test_index_mixin() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M {}
 f(M m) {
   m[0];
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 23, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 23, 3)],
+    );
   }
 
   test_index_null() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f(Null x) {
   x[0];
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 15, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 15, 1)],
+    );
   }
 
   test_index_set_extendedHasGetter_extensionHasSetter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int operator[](int index) => 0;
 }
@@ -191,9 +205,9 @@ extension E on A {
 f(A a) {
   a[0] = 1;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 125, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 125, 3)],
+    );
   }
 
   test_index_set_extendedHasNone_extensionHasSetter() async {
@@ -211,135 +225,155 @@ f(A a) {
   }
 
   test_index_setter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 
 f(A a) {
   a[0] = 1;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 24, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 24, 3)],
+    );
   }
 
   test_indexBoth_undefined() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 f(A a) {
   a[0]++;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 23, 3),
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 23, 3),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 23, 3),
+        error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 23, 3),
+      ],
+    );
   }
 
   test_indexGetter_undefined() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 f(A a) {
   a[0];
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 23, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 23, 3)],
+    );
   }
 
   test_indexSetter_undefined() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 f(A a) {
   a[0] = 1;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 23, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 23, 3)],
+    );
   }
 
   test_minus_null() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   Null x;
   x - 3;
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 20, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 20, 1)],
+    );
   }
 
   test_minusEq_null() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   Null x;
   x -= 1;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 13, 1),
-      error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 20, 2),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 13, 1),
+        error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 20, 2),
+      ],
+    );
   }
 
   test_plus_null() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   Null x;
   x + 3;
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 20, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 20, 1)],
+    );
   }
 
   test_plus_undefined() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 f(A a) {
   a + 1;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 24, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 24, 1)],
+    );
   }
 
   test_plusEq_null() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   Null x;
   x += 1;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 13, 1),
-      error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 20, 2),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 13, 1),
+        error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 20, 2),
+      ],
+    );
   }
 
   test_postfixDec_null() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   Null x;
   x--;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 13, 1),
-      error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 19, 2),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 13, 1),
+        error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 19, 2),
+      ],
+    );
   }
 
   test_postfixExpression() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 f(var a) {
   if (a is A) {
     a++;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 43, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 43, 2)],
+    );
   }
 
   test_postfixExpression_inSubtype() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 class B extends A {
   operator +(B b) {return new B();}
@@ -349,72 +383,82 @@ f(var a) {
     a++;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 101, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 101, 2)],
+    );
   }
 
   test_postfixExpression_mixin() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M {}
 f(M m) {
   m++;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 23, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 23, 2)],
+    );
   }
 
   test_postfixExpression_undefined() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 f(A a) {
   a++;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 23, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 23, 2)],
+    );
   }
 
   test_postfixInc_null() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   Null x;
   x++;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 13, 1),
-      error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 19, 2),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 13, 1),
+        error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 19, 2),
+      ],
+    );
   }
 
   test_prefixDec_null() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   Null x;
   --x;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 13, 1),
-      error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 18, 2),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 13, 1),
+        error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 18, 2),
+      ],
+    );
   }
 
   test_prefixExpression() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 f(var a) {
   if (a is A) {
     ++a;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 42, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 42, 2)],
+    );
   }
 
   test_prefixExpression_inSubtype() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 class B extends A {
   operator +(B b) {return new B();}
@@ -424,43 +468,48 @@ f(var a) {
     ++a;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 100, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 100, 2)],
+    );
   }
 
   test_prefixExpression_mixin() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M {}
 f(M m) {
   -m;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 22, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 22, 1)],
+    );
   }
 
   test_prefixExpression_undefined() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 f(A a) {
   ++a;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 22, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 22, 2)],
+    );
   }
 
   test_prefixInc_null() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 m() {
   Null x;
   ++x;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 13, 1),
-      error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 18, 2),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 13, 1),
+        error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 18, 2),
+      ],
+    );
   }
 
   test_tilde_defined() async {
@@ -471,14 +520,17 @@ const B = ~((1 << A) - 1);
   }
 
   test_unaryMinus_null() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 m() {
   Null x;
   -x;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 13, 1),
-      error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 18, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 13, 1),
+        error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 18, 1),
+      ],
+    );
   }
 }

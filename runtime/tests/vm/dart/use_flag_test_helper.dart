@@ -26,8 +26,13 @@ late final platformDill = () {
   }
   throw 'Could not find vm_platform_strong.dill for build directory $buildDir';
 }();
-final genKernel = path.join(sdkDir, 'pkg', 'vm', 'tool',
-    'gen_kernel' + (Platform.isWindows ? '.bat' : ''));
+final genKernel = path.join(
+  sdkDir,
+  'pkg',
+  'vm',
+  'tool',
+  'gen_kernel' + (Platform.isWindows ? '.bat' : ''),
+);
 final genKernelDart = path.join('pkg', 'vm', 'bin', 'gen_kernel.dart');
 final _genSnapshotBase = 'gen_snapshot' + (Platform.isWindows ? '.exe' : '');
 // Lazily initialize `genSnapshot` so that tests that don't use it on platforms
@@ -49,10 +54,17 @@ late final genSnapshot = () {
   throw 'Could not find gen_snapshot for build directory $buildDir';
 }();
 final dart = path.join(buildDir, 'dart' + (Platform.isWindows ? '.exe' : ''));
-final dartPrecompiledRuntime =
-    path.join(buildDir, 'dartaotruntime' + (Platform.isWindows ? '.exe' : ''));
-final checkedInDartVM = path.join('tools', 'sdks', 'dart-sdk', 'bin',
-    'dart' + (Platform.isWindows ? '.exe' : ''));
+final dartPrecompiledRuntime = path.join(
+  buildDir,
+  'dartaotruntime' + (Platform.isWindows ? '.exe' : ''),
+);
+final checkedInDartVM = path.join(
+  'tools',
+  'sdks',
+  'dart-sdk',
+  'bin',
+  'dart' + (Platform.isWindows ? '.exe' : ''),
+);
 // Lazily initialize 'lipo' so that tests that don't use it on platforms
 // that don't have it don't fail.
 late final lipo = () {
@@ -78,8 +90,11 @@ String? get clangBuildToolsDir {
   return Directory(clangDir).existsSync() ? clangDir : null;
 }
 
-Future<void> assembleSnapshot(String assemblyPath, String snapshotPath,
-    {bool debug = false}) async {
+Future<void> assembleSnapshot(
+  String assemblyPath,
+  String snapshotPath, {
+  bool debug = false,
+}) async {
   if (!Platform.isLinux && !Platform.isMacOS) {
     throw "Unsupported platform ${Platform.operatingSystem} for assembling";
   }
@@ -134,8 +149,11 @@ Future<void> assembleSnapshot(String assemblyPath, String snapshotPath,
   ]);
 }
 
-Future<void> stripSnapshot(String snapshotPath, String strippedPath,
-    {bool forceElf = false}) async {
+Future<void> stripSnapshot(
+  String snapshotPath,
+  String strippedPath, {
+  bool forceElf = false,
+}) async {
   if (!Platform.isLinux && !Platform.isMacOS) {
     throw "Unsupported platform ${Platform.operatingSystem} for stripping";
   }
@@ -152,11 +170,7 @@ Future<void> stripSnapshot(String snapshotPath, String strippedPath,
     }
   }
 
-  await run(strip, <String>[
-    '-o',
-    strippedPath,
-    snapshotPath,
-  ]);
+  await run(strip, <String>['-o', strippedPath, snapshotPath]);
 }
 
 Future<ProcessResult> runHelper(String executable, List<String> args) async {

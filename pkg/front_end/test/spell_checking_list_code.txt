@@ -118,6 +118,7 @@ augments
 author
 auto
 automagically
+automatic
 auxiliary
 averages
 awaited
@@ -677,6 +678,7 @@ file's
 filenames
 filesystem
 fileuri
+filters
 finality
 finally's
 finv
@@ -1322,6 +1324,7 @@ postfix
 pound
 pow
 pragma
+pragmas
 pre
 prebuild
 prebuilt
@@ -1347,6 +1350,7 @@ presented
 pressure
 presubmit
 presumably
+presume
 presuming
 prev
 primarily
@@ -1483,6 +1487,7 @@ redirections
 redirector
 redo
 reevaluation
+reexport
 reexports
 ref
 refactoring

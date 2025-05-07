@@ -6,7 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -22,12 +22,12 @@ class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
     if (node.operator.type == TokenType.EQ) {
-      _check(
-        arguments: [node.rightHandSide],
-        errorNode: node.operator,
-      );
+      _check(arguments: [node.rightHandSide], errorNode: node.operator);
     } else if (node
-            .rightHandSide.correspondingParameter?.metadata2.hasMustBeConst ??
+            .rightHandSide
+            .correspondingParameter
+            ?.metadata2
+            .hasMustBeConst ??
         false) {
       // If the operator is not `=`, then the argument cannot be const, as it
       // depends on the value of the left hand side.
@@ -41,28 +41,19 @@ class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
-    _check(
-      arguments: [node.rightOperand],
-      errorNode: node.operator,
-    );
+    _check(arguments: [node.rightOperand], errorNode: node.operator);
   }
 
   @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     if (node.staticInvokeType is FunctionType) {
-      _check(
-        arguments: node.argumentList.arguments,
-        errorNode: node,
-      );
+      _check(arguments: node.argumentList.arguments, errorNode: node);
     }
   }
 
   @override
   void visitIndexExpression(IndexExpression node) {
-    _check(
-      arguments: [node.index],
-      errorNode: node.leftBracket,
-    );
+    _check(arguments: [node.index], errorNode: node.leftBracket);
   }
 
   @override
@@ -76,15 +67,13 @@ class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    _check(
-      arguments: node.argumentList.arguments,
-      errorNode: node.methodName,
-    );
+    _check(arguments: node.argumentList.arguments, errorNode: node.methodName);
   }
 
   @override
   void visitRedirectingConstructorInvocation(
-      RedirectingConstructorInvocation node) {
+    RedirectingConstructorInvocation node,
+  ) {
     _check(
       arguments: node.argumentList.arguments,
       errorNode: node.constructorName ?? node.thisKeyword,
@@ -156,7 +145,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
       switch (element) {
         case GetterElement(variable3: var variable?):
           return variable.isConst;
-        case VariableElement2():
+        case VariableElement():
           return element.isConst;
       }
     }

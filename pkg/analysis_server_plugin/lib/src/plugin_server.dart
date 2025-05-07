@@ -18,7 +18,7 @@ import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
@@ -42,7 +42,7 @@ import 'package:analyzer_plugin/protocol/protocol_generated.dart' as protocol;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
 
 typedef _ErrorAndProtocolError = ({
-  AnalysisError error,
+  Diagnostic diagnostic,
   protocol.AnalysisError protocolError,
 });
 
@@ -180,13 +180,14 @@ class PluginServer {
       return protocol.EditGetFixesResult(const []);
     }
 
-    var lintAtOffset = errors.where((error) => error.error.offset == offset);
+    var lintAtOffset =
+        errors.where((error) => error.diagnostic.offset == offset);
     if (lintAtOffset.isEmpty) return protocol.EditGetFixesResult(const []);
 
     var errorFixesList = <protocol.AnalysisErrorFixes>[];
 
     var workspace = DartChangeWorkspace([analysisContext.currentSession]);
-    for (var (:error, :protocolError) in lintAtOffset) {
+    for (var (:diagnostic, :protocolError) in lintAtOffset) {
       var context = DartFixContext(
         // TODO(srawlins): Use a real instrumentation service. Other
         // implementations get InstrumentationService from AnalysisServer.
@@ -194,7 +195,7 @@ class PluginServer {
         workspace: workspace,
         libraryResult: libraryResult,
         unitResult: unitResult,
-        error: error,
+        error: diagnostic,
       );
 
       List<Fix> fixes;
@@ -394,14 +395,14 @@ class PluginServer {
     var errorsAndProtocolErrors = [
       for (var e in errors)
         (
-          error: e,
+          diagnostic: e,
           protocolError: protocol.AnalysisError(
             protocol.AnalysisErrorSeverity.INFO,
             protocol.AnalysisErrorType.STATIC_WARNING,
             _locationFor(currentUnit.unit, path, e),
             e.message,
             e.errorCode.name,
-            correction: e.correction,
+            correction: e.correctionMessage,
             // TODO(srawlins): Use a valid value here.
             hasFix: true,
           )
@@ -638,14 +639,15 @@ class PluginServer {
       _priorityPaths.any(analysisContext.contextRoot.isAnalyzed);
 
   static protocol.Location _locationFor(
-      CompilationUnit unit, String path, AnalysisError error) {
+      CompilationUnit unit, String path, Diagnostic diagnostic) {
     var lineInfo = unit.lineInfo;
-    var startLocation = lineInfo.getLocation(error.offset);
-    var endLocation = lineInfo.getLocation(error.offset + error.length);
+    var startLocation = lineInfo.getLocation(diagnostic.offset);
+    var endLocation =
+        lineInfo.getLocation(diagnostic.offset + diagnostic.length);
     return protocol.Location(
       path,
-      error.offset,
-      error.length,
+      diagnostic.offset,
+      diagnostic.length,
       startLocation.lineNumber,
       startLocation.columnNumber,
       endLine: endLocation.lineNumber,

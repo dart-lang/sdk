@@ -46,14 +46,14 @@ static extension-type-member method ET|constructor#(self::C c) → self::ET% /* 
   lowered final self::ET% /* erasure=self::C, declared=! */ #this = c;
   return #this;
 }
-static extension-type-member method ET|constructor#_#new#tearOff(self::C c) → self::ET% /* erasure=self::C, declared=! */
+static extension-type-member synthetic method ET|constructor#_#new#tearOff(self::C c) → self::ET% /* erasure=self::C, declared=! */
   return self::ET|constructor#(c);
 static extension-type-member method ET|constructor#named(self::C c, {self::A a = #C1}) → self::ET% /* erasure=self::C, declared=! */ {
   lowered final self::ET% /* erasure=self::C, declared=! */ #this;
   #this = self::ET|constructor#(c);
   return #this;
 }
-static extension-type-member method ET|constructor#_#named#tearOff(self::C c, {self::A a = #C1}) → self::ET% /* erasure=self::C, declared=! */
+static extension-type-member synthetic method ET|constructor#_#named#tearOff(self::C c, {self::A a = #C1}) → self::ET% /* erasure=self::C, declared=! */
   return self::ET|constructor#named(c, a: a);
 static extension-type-member method ET|foo(lowered final self::ET% /* erasure=self::C, declared=! */ #this, {self::A a = #C1}) → dynamic {}
 static extension-type-member method ET|get#foo(lowered final self::ET% /* erasure=self::C, declared=! */ #this) → ({a: self::A}) → dynamic

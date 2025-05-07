@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/utilities/extensions/uri.dart';
 import 'package:path/path.dart' as path;
 
@@ -66,7 +66,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitImportDirective(ImportDirective node) {
     if (isPackageSelfReference(node)) {
-      rule.reportLint(node.uri);
+      rule.reportAtNode(node.uri);
     }
   }
 }

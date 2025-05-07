@@ -42,7 +42,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var i = 1; i < node.strings.length - 1; i++) {
       var literal = node.strings[i];
       if (literal.stringValue?.isEmpty ?? false) {
-        rule.reportLint(literal);
+        rule.reportAtNode(literal);
       }
     }
   }
@@ -68,7 +68,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (type.isDartCoreString &&
         node.methodName.name == 'toString' &&
         context.typeSystem.isNonNullable(type)) {
-      rule.reportLint(node.methodName);
+      rule.reportAtNode(node.methodName);
       return;
     }
 
@@ -81,13 +81,13 @@ class _Visitor extends SimpleAstVisitor<void> {
           'floor',
           'truncate',
         ].contains(node.methodName.name)) {
-      rule.reportLint(node.methodName);
+      rule.reportAtNode(node.methodName);
       return;
     }
 
     // double.toDouble()
     if (type.isDartCoreDouble && node.methodName.name == 'toDouble') {
-      rule.reportLint(node.methodName);
+      rule.reportAtNode(node.methodName);
       return;
     }
   }
@@ -98,7 +98,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         expression.realTarget is! SuperExpression &&
         expression.methodName.name == 'toString' &&
         expression.argumentList.arguments.isEmpty) {
-      rule.reportLint(expression.methodName);
+      rule.reportAtNode(expression.methodName);
     }
   }
 }

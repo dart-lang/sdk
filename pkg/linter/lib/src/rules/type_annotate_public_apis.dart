@@ -56,7 +56,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         // scope of another function.
         node.parent is CompilationUnit) {
       if (node.returnType == null && !node.isSetter) {
-        rule.reportLintForToken(node.name);
+        rule.reportAtToken(node.name);
       } else {
         node.functionExpression.parameters?.accept(v);
       }
@@ -67,7 +67,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     if (!node.name.isPrivate) {
       if (node.returnType == null) {
-        rule.reportLintForToken(node.name);
+        rule.reportAtToken(node.name);
       } else {
         node.parameters.accept(v);
       }
@@ -80,7 +80,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     if (!node.name.isPrivate) {
       if (node.returnType == null && !node.isSetter) {
-        rule.reportLintForToken(node.name);
+        rule.reportAtToken(node.name);
       } else {
         node.parameters?.accept(v);
       }
@@ -114,7 +114,7 @@ class _VisitorHelper extends RecursiveAstVisitor<void> {
     if (param.type == null) {
       var paramName = param.name?.lexeme;
       if (paramName != null && !paramName.isJustUnderscores) {
-        rule.reportLint(param);
+        rule.reportAtNode(param);
       }
     }
   }
@@ -124,7 +124,7 @@ class _VisitorHelper extends RecursiveAstVisitor<void> {
     if (!node.name.isPrivate &&
         !node.isConst &&
         !(node.isFinal && hasInferredType(node))) {
-      rule.reportLintForToken(node.name);
+      rule.reportAtToken(node.name);
     }
   }
 }

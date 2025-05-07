@@ -23,19 +23,19 @@ class LintCode extends ErrorCode {
     super.hasPublishedDocs,
     String? uniqueName,
   }) : super(
-          problemMessage: problemMessage,
-          name: name,
-          uniqueName: uniqueName ?? 'LintCode.$name',
-        );
+         problemMessage: problemMessage,
+         name: name,
+         uniqueName: uniqueName ?? 'LintCode.$name',
+       );
 
   @override
-  ErrorSeverity get errorSeverity => ErrorSeverity.INFO;
+  DiagnosticSeverity get errorSeverity => DiagnosticSeverity.INFO;
 
   @override
   int get hashCode => uniqueName.hashCode;
 
   @override
-  ErrorType get type => ErrorType.LINT;
+  DiagnosticType get type => DiagnosticType.LINT;
 
   @override
   String? get url => null;
@@ -50,9 +50,12 @@ class LintCode extends ErrorCode {
 /// The primary difference from [LintCode]s is that these codes cannot be
 /// suppressed with `// ignore:` or `// ignore_for_file:` comments.
 class SecurityLintCode extends LintCode {
-  const SecurityLintCode(super.name, super.problemMessage,
-      {String? uniqueName, super.correctionMessage})
-      : super(uniqueName: uniqueName ?? 'LintCode.$name');
+  const SecurityLintCode(
+    super.name,
+    super.problemMessage, {
+    String? uniqueName,
+    super.correctionMessage,
+  }) : super(uniqueName: uniqueName ?? 'LintCode.$name');
 
   @override
   bool get isIgnorable => false;

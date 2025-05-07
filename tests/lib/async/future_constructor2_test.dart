@@ -23,8 +23,10 @@ unnamed() {
 
 delayed() {
   asyncStart();
-  new Future<int>.delayed(const Duration(milliseconds: 2), createIntFuture)
-      .then((x) {
+  new Future<int>.delayed(
+    const Duration(milliseconds: 2),
+    createIntFuture,
+  ).then((x) {
     Expect.equals(499, x);
     asyncEnd();
   });

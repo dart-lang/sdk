@@ -18,11 +18,10 @@ import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/extensions/completion_request.dart';
 import 'package:analysis_server/src/utilities/extensions/object.dart';
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -789,7 +788,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitConstructorName(ConstructorName node) {
     if (node.parent is ConstructorReference) {
       var element = node.type.element2;
-      if (element is InterfaceElement2) {
+      if (element is InterfaceElement) {
         declarationHelper(
           preferNonInvocation: true,
         ).addStaticMembersOfElement(element);
@@ -1278,8 +1277,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     }
     if (constructor is ConstructorDeclaration) {
       var declaredElement = node.declaredFragment?.element;
-      FieldElement2? field;
-      if (declaredElement is FieldFormalParameterElement2) {
+      FieldElement? field;
+      if (declaredElement is FieldFormalParameterElement) {
         field = declaredElement.field2;
       }
       declarationHelper().addFieldsForInitializers(constructor, field);
@@ -1348,7 +1347,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       }
     }
 
-    keywordHelper.addFormalParameterKeywords(node);
+    keywordHelper.addFormalParameterKeywords(
+      node,
+      suggestRequired: true,
+      suggestVariableName: true,
+    );
     _forTypeAnnotation(node);
   }
 
@@ -1377,7 +1380,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   @override
   void visitForPartsWithExpression(ForPartsWithExpression node) {
     if (node.isFullySynthetic) {
-      node.parent?.accept(this);
+      node.parent.accept(this);
     }
   }
 
@@ -1507,7 +1510,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     collector.completionLocation = 'FormalParameterList_parameter';
     var returnType = node.returnType;
     if (returnType != null && offset <= returnType.end) {
-      keywordHelper.addFormalParameterKeywords(node.parentFormalParameterList);
+      keywordHelper.addFormalParameterKeywords(
+        node.parentFormalParameterList,
+        suggestRequired: node.requiredKeyword == null,
+        suggestVariableName: node.name.lexeme.isEmpty,
+      );
       _forTypeAnnotation(node);
     } else if (returnType == null && offset < node.name.offset) {
       _forTypeAnnotation(node);
@@ -1671,13 +1678,13 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       var element = node.element2;
       DartType type;
       collector.completionLocation = 'PropertyAccess_propertyName';
-      if (element is FunctionTypedElement2) {
+      if (element is FunctionTypedElement) {
         if (element is GetterElement) {
           type = element.type.returnType;
         } else {
           type = element.type;
         }
-      } else if (element is PrefixElement2) {
+      } else if (element is PrefixElement) {
         var isInstanceCreation =
             node.parent?.parent?.parent is InstanceCreationExpression;
         declarationHelper(
@@ -1686,10 +1693,10 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           mustBeNonVoid: isInstanceCreation,
         ).addDeclarationsThroughImportPrefix(element);
         return;
-      } else if (element is VariableElement2) {
+      } else if (element is VariableElement) {
         type = element.type;
       } else {
-        if (element is InterfaceElement2 || element is ExtensionElement2) {
+        if (element is InterfaceElement || element is ExtensionElement) {
           declarationHelper().addStaticMembersOfElement(element!);
         }
         return;
@@ -1936,10 +1943,10 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           target is Identifier &&
           (!node.isCascaded || offset == operator.offset + 1)) {
         var element = target.element;
-        if (element is InterfaceElement2 || element is ExtensionTypeElement2) {
+        if (element is InterfaceElement || element is ExtensionTypeElement) {
           declarationHelper().addStaticMembersOfElement(element!);
         }
-        if (element is PrefixElement2) {
+        if (element is PrefixElement) {
           declarationHelper().addDeclarationsThroughImportPrefix(element);
         }
       }
@@ -2068,7 +2075,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     var prefixElement = importPrefix?.element2;
 
     // `prefix.x^ print(0);` is recovered as `prefix.x print; (0);`.
-    if (prefixElement is PrefixElement2) {
+    if (prefixElement is PrefixElement) {
       if (node.parent case VariableDeclarationList variableList) {
         if (variableList.parent case VariableDeclarationStatement statement) {
           if (statement.semicolon.isSynthetic) {
@@ -2203,7 +2210,10 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       }
     } else if (name.name == null) {
       collector.completionLocation = 'PatternField_pattern';
-      _forVariablePattern();
+      var parent = node.thisOrAncestorOfType<PatternVariableDeclarationImpl>();
+      if (parent == null) {
+        _forVariablePattern();
+      }
       _forPatternFieldName(name);
     } else {
       collector.completionLocation = 'PatternField_pattern';
@@ -2257,7 +2267,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           var parent = node.parent;
           var mustBeAssignable =
               parent is AssignmentExpression && node == parent.leftHandSide;
-          if (element is PrefixElement2) {
+          if (element is PrefixElement) {
             declarationHelper(
               mustBeAssignable: mustBeAssignable,
             ).addDeclarationsThroughImportPrefix(element);
@@ -2266,14 +2276,19 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
               mustBeAssignable: mustBeAssignable,
               preferNonInvocation:
                   node.parent is CommentReference ||
-                  (element is InterfaceElement2 &&
+                  (element is InterfaceElement &&
                       state.request.shouldSuggestTearOff(element)),
             );
             if (node.parent is CommentReference) {
-              if (element is InterfaceElement2) {
+              if (element is InterfaceElement) {
                 helper.addInstanceMembersOfType(element.thisType);
-              } else if (element is ExtensionElement2) {
-                helper.addMembersFromExtensionElement(element);
+              } else if (element is ExtensionElement) {
+                helper.addMembersFromExtensionElement(
+                  element,
+                  excludedGetters: {},
+                  includeMethods: true,
+                  includeSetters: true,
+                );
               }
             }
             helper.addStaticMembersOfElement(element);
@@ -2320,15 +2335,20 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           target is Identifier &&
           (!node.isCascaded || offset == operator.offset + 1)) {
         var element = target.element;
-        if (element is InterfaceElement2 || element is ExtensionTypeElement2) {
+        if (element is InterfaceElement || element is ExtensionTypeElement) {
           declarationHelper().addStaticMembersOfElement(element!);
         }
-        if (element is PrefixElement2) {
+        if (element is PrefixElement) {
           declarationHelper().addDeclarationsThroughImportPrefix(element);
         }
       }
       if (type == null && target is ExtensionOverride) {
-        declarationHelper().addMembersFromExtensionElement(target.element2);
+        declarationHelper().addMembersFromExtensionElement(
+          target.element2,
+          excludedGetters: {},
+          includeMethods: true,
+          includeSetters: true,
+        );
       }
     }
   }
@@ -2541,24 +2561,18 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
     var name = node.name;
+    var noRequired = node.requiredKeyword == null;
     if (name != null && node.isSingleIdentifier) {
       collector.completionLocation = 'FormalParameterList_parameter';
+      keywordHelper.addFormalParameterKeywords(
+        node.parentFormalParameterList,
+        suggestRequired: name.keyword != Keyword.REQUIRED,
+        suggestCovariant: name.keyword != Keyword.COVARIANT,
+        suggestVariableName: true,
+      );
+      _forTypeAnnotation(node);
       if (name.isKeyword) {
-        if (name.keyword == Keyword.REQUIRED && node.covariantKeyword == null) {
-          keywordHelper.addKeyword(Keyword.COVARIANT);
-        }
-        _forTypeAnnotation(node);
         return;
-      } else if (name.isSynthetic) {
-        keywordHelper.addFormalParameterKeywords(
-          node.parentFormalParameterList,
-        );
-        _forTypeAnnotation(node);
-      } else {
-        keywordHelper.addFormalParameterKeywords(
-          node.parentFormalParameterList,
-        );
-        _forTypeAnnotation(node);
       }
     }
     var type = node.type;
@@ -2567,7 +2581,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       if (type is NamedType) {
         if (type.importPrefix case var importPrefix?) {
           var prefixElement = importPrefix.element2;
-          if (prefixElement is PrefixElement2) {
+          if (prefixElement is PrefixElement) {
             if (type.name2.coversOffset(offset)) {
               declarationHelper(
                 mustBeType: true,
@@ -2579,6 +2593,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       if (type.beginToken.coversOffset(offset)) {
         keywordHelper.addFormalParameterKeywords(
           node.parentFormalParameterList,
+          suggestRequired: noRequired,
+          suggestVariableName:
+              node.name == null || type.beginToken.offset == offset,
         );
         _forTypeAnnotation(node);
       } else if (type is GenericFunctionType &&
@@ -2588,11 +2605,17 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       }
     } else {
       var keyword = node.keyword;
-      if (keyword != null && offset <= keyword.end) {
+      if (keyword == null || offset <= keyword.end) {
         collector.completionLocation = 'FormalParameterList_parameter';
         var parent = node.parent;
-        if (parent is FormalParameterList) {
-          keywordHelper.addFormalParameterKeywords(parent);
+        if (parent
+            case FormalParameterList list ||
+                DefaultFormalParameter(parent: FormalParameterList list)) {
+          keywordHelper.addFormalParameterKeywords(
+            list,
+            suggestRequired: noRequired,
+            suggestVariableName: name.coversOffset(offset),
+          );
         }
         _forTypeAnnotation(node);
       }
@@ -3397,8 +3420,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     ConstructorFieldInitializer? initializer,
   ) {
     var element = initializer?.fieldName.element;
-    FieldElement2? field;
-    if (element is FieldElement2) {
+    FieldElement? field;
+    if (element is FieldElement) {
       field = element;
     }
     keywordHelper.addConstructorInitializerKeywords(constructor, initializer);
@@ -3606,15 +3629,24 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     // Might be a start of a ObjectPattern.
     // Might be a ConstantPattern.
     if (coveringNode case SimpleIdentifier identifier) {
-      if (!identifier.isSynthetic) {
-        if (identifier.parent is ConstantPattern) {
-          keywordHelper.addPatternKeywords();
-          // TODO(scheglov): Actually we need constructors, but only const.
-          // And not-yet imported contributors does not work well yet.
+      if (identifier.isSynthetic) {
+        if (coveringNode.parent?.parent case PatternField _) {
+          keywordHelper.addVariablePatternKeywords();
           collector.preferConstants = true;
-          declarationHelper(mustBeNonVoid: true).addLexicalDeclarations(node);
+          declarationHelper(
+            mustBeConstant: mustBeConst,
+            mustBeStatic: node.inStaticContext,
+            objectPatternAllowed: true,
+          ).addLexicalDeclarations(node);
           return;
         }
+      } else if (identifier.parent is ConstantPattern) {
+        keywordHelper.addPatternKeywords();
+        // TODO(scheglov): Actually we need constructors, but only const.
+        // And not-yet imported contributors does not work well yet.
+        collector.preferConstants = true;
+        declarationHelper(mustBeNonVoid: true).addLexicalDeclarations(node);
+        return;
       }
     }
 
@@ -3719,7 +3751,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (node is NamedType) {
       if (node.importPrefix case var importPrefix?) {
         var prefixElement = importPrefix.element2;
-        if (prefixElement is PrefixElement2) {
+        if (prefixElement is PrefixElement) {
           declarationHelper(
             mustBeExtensible: mustBeExtensible,
             mustBeImplementable: mustBeImplementable,
@@ -3902,7 +3934,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   /// If the budget has been exceeded, then the results are marked as incomplete
   /// and no suggestions are added.
   void _suggestOverridesFor({
-    required InterfaceElement2? element,
+    required InterfaceElement? element,
     bool skipAt = false,
   }) {
     if (state.budget.isEmpty) {
@@ -3994,7 +4026,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     var lexeme = identifier.lexeme;
     if (lexeme.isNotEmpty && 'override'.startsWith(lexeme)) {
       var declaredElement = node.declaredFragment?.element;
-      if (declaredElement is InterfaceElement2) {
+      if (declaredElement is InterfaceElement) {
         _suggestOverridesFor(element: declaredElement, skipAt: true);
       }
     }
@@ -4191,7 +4223,7 @@ extension on ClassMember {
 extension on ArgumentList {
   /// The element being invoked by the expression containing this argument list,
   /// or `null` if the element is not known.
-  Element2? get invokedElement {
+  Element? get invokedElement {
     switch (parent) {
       case Annotation invocation:
         return invocation.element2;
@@ -4313,7 +4345,7 @@ extension on CompilationUnit {
   }
 }
 
-extension on Element2? {
+extension on Element? {
   /// Returns the parameters associated with this element, or `null` if this
   /// element doesn't have any parameters associated with it.
   ///
@@ -4325,9 +4357,9 @@ extension on Element2? {
     var self = this;
     if (self is GetterElement) {
       return self.returnType.ifTypeOrNull<FunctionType>()?.formalParameters;
-    } else if (self is ExecutableElement2) {
+    } else if (self is ExecutableElement) {
       return self.formalParameters;
-    } else if (self is VariableElement2) {
+    } else if (self is VariableElement) {
       var type = self.type;
       if (type is FunctionType) {
         return type.formalParameters;

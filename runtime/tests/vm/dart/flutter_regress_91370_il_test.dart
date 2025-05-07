@@ -246,14 +246,18 @@ void main(List<String> args) {
     testNarrowingThroughIndexedLoadFromGrowableArray([a1]);
     testNarrowingThroughIndexedLoadFromGrowableArray([a0]);
     testNarrowingThroughIndexedLoadFromFixedArray(
-        List<A1>.filled(1, a1, growable: false));
+      List<A1>.filled(1, a1, growable: false),
+    );
     testNarrowingThroughIndexedLoadFromFixedArray(
-        List<A0>.filled(1, a0, growable: false));
+      List<A0>.filled(1, a0, growable: false),
+    );
   }
 }
 
 void matchIL$B$testNarrowingThroughThisCallWithPositionalParam(
-    FlowGraph beforeLICM, FlowGraph afterLICM) {
+  FlowGraph beforeLICM,
+  FlowGraph afterLICM,
+) {
   final env = beforeLICM.match([
     match.block('Graph'),
     match.block('Function', [
@@ -265,14 +269,18 @@ void matchIL$B$testNarrowingThroughThisCallWithPositionalParam(
     'B1' <<
         match.block('Join', [
           match.CheckStackOverflow(),
-          match.Branch(match.RelationalOp(match.any, match.any, kind: '<'),
-              ifTrue: 'B2'),
+          match.Branch(
+            match.RelationalOp(match.any, match.any, kind: '<'),
+            ifTrue: 'B2',
+          ),
         ]),
     'B2' <<
         match.block('Target', [
           'this_cid' << match.LoadClassId('this'),
-          match.Branch(match.EqualityCompare('this_cid', match.any, kind: '=='),
-              ifTrue: 'B3'),
+          match.Branch(
+            match.EqualityCompare('this_cid', match.any, kind: '=='),
+            ifTrue: 'B3',
+          ),
         ]),
     'B3' <<
         match.block('Target', [
@@ -297,13 +305,17 @@ void matchIL$B$testNarrowingThroughThisCallWithPositionalParam(
     'B1' <<
         match.block('Join', [
           match.CheckStackOverflow(),
-          match.Branch(match.RelationalOp(match.any, match.any, kind: '<'),
-              ifTrue: 'B2'),
+          match.Branch(
+            match.RelationalOp(match.any, match.any, kind: '<'),
+            ifTrue: 'B2',
+          ),
         ]),
     'B2' <<
         match.block('Target', [
-          match.Branch(match.EqualityCompare('this_cid', match.any, kind: '=='),
-              ifTrue: 'B3'),
+          match.Branch(
+            match.EqualityCompare('this_cid', match.any, kind: '=='),
+            ifTrue: 'B3',
+          ),
         ]),
     'B3' <<
         match.block('Target', [
@@ -316,14 +328,20 @@ void matchIL$B$testNarrowingThroughThisCallWithPositionalParam(
 }
 
 void matchIL$B$testNarrowingThroughThisCallWithNamedParams(
-    FlowGraph beforeLICM, FlowGraph afterLICM) {
+  FlowGraph beforeLICM,
+  FlowGraph afterLICM,
+) {
   // Graph shape is basically the same.
   matchIL$B$testNarrowingThroughThisCallWithPositionalParam(
-      beforeLICM, afterLICM);
+    beforeLICM,
+    afterLICM,
+  );
 }
 
 void matchIL$testNarrowingThroughIsCheckOnSubclass(
-    FlowGraph beforeLICM, FlowGraph afterLICM) {
+  FlowGraph beforeLICM,
+  FlowGraph afterLICM,
+) {
   final env = beforeLICM.match([
     match.block('Graph'),
     match.block('Function', [
@@ -334,14 +352,18 @@ void matchIL$testNarrowingThroughIsCheckOnSubclass(
     'B1' <<
         match.block('Join', [
           match.CheckStackOverflow(),
-          match.Branch(match.RelationalOp(match.any, match.any, kind: '<'),
-              ifTrue: 'B2'),
+          match.Branch(
+            match.RelationalOp(match.any, match.any, kind: '<'),
+            ifTrue: 'B2',
+          ),
         ]),
     'B2' <<
         match.block('Target', [
           'b_cid' << match.LoadClassId('b'),
-          match.Branch(match.EqualityCompare('b_cid', match.any, kind: '=='),
-              ifTrue: 'B3'),
+          match.Branch(
+            match.EqualityCompare('b_cid', match.any, kind: '=='),
+            ifTrue: 'B3',
+          ),
         ]),
     'B3' <<
         match.block('Target', [
@@ -364,13 +386,17 @@ void matchIL$testNarrowingThroughIsCheckOnSubclass(
     'B1' <<
         match.block('Join', [
           match.CheckStackOverflow(),
-          match.Branch(match.RelationalOp(match.any, match.any, kind: '<'),
-              ifTrue: 'B2'),
+          match.Branch(
+            match.RelationalOp(match.any, match.any, kind: '<'),
+            ifTrue: 'B2',
+          ),
         ]),
     'B2' <<
         match.block('Target', [
-          match.Branch(match.EqualityCompare('b_cid', match.any, kind: '=='),
-              ifTrue: 'B3'),
+          match.Branch(
+            match.EqualityCompare('b_cid', match.any, kind: '=='),
+            ifTrue: 'B3',
+          ),
         ]),
     'B3' <<
         match.block('Target', [
@@ -381,7 +407,9 @@ void matchIL$testNarrowingThroughIsCheckOnSubclass(
 }
 
 void matchIL$testNarrowingThroughIsCheckWithTypeArgMonomorphic(
-    FlowGraph beforeLICM, FlowGraph afterLICM) {
+  FlowGraph beforeLICM,
+  FlowGraph afterLICM,
+) {
   final env = beforeLICM.match([
     match.block('Graph'),
     match.block('Function', [
@@ -392,15 +420,18 @@ void matchIL$testNarrowingThroughIsCheckWithTypeArgMonomorphic(
     'B1' <<
         match.block('Join', [
           match.CheckStackOverflow(),
-          match.Branch(match.RelationalOp(match.any, match.any, kind: '<'),
-              ifTrue: 'B2'),
+          match.Branch(
+            match.RelationalOp(match.any, match.any, kind: '<'),
+            ifTrue: 'B2',
+          ),
         ]),
     'B2' <<
         match.block('Target', [
           'b_is_B<A1>' << match.InstanceOf('b', match.any, match.any),
           match.Branch(
-              match.StrictCompare('b_is_B<A1>', match.any, kind: '==='),
-              ifTrue: 'B3'),
+            match.StrictCompare('b_is_B<A1>', match.any, kind: '==='),
+            ifTrue: 'B3',
+          ),
         ]),
     'B3' <<
         match.block('Target', [
@@ -422,15 +453,18 @@ void matchIL$testNarrowingThroughIsCheckWithTypeArgMonomorphic(
     'B1' <<
         match.block('Join', [
           match.CheckStackOverflow(),
-          match.Branch(match.RelationalOp(match.any, match.any, kind: '<'),
-              ifTrue: 'B2'),
+          match.Branch(
+            match.RelationalOp(match.any, match.any, kind: '<'),
+            ifTrue: 'B2',
+          ),
         ]),
     'B2' <<
         match.block('Target', [
           'b_is_B<A1>' << match.InstanceOf('b', match.any, match.any),
           match.Branch(
-              match.StrictCompare('b_is_B<A1>', match.any, kind: '==='),
-              ifTrue: 'B3'),
+            match.StrictCompare('b_is_B<A1>', match.any, kind: '==='),
+            ifTrue: 'B3',
+          ),
         ]),
     'B3' <<
         match.block('Target', [
@@ -441,7 +475,9 @@ void matchIL$testNarrowingThroughIsCheckWithTypeArgMonomorphic(
 }
 
 void matchIL$testNarrowingThroughAsCheckWithTypeArgPolymorphic(
-    FlowGraph beforeLICM, FlowGraph afterLICM) {
+  FlowGraph beforeLICM,
+  FlowGraph afterLICM,
+) {
   final env = beforeLICM.match([
     match.block('Graph'),
     match.block('Function', [
@@ -452,13 +488,18 @@ void matchIL$testNarrowingThroughAsCheckWithTypeArgPolymorphic(
     'B1' <<
         match.block('Join', [
           match.CheckStackOverflow(),
-          match.Branch(match.RelationalOp(match.any, match.any, kind: '<'),
-              ifTrue: 'B2'),
+          match.Branch(
+            match.RelationalOp(match.any, match.any, kind: '<'),
+            ifTrue: 'B2',
+          ),
         ]),
     'B2' <<
         match.block('Target', [
-          match.Branch(match.EqualityCompare(match.any, match.any, kind: '=='),
-              ifTrue: 'B3', ifFalse: 'B4'),
+          match.Branch(
+            match.EqualityCompare(match.any, match.any, kind: '=='),
+            ifTrue: 'B3',
+            ifFalse: 'B4',
+          ),
         ]),
     'B3' << match.block('Target', [match.Throw(match.any)]),
     'B4' <<
@@ -481,13 +522,18 @@ void matchIL$testNarrowingThroughAsCheckWithTypeArgPolymorphic(
     'B1' <<
         match.block('Join', [
           match.CheckStackOverflow(),
-          match.Branch(match.RelationalOp(match.any, match.any, kind: '<'),
-              ifTrue: 'B2'),
+          match.Branch(
+            match.RelationalOp(match.any, match.any, kind: '<'),
+            ifTrue: 'B2',
+          ),
         ]),
     'B2' <<
         match.block('Target', [
-          match.Branch(match.EqualityCompare(match.any, match.any, kind: '=='),
-              ifTrue: 'B3', ifFalse: 'B4'),
+          match.Branch(
+            match.EqualityCompare(match.any, match.any, kind: '=='),
+            ifTrue: 'B3',
+            ifFalse: 'B4',
+          ),
         ]),
     'B3' << match.block('Target', [match.Throw(match.any)]),
     'B4' <<
@@ -500,7 +546,9 @@ void matchIL$testNarrowingThroughAsCheckWithTypeArgPolymorphic(
 }
 
 void matchIL$testNarrowingThroughPhiOfAsChecksWithTypeArgPolymorphic(
-    FlowGraph beforeLICM, FlowGraph afterLICM) {
+  FlowGraph beforeLICM,
+  FlowGraph afterLICM,
+) {
   final env = beforeLICM.match([
     match.block('Graph'),
     match.block('Function', [
@@ -511,19 +559,27 @@ void matchIL$testNarrowingThroughPhiOfAsChecksWithTypeArgPolymorphic(
     'B1' <<
         match.block('Join', [
           match.CheckStackOverflow(),
-          match.Branch(match.RelationalOp(match.any, match.any, kind: '<'),
-              ifTrue: 'B2'),
+          match.Branch(
+            match.RelationalOp(match.any, match.any, kind: '<'),
+            ifTrue: 'B2',
+          ),
         ]),
     'B2' <<
         match.block('Target', [
-          match.Branch(match.EqualityCompare(match.any, match.any, kind: '=='),
-              ifTrue: 'B3', ifFalse: 'B4'),
+          match.Branch(
+            match.EqualityCompare(match.any, match.any, kind: '=='),
+            ifTrue: 'B3',
+            ifFalse: 'B4',
+          ),
         ]),
     'B3' << match.block('Target', [match.Throw(match.any)]),
     'B4' <<
         match.block('Target', [
-          match.Branch(match.EqualityCompare(match.any, match.any, kind: '=='),
-              ifTrue: 'B5', ifFalse: 'B6'),
+          match.Branch(
+            match.EqualityCompare(match.any, match.any, kind: '=='),
+            ifTrue: 'B5',
+            ifFalse: 'B6',
+          ),
         ]),
     'B5' <<
         match.block('Target', [
@@ -557,19 +613,27 @@ void matchIL$testNarrowingThroughPhiOfAsChecksWithTypeArgPolymorphic(
     'B1' <<
         match.block('Join', [
           match.CheckStackOverflow(),
-          match.Branch(match.RelationalOp(match.any, match.any, kind: '<'),
-              ifTrue: 'B2'),
+          match.Branch(
+            match.RelationalOp(match.any, match.any, kind: '<'),
+            ifTrue: 'B2',
+          ),
         ]),
     'B2' <<
         match.block('Target', [
-          match.Branch(match.EqualityCompare(match.any, match.any, kind: '=='),
-              ifTrue: 'B3', ifFalse: 'B4'),
+          match.Branch(
+            match.EqualityCompare(match.any, match.any, kind: '=='),
+            ifTrue: 'B3',
+            ifFalse: 'B4',
+          ),
         ]),
     'B3' << match.block('Target', [match.Throw(match.any)]),
     'B4' <<
         match.block('Target', [
-          match.Branch(match.EqualityCompare(match.any, match.any, kind: '=='),
-              ifTrue: 'B5', ifFalse: 'B6'),
+          match.Branch(
+            match.EqualityCompare(match.any, match.any, kind: '=='),
+            ifTrue: 'B5',
+            ifFalse: 'B6',
+          ),
         ]),
     'B5' <<
         match.block('Target', [
@@ -590,7 +654,9 @@ void matchIL$testNarrowingThroughPhiOfAsChecksWithTypeArgPolymorphic(
 }
 
 void matchIL$testNarrowingThroughIndexedLoadFromGrowableArray(
-    FlowGraph beforeLICM, FlowGraph afterLICM) {
+  FlowGraph beforeLICM,
+  FlowGraph afterLICM,
+) {
   final env = beforeLICM.match([
     match.block('Graph'),
     match.block('Function', [
@@ -602,15 +668,18 @@ void matchIL$testNarrowingThroughIndexedLoadFromGrowableArray(
     'B1' <<
         match.block('Join', [
           match.CheckStackOverflow(),
-          match.Branch(match.RelationalOp(match.any, match.any, kind: '<'),
-              ifTrue: 'B2'),
+          match.Branch(
+            match.RelationalOp(match.any, match.any, kind: '<'),
+            ifTrue: 'B2',
+          ),
         ]),
     'B2' <<
         match.block('Target', [
           'this_is_List' << match.InstanceOf('this', match.any, match.any),
           match.Branch(
-              match.StrictCompare('this_is_List', match.any, kind: '==='),
-              ifTrue: 'B3'),
+            match.StrictCompare('this_is_List', match.any, kind: '==='),
+            ifTrue: 'B3',
+          ),
         ]),
     'B3' <<
         match.block('Target', [
@@ -632,15 +701,18 @@ void matchIL$testNarrowingThroughIndexedLoadFromGrowableArray(
     'B1' <<
         match.block('Join', [
           match.CheckStackOverflow(),
-          match.Branch(match.RelationalOp(match.any, match.any, kind: '<'),
-              ifTrue: 'B2'),
+          match.Branch(
+            match.RelationalOp(match.any, match.any, kind: '<'),
+            ifTrue: 'B2',
+          ),
         ]),
     'B2' <<
         match.block('Target', [
           'this_is_List' << match.InstanceOf('this', match.any, match.any),
           match.Branch(
-              match.StrictCompare('this_is_List', match.any, kind: '==='),
-              ifTrue: 'B3'),
+            match.StrictCompare('this_is_List', match.any, kind: '==='),
+            ifTrue: 'B3',
+          ),
         ]),
     'B3' <<
         match.block('Target', [
@@ -650,13 +722,19 @@ void matchIL$testNarrowingThroughIndexedLoadFromGrowableArray(
 }
 
 void matchIL$testNarrowingThroughIsCheckWithTypeArgPolymorphic(
-    FlowGraph beforeLICM, FlowGraph afterLICM) {
+  FlowGraph beforeLICM,
+  FlowGraph afterLICM,
+) {
   matchIL$testNarrowingThroughIsCheckWithTypeArgMonomorphic(
-      beforeLICM, afterLICM);
+    beforeLICM,
+    afterLICM,
+  );
 }
 
 void matchIL$testNarrowingThroughIndexedLoadFromFixedArray(
-    FlowGraph beforeLICM, FlowGraph afterLICM) {
+  FlowGraph beforeLICM,
+  FlowGraph afterLICM,
+) {
   final env = beforeLICM.match([
     match.block('Graph'),
     match.block('Function', [
@@ -667,15 +745,18 @@ void matchIL$testNarrowingThroughIndexedLoadFromFixedArray(
     'B1' <<
         match.block('Join', [
           match.CheckStackOverflow(),
-          match.Branch(match.RelationalOp(match.any, match.any, kind: '<'),
-              ifTrue: 'B2'),
+          match.Branch(
+            match.RelationalOp(match.any, match.any, kind: '<'),
+            ifTrue: 'B2',
+          ),
         ]),
     'B2' <<
         match.block('Target', [
           'this_is_List' << match.InstanceOf('this', match.any, match.any),
           match.Branch(
-              match.StrictCompare('this_is_List', match.any, kind: '==='),
-              ifTrue: 'B3'),
+            match.StrictCompare('this_is_List', match.any, kind: '==='),
+            ifTrue: 'B3',
+          ),
         ]),
     'B3' <<
         match.block('Target', [
@@ -696,15 +777,18 @@ void matchIL$testNarrowingThroughIndexedLoadFromFixedArray(
     'B1' <<
         match.block('Join', [
           match.CheckStackOverflow(),
-          match.Branch(match.RelationalOp(match.any, match.any, kind: '<'),
-              ifTrue: 'B2'),
+          match.Branch(
+            match.RelationalOp(match.any, match.any, kind: '<'),
+            ifTrue: 'B2',
+          ),
         ]),
     'B2' <<
         match.block('Target', [
           'this_is_List' << match.InstanceOf('this', match.any, match.any),
           match.Branch(
-              match.StrictCompare('this_is_List', match.any, kind: '==='),
-              ifTrue: 'B3'),
+            match.StrictCompare('this_is_List', match.any, kind: '==='),
+            ifTrue: 'B3',
+          ),
         ]),
     'B3' <<
         match.block('Target', [

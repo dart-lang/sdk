@@ -12,7 +12,6 @@ import 'package:cli_util/cli_logging.dart';
 import 'package:path/path.dart' as path;
 
 import 'experiments.dart';
-import 'sdk.dart';
 import 'utils.dart';
 
 // Initialize a default logger. We'll replace this with a verbose logger if
@@ -71,7 +70,7 @@ abstract class DartdevCommand extends Command<int> {
       ArgParser(usageLineLength: dartdevUsageLineLength);
 }
 
-extension DartDevCommand on Command {
+extension DartDevCommand<T> on Command<T> {
   /// Return whether commands should emit verbose output.
   bool get verbose => globalResults!.flag('verbose');
 
@@ -86,26 +85,13 @@ extension DartDevCommand on Command {
       globalResults!.multiOption(experimentFlagName);
 }
 
-/// A utility method to start a Dart VM instance with the given arguments and an
-/// optional current working directory.
-///
-/// [arguments] should contain the snapshot path.
-Future<Process> startDartProcess(
-  Sdk sdk,
-  List<String> arguments, {
-  String? cwd,
-}) {
-  log.trace('${sdk.dart} ${arguments.join(' ')}');
-  return Process.start(sdk.dart, arguments, workingDirectory: cwd);
-}
-
 Future<int> runProcess(
   List<String> command, {
   bool logToTrace = false,
   void Function(String str)? listener,
   String? cwd,
 }) async {
-  Future forward(Stream<List<int>> output, bool isStderr) {
+  Future<void> forward(Stream<List<int>> output, bool isStderr) {
     return _streamLineTransform(output, (line) {
       final trimmed = line.trimRight();
       logToTrace
@@ -129,7 +115,7 @@ Future<int> runProcess(
   return exitCode;
 }
 
-Future _streamLineTransform(
+Future<void> _streamLineTransform(
   Stream<List<int>> stream,
   Function(String line) handler,
 ) {

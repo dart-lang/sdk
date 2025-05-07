@@ -86,24 +86,26 @@ int 6
   }
 
   test_declaration_staticError_notAssignable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const int x = 'foo';
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 14, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 14, 5)],
+    );
   }
 
   test_enum_argument_methodInvocation() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 enum E {
   enumValue(["text"].map((x) => x));
 
   const E(this.strings);
   final Iterable<String> strings;
 }
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION, 21, 22),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION, 21, 22)],
+    );
   }
 
   /// Enum constants can reference other constants.
@@ -307,23 +309,35 @@ bool false
   }
 
   test_equalEqual_invalidLeft() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const v = a == 1;
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 10, 1),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 10,
-          1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 10, 1),
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          10,
+          1,
+        ),
+      ],
+    );
   }
 
   test_equalEqual_invalidRight() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const v = 1 == a;
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 15, 1),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 15,
-          1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 15, 1),
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          15,
+          1,
+        ),
+      ],
+    );
   }
 
   test_equalEqual_list_matchingTypeArgs_explicit() async {
@@ -449,31 +463,33 @@ bool false
   }
 
   test_equalEqual_userClass_hasEqEq() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   const A();
   bool operator ==(other) => false;
 }
 
 const v = A() == 0;
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_PRIMITIVE_EQUALITY, 72, 8),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_EVAL_PRIMITIVE_EQUALITY, 72, 8)],
+    );
     var result = _topLevelVar('v');
     _assertNull(result);
   }
 
   test_equalEqual_userClass_hasHashCode() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   const A();
   int get hashCode => 0;
 }
 
 const v = A() == 0;
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_PRIMITIVE_EQUALITY, 61, 8),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_EVAL_PRIMITIVE_EQUALITY, 61, 8)],
+    );
     var result = _topLevelVar('v');
     _assertNull(result);
   }
@@ -495,16 +511,17 @@ bool false
   }
 
   test_equalEqual_userClass_hasPrimitiveEquality_language219() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 // @dart = 2.19
 class A {
   const A();
 }
 
 const v = A() == 0;
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING, 52, 8),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING, 52, 8)],
+    );
     var result = _topLevelVar('v');
     _assertNull(result);
   }
@@ -526,16 +543,17 @@ bool true
   }
 
   test_equalEqual_userClass_noPrimitiveEquality() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   const A();
   bool operator ==(other) => false;
 }
 
 const v = A() == A();
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_PRIMITIVE_EQUALITY, 72, 10),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_EVAL_PRIMITIVE_EQUALITY, 72, 10)],
+    );
   }
 
   test_hasPrimitiveEquality_bool() async {
@@ -1093,47 +1111,52 @@ bool false
   }
 
   test_typeParameter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<X> {
   const A();
   void m() {
     const x = X;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 49, 1),
-      error(CompileTimeErrorCode.CONST_TYPE_PARAMETER, 53, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 49, 1),
+        error(CompileTimeErrorCode.CONST_TYPE_PARAMETER, 53, 1),
+      ],
+    );
     var result = _localVar('x');
     _assertNull(result);
   }
 
   test_visitBinaryExpression_extensionMethod() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension on Object {
   int operator +(Object other) => 0;
 }
 
 const Object v1 = 0;
 const v2 = v1 + v1;
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD, 94, 7),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD, 94, 7)],
+    );
     var result = _topLevelVar('v2');
     _assertNull(result);
   }
 
   test_visitBinaryExpression_extensionType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension type const A(int it) {
   int operator +(Object other) => 0;
 }
 
 const v1 = A(1);
 const v2 = v1 + 2;
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD, 101, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD, 101, 6)],
+    );
     var result = _topLevelVar('v2');
     _assertNull(result);
   }
@@ -1209,11 +1232,12 @@ int 0
   }
 
   test_visitBinaryExpression_gtGtGt_negative_negativeBits() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const c = 0xFFFFFFFF >>> -2;
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 10, 17),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 10, 17)],
+    );
     var result = _topLevelVar('c');
     _assertNull(result);
   }
@@ -1265,11 +1289,12 @@ int 0
   }
 
   test_visitBinaryExpression_gtGtGt_positive_negativeBits() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const c = 0xFF >>> -2;
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 10, 11),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 10, 11)],
+    );
     var result = _topLevelVar('c');
     _assertNull(result);
   }
@@ -1309,34 +1334,49 @@ bool true
   }
 
   test_visitBinaryExpression_questionQuestion_invalid_notNull() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 final x = 0;
 const c = x ?? 1;
-''', [
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 23,
-          1),
-      error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 28, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          23,
+          1,
+        ),
+        error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 28, 1),
+      ],
+    );
   }
 
   test_visitBinaryExpression_questionQuestion_notNull_invalid() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 final x = 1;
 const c = 0 ?? x;
-''', [
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 28,
-          1),
-      error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 28, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          28,
+          1,
+        ),
+        error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 28, 1),
+      ],
+    );
   }
 
   test_visitConditionalExpression_eager_invalid_int_int() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const c = null ? 1 : 0;
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 10, 4),
-      error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL, 10, 4),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.NON_BOOL_CONDITION, 10, 4),
+        error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL, 10, 4),
+      ],
+    );
   }
 
   test_visitConditionalExpression_instantiatedFunctionType_variable() async {
@@ -1371,7 +1411,8 @@ const x = kIsWeb ? 0 : 1;
   }
 
   test_visitConditionalExpression_unknownCondition_errorInConstructor() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 const bool kIsWeb = identical(0, 0.0);
 
 var a = 2;
@@ -1380,43 +1421,56 @@ const x = A(kIsWeb ? 0 : a);
 class A {
   const A(int _);
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_CONSTANT, 76, 1),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 76,
-          1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.INVALID_CONSTANT, 76, 1),
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          76,
+          1,
+        ),
+      ],
+    );
     var result = _topLevelVar('x');
     _assertNull(result);
   }
 
   test_visitConditionalExpression_unknownCondition_undefinedIdentifier() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 const bool kIsWeb = identical(0, 0.0);
 const x = kIsWeb ? a : b;
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 58, 1),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 58,
-          1),
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 62, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 58, 1),
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          58,
+          1,
+        ),
+        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 62, 1),
+      ],
+    );
     var result = _topLevelVar('x');
     _assertNull(result);
   }
 
   test_visitConstructorDeclaration_cycle() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   final A a;
   const A() : a = const A();
 }
 
-''', [
-      error(CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR, 31, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR, 31, 1)],
+    );
   }
 
   test_visitConstructorDeclaration_cycle_subclass_issue46735() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void main() {
   const EmptyInjector();
 }
@@ -1435,26 +1489,32 @@ abstract class Injector implements BaseInjector {
 class EmptyInjector extends BaseInjector implements Injector {
   const EmptyInjector();
 }
-''', [
-      error(CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR, 110, 12),
-      error(CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR, 344, 13),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR, 110, 12),
+        error(CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR, 344, 13),
+      ],
+    );
   }
 
   test_visitConstructorDeclaration_field_asExpression_nonConst() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 dynamic y = 2;
 class A {
   const A();
   final x = y as num;
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
           27,
-          5),
-    ]);
+          5,
+        ),
+      ],
+    );
   }
 
   test_visitConstructorReference_generic_named() async {
@@ -1801,17 +1861,23 @@ C<int> Function()
   }
 
   test_visitFunctionReference_defaultConstructorValue() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f<T>(T t) => t;
 
 class C<T> {
   final void Function(T) p;
   const C({this.p = f});
 }
-''', [
-      error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF,
-          83, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF,
+          83,
+          1,
+        ),
+      ],
+    );
   }
 
   test_visitFunctionReference_explicitTypeArgs_complexExpression() async {
@@ -1864,12 +1930,13 @@ void Function(int)
   }
 
   test_visitFunctionReference_explicitTypeArgs_functionName_notMatchingBound() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f<T extends num>(T a) {}
 const g = f<String>;
-''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 42, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 42, 6)],
+    );
     var result = _topLevelVar('g');
     assertDartObjectText(result, r'''
 void Function(String)
@@ -1881,45 +1948,61 @@ void Function(String)
   }
 
   test_visitFunctionReference_explicitTypeArgs_functionName_notType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void foo<T>(T a) {}
 const g = foo<true>;
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_TYPE_NUM, 30, 8),
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 33, 1),
-      error(ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND, 38, 1),
-      error(ParserErrorCode.MISSING_IDENTIFIER, 39, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.CONST_EVAL_TYPE_NUM, 30, 8),
+        error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 33, 1),
+        error(ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND, 38, 1),
+        error(ParserErrorCode.MISSING_IDENTIFIER, 39, 1),
+      ],
+    );
     var result = _topLevelVar('g');
     _assertNull(result);
   }
 
   test_visitFunctionReference_explicitTypeArgs_functionName_tooFew() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void foo<T, U>(T a, U b) {}
 const g = foo<int>;
-''', [
-      error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION, 41, 5),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION,
+          41,
+          5,
+        ),
+      ],
+    );
     var result = _topLevelVar('g');
     _assertNull(result);
   }
 
   test_visitFunctionReference_explicitTypeArgs_functionName_tooMany() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void foo<T>(T a) {}
 const g = foo<int, String>;
-''', [
-      error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION, 33, 13),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION,
+          33,
+          13,
+        ),
+      ],
+    );
     var result = _topLevelVar('g');
     _assertNull(result);
   }
 
   test_visitFunctionReference_explicitTypeArgs_functionName_typeParameter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f<T>(T a) {}
 
 class C<U> {
@@ -1927,11 +2010,16 @@ class C<U> {
     const g = f<U>;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 55, 1),
-      error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF,
-          61, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 55, 1),
+        error(
+          CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF,
+          61,
+          1,
+        ),
+      ],
+    );
   }
 
   test_visitFunctionReference_explicitTypeArgs_identical_differentElements() async {
@@ -2167,18 +2255,24 @@ bool true
   }
 
   test_visitFunctionReference_wildcard_local() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 test() {
   void _() {}
   const c = _;
   print(c);
 }
-''', [
-      error(WarningCode.DEAD_CODE, 11, 11),
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 35, 1),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 35,
-          1),
-    ]);
+''',
+      [
+        error(WarningCode.DEAD_CODE, 11, 11),
+        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 35, 1),
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          35,
+          1,
+        ),
+      ],
+    );
   }
 
   test_visitFunctionReference_wildcard_top() async {
@@ -2189,19 +2283,27 @@ const c = _;
   }
 
   test_visitInstanceCreationExpression_invalidNamedArg() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   const A({ required int x });
 }
 const a = A(x: false);
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 58, 5),
-      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 55, 8),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 58, 5),
+        error(
+          CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
+          55,
+          8,
+        ),
+      ],
+    );
   }
 
   test_visitInstanceCreationExpression_invalidNamedArg_superParam() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   const A({ required int x });
 }
@@ -2209,26 +2311,40 @@ class B extends A {
   const B({ required super.x });
 }
 const a = B(x: false);
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 113, 5),
-      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 110, 8),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 113, 5),
+        error(
+          CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
+          110,
+          8,
+        ),
+      ],
+    );
   }
 
   test_visitInstanceCreationExpression_invalidPositionalArg() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   const A(int x);
 }
 const a = A(false);
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 42, 5),
-      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 42, 5),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 42, 5),
+        error(
+          CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
+          42,
+          5,
+        ),
+      ],
+    );
   }
 
   test_visitInstanceCreationExpression_invalidPositionalArg_superParam() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   const A(int x);
 }
@@ -2236,25 +2352,33 @@ class B extends A {
   const B(super.x);
 }
 const a = B(false);
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 84, 5),
-      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 84, 5),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 84, 5),
+        error(
+          CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
+          84,
+          5,
+        ),
+      ],
+    );
   }
 
   test_visitInstanceCreationExpression_missingNamedArg() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   const A({required int x });
 }
 const a = A();
-''', [
-      error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 52, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 52, 1)],
+    );
   }
 
   test_visitInstanceCreationExpression_missingNamedArg_superParam() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   const A({required int x });
 }
@@ -2262,29 +2386,45 @@ class B extends A {
   const B({required super.x });
 }
 const a = B();
-''', [
-      error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 106, 1),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 106,
-          3),
-      error(CompileTimeErrorCode.INVALID_CONSTANT, 106, 3,
-          contextMessages: [message(testFile, 88, 1)]),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 106, 1),
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          106,
+          3,
+        ),
+        error(
+          CompileTimeErrorCode.INVALID_CONSTANT,
+          106,
+          3,
+          contextMessages: [message(testFile, 88, 1)],
+        ),
+      ],
+    );
   }
 
   test_visitInstanceCreationExpression_missingPositionalArg() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   const A(int x);
 }
 const a = A();
-''', [
-      error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR,
-          42, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR,
+          42,
+          1,
+        ),
+      ],
+    );
   }
 
   test_visitInstanceCreationExpression_missingPositionalArg_superParam() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   const A(int x);
 }
@@ -2292,14 +2432,26 @@ class B extends A {
   const B(super.x);
 }
 const a = B();
-''', [
-      error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR,
-          84, 1),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 82,
-          3),
-      error(CompileTimeErrorCode.INVALID_CONSTANT, 82, 3,
-          contextMessages: [message(testFile, 66, 1)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR,
+          84,
+          1,
+        ),
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          82,
+          3,
+        ),
+        error(
+          CompileTimeErrorCode.INVALID_CONSTANT,
+          82,
+          3,
+          contextMessages: [message(testFile, 66, 1)],
+        ),
+      ],
+    );
   }
 
   test_visitInstanceCreationExpression_noArgs() async {
@@ -2317,14 +2469,20 @@ A
   }
 
   test_visitInstanceCreationExpression_noConstConstructor() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {}
 const a = A();
-''', [
-      error(CompileTimeErrorCode.CONST_WITH_NON_CONST, 21, 3),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 21,
-          3),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.CONST_WITH_NON_CONST, 21, 3),
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          21,
+          3,
+        ),
+      ],
+    );
   }
 
   test_visitInstanceCreationExpression_simpleArgs() async {
@@ -2342,38 +2500,49 @@ A
   }
 
   test_visitInstanceCreationExpression_unknown() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C<T> {
   const C.named();
 }
 
 const x = C<int>.();
-''', [
-      // TODO(kallentu): This should not be reported.
-      // https://github.com/dart-lang/sdk/issues/50441
-      error(CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER,
-          45, 8),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 45,
-          8),
-      error(ParserErrorCode.MISSING_IDENTIFIER, 52, 1),
-    ]);
+''',
+      [
+        // TODO(kallentu): This should not be reported.
+        // https://github.com/dart-lang/sdk/issues/50441
+        error(
+          CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER,
+          45,
+          8,
+        ),
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          45,
+          8,
+        ),
+        error(ParserErrorCode.MISSING_IDENTIFIER, 52, 1),
+      ],
+    );
   }
 
   test_visitInterpolationExpression_list() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 const x = '${const [2]}';
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING, 11, 12),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING, 11, 12)],
+    );
   }
 
   test_visitIsExpression_is_functionType_correctTypes() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void foo(int a) {}
 const c = foo is void Function(int);
-''', [
-      error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 29, 25),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 29, 25)],
+    );
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 bool true
@@ -2382,15 +2551,16 @@ bool true
   }
 
   test_visitIsExpression_is_instanceOfSameClass() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const a = const A();
 const b = a is A;
 class A {
   const A();
 }
-''', [
-      error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 31, 6),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 31, 6)],
+    );
     var result = _topLevelVar('b');
     assertDartObjectText(result, r'''
 bool true
@@ -2399,7 +2569,8 @@ bool true
   }
 
   test_visitIsExpression_is_instanceOfSubclass() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const a = const B();
 const b = a is A;
 class A {
@@ -2408,9 +2579,9 @@ class A {
 class B extends A {
   const B();
 }
-''', [
-      error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 31, 6),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 31, 6)],
+    );
     var result = _topLevelVar('b');
     assertDartObjectText(result, r'''
 bool true
@@ -2457,15 +2628,16 @@ bool false
   }
 
   test_visitIsExpression_isNot_instanceOfSameClass() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const a = const A();
 const b = a is! A;
 class A {
   const A();
 }
-''', [
-      error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 31, 7),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 31, 7)],
+    );
     var result = _topLevelVar('b');
     assertDartObjectText(result, r'''
 bool false
@@ -2474,7 +2646,8 @@ bool false
   }
 
   test_visitIsExpression_isNot_instanceOfSubclass() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const a = const B();
 const b = a is! A;
 class A {
@@ -2483,9 +2656,9 @@ class A {
 class B extends A {
   const B();
 }
-''', [
-      error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 31, 7),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 31, 7)],
+    );
     var result = _topLevelVar('b');
     assertDartObjectText(result, r'''
 bool false
@@ -2507,34 +2680,42 @@ bool true
   }
 
   test_visitListLiteral_forElement() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 const x = [for (int i = 0; i < 3; i++) i];
-''', [
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 10,
-          31),
-      error(CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT, 11, 29),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          10,
+          31,
+        ),
+        error(CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT, 11, 29),
+      ],
+    );
     var result = _topLevelVar('x');
     _assertNull(result);
   }
 
   test_visitListLiteral_ifElement_nonBoolCondition() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 const dynamic c = 2;
 const x = [1, if (c) 2 else 3, 4];
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 39, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_BOOL_CONDITION, 39, 1)],
+    );
     var result = _topLevelVar('x');
     _assertNull(result);
   }
 
   test_visitListLiteral_ifElement_nonBoolCondition_static() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 const x = [1, if (1) 2 else 3, 4];
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 18, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_BOOL_CONDITION, 18, 1)],
+    );
     var result = _topLevelVar('x');
     _assertNull(result);
   }
@@ -2568,15 +2749,16 @@ List
   }
 
   test_visitListLiteral_listElement_field_final() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   final String bar = '';
   const A();
   List<String> foo() => const [bar];
 }
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 79, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 79, 3)],
+    );
   }
 
   test_visitListLiteral_listElement_field_static() async {
@@ -2626,12 +2808,13 @@ List
   }
 
   test_visitListLiteral_spreadElement() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 const dynamic a = 5;
 const x = <int>[...a];
-''', [
-      error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET, 40, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET, 40, 1)],
+    );
     var result = _topLevelVar('x');
     _assertNull(result);
   }
@@ -2674,34 +2857,37 @@ List
   }
 
   test_visitMethodInvocation_notIdentical() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 int f() {
   return 3;
 }
 const a = f();
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION, 34, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION, 34, 3)],
+    );
   }
 
   test_visitNamedType_typeLiteral_typeParameter_nested() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f<T>(Object? x) {
   if (x case const (T)) {}
 }
-''', [
-      error(CompileTimeErrorCode.CONST_TYPE_PARAMETER, 43, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_TYPE_PARAMETER, 43, 1)],
+    );
   }
 
   test_visitNamedType_typeLiteral_typeParameter_nested2() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f<T>(Object? x) {
   if (x case const (List<T>)) {}
 }
-''', [
-      error(CompileTimeErrorCode.CONST_TYPE_PARAMETER, 43, 7),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_TYPE_PARAMETER, 43, 7)],
+    );
   }
 
   test_visitPrefixedIdentifier_function() async {
@@ -2785,7 +2971,8 @@ void Function<T>(T)
   }
 
   test_visitPrefixedIdentifier_length_invalidTarget() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void main() {
   const RequiresNonEmptyList([1]);
 }
@@ -2793,18 +2980,24 @@ void main() {
 class RequiresNonEmptyList {
   const RequiresNonEmptyList(List<int> numbers) : assert(numbers.length > 0);
 }
-''', [
-      error(
-        CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS,
-        16,
-        31,
-        contextMessages: [
-          ExpectedContextMessage(testFile, 138, 14,
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS,
+          16,
+          31,
+          contextMessages: [
+            ExpectedContextMessage(
+              testFile,
+              138,
+              14,
               text:
-                  "The error is in the assert initializer of 'RequiresNonEmptyList', and occurs here."),
-        ],
-      ),
-    ]);
+                  "The error is in the assert initializer of 'RequiresNonEmptyList', and occurs here.",
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   test_visitPrefixExpression_bitNot() async {
@@ -2819,31 +3012,33 @@ int -43
   }
 
   test_visitPrefixExpression_extensionMethod() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension on Object {
   int operator -() => 0;
 }
 
 const Object v1 = 1;
 const v2 = -v1;
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD, 82, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD, 82, 3)],
+    );
     var result = _topLevelVar('v2');
     _assertNull(result);
   }
 
   test_visitPrefixExpression_extensionType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension type const A(int it) {
   int operator -() => 0;
 }
 
 const v1 = A(1);
 const v2 = -v1;
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD, 89, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD, 89, 3)],
+    );
     var result = _topLevelVar('v2');
     _assertNull(result);
   }
@@ -2874,12 +3069,15 @@ bool false
   }
 
   test_visitPrefixExpression_negated_bool() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const c = -true;
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 10, 1),
-      error(CompileTimeErrorCode.CONST_EVAL_TYPE_NUM, 10, 5),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 10, 1),
+        error(CompileTimeErrorCode.CONST_EVAL_TYPE_NUM, 10, 5),
+      ],
+    );
   }
 
   test_visitPrefixExpression_negated_double() async {
@@ -3032,12 +3230,13 @@ Record({int f1, int f2})
   }
 
   test_visitRecordLiteral_namedField_final() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 final bar = '';
 ({String bar, }) foo() => const (bar: bar, );
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_RECORD_FIELD, 54, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_CONSTANT_RECORD_FIELD, 54, 3)],
+    );
   }
 
   test_visitRecordLiteral_objectField_generic() async {
@@ -3076,12 +3275,13 @@ Record(int, int, int)
   }
 
   test_visitRecordLiteral_positionalField_final() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 final bar = '';
 (String, ) foo() => const (bar, );
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_RECORD_FIELD, 43, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_CONSTANT_RECORD_FIELD, 43, 3)],
+    );
   }
 
   test_visitRecordLiteral_withoutEnvironment() async {
@@ -3101,40 +3301,44 @@ Record(int, String, {bool c})
   }
 
   test_visitSetOrMapLiteral_ambiguous() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 const l = [];
 const ambiguous = {...l, 1: 2};
-''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH, 32, 12),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH, 32, 12)],
+    );
   }
 
   test_visitSetOrMapLiteral_ambiguous_either() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 const int? i = 1;
 const res  = {...?i};
-''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER, 31, 7),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER, 31, 7)],
+    );
   }
 
   test_visitSetOrMapLiteral_ambiguous_expression() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 const m = {1: 1};
 const res = {...m, 2};
-''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH, 30, 9),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH, 30, 9)],
+    );
   }
 
   test_visitSetOrMapLiteral_ambiguous_inList() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 const l = [];
 const ambiguous = {...l, 1: 2};
 const anotherList = [...ambiguous];
-''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH, 32, 12),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH, 32, 12)],
+    );
   }
 
   test_visitSetOrMapLiteral_map_complexKey() async {
@@ -3163,36 +3367,49 @@ Map
   }
 
   test_visitSetOrMapLiteral_map_forElement() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 const x = {1: null, for (final i in const []) i: null};
-''', [
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 10,
-          44),
-      error(CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT, 20, 33),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          10,
+          44,
+        ),
+        error(CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT, 20, 33),
+      ],
+    );
     var result = _topLevelVar('x');
     _assertNull(result);
   }
 
   test_visitSetOrMapLiteral_map_forElement_nested() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 const x = {1: null, if (true) for (final i in const []) i: null};
-''', [
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 10,
-          54),
-      error(CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT, 30, 33),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          10,
+          54,
+        ),
+        error(CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT, 30, 33),
+      ],
+    );
     var result = _topLevelVar('x');
     _assertNull(result);
   }
 
   test_visitSetOrMapLiteral_map_ifElement_nonBoolCondition() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 const dynamic nonBool = null;
 const c = const {if (nonBool) 'a' : 1};
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 51, 7),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_BOOL_CONDITION, 51, 7)],
+    );
     var result = _topLevelVar('c');
     _assertNull(result);
   }
@@ -3238,16 +3455,19 @@ Map
   }
 
   test_visitSetOrMapLiteral_map_spread_notMap() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const x = ['string'];
 const Map<String, int> alwaysInclude = {
   'anotherString': 0,
   ...x,
 };
-''', [
-      error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP, 90, 1),
-      error(CompileTimeErrorCode.NOT_MAP_SPREAD, 90, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP, 90, 1),
+        error(CompileTimeErrorCode.NOT_MAP_SPREAD, 90, 1),
+      ],
+    );
   }
 
   test_visitSetOrMapLiteral_map_spread_null() async {
@@ -3296,25 +3516,32 @@ Set
   }
 
   test_visitSetOrMapLiteral_set_forElement() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 const Set set = {};
 const x = {for (final i in set) i};
-''', [
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 30,
-          24),
-      error(CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT, 31, 22),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          30,
+          24,
+        ),
+        error(CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT, 31, 22),
+      ],
+    );
     var result = _topLevelVar('x');
     _assertNull(result);
   }
 
   test_visitSetOrMapLiteral_set_ifElement_nonBoolCondition() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 const dynamic nonBool = 'a';
 const c = const {if (nonBool) 3};
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 50, 7),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_BOOL_CONDITION, 50, 7)],
+    );
     var result = _topLevelVar('c');
     _assertNull(result);
   }
@@ -3497,16 +3724,17 @@ void Function(int, {int? b})
   }
 
   test_visitUnaryExpression_extensionType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension type const A(int it) {
   int operator -() => 0;
 }
 
 const v1 = A(1);
 const v2 = -v1;
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD, 89, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD, 89, 3)],
+    );
     var result = _topLevelVar('v2');
     _assertNull(result);
   }
@@ -3589,11 +3817,15 @@ const c = [1, ...[2, 3], 4];
 const c = {'a' : 1, if (1 < 0) 'b' : 2 else 'c' : 3, 'd' : 4};
 ''');
     DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type,
-        typeProvider.mapType(typeProvider.stringType, typeProvider.intType));
+    expect(
+      result.type,
+      typeProvider.mapType(typeProvider.stringType, typeProvider.intType),
+    );
     Map<DartObject, DartObject> value = result.toMapValue()!;
-    expect(value.keys.map((e) => e.toStringValue()),
-        unorderedEquals(['a', 'c', 'd']));
+    expect(
+      value.keys.map((e) => e.toStringValue()),
+      unorderedEquals(['a', 'c', 'd']),
+    );
     expect(value.values.map((e) => e.toIntValue()), unorderedEquals([1, 3, 4]));
   }
 
@@ -3602,11 +3834,15 @@ const c = {'a' : 1, if (1 < 0) 'b' : 2 else 'c' : 3, 'd' : 4};
 const c = {'a' : 1, if (1 < 0) 'b' : 2, 'c' : 3};
 ''');
     DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type,
-        typeProvider.mapType(typeProvider.stringType, typeProvider.intType));
+    expect(
+      result.type,
+      typeProvider.mapType(typeProvider.stringType, typeProvider.intType),
+    );
     Map<DartObject, DartObject> value = result.toMapValue()!;
     expect(
-        value.keys.map((e) => e.toStringValue()), unorderedEquals(['a', 'c']));
+      value.keys.map((e) => e.toStringValue()),
+      unorderedEquals(['a', 'c']),
+    );
     expect(value.values.map((e) => e.toIntValue()), unorderedEquals([1, 3]));
   }
 
@@ -3615,11 +3851,15 @@ const c = {'a' : 1, if (1 < 0) 'b' : 2, 'c' : 3};
 const c = {'a' : 1, if (1 > 0) 'b' : 2 else 'c' : 3, 'd' : 4};
 ''');
     DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type,
-        typeProvider.mapType(typeProvider.stringType, typeProvider.intType));
+    expect(
+      result.type,
+      typeProvider.mapType(typeProvider.stringType, typeProvider.intType),
+    );
     Map<DartObject, DartObject> value = result.toMapValue()!;
-    expect(value.keys.map((e) => e.toStringValue()),
-        unorderedEquals(['a', 'b', 'd']));
+    expect(
+      value.keys.map((e) => e.toStringValue()),
+      unorderedEquals(['a', 'b', 'd']),
+    );
     expect(value.values.map((e) => e.toIntValue()), unorderedEquals([1, 2, 4]));
   }
 
@@ -3628,11 +3868,15 @@ const c = {'a' : 1, if (1 > 0) 'b' : 2 else 'c' : 3, 'd' : 4};
 const c = {'a' : 1, if (1 > 0) 'b' : 2, 'c' : 3};
 ''');
     DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type,
-        typeProvider.mapType(typeProvider.stringType, typeProvider.intType));
+    expect(
+      result.type,
+      typeProvider.mapType(typeProvider.stringType, typeProvider.intType),
+    );
     Map<DartObject, DartObject> value = result.toMapValue()!;
-    expect(value.keys.map((e) => e.toStringValue()),
-        unorderedEquals(['a', 'b', 'c']));
+    expect(
+      value.keys.map((e) => e.toStringValue()),
+      unorderedEquals(['a', 'b', 'c']),
+    );
     expect(value.values.map((e) => e.toIntValue()), unorderedEquals([1, 2, 3]));
   }
 
@@ -3643,11 +3887,15 @@ const c = {'a' : 1, if (1 > 0) 'b' : 2, 'c' : 3};
 const c = {'a' : 1, if (1 > 0) if (2 > 1) {'b' : 2}, 'c' : 3};
 ''');
     DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type,
-        typeProvider.mapType(typeProvider.intType, typeProvider.intType));
+    expect(
+      result.type,
+      typeProvider.mapType(typeProvider.intType, typeProvider.intType),
+    );
     Map<DartObject, DartObject> value = result.toMapValue()!;
-    expect(value.keys.map((e) => e.toStringValue()),
-        unorderedEquals(['a', 'b', 'c']));
+    expect(
+      value.keys.map((e) => e.toStringValue()),
+      unorderedEquals(['a', 'b', 'c']),
+    );
     expect(value.values.map((e) => e.toIntValue()), unorderedEquals([1, 2, 3]));
   }
 
@@ -3656,13 +3904,19 @@ const c = {'a' : 1, if (1 > 0) if (2 > 1) {'b' : 2}, 'c' : 3};
 const c = {'a' : 1, ...{'b' : 2, 'c' : 3}, 'd' : 4};
 ''');
     DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type,
-        typeProvider.mapType(typeProvider.stringType, typeProvider.intType));
-    Map<DartObject, DartObject> value = result.toMapValue()!;
-    expect(value.keys.map((e) => e.toStringValue()),
-        unorderedEquals(['a', 'b', 'c', 'd']));
     expect(
-        value.values.map((e) => e.toIntValue()), unorderedEquals([1, 2, 3, 4]));
+      result.type,
+      typeProvider.mapType(typeProvider.stringType, typeProvider.intType),
+    );
+    Map<DartObject, DartObject> value = result.toMapValue()!;
+    expect(
+      value.keys.map((e) => e.toStringValue()),
+      unorderedEquals(['a', 'b', 'c', 'd']),
+    );
+    expect(
+      value.values.map((e) => e.toIntValue()),
+      unorderedEquals([1, 2, 3, 4]),
+    );
   }
 
   test_setLiteral_ifElement_false_withElse() async {
@@ -3760,7 +4014,8 @@ class B extends A {
   }
 
   test_visitAsExpression_instanceOfSuperclass() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const a = const A();
 const b = a as B;
 class A {
@@ -3769,15 +4024,16 @@ class A {
 class B extends A {
   const B();
 }
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 31, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 31, 6)],
+    );
     var result = _topLevelVar('b');
     _assertNull(result);
   }
 
   test_visitAsExpression_instanceOfUnrelatedClass() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const a = const A();
 const b = a as B;
 class A {
@@ -3786,9 +4042,9 @@ class A {
 class B {
   const B();
 }
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 31, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 31, 6)],
+    );
     var result = _topLevelVar('b');
     _assertNull(result);
   }
@@ -3818,17 +4074,20 @@ double 5.5
   }
 
   test_visitBinaryExpression_add_instance_String() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   const C();
   String operator +(String other) => other;
 }
 
 const c = C() + 1;
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_TYPE_NUM_STRING, 80, 7),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 86, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.CONST_EVAL_TYPE_NUM_STRING, 80, 7),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 86, 1),
+      ],
+    );
   }
 
   test_visitBinaryExpression_add_int_int() async {
@@ -3865,34 +4124,52 @@ bool false
   }
 
   test_visitBinaryExpression_and_bool_false_invalid() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 final a = false;
 const c = false && a;
-''', [
-      error(WarningCode.DEAD_CODE, 33, 4),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 36,
-          1),
-    ]);
+''',
+      [
+        error(WarningCode.DEAD_CODE, 33, 4),
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          36,
+          1,
+        ),
+      ],
+    );
   }
 
   test_visitBinaryExpression_and_bool_invalid_false() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 final a = false;
 const c = a && false;
-''', [
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 27,
-          1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          27,
+          1,
+        ),
+      ],
+    );
   }
 
   test_visitBinaryExpression_and_bool_invalid_true() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 final a = false;
 const c = a && true;
-''', [
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 27,
-          1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          27,
+          1,
+        ),
+      ],
+    );
   }
 
   test_visitBinaryExpression_and_bool_known_known() async {
@@ -3913,13 +4190,19 @@ const c = false & b;
   }
 
   test_visitBinaryExpression_and_bool_true_invalid() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 final a = false;
 const c = true && a;
-''', [
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 27,
-          9),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          27,
+          9,
+        ),
+      ],
+    );
   }
 
   test_visitBinaryExpression_and_bool_unknown_known() async {
@@ -3953,12 +4236,15 @@ int 10
   }
 
   test_visitBinaryExpression_and_mixed() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const c = 3 & false;
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT, 10, 9),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 14, 5),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT, 10, 9),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 14, 5),
+      ],
+    );
   }
 
   test_visitBinaryExpression_divide_double_double() async {
@@ -4006,11 +4292,12 @@ double Infinity
   }
 
   test_visitBinaryExpression_eqeq_double_double_nan_left() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const c = double.nan == 2.3;
-''', [
-      error(WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE, 10, 13),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE, 10, 13)],
+    );
     // This test case produces a warning, but the value of the constant should
     // be `false`.
     var result = _topLevelVar('c');
@@ -4021,11 +4308,12 @@ bool false
   }
 
   test_visitBinaryExpression_eqeq_double_double_nan_right() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const c = 2.3 == double.nan;
-''', [
-      error(WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE, 14, 13),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE, 14, 13)],
+    );
     // This test case produces a warning, but the value of the constant should
     // be `false`.
     var result = _topLevelVar('c');
@@ -4080,23 +4368,35 @@ bool true
   }
 
   test_visitBinaryExpression_notEqual_invalidLeft() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const c = a != 3;
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 10, 1),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 10,
-          1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 10, 1),
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          10,
+          1,
+        ),
+      ],
+    );
   }
 
   test_visitBinaryExpression_notEqual_invalidRight() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const c = 2 != a;
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 15, 1),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 15,
-          1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 15, 1),
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          15,
+          1,
+        ),
+      ],
+    );
   }
 
   test_visitBinaryExpression_notEqual_string_string() async {
@@ -4111,33 +4411,51 @@ bool true
   }
 
   test_visitBinaryExpression_or_bool_false_invalid() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 final a = false;
 const c = false || a;
-''', [
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 27,
-          10),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          27,
+          10,
+        ),
+      ],
+    );
   }
 
   test_visitBinaryExpression_or_bool_invalid_false() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 final a = false;
 const c = a || false;
-''', [
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 27,
-          1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          27,
+          1,
+        ),
+      ],
+    );
   }
 
   test_visitBinaryExpression_or_bool_invalid_true() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 final a = false;
 const c = a || true;
-''', [
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 27,
-          1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          27,
+          1,
+        ),
+      ],
+    );
   }
 
   test_visitBinaryExpression_or_bool_known_known() async {
@@ -4158,14 +4476,20 @@ const c = false | b;
   }
 
   test_visitBinaryExpression_or_bool_true_invalid() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 final a = false;
 const c = true || a;
-''', [
-      error(WarningCode.DEAD_CODE, 32, 4),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 35,
-          1),
-    ]);
+''',
+      [
+        error(WarningCode.DEAD_CODE, 32, 4),
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          35,
+          1,
+        ),
+      ],
+    );
   }
 
   test_visitBinaryExpression_or_bool_unknown_known() async {
@@ -4196,11 +4520,12 @@ const c = 3 | 5;
   }
 
   test_visitBinaryExpression_or_known_known() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const c = true || false;
-''', [
-      error(WarningCode.DEAD_CODE, 15, 8),
-    ]);
+''',
+      [error(WarningCode.DEAD_CODE, 15, 8)],
+    );
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 bool true
@@ -4209,12 +4534,15 @@ bool true
   }
 
   test_visitBinaryExpression_or_mixed() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const c = 3 | false;
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT, 10, 9),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 14, 5),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT, 10, 9),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 14, 5),
+      ],
+    );
   }
 
   test_visitBinaryExpression_questionQuestion_notNull_notNull() async {
@@ -4227,13 +4555,19 @@ const c = 'a' ?? 'b';
   }
 
   test_visitBinaryExpression_questionQuestion_null_invalid() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const c = null ?? new C();
 class C {}
-''', [
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 18,
-          7),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          18,
+          7,
+        ),
+      ],
+    );
   }
 
   test_visitBinaryExpression_questionQuestion_null_notNull() async {
@@ -4298,12 +4632,15 @@ const c = 3 ^ 5;
   }
 
   test_visitBinaryExpression_xor_mixed() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const c = 3 ^ false;
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT, 10, 9),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 14, 5),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT, 10, 9),
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 14, 5),
+      ],
+    );
   }
 
   test_visitBoolLiteral_false() async {
@@ -4331,11 +4668,12 @@ bool true
   }
 
   test_visitConditionalExpression_eager_false_int_int() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const c = false ? 1 : 0;
-''', [
-      error(WarningCode.DEAD_CODE, 18, 1),
-    ]);
+''',
+      [error(WarningCode.DEAD_CODE, 18, 1)],
+    );
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 int 0
@@ -4344,11 +4682,12 @@ int 0
   }
 
   test_visitConditionalExpression_eager_true_int_int() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const c = true ? 1 : 0;
-''', [
-      error(WarningCode.DEAD_CODE, 21, 1),
-    ]);
+''',
+      [error(WarningCode.DEAD_CODE, 21, 1)],
+    );
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 int 1
@@ -4357,33 +4696,46 @@ int 1
   }
 
   test_visitConditionalExpression_eager_true_int_invalid() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const c = true ? 1 : x;
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 21, 1),
-      error(WarningCode.DEAD_CODE, 21, 1),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 21,
-          1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 21, 1),
+        error(WarningCode.DEAD_CODE, 21, 1),
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          21,
+          1,
+        ),
+      ],
+    );
   }
 
   test_visitConditionalExpression_eager_true_invalid_int() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const c = true ? x : 0;
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 17, 1),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 17,
-          1),
-      error(WarningCode.DEAD_CODE, 21, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 17, 1),
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          17,
+          1,
+        ),
+        error(WarningCode.DEAD_CODE, 21, 1),
+      ],
+    );
   }
 
   test_visitConditionalExpression_lazy_false_int_int() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const c = false ? 1 : 0;
-''', [
-      error(WarningCode.DEAD_CODE, 18, 1),
-    ]);
+''',
+      [error(WarningCode.DEAD_CODE, 18, 1)],
+    );
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 int 0
@@ -4392,42 +4744,58 @@ int 0
   }
 
   test_visitConditionalExpression_lazy_false_int_invalid() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const c = false ? 1 : new C();
-''', [
-      error(WarningCode.DEAD_CODE, 18, 1),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 22,
-          7),
-      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 26, 1),
-    ]);
+''',
+      [
+        error(WarningCode.DEAD_CODE, 18, 1),
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          22,
+          7,
+        ),
+        error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 26, 1),
+      ],
+    );
   }
 
   test_visitConditionalExpression_lazy_false_invalid_int() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const c = false ? new C() : 0;
-''', [
-      error(WarningCode.DEAD_CODE, 18, 7),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 18,
-          7),
-      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 22, 1),
-    ]);
+''',
+      [
+        error(WarningCode.DEAD_CODE, 18, 7),
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          18,
+          7,
+        ),
+        error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 22, 1),
+      ],
+    );
   }
 
   test_visitConditionalExpression_lazy_invalid_int_int() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const c = 3 ? 1 : 0;
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 10, 1),
-      error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL, 10, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.NON_BOOL_CONDITION, 10, 1),
+        error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL, 10, 1),
+      ],
+    );
   }
 
   test_visitConditionalExpression_lazy_true_int_int() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const c = true ? 1 : 0;
-''', [
-      error(WarningCode.DEAD_CODE, 21, 1),
-    ]);
+''',
+      [error(WarningCode.DEAD_CODE, 21, 1)],
+    );
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 int 1
@@ -4436,43 +4804,67 @@ int 1
   }
 
   test_visitConditionalExpression_lazy_true_int_invalid() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const c = true ? 1: new C();
-''', [
-      error(WarningCode.DEAD_CODE, 20, 7),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 20,
-          7),
-      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 24, 1),
-    ]);
+''',
+      [
+        error(WarningCode.DEAD_CODE, 20, 7),
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          20,
+          7,
+        ),
+        error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 24, 1),
+      ],
+    );
   }
 
   test_visitConditionalExpression_lazy_true_invalid_int() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const c = true ? new C() : 0;
 class C {}
-''', [
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 17,
-          7),
-      error(WarningCode.DEAD_CODE, 27, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          17,
+          7,
+        ),
+        error(WarningCode.DEAD_CODE, 27, 1),
+      ],
+    );
   }
 
   test_visitConditionalExpression_lazy_unknown_int_invalid() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const c = identical(0, 0.0) ? 1 : new Object();
-''', [
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 34,
-          12),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          34,
+          12,
+        ),
+      ],
+    );
   }
 
   test_visitConditionalExpression_lazy_unknown_invalid_int() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const c = identical(0, 0.0) ? 1 : new Object();
-''', [
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 34,
-          12),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          34,
+          12,
+        ),
+      ],
+    );
   }
 
   test_visitDoubleLiteral() async {
@@ -4566,13 +4958,14 @@ bool false
   }
 
   test_visitIsExpression_is_null_dynamic() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const a = null;
 const b = a is dynamic;
 class A {}
-''', [
-      error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 26, 12),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 26, 12)],
+    );
     var result = _topLevelVar('b');
     assertDartObjectText(result, r'''
 bool true
@@ -4581,13 +4974,14 @@ bool true
   }
 
   test_visitIsExpression_is_null_null() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const a = null;
 const b = a is Null;
 class A {}
-''', [
-      error(WarningCode.TYPE_CHECK_IS_NULL, 26, 9),
-    ]);
+''',
+      [error(WarningCode.TYPE_CHECK_IS_NULL, 26, 9)],
+    );
     var result = _topLevelVar('b');
     assertDartObjectText(result, r'''
 bool true
@@ -4674,7 +5068,8 @@ int 42
   }
 
   test_visitPropertyAccess_length_extension() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension ExtObject on Object {
   int get length => 4;
 }
@@ -4685,31 +5080,38 @@ class B {
 }
 
 const b = B('');
-''', [
-      error(
-        CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD,
-        128,
-        5,
-        contextMessages: [
-          ExpectedContextMessage(testFile, 105, 8,
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD,
+          128,
+          5,
+          contextMessages: [
+            ExpectedContextMessage(
+              testFile,
+              105,
+              8,
               text:
-                  "The error is in the field initializer of 'B', and occurs here."),
-        ],
-      ),
-    ]);
+                  "The error is in the field initializer of 'B', and occurs here.",
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   test_visitPropertyAccess_length_extensionType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension type const A(String it) {
   int get length => 0;
 }
 
 const v1 = A('');
 const v2 = v1.length;
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD, 91, 9),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD, 91, 9)],
+    );
     var result = _topLevelVar('v2');
     _assertNull(result);
   }
@@ -4729,27 +5131,34 @@ int 3
   }
 
   test_visitPropertyAccess_length_unresolvedType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class B {
   final l;
   const B(String o) : l = o.length;
 }
 
 const y = B(x);
-''', [
-      error(
-        CompileTimeErrorCode.CONST_EVAL_TYPE_STRING,
-        70,
-        4,
-        contextMessages: [
-          ExpectedContextMessage(testFile, 47, 8,
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_EVAL_TYPE_STRING,
+          70,
+          4,
+          contextMessages: [
+            ExpectedContextMessage(
+              testFile,
+              47,
+              8,
               text:
-                  "The error is in the field initializer of 'B', and occurs here."),
-        ],
-      ),
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 72, 1),
-      error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 72, 1),
-    ]);
+                  "The error is in the field initializer of 'B', and occurs here.",
+            ),
+          ],
+        ),
+        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 72, 1),
+        error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 72, 1),
+      ],
+    );
   }
 
   test_visitSimpleIdentifier_dynamic() async {
@@ -4801,17 +5210,28 @@ int 42
   }
 
   test_visitSimpleIdentifier_wildcard_local() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 test() {
   const _ = true;
   const c = _;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 35, 1, messageContains: ["'c'"]),
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 39, 1),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 39,
-          1),
-    ]);
+''',
+      [
+        error(
+          WarningCode.UNUSED_LOCAL_VARIABLE,
+          35,
+          1,
+          messageContains: ["'c'"],
+        ),
+        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 39, 1),
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          39,
+          1,
+        ),
+      ],
+    );
   }
 
   test_visitSimpleIdentifier_wildcard_top() async {
@@ -4844,13 +5264,19 @@ String abc
   }
 
   test_visitStringInterpolation_invalid() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 const c = 'a${f()}c';
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 14, 1),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 14,
-          3),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 14, 1),
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          14,
+          3,
+        ),
+      ],
+    );
   }
 
   test_visitStringInterpolation_valid() async {
@@ -4872,14 +5298,14 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
 
   DartObjectImpl _evaluateConstant(
     String name, {
-    List<ErrorCode>? errorCodes,
+    List<DiagnosticCode>? diagnosticCodes,
     Map<String, String> declaredVariables = const {},
     Map<String, DartObjectImpl>? lexicalEnvironment,
   }) {
     var expression = findNode.topVariableDeclarationByName(name).initializer!;
     return _evaluateExpression(
       expression,
-      errorCodes: errorCodes,
+      diagnosticCodes: diagnosticCodes,
       declaredVariables: declaredVariables,
       lexicalEnvironment: lexicalEnvironment,
     )!;
@@ -4887,7 +5313,7 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
 
   DartObjectImpl? _evaluateExpression(
     Expression expression, {
-    List<ErrorCode>? errorCodes,
+    List<DiagnosticCode>? diagnosticCodes,
     Map<String, String> declaredVariables = const {},
     Map<String, DartObjectImpl>? lexicalEnvironment,
   }) {
@@ -4905,14 +5331,15 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
       lexicalEnvironment: lexicalEnvironment,
     );
 
-    var expressionConstant =
-        constantVisitor.evaluateAndReportInvalidConstant(expression);
+    var expressionConstant = constantVisitor.evaluateAndReportInvalidConstant(
+      expression,
+    );
     var result =
         expressionConstant is DartObjectImpl ? expressionConstant : null;
-    if (errorCodes == null) {
+    if (diagnosticCodes == null) {
       errorListener.assertNoErrors();
     } else {
-      errorListener.assertErrorsWithCodes(errorCodes);
+      errorListener.assertErrorsWithCodes(diagnosticCodes);
     }
     return result;
   }
@@ -4951,59 +5378,74 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
 @reflectiveTest
 class InstanceCreationEvaluatorTest extends ConstantVisitorTestSupport {
   test_assertInitializer_assertIsNot_false() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   const A() : assert(0 is! int);
 }
 
 const a = const A(null);
-''', [
-      error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 31, 9),
-      error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        56,
-        13,
-        contextMessages: [
-          ExpectedContextMessage(testFile, 24, 17,
+''',
+      [
+        error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 31, 9),
+        error(
+          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          56,
+          13,
+          contextMessages: [
+            ExpectedContextMessage(
+              testFile,
+              24,
+              17,
               text:
-                  "The exception is 'The assertion in this constant expression failed.' and occurs here."),
-        ],
-      ),
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 64, 4),
-    ]);
+                  "The exception is 'The assertion in this constant expression failed.' and occurs here.",
+            ),
+          ],
+        ),
+        error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 64, 4),
+      ],
+    );
   }
 
   test_assertInitializer_assertIsNot_null_nullableType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A<T> {
   const A() : assert(null is! T);
 }
 
 const a = const A<int?>();
-''', [
-      error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        60,
-        15,
-        contextMessages: [
-          ExpectedContextMessage(testFile, 27, 18,
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          60,
+          15,
+          contextMessages: [
+            ExpectedContextMessage(
+              testFile,
+              27,
+              18,
               text:
-                  "The exception is 'The assertion in this constant expression failed.' and occurs here."),
-        ],
-      ),
-    ]);
+                  "The exception is 'The assertion in this constant expression failed.' and occurs here.",
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   test_assertInitializer_assertIsNot_true() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   const A() : assert(0 is! String);
 }
 
 const a = const A(null);
-''', [
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 67, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 67, 4)],
+    );
     var result = _topLevelVar('a');
     assertDartObjectText(result, '''
 A
@@ -5012,24 +5454,31 @@ A
   }
 
   test_assertInitializer_enum_false() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 enum E { a, b }
 class A {
   const A(E e) : assert(e != E.a);
 }
 const c = const A(E.a);
-''', [
-      error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        73,
-        12,
-        contextMessages: [
-          ExpectedContextMessage(testFile, 43, 16,
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          73,
+          12,
+          contextMessages: [
+            ExpectedContextMessage(
+              testFile,
+              43,
+              16,
               text:
-                  "The exception is 'The assertion in this constant expression failed.' and occurs here."),
-        ],
-      ),
-    ]);
+                  "The exception is 'The assertion in this constant expression failed.' and occurs here.",
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   test_assertInitializer_enum_true() async {
@@ -5048,7 +5497,8 @@ A
   }
 
   test_assertInitializer_indirect() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const A(int i)
   : assert(i == 1); // (2)
@@ -5059,32 +5509,43 @@ class B extends A {
 main() {
   print(const B(2)); // (1)
 }
-''', [
-      error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        124,
-        10,
-        contextMessages: [
-          ExpectedContextMessage(testFile, 84, 1,
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          124,
+          10,
+          contextMessages: [
+            ExpectedContextMessage(
+              testFile,
+              84,
+              1,
               text:
-                  "The evaluated constructor 'A' is called by 'B' and 'B' is defined here."),
-          ExpectedContextMessage(testFile, 31, 14,
+                  "The evaluated constructor 'A' is called by 'B' and 'B' is defined here.",
+            ),
+            ExpectedContextMessage(
+              testFile,
+              31,
+              14,
               text:
-                  "The exception is 'The assertion in this constant expression failed.' and occurs here."),
-        ],
-      ),
-    ]);
+                  "The exception is 'The assertion in this constant expression failed.' and occurs here.",
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   test_assertInitializer_intInDoubleContext_assertIsDouble_true() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   const A(double x): assert(x is double);
 }
 const a = const A(0);
-''', [
-      error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 38, 11),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 38, 11)],
+    );
     var result = _topLevelVar('a');
     assertDartObjectText(result, '''
 A
@@ -5093,23 +5554,30 @@ A
   }
 
   test_assertInitializer_intInDoubleContext_false() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   const A(double x): assert((x + 3) / 2 == 1.5);
 }
 const a = const A(1);
-''', [
-      error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        71,
-        10,
-        contextMessages: [
-          ExpectedContextMessage(testFile, 31, 26,
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          71,
+          10,
+          contextMessages: [
+            ExpectedContextMessage(
+              testFile,
+              31,
+              26,
               text:
-                  "The exception is 'The assertion in this constant expression failed.' and occurs here."),
-        ],
-      ),
-    ]);
+                  "The exception is 'The assertion in this constant expression failed.' and occurs here.",
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   test_assertInitializer_intInDoubleContext_true() async {
@@ -5127,34 +5595,42 @@ A
   }
 
   test_assertInitializer_simple_false() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   const A(): assert(1 is String);
 }
 const a = const A();
-''', [
-      error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        56,
-        9,
-        contextMessages: [
-          ExpectedContextMessage(testFile, 23, 19,
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          56,
+          9,
+          contextMessages: [
+            ExpectedContextMessage(
+              testFile,
+              23,
+              19,
               text:
-                  "The exception is 'The assertion in this constant expression failed.' and occurs here."),
-        ],
-      ),
-    ]);
+                  "The exception is 'The assertion in this constant expression failed.' and occurs here.",
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   test_assertInitializer_simple_true() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   const A(): assert(1 is int);
 }
 const a = const A();
-''', [
-      error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 30, 8),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 30, 8)],
+    );
     var result = _topLevelVar('a');
     assertDartObjectText(result, '''
 A
@@ -5163,7 +5639,8 @@ A
   }
 
   test_assertInitializer_simpleInSuperInitializer_false() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   const A(): assert(1 is String);
 }
@@ -5171,25 +5648,36 @@ class B extends A {
   const B() : super();
 }
 const b = const B();
-''', [
-      error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        101,
-        9,
-        contextMessages: [
-          ExpectedContextMessage(testFile, 74, 1,
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          101,
+          9,
+          contextMessages: [
+            ExpectedContextMessage(
+              testFile,
+              74,
+              1,
               text:
-                  "The evaluated constructor 'A' is called by 'B' and 'B' is defined here."),
-          ExpectedContextMessage(testFile, 23, 19,
+                  "The evaluated constructor 'A' is called by 'B' and 'B' is defined here.",
+            ),
+            ExpectedContextMessage(
+              testFile,
+              23,
+              19,
               text:
-                  "The exception is 'The assertion in this constant expression failed.' and occurs here."),
-        ],
-      ),
-    ]);
+                  "The exception is 'The assertion in this constant expression failed.' and occurs here.",
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   test_assertInitializer_simpleInSuperInitializer_true() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   const A(): assert(1 is int);
 }
@@ -5197,9 +5685,9 @@ class B extends A {
   const B() : super();
 }
 const b = const B();
-''', [
-      error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 30, 8),
-    ]);
+''',
+      [error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 30, 8)],
+    );
     var result = _topLevelVar('b');
     assertDartObjectText(result, '''
 B
@@ -5209,66 +5697,87 @@ B
   }
 
   test_assertInitializer_usingArgument_false() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   const A(int x): assert(x > 0);
 }
 const a = const A(0);
-''', [
-      error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        55,
-        10,
-        contextMessages: [
-          ExpectedContextMessage(testFile, 28, 13,
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          55,
+          10,
+          contextMessages: [
+            ExpectedContextMessage(
+              testFile,
+              28,
+              13,
               text:
-                  "The exception is 'The assertion in this constant expression failed.' and occurs here."),
-        ],
-      ),
-    ]);
+                  "The exception is 'The assertion in this constant expression failed.' and occurs here.",
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   test_assertInitializer_usingArgument_false_withMessage() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const A(int x): assert(x > 0, '$x must be greater than 0');
 }
 const a = const A(0);
-''', [
-      error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        84,
-        10,
-        contextMessages: [
-          ExpectedContextMessage(testFile, 28, 42,
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          84,
+          10,
+          contextMessages: [
+            ExpectedContextMessage(
+              testFile,
+              28,
+              42,
               text:
-                  "The exception is 'An assertion failed with message '0 must be greater than 0'.' and occurs here."),
-        ],
-      ),
-    ]);
+                  "The exception is 'An assertion failed with message '0 must be greater than 0'.' and occurs here.",
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   test_assertInitializer_usingArgument_false_withMessage_cannotCompute() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const A(int x): assert(x > 0, '${throw ''}');
 }
 const a = const A(0);
-''', [
-      error(CompileTimeErrorCode.INVALID_CONSTANT, 45, 8),
-      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION, 45, 8),
-      error(WarningCode.DEAD_CODE, 54, 3),
-      error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        70,
-        10,
-        contextMessages: [
-          ExpectedContextMessage(testFile, 28, 28,
+''',
+      [
+        error(CompileTimeErrorCode.INVALID_CONSTANT, 45, 8),
+        error(CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION, 45, 8),
+        error(WarningCode.DEAD_CODE, 54, 3),
+        error(
+          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          70,
+          10,
+          contextMessages: [
+            ExpectedContextMessage(
+              testFile,
+              28,
+              28,
               text:
-                  "The exception is 'The assertion in this constant expression failed.' and occurs here."),
-        ],
-      ),
-    ]);
+                  "The exception is 'The assertion in this constant expression failed.' and occurs here.",
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   test_assertInitializer_usingArgument_true() async {
@@ -5295,16 +5804,21 @@ bool false
   variable: <testLibrary>::@topLevelVariable::a
 ''');
     assertDartObjectText(
-        _evaluateConstant('a', declaredVariables: {'a': 'true'}), '''
+      _evaluateConstant('a', declaredVariables: {'a': 'true'}),
+      '''
 bool true
-''');
+''',
+    );
 
     var bResult = _evaluateConstant(
       'b',
       declaredVariables: {'b': 'bbb'},
       lexicalEnvironment: {
-        'defaultValue':
-            DartObjectImpl(typeSystem, typeProvider.boolType, BoolState(true)),
+        'defaultValue': DartObjectImpl(
+          typeSystem,
+          typeProvider.boolType,
+          BoolState(true),
+        ),
       },
     );
     assertDartObjectText(bResult, '''
@@ -5413,7 +5927,8 @@ const right = b == {3:'3', if (a) 1:'1' else 2:'2', 4:'4'};
   }
 
   test_bool_fromEnvironment_dartLibraryJsUtil_ifElement_nonConstant() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const a = bool.fromEnvironment('dart.library.js_util');
 var b = 7;
 var x = const A([if (a) b]);
@@ -5421,9 +5936,9 @@ var x = const A([if (a) b]);
 class A {
   const A(List<int> p);
 }
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 91, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 91, 1)],
+    );
   }
 
   test_bool_fromEnvironment_dartLibraryJsUtil_ifElement_set() async {
@@ -5477,7 +5992,8 @@ const right = b == {3, if (a) ...[1] else ...[1, 2], 4};
   }
 
   test_bool_fromEnvironment_dartLibraryJsUtil_ifElementElse_nonConstant() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const a = bool.fromEnvironment('dart.library.js_util');
 var b = 7;
 var x = const A([if (a) 3 else b]);
@@ -5485,9 +6001,9 @@ var x = const A([if (a) 3 else b]);
 class A {
   const A(List<int> p);
 }
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 98, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 98, 1)],
+    );
   }
 
   test_bool_fromEnvironment_dartLibraryJsUtil_ifStatement_list() async {
@@ -5503,7 +6019,8 @@ const x = [3, if (a) ...[1] else ...[1, 2], 4];
   }
 
   test_bool_fromEnvironment_dartLibraryJsUtil_recordField_nonConstant() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const a = bool.fromEnvironment('dart.library.js_util');
 var b = 7;
 var x = const A((b, ));
@@ -5511,9 +6028,9 @@ var x = const A((b, ));
 class A {
   const A((int, ) p);
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_CONSTANT, 84, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_CONSTANT, 84, 1)],
+    );
   }
 
   test_bool_hasEnvironment() async {
@@ -5525,9 +6042,11 @@ bool false
   variable: <testLibrary>::@topLevelVariable::a
 ''');
     assertDartObjectText(
-        _evaluateConstant('a', declaredVariables: {'a': '42'}), '''
+      _evaluateConstant('a', declaredVariables: {'a': '42'}),
+      '''
 bool true
-''');
+''',
+    );
   }
 
   test_field_deferred_issue48991() async {
@@ -5539,7 +6058,8 @@ class A {
 const aa = A();
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart' deferred as a;
 
 class B {
@@ -5549,12 +6069,15 @@ class B {
 main() {
   print(const B(a.aa));
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.CONST_CONSTRUCTOR_CONSTANT_FROM_DEFERRED_LIBRARY,
           93,
-          2),
-    ]);
+          2,
+        ),
+      ],
+    );
   }
 
   test_field_imported_staticConst() async {
@@ -5646,28 +6169,38 @@ A<int, String>
   }
 
   test_fieldInitializer_typeParameter_withoutConstructorTearoffs() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 // @dart=2.12
 class A<T> {
   final Object f;
   const A(): f = T;
 }
 const a = const A<int>();
-''', [
-      error(CompileTimeErrorCode.INVALID_CONSTANT, 62, 1),
-      error(
-        CompileTimeErrorCode.INVALID_CONSTANT,
-        77,
-        14,
-        contextMessages: [
-          ExpectedContextMessage(testFile, 62, 1,
+''',
+      [
+        error(CompileTimeErrorCode.INVALID_CONSTANT, 62, 1),
+        error(
+          CompileTimeErrorCode.INVALID_CONSTANT,
+          77,
+          14,
+          contextMessages: [
+            ExpectedContextMessage(
+              testFile,
+              62,
+              1,
               text:
-                  "The error is in the field initializer of 'A', and occurs here."),
-        ],
-      ),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 77,
-          14),
-    ]);
+                  "The error is in the field initializer of 'A', and occurs here.",
+            ),
+          ],
+        ),
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          77,
+          14,
+        ),
+      ],
+    );
     var result = _topLevelVar('a');
     _assertNull(result);
   }
@@ -5698,16 +6231,21 @@ int 0
   variable: <testLibrary>::@topLevelVariable::a
 ''');
     assertDartObjectText(
-        _evaluateConstant('a', declaredVariables: {'a': '5'}), '''
+      _evaluateConstant('a', declaredVariables: {'a': '5'}),
+      '''
 int 5
-''');
+''',
+    );
 
     var bResult = _evaluateConstant(
       'b',
       declaredVariables: {'b': 'bbb'},
       lexicalEnvironment: {
-        'defaultValue':
-            DartObjectImpl(typeSystem, typeProvider.intType, IntState(42)),
+        'defaultValue': DartObjectImpl(
+          typeSystem,
+          typeProvider.intType,
+          IntState(42),
+        ),
       },
     );
     assertDartObjectText(bResult, '''
@@ -5716,7 +6254,8 @@ int 42
   }
 
   test_issue47351() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class Foo {
   final int bar;
   const Foo(this.bar);
@@ -5724,15 +6263,21 @@ class Foo {
 
 int bar = 2;
 const a = const Foo(bar);
-''', [
-      error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 88, 3),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 88,
-          3),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 88, 3),
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          88,
+          3,
+        ),
+      ],
+    );
   }
 
   test_issue47603() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   final void Function() c;
   const C(this.c);
@@ -5741,13 +6286,14 @@ class C {
 void main() {
   const C(() {});
 }
-''', [
-      error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 83, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 83, 5)],
+    );
   }
 
   test_issue49389() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class Foo {
   const Foo({required this.bar});
   final Map<String, String> bar;
@@ -5757,25 +6303,28 @@ void main() {
   final data = <String, String>{};
   const Foo(bar: data);
 }
-''', [
-      // TODO(kallentu): Fix [InvalidConstant.genericError] to handle
-      // NamedExpressions.
-      error(CompileTimeErrorCode.INVALID_CONSTANT, 148, 4),
-    ]);
+''',
+      [
+        // TODO(kallentu): Fix [InvalidConstant.genericError] to handle
+        // NamedExpressions.
+        error(CompileTimeErrorCode.INVALID_CONSTANT, 148, 4),
+      ],
+    );
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/55467')
   test_listLiteral_expression_nonConstant() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var b = 7;
 var x = const A([b]);
 
 class A {
   const A(List<int> p);
 }
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 28, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 28, 1)],
+    );
   }
 
   test_redirectingConstructor_typeParameter() async {
@@ -5804,9 +6353,11 @@ String <empty>
   variable: <testLibrary>::@topLevelVariable::a
 ''');
     assertDartObjectText(
-        _evaluateConstant('a', declaredVariables: {'a': 'test'}), '''
+      _evaluateConstant('a', declaredVariables: {'a': 'test'}),
+      '''
 String test
-''');
+''',
+    );
   }
 
   test_superInitializer_formalParameter_explicitSuper_hasNamedArgument_requiredNamed() async {
@@ -6064,7 +6615,8 @@ B<int>
   }
 
   test_superInitializer_paramTypeMismatch_indirect() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   final double d;
   const C(this.d);
@@ -6076,24 +6628,38 @@ class E extends D {
   const E(e) : super(e);
 }
 const f = const E('0.0');
-''', [
-      error(
-        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        153,
-        14,
-        contextMessages: [
-          ExpectedContextMessage(testFile, 77, 1,
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          153,
+          14,
+          contextMessages: [
+            ExpectedContextMessage(
+              testFile,
+              77,
+              1,
               text:
-                  "The evaluated constructor 'C' is called by 'D' and 'D' is defined here."),
-          ExpectedContextMessage(testFile, 124, 1,
+                  "The evaluated constructor 'C' is called by 'D' and 'D' is defined here.",
+            ),
+            ExpectedContextMessage(
+              testFile,
+              124,
+              1,
               text:
-                  "The evaluated constructor 'D' is called by 'E' and 'E' is defined here."),
-          ExpectedContextMessage(testFile, 90, 1,
+                  "The evaluated constructor 'D' is called by 'E' and 'E' is defined here.",
+            ),
+            ExpectedContextMessage(
+              testFile,
+              90,
+              1,
               text:
-                  "The exception is 'A value of type 'String' can't be assigned to a parameter of type 'double' in a const constructor.' and occurs here."),
-        ],
-      ),
-    ]);
+                  "The exception is 'A value of type 'String' can't be assigned to a parameter of type 'double' in a const constructor.' and occurs here.",
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   test_superInitializer_typeParameter() async {
@@ -6154,16 +6720,23 @@ A
   }
 
   test_wildcard_regularInitializer_initializerList() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   final int _;
   final int y;
   const A(this._): y = _;
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_CONSTANT, 63, 1),
-      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 63, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.INVALID_CONSTANT, 63, 1),
+        error(
+          CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
+          63,
+          1,
+        ),
+      ],
+    );
   }
 
   test_wildcard_superInitializer() async {

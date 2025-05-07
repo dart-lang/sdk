@@ -12,7 +12,8 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GenericFunctionTypeCannotBeBoundTest);
     defineReflectiveTests(
-        GenericFunctionTypeCannotBeBoundWithoutGenericMetadataTest);
+      GenericFunctionTypeCannotBeBoundWithoutGenericMetadataTest,
+    );
   });
 }
 
@@ -35,13 +36,20 @@ late T Function<T extends S Function<S>(S)>(T) fun;
     newFile('$testPackageLibPath/a.dart', '''
 typedef F = S Function<S>(S);
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 // @dart=2.12
 import 'a.dart';
 late T Function<T extends F>(T) fun;
-''', [
-      error(CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND, 57, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND,
+          57,
+          1,
+        ),
+      ],
+    );
   }
 
   test_genericFunctionTypedef() async {
@@ -68,38 +76,56 @@ class GenericFunctionTypeCannotBeBoundWithoutGenericMetadataTest
     extends PubPackageResolutionTest {
   @override
   List<String> get experiments {
-    return [
-      ...super.experiments,
-      Feature.generic_metadata.enableString,
-    ];
+    return [...super.experiments, Feature.generic_metadata.enableString];
   }
 
   test_class() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // @dart=2.12
 class C<T extends S Function<S>(S)> {
 }
-''', [
-      error(CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND, 32, 16),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND,
+          32,
+          16,
+        ),
+      ],
+    );
   }
 
   test_genericFunction() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // @dart=2.12
 late T Function<T extends S Function<S>(S)>(T) fun;
-''', [
-      error(CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND, 40, 16),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND,
+          40,
+          16,
+        ),
+      ],
+    );
   }
 
   test_genericFunctionTypedef() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // @dart=2.12
 typedef foo = T Function<T extends S Function<S>(S)>(T t);
-''', [
-      error(CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND, 49, 16),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND,
+          49,
+          16,
+        ),
+      ],
+    );
   }
 
   test_parameterOfFunction() async {
@@ -109,11 +135,18 @@ class C<T extends void Function(S Function<S>(S))> {}
   }
 
   test_typedef() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // @dart=2.12
 typedef T foo<T extends S Function<S>(S)>(T t);
-''', [
-      error(CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND, 38, 16),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND,
+          38,
+          16,
+        ),
+      ],
+    );
   }
 }

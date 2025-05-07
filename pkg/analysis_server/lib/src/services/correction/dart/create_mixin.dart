@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -29,7 +29,7 @@ class CreateMixin extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    Element2? prefixElement;
+    Element? prefixElement;
     var node = this.node;
     if (node is NamedType) {
       var importPrefix = node.importPrefix;
@@ -49,6 +49,10 @@ class CreateMixin extends ResolvedCorrectionProducer {
           }
         case PropertyAccess():
           if (parent.propertyName == node) {
+            return;
+          }
+        case ExpressionFunctionBody():
+          if (parent.expression == node) {
             return;
           }
       }
@@ -85,7 +89,7 @@ class CreateMixin extends ResolvedCorrectionProducer {
       prefix = '$eol$eol';
     } else {
       for (var import in libraryElement2.firstFragment.libraryImports2) {
-        if (prefixElement is PrefixElement2 &&
+        if (prefixElement is PrefixElement &&
             import.prefix2?.element == prefixElement) {
           var library = import.importedLibrary2;
           if (library != null) {

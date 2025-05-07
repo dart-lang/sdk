@@ -35,7 +35,8 @@ class AnalysisOptionsTest {
       AnalysisOptionsImpl.fromYaml(
         optionsMap: optionsProvider.getOptionsFromString(content),
         file: resourceProvider.getFile(
-            resourceProvider.convertPath('/project/analysis_options.yaml')),
+          resourceProvider.convertPath('/project/analysis_options.yaml'),
+        ),
         resourceProvider: resourceProvider,
       );
 
@@ -141,7 +142,7 @@ analyzer:
 
     var processor = processors.first;
     expect(processor.appliesTo(warning), isTrue);
-    expect(processor.severity, ErrorSeverity.ERROR);
+    expect(processor.severity, DiagnosticSeverity.ERROR);
   }
 
   test_analyzer_errors_severityIsIgnore() {
@@ -488,7 +489,8 @@ plugins:
     var sourceFactory = SourceFactory([ResourceUriResolver(resourceProvider)]);
     var optionsProvider = AnalysisOptionsProvider(sourceFactory);
     var otherOptions = resourceProvider.getFile(
-        resourceProvider.convertPath("/project/analysis_options_helper.yaml"));
+      resourceProvider.convertPath("/project/analysis_options_helper.yaml"),
+    );
     otherOptions.writeAsStringSync('''
 analyzer:
   errors:
@@ -497,7 +499,8 @@ analyzer:
     c: ignore
 ''');
     var mainOptions = resourceProvider.getFile(
-        resourceProvider.convertPath("/project/analysis_options.yaml"));
+      resourceProvider.convertPath("/project/analysis_options.yaml"),
+    );
     mainOptions.writeAsStringSync('''
 include: analysis_options_helper.yaml
 analyzer:

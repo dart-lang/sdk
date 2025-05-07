@@ -39,25 +39,25 @@ final class TestStruct extends ffi::Struct {
   [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 0)]
   [@vm.unboxing-info.metadata=()->i]
   @#C19
-  static get structArray#offsetOf() → core::int
+  static synthetic get structArray#offsetOf() → core::int
     return #C22.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 
   [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 8)]
   [@vm.unboxing-info.metadata=()->i]
   @#C19
-  static get unionArray#offsetOf() → core::int
+  static synthetic get unionArray#offsetOf() → core::int
     return #C24.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 
   [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 28)]
   [@vm.unboxing-info.metadata=()->i]
   @#C19
-  static get arrayArray#offsetOf() → core::int
+  static synthetic get arrayArray#offsetOf() → core::int
     return #C26.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 
   [@vm.inferred-return-type.metadata=dart.core::_Smi]
   [@vm.unboxing-info.metadata=()->i]
   @#C19
-  static get abiSpecificIntegerArray#offsetOf() → core::int
+  static synthetic get abiSpecificIntegerArray#offsetOf() → core::int
     return #C29.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 
   [@vm.inferred-return-type.metadata=dart.core::_Smi]

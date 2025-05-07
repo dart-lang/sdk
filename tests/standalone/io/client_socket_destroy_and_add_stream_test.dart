@@ -28,8 +28,10 @@ void main() async {
   client.listen((data) {}, onDone: server.close);
   client.add(new List.filled(1024 * 1024, 0));
   client.destroy();
-  await client.addStream(Stream.fromIterable([
-    [1, 2, 3, 4]
-  ]));
+  await client.addStream(
+    Stream.fromIterable([
+      [1, 2, 3, 4],
+    ]),
+  );
   asyncEnd();
 }

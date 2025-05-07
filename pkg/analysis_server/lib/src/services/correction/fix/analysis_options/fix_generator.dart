@@ -13,6 +13,7 @@ import 'package:analysis_server/src/utilities/yaml_node_locator.dart';
 import 'package:analysis_server_plugin/edit/fix/fix.dart';
 import 'package:analysis_server_plugin/src/correction/change_workspace.dart';
 import 'package:analyzer/dart/analysis/session.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -29,10 +30,10 @@ import 'package:yaml_edit/yaml_edit.dart';
 
 /// The generator used to generate fixes in analysis options files.
 class AnalysisOptionsFixGenerator {
-  static const List<ErrorCode> codesWithFixes = [
-    AnalysisOptionsHintCode.DEPRECATED_LINT,
+  static const List<DiagnosticCode> codesWithFixes = [
+    AnalysisOptionsWarningCode.DEPRECATED_LINT,
     AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT,
-    AnalysisOptionsHintCode.DUPLICATE_RULE,
+    AnalysisOptionsWarningCode.DUPLICATE_RULE,
     AnalysisOptionsWarningCode.REMOVED_LINT,
     AnalysisOptionsWarningCode.UNDEFINED_LINT,
     AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES,
@@ -41,7 +42,7 @@ class AnalysisOptionsFixGenerator {
   /// The resource provider used to access the file system.
   final ResourceProvider resourceProvider;
 
-  final AnalysisError error;
+  final Diagnostic error;
 
   final int errorOffset;
 
@@ -115,8 +116,8 @@ class AnalysisOptionsFixGenerator {
           strongModeMap,
         );
       }
-    } else if (errorCode == AnalysisOptionsHintCode.DEPRECATED_LINT ||
-        errorCode == AnalysisOptionsHintCode.DUPLICATE_RULE ||
+    } else if (errorCode == AnalysisOptionsWarningCode.DEPRECATED_LINT ||
+        errorCode == AnalysisOptionsWarningCode.DUPLICATE_RULE ||
         errorCode == AnalysisOptionsWarningCode.REMOVED_LINT ||
         errorCode == AnalysisOptionsWarningCode.UNDEFINED_LINT) {
       await _addFix_removeLint(coveringNodePath);

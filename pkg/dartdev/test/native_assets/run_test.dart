@@ -9,7 +9,7 @@ import 'package:test/test.dart';
 import '../utils.dart';
 import 'helpers.dart';
 
-void main(List<String> args) async {
+void main([List<String> args = const []]) async {
   if (!nativeAssetsExperimentAvailableOnCurrentChannel) {
     test('dart run', timeout: longTimeout, () async {
       await nativeAssetsTest('dart_app', (dartAppUri) async {
@@ -193,22 +193,25 @@ Couldn't resolve native function 'multiply' in 'package:drop_dylib_link/dylib_mu
     });
   });
 
-  test(
-    'dart run with user defines',
-    timeout: longTimeout,
-    () async {
-      await nativeAssetsTest('user_defines', (packageUri) async {
-        final result = await runDart(
-          arguments: [
-            '--enable-experiment=native-assets',
-            'run',
-            'bin/user_defines.dart',
-          ],
-          workingDirectory: packageUri,
-          logger: logger,
-        );
-        expect(result.stdout, contains('Hello world!'));
-      });
-    },
-  );
+  for (final usePubWorkspace in [true, false]) {
+    test(
+      'dart run with user defines',
+      timeout: longTimeout,
+      () async {
+        await nativeAssetsTest('user_defines', usePubWorkspace: usePubWorkspace,
+            (packageUri) async {
+          final result = await runDart(
+            arguments: [
+              '--enable-experiment=native-assets',
+              'run',
+              'bin/user_defines.dart',
+            ],
+            workingDirectory: packageUri,
+            logger: logger,
+          );
+          expect(result.stdout, contains('Hello world!'));
+        });
+      },
+    );
+  }
 }

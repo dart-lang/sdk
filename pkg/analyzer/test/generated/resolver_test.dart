@@ -19,13 +19,14 @@ main() {
 @reflectiveTest
 class StrictModeTest extends PubPackageResolutionTest {
   test_assert_is() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 int f(num n) {
   assert (n is int);
   return n & 0x0F;
-}''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 47, 1),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 47, 1)],
+    );
   }
 
   test_conditional_and_is() async {
@@ -70,16 +71,17 @@ void f(List<int> list) {
   }
 
   test_forEach() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(List<int> list) {
   num sum = 0; // ignore: unused_local_variable
   for (num n in list) {
     sum += n & 0x0F;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 110, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 110, 1)],
+    );
   }
 
   test_if_and_is() async {
@@ -138,13 +140,14 @@ int f(num n) {
   }
 
   test_localVar() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 int f() {
   num n = 1234;
   return n & 0x0F;
-}''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 37, 1),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 37, 1)],
+    );
   }
 }
 

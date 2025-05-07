@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 
@@ -69,10 +69,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  void _check(Element2? element, ConstructorDeclaration node) {
-    if (element is FieldFormalParameterElement2 ||
-        element is SuperFormalParameterElement2) {
-      rule.reportLint(
+  void _check(Element? element, ConstructorDeclaration node) {
+    if (element is FieldFormalParameterElement ||
+        element is SuperFormalParameterElement) {
+      rule.reportAtNode(
         node.parameters.parameters.firstWhere(
           (p) => p.declaredFragment?.element == element,
         ),

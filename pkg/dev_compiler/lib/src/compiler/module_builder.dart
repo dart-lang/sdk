@@ -7,6 +7,7 @@ import 'package:path/path.dart' as p;
 
 import '../js_ast/js_ast.dart';
 import '../kernel/compiler.dart';
+import '../kernel/compiler_new.dart';
 import 'js_names.dart';
 
 /// The module format to emit.
@@ -558,8 +559,15 @@ class DdcLibraryBundleBuilder extends _ModuleBuilder {
           [js.string(library.name!), initFunction]);
       body.add(resultModule);
     }
+    // The library bundle format only needs to keep track of source maps and
+    // doesn't need the full `trackLibraries` call that other formats use.
+    var setSourceMap =
+        js.statement('dartDevEmbedder.debugger.setSourceMap(#, #)', [
+      js.string(module.name!),
+      LibraryCompiler.sourceMapLocationID,
+    ]);
     // Append all library definitions into a single file.
-    return Program([...module.header, ...body]);
+    return Program([...module.header, ...body, setSourceMap]);
   }
 }
 

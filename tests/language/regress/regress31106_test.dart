@@ -15,9 +15,7 @@ void main() {
 class User {
   final String first;
 
-  const User({
-    required this.first,
-  });
+  const User({required this.first});
 }
 
 class Schema<T> {
@@ -27,15 +25,12 @@ class Schema<T> {
   const Schema({
     required this.name,
     required Map<String, Object> Function(T) decode,
-  })
-      : _decode = decode;
+  }) : _decode = decode;
 }
 
 class UserSchema extends Schema<User> {
   static Map<String, Object> _decode$(User user) {
-    return {
-      'first': user.first,
-    };
+    return {'first': user.first};
   }
 
   const UserSchema() : super(name: 'users', decode: _decode$);

@@ -4,7 +4,7 @@
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer_utilities/package_root.dart' as package_root;
+import 'package:analyzer_testing/package_root.dart' as package_root;
 import 'package:analyzer_utilities/verify_tests.dart';
 import 'package:path/path.dart' as path;
 
@@ -23,7 +23,10 @@ class _VerifyTests extends VerifyTests {
   _VerifyTests(super.testDirPath, {super.excludedPaths});
 
   @override
-  bool isExpensive(Resource resource) => resource.shortName == 'integration';
+  bool isExpensive(Resource resource) {
+    return resource.shortName == 'integration' ||
+        resource.shortName == 'benchmarks_test.dart';
+  }
 
   @override
   bool isOkAsAdditionalTestAllImport(Folder folder, String uri) {

@@ -18,7 +18,7 @@ import 'declaration.dart';
 
 class SetterBodyBuilderContext extends BodyBuilderContext {
   final SourcePropertyBuilder _builder;
-  final SetterDeclaration _declaration;
+  final SetterFragmentDeclaration _declaration;
 
   SetterBodyBuilderContext(
       this._builder,

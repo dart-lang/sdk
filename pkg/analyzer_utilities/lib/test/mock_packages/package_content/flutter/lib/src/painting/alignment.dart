@@ -94,9 +94,7 @@ class Alignment extends AlignmentGeometry {
   /// Creates an alignment.
   ///
   /// The [x] and [y] arguments must not be null.
-  const Alignment(this.x, this.y)
-      : assert(x != null),
-        assert(y != null);
+  const Alignment(this.x, this.y) : assert(x != null), assert(y != null);
 }
 
 /// An offset that's expressed as a fraction of a [Size], but whose horizontal
@@ -124,8 +122,10 @@ class AlignmentDirectional extends AlignmentGeometry {
   static const AlignmentDirectional topEnd = AlignmentDirectional(1.0, -1.0);
 
   /// The center point along the "start" edge.
-  static const AlignmentDirectional centerStart =
-      AlignmentDirectional(-1.0, 0.0);
+  static const AlignmentDirectional centerStart = AlignmentDirectional(
+    -1.0,
+    0.0,
+  );
 
   /// The center point, both horizontally and vertically.
   ///
@@ -137,15 +137,19 @@ class AlignmentDirectional extends AlignmentGeometry {
   static const AlignmentDirectional centerEnd = AlignmentDirectional(1.0, 0.0);
 
   /// The bottom corner on the "start" side.
-  static const AlignmentDirectional bottomStart =
-      AlignmentDirectional(-1.0, 1.0);
+  static const AlignmentDirectional bottomStart = AlignmentDirectional(
+    -1.0,
+    1.0,
+  );
 
   /// The center point along the bottom edge.
   ///
   /// Consider using [Alignment.bottomCenter] instead, as it does not
   /// need to be [resolve]d to be used.
-  static const AlignmentDirectional bottomCenter =
-      AlignmentDirectional(0.0, 1.0);
+  static const AlignmentDirectional bottomCenter = AlignmentDirectional(
+    0.0,
+    1.0,
+  );
 
   /// The bottom corner on the "end" side.
   static const AlignmentDirectional bottomEnd = AlignmentDirectional(1.0, 1.0);
@@ -178,8 +182,8 @@ class AlignmentDirectional extends AlignmentGeometry {
   ///
   /// The [start] and [y] arguments must not be null.
   const AlignmentDirectional(this.start, this.y)
-      : assert(start != null),
-        assert(y != null);
+    : assert(start != null),
+      assert(y != null);
 }
 
 /// Base class for [Alignment] that allows for text-direction aware
@@ -229,10 +233,9 @@ class TextAlignVertical {
   final double y;
 
   /// Creates a TextAlignVertical from any y value between -1.0 and 1.0.
-  const TextAlignVertical({
-    @required this.y,
-  })  : assert(y != null),
-        assert(y >= -1.0 && y <= 1.0);
+  const TextAlignVertical({@required this.y})
+    : assert(y != null),
+      assert(y >= -1.0 && y <= 1.0);
 
   @override
   String toString() {

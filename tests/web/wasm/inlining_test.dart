@@ -11,9 +11,7 @@ class Widget {
 
   @pragma("wasm:prefer-inline")
   Widget(int numChildren)
-      : _children = [
-          for (var i = 0; i < numChildren; i++) Widget(0),
-        ];
+    : _children = [for (var i = 0; i < numChildren; i++) Widget(0)];
 }
 
 @pragma("wasm:prefer-inline")

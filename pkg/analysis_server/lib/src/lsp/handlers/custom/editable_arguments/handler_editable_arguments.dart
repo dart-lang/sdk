@@ -12,7 +12,7 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/constant/value.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -201,7 +201,7 @@ class EditableArgumentsHandler
       type = 'string';
       value = values.argumentValue?.toStringValue();
       defaultValue = values.parameterValue?.toStringValue();
-    } else if (parameter.type case InterfaceType(:EnumElement2 element3)) {
+    } else if (parameter.type case InterfaceType(:EnumElement element3)) {
       type = 'enum';
       options = getQualifiedEnumConstantNames(element3);
       value = values.argumentValue?.toEnumStringValue(element3);
@@ -253,10 +253,10 @@ class EditableArgumentsHandler
 }
 
 extension on DartObject? {
-  Object? toEnumStringValue(EnumElement2 element3) {
+  Object? toEnumStringValue(EnumElement element3) {
     var valueObject = this;
     if (valueObject?.type case InterfaceType(
-      element3: EnumElement2 valueElement,
+      element3: EnumElement valueElement,
     ) when element3 == valueElement) {
       var index = valueObject?.getField('index')?.toIntValue();
       if (index != null) {

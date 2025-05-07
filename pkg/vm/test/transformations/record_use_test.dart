@@ -79,14 +79,12 @@ void main(List<String> args) {
     final testCasesDir = Directory.fromUri(
       _pkgVmDir.resolve('testcases/transformations/record_use/'),
     );
-
     for (var file
         in testCasesDir
             .listSync(recursive: true, followLinks: false)
             .reversed) {
       if (file.path.endsWith('.dart') &&
           !file.path.contains('helper') &&
-          !file.path.contains('instance_complex') &&
           (filter == null || file.path.contains(filter))) {
         test(
           '${file.path} aot',

@@ -15,8 +15,10 @@ import 'package:watcher/watcher.dart';
 Future<void> _isolateMain(SendPort sendPort) async {
   var fromMainIsolate = ReceivePort();
   var blazeIsolate = BlazeFileWatcherIsolate(
-      fromMainIsolate, sendPort, PhysicalResourceProvider.INSTANCE)
-    ..start();
+    fromMainIsolate,
+    sendPort,
+    PhysicalResourceProvider.INSTANCE,
+  )..start();
   await blazeIsolate.hasFinished;
 }
 
@@ -162,8 +164,11 @@ class BlazeFileWatcherIsolate {
   final _hasFinished = Completer<void>();
 
   BlazeFileWatcherIsolate(
-      this._fromMainIsolate, this._toMainIsolate, this._provider,
-      {PollTrigger Function(String)? pollTriggerFactory}) {
+    this._fromMainIsolate,
+    this._toMainIsolate,
+    this._provider, {
+    PollTrigger Function(String)? pollTriggerFactory,
+  }) {
     _pollTriggerFactory = pollTriggerFactory ?? _defaultPollTrigger;
   }
 
@@ -174,8 +179,9 @@ class BlazeFileWatcherIsolate {
       var workspaceData = _perWorkspaceData[request.workspace];
       if (workspaceData == null) {
         var trigger = _pollTriggerFactory(request.workspace);
-        var subscription =
-            trigger.stream.listen((_) => _pollAllWatchers(request.workspace));
+        var subscription = trigger.stream.listen(
+          (_) => _pollAllWatchers(request.workspace),
+        );
         workspaceData = _PerWorkspaceData(trigger, subscription);
         _perWorkspaceData[request.workspace] = workspaceData;
       }
@@ -185,8 +191,10 @@ class BlazeFileWatcherIsolate {
         assert(workspaceData.pollers.containsKey(requestedPath));
         return;
       }
-      workspaceData.pollers[requestedPath] =
-          BlazeFilePoller(_provider, request.info.candidatePaths)..start();
+      workspaceData.pollers[requestedPath] = BlazeFilePoller(
+        _provider,
+        request.info.candidatePaths,
+      )..start();
     } else if (request is BlazeWatcherStopWatching) {
       var workspaceData = _perWorkspaceData[request.workspace];
       if (workspaceData == null) return;
@@ -211,8 +219,11 @@ class BlazeFileWatcherIsolate {
     } else {
       // We don't have access to the `InstrumentationService` so we send the
       // message to the main isolate to log it.
-      _toMainIsolate.send(BlazeWatcherError(
-          'BlazeFileWatcherIsolate got unexpected request: $request'));
+      _toMainIsolate.send(
+        BlazeWatcherError(
+          'BlazeFileWatcherIsolate got unexpected request: $request',
+        ),
+      );
     }
   }
 
@@ -343,7 +354,8 @@ class BlazeFileWatcherService {
       _instrumentation.logError(message.message);
     } else {
       _instrumentation.logError(
-          'Received unexpected message from BlazeFileWatcherIsolate: $message');
+        'Received unexpected message from BlazeFileWatcherIsolate: $message',
+      );
     }
   }
 
@@ -498,9 +510,11 @@ class _BlazeInvocationWatcher implements PollTrigger {
     if (resolvedLink == null) return null;
     var pathContext = _provider.pathContext;
     return pathContext.join(
-        pathContext
-            .dirname(pathContext.dirname(pathContext.dirname(resolvedLink))),
-        'command.log');
+      pathContext.dirname(
+        pathContext.dirname(pathContext.dirname(resolvedLink)),
+      ),
+      'command.log',
+    );
   }
 
   String _inWorkspace(String p) =>
@@ -552,7 +566,8 @@ class _ModifiedInfo {
       // We don't really need to compute hashes, just check the equality. But
       // throw in case someone expects this to work.
       throw UnimplementedError(
-          '_ModifiedInfo.hashCode has not been implemented yet');
+        '_ModifiedInfo.hashCode has not been implemented yet',
+      );
 
   @override
   bool operator ==(Object other) {
@@ -564,7 +579,8 @@ class _ModifiedInfo {
 
   // For debugging only.
   @override
-  String toString() => '_ModifiedInfo('
+  String toString() =>
+      '_ModifiedInfo('
       'timestamp=$timestamp, length=$length, symlinkTarget=$symlinkTarget)';
 }
 

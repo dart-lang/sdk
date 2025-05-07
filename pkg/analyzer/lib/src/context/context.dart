@@ -63,17 +63,13 @@ class AnalysisContextImpl implements AnalysisContext {
   AnalysisOptions getAnalysisOptionsForFile(File file) =>
       _analysisOptionsMap.getOptions(file);
 
-  void setTypeProviders({
-    required TypeProviderImpl typeProvider,
-  }) {
+  void setTypeProviders({required TypeProviderImpl typeProvider}) {
     if (_typeProvider != null) {
       throw StateError('TypeProvider can be set only once.');
     }
 
     _typeProvider = typeProvider;
 
-    _typeSystem = TypeSystemImpl(
-      typeProvider: typeProvider,
-    );
+    _typeSystem = TypeSystemImpl(typeProvider: typeProvider);
   }
 }

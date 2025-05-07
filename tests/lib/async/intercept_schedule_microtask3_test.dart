@@ -33,9 +33,13 @@ main() {
   var result = runZonedScheduleMicrotask(body, onScheduleMicrotask: handler);
   events.add("after");
   scheduleMicrotask(() {
-    Expect.listEquals(
-        ["body entry", "handler", "handler done", "after", "run async body"],
-        events);
+    Expect.listEquals([
+      "body entry",
+      "handler",
+      "handler done",
+      "after",
+      "run async body",
+    ], events);
     asyncEnd();
   });
 }

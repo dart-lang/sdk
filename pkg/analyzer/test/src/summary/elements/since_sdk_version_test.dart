@@ -137,6 +137,7 @@ library
         synthetic get foo
           firstFragment: dart:foo::<fragment>::@class::A::@getter::foo
           sinceSdkVersion: 2.15.0
+          returnType: int
       setters
         synthetic set foo
           firstFragment: dart:foo::<fragment>::@class::A::@setter::foo
@@ -144,6 +145,7 @@ library
           formalParameters
             requiredPositional _foo
               type: int
+          returnType: void
 ''');
   }
 
@@ -191,6 +193,7 @@ library
         get foo
           firstFragment: dart:foo::<fragment>::@class::A::@getter::foo
           sinceSdkVersion: 2.15.0
+          returnType: int
 ''');
   }
 
@@ -227,6 +230,7 @@ library
         foo
           firstFragment: dart:foo::<fragment>::@class::A::@method::foo
           sinceSdkVersion: 2.15.0
+          returnType: void
 ''');
   }
 
@@ -264,6 +268,7 @@ library
         foo
           firstFragment: dart:foo::<fragment>::@class::A::@method::foo
           sinceSdkVersion: 2.16.0
+          returnType: void
 ''');
   }
 
@@ -301,6 +306,7 @@ library
         foo
           firstFragment: dart:foo::<fragment>::@class::A::@method::foo
           sinceSdkVersion: 2.15.0
+          returnType: void
 ''');
   }
 
@@ -354,6 +360,7 @@ library
           formalParameters
             requiredPositional _
               type: int
+          returnType: void
 ''');
   }
 
@@ -470,11 +477,14 @@ library
       getters
         synthetic static get v1
           firstFragment: dart:foo::<fragment>::@enum::E::@getter::v1
+          returnType: E
         synthetic static get v2
           firstFragment: dart:foo::<fragment>::@enum::E::@getter::v2
           sinceSdkVersion: 2.15.0
+          returnType: E
         synthetic static get values
           firstFragment: dart:foo::<fragment>::@enum::E::@getter::values
+          returnType: List<E>
 ''');
   }
 
@@ -568,13 +578,16 @@ library
         synthetic static get v
           firstFragment: dart:foo::<fragment>::@enum::E::@getter::v
           sinceSdkVersion: 2.15.0
+          returnType: E
         synthetic static get values
           firstFragment: dart:foo::<fragment>::@enum::E::@getter::values
           sinceSdkVersion: 2.15.0
+          returnType: List<E>
       methods
         foo
           firstFragment: dart:foo::<fragment>::@enum::E::@method::foo
           sinceSdkVersion: 2.15.0
+          returnType: void
 ''');
   }
 
@@ -611,6 +624,7 @@ library
         foo
           firstFragment: dart:foo::<fragment>::@extension::E::@method::foo
           sinceSdkVersion: 2.15.0
+          returnType: void
 ''');
   }
 
@@ -649,6 +663,7 @@ library
         foo
           firstFragment: dart:foo::<fragment>::@mixin::M::@method::foo
           sinceSdkVersion: 2.15.0
+          returnType: void
 ''');
   }
 
@@ -938,14 +953,13 @@ library
     synthetic static get foo
       firstFragment: dart:foo::<fragment>::@getter::foo
       sinceSdkVersion: 2.15.0
+      returnType: int
 ''');
   }
 
   Future<LibraryElementImpl> _buildDartFooLibrary(String content) async {
     additionalMockSdkLibraries.add(
-      MockSdkLibrary('foo', [
-        MockSdkLibraryUnit('foo/foo.dart', content),
-      ]),
+      MockSdkLibrary('foo', [MockSdkLibraryUnit('foo/foo.dart', content)]),
     );
 
     return await _libraryByUriFromTest('dart:foo');

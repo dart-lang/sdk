@@ -137,11 +137,15 @@ class ExperimentStatus with _CurrentState implements FeatureSet {
         return false;
       }
       if (!_equalListOfBool(
-          _explicitEnabledFlags, other._explicitEnabledFlags)) {
+        _explicitEnabledFlags,
+        other._explicitEnabledFlags,
+      )) {
         return false;
       }
       if (!_equalListOfBool(
-          _explicitDisabledFlags, other._explicitDisabledFlags)) {
+        _explicitDisabledFlags,
+        other._explicitDisabledFlags,
+      )) {
         return false;
       }
       if (!_equalListOfBool(_flags, other._flags)) {

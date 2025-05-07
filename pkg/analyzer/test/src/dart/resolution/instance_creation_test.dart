@@ -12,7 +12,8 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InstanceCreationExpressionResolutionTest);
     defineReflectiveTests(
-        InstanceCreationExpressionResolutionTest_WithoutConstructorTearoffs);
+      InstanceCreationExpressionResolutionTest_WithoutConstructorTearoffs,
+    );
   });
 }
 
@@ -22,9 +23,11 @@ class InstanceCreationExpressionResolutionTest extends PubPackageResolutionTest
 
 @reflectiveTest
 class InstanceCreationExpressionResolutionTest_WithoutConstructorTearoffs
-    extends PubPackageResolutionTest with WithoutConstructorTearoffsMixin {
+    extends PubPackageResolutionTest
+    with WithoutConstructorTearoffsMixin {
   test_unnamedViaNew() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   A(int a);
 }
@@ -32,9 +35,9 @@ class A {
 void f() {
   A.new(0);
 }
-''', [
-      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 40, 3),
-    ]);
+''',
+      [error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 40, 3)],
+    );
 
     // Resolution should continue even though the experiment is not enabled.
     var node = findNode.instanceCreation('A.new(0)');
@@ -186,7 +189,8 @@ augment class A<T2> {
   A(T2 value);
 }
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part 'a.dart';
 
 class A<T> {
@@ -196,9 +200,9 @@ class A<T> {
 void f() {
   A(0);
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 33, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 33, 1)],
+    );
 
     var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
@@ -523,7 +527,8 @@ augment class A {
   A();
 }
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part 'a.dart';
 
 class A {
@@ -533,9 +538,9 @@ class A {
 void f() {
   A();
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 30, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 30, 1)],
+    );
 
     var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
@@ -626,16 +631,17 @@ InstanceCreationExpression
   }
 
   test_class_notGeneric_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 
 void f() {
   new A.unresolved(0);
 }
 
-''', [
-      error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 31, 10),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 31, 10)],
+    );
 
     var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
@@ -705,11 +711,12 @@ InstanceCreationExpression
   }
 
   test_error_newWithInvalidTypeParameters_implicitNew_inference_top() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 final foo = Map<int>();
-''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 12, 8),
-    ]);
+''',
+      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 12, 8)],
+    );
 
     var node = findNode.instanceCreation('Map<int>');
     assertResolvedNodeText(node, r'''
@@ -738,7 +745,8 @@ InstanceCreationExpression
   }
 
   test_error_wrongNumberOfTypeArgumentsConstructor_explicitNew() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class Foo<X> {
   Foo.bar();
 }
@@ -746,11 +754,16 @@ class Foo<X> {
 main() {
   new Foo.bar<int>();
 }
-''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 53,
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          53,
           5,
-          messageContains: ["The constructor 'Foo.bar'"]),
-    ]);
+          messageContains: ["The constructor 'Foo.bar'"],
+        ),
+      ],
+    );
 
     var node = findNode.instanceCreation('Foo.bar<int>');
     assertResolvedNodeText(node, r'''
@@ -787,7 +800,8 @@ InstanceCreationExpression
   }
 
   test_error_wrongNumberOfTypeArgumentsConstructor_explicitNew_new() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class Foo<X> {
   Foo.new();
 }
@@ -795,11 +809,16 @@ class Foo<X> {
 main() {
   new Foo.new<int>();
 }
-''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 53,
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          53,
           5,
-          messageContains: ["The constructor 'Foo.new'"]),
-    ]);
+          messageContains: ["The constructor 'Foo.new'"],
+        ),
+      ],
+    );
 
     var node = findNode.instanceCreation('Foo.new<int>');
     assertResolvedNodeText(node, r'''
@@ -841,15 +860,16 @@ class Foo<X> {
   Foo.bar();
 }
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart' as p;
 
 main() {
   new p.Foo.bar<int>();
 }
-''', [
-      error(ParserErrorCode.CONSTRUCTOR_WITH_TYPE_ARGUMENTS, 44, 3),
-    ]);
+''',
+      [error(ParserErrorCode.CONSTRUCTOR_WITH_TYPE_ARGUMENTS, 44, 3)],
+    );
 
     // TODO(brianwilkerson): Test this more carefully after we can re-write the
     // AST to reflect the expected structure.
@@ -892,7 +912,8 @@ InstanceCreationExpression
   }
 
   test_error_wrongNumberOfTypeArgumentsConstructor_implicitNew() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class Foo<X> {
   Foo.bar();
 }
@@ -900,10 +921,15 @@ class Foo<X> {
 main() {
   Foo.bar<int>();
 }
-''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 49,
-          5),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          49,
+          5,
+        ),
+      ],
+    );
 
     var node = findNode.instanceCreation('Foo.bar<int>');
     assertResolvedNodeText(node, r'''
@@ -944,16 +970,22 @@ class Foo<X> {
   Foo.bar();
 }
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart' as p;
 
 main() {
   p.Foo.bar<int>();
 }
-''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 43,
-          5),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          43,
+          5,
+        ),
+      ],
+    );
 
     var node = findNode.instanceCreation('Foo.bar<int>');
     assertResolvedNodeText(node, r'''
@@ -1197,15 +1229,16 @@ InstanceCreationExpression
   }
 
   test_extensionType_notGeneric_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type A(int it) {}
 
 void f() {
   new A.named(0);
 }
-''', [
-      error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 48, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 48, 5)],
+    );
 
     var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
@@ -1235,16 +1268,17 @@ InstanceCreationExpression
   }
 
   test_importPrefix() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:math' as prefix;
 
 void f() {
   new prefix(0);
 }
 
-''', [
-      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 48, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 48, 6)],
+    );
 
     var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
@@ -1703,16 +1737,17 @@ InstanceCreationExpression
 class A {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart' as prefix;
 
 void f() {
   new prefix.A.foo(0);
 }
 
-''', [
-      error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 54, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 54, 3)],
+    );
 
     var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
@@ -1746,16 +1781,17 @@ InstanceCreationExpression
   }
 
   test_importPrefix_unresolved_identifier() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:math' as prefix;
 
 void f() {
   new prefix.Foo.bar(0);
 }
 
-''', [
-      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 55, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 55, 3)],
+    );
 
     var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
@@ -1960,7 +1996,8 @@ augment class A<T2> {
   A(T2 value);
 }
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part 'a.dart';
 
 class A<T> {
@@ -1972,9 +2009,9 @@ typedef X<U> = A<U>;
 void f() {
   X(0);
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 33, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 33, 1)],
+    );
 
     var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
@@ -2176,7 +2213,8 @@ InstanceCreationExpression
   }
 
   test_typeAlias_notGeneric_class_generic_named_argumentTypeMismatch() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A<T> {
   A.named(T t);
 }
@@ -2186,9 +2224,9 @@ typedef B = A<String>;
 void f() {
   B.named(0);
 }
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 77, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 77, 1)],
+    );
 
     var node = findNode.instanceCreation('B.named(0)');
     assertResolvedNodeText(node, r'''
@@ -2223,7 +2261,8 @@ InstanceCreationExpression
   }
 
   test_typeAlias_notGeneric_class_generic_unnamed_argumentTypeMismatch() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A<T> {
   A(T t);
 }
@@ -2233,9 +2272,9 @@ typedef B = A<String>;
 void f() {
   B(0);
 }
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 65, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 65, 1)],
+    );
 
     var node = findNode.instanceCreation('B(0)');
     assertResolvedNodeText(node, r'''
@@ -2316,7 +2355,8 @@ augment class A {
   A();
 }
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 part 'a.dart';
 
 class A {
@@ -2328,9 +2368,9 @@ typedef X = A;
 void f() {
   X();
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 30, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 30, 1)],
+    );
 
     var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
@@ -2460,14 +2500,15 @@ InstanceCreationExpression
   }
 
   test_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   new Unresolved(0);
 }
 
-''', [
-      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 17, 10),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 17, 10)],
+    );
 
     var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
@@ -2492,14 +2533,15 @@ InstanceCreationExpression
   }
 
   test_unresolved_identifier() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   new Unresolved.named(0);
 }
 
-''', [
-      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 17, 16),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 17, 16)],
+    );
 
     var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
@@ -2528,14 +2570,15 @@ InstanceCreationExpression
   }
 
   test_unresolved_identifier_identifier() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   new unresolved.Foo.bar(0);
 }
 
-''', [
-      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 17, 14),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 17, 14)],
+    );
 
     var node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''

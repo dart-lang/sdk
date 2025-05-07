@@ -7,7 +7,6 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../tool/spec/check_all_test.dart' as check_spec;
 import 'analysis/test_all.dart' as analysis;
 import 'analysis_server_test.dart' as analysis_server;
-import 'benchmarks_test.dart' as benchmarks;
 import 'channel/test_all.dart' as channel;
 import 'client/test_all.dart' as client;
 import 'domain_analysis_test.dart' as domain_analysis;
@@ -36,7 +35,6 @@ void main() {
   defineReflectiveSuite(() {
     analysis.main();
     analysis_server.main();
-    benchmarks.main();
     channel.main();
     client.main();
     domain_analysis.main();

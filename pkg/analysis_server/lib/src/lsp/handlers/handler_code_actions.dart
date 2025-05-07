@@ -180,6 +180,7 @@ class CodeActionHandler
               capabilities: capabilities,
               triggerKind: params.context.triggerKind,
               analysisOptions: analysisOptions,
+              willBeDeduplicated: true,
             ),
           if (isPubspec)
             PubspecCodeActionsProducer(
@@ -219,7 +220,7 @@ class CodeActionHandler
         ];
         var sorter = _CodeActionSorter(params.range, shouldIncludeKind);
 
-        var allActions = <Either2<CodeAction, Command>>[
+        var allActions = <CodeAction>[
           // Like-kinded actions are grouped (and prioritized) together
           // regardless of which producer they came from.
 
@@ -306,9 +307,7 @@ class _CodeActionSorter {
 
   _CodeActionSorter(this.range, this.shouldIncludeKind);
 
-  List<Either2<CodeAction, Command>> sort(
-    List<CodeActionWithPriority> actions,
-  ) {
+  List<CodeAction> sort(List<CodeActionWithPriority> actions) {
     var dedupedActions = _dedupeActions(actions, range.start);
 
     // Add each index so we can do a stable sort on priority.
@@ -325,16 +324,15 @@ class _CodeActionSorter {
 
     return dedupedActionsWithIndex
         .where((action) => shouldIncludeKind(action.action.kind))
-        .map((action) => Either2<CodeAction, Command>.t1(action.action))
+        .map((action) => CodeAction.t1(action.action))
         .toList();
   }
 
-  /// Creates a comparer for [CodeAction]s that compares the column distance from
+  /// Creates a comparer for [CodeActionLiteral]s that compares the column distance from
   /// [pos].
-  int Function(CodeAction a, CodeAction b) _codeActionColumnDistanceComparer(
-    Position pos,
-  ) {
-    Position posOf(CodeAction action) {
+  int Function(CodeActionLiteral a, CodeActionLiteral b)
+  _codeActionColumnDistanceComparer(Position pos) {
+    Position posOf(CodeActionLiteral action) {
       var diagnostics = action.diagnostics;
       return diagnostics != null && diagnostics.isNotEmpty
           ? diagnostics.first.range.start
@@ -423,7 +421,7 @@ class _CodeActionSorter {
       // Build a new CodeAction that merges the diagnostics from each same
       // code action onto a single one.
       return (
-        action: CodeAction(
+        action: CodeActionLiteral(
           title: first.title,
           kind: first.kind,
           // Merge diagnostics from all of the matching CodeActions.

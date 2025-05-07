@@ -17,7 +17,8 @@ main() {
 @reflectiveTest
 class ExperimentNotEnabledTest extends PubPackageResolutionTest {
   test_constructor_tearoffs_disabled_grammar() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 // @dart = 2.12
 class Foo<X> {
   const Foo.bar();
@@ -26,39 +27,44 @@ class Foo<X> {
 main() {
   Foo<int>.bar.baz();
 }
-''', [
-      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 86, 5),
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 96, 3),
-    ]);
+''',
+      [
+        error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 86, 5),
+        error(CompileTimeErrorCode.UNDEFINED_METHOD, 96, 3),
+      ],
+    );
   }
 
   test_dotShorthands_disabled() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
+// @dart = 3.8
 void main() {
-  Object c = .hash;
+  Object c = .hash(1, 2);
   print(c);
 }
-''', [
-      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 27, 1),
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 28, 4),
-    ]);
+''',
+      [error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 42, 1)],
+    );
   }
 
   test_nonFunctionTypeAliases_disabled() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // @dart = 2.12
 typedef A = int;
-''', [
-      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 26, 1),
-    ]);
+''',
+      [error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 26, 1)],
+    );
   }
 
   test_nonFunctionTypeAliases_disabled_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // @dart = 2.12
 typedef A = int?;
-''', [
-      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 26, 1),
-    ]);
+''',
+      [error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 26, 1)],
+    );
   }
 }

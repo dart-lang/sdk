@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -30,7 +30,7 @@ class CreateClass extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var targetNode = node;
-    Element2? prefixElement;
+    Element? prefixElement;
     ArgumentList? arguments;
 
     String? className;
@@ -56,7 +56,9 @@ class CreateClass extends ResolvedCorrectionProducer {
       }
       className = targetNode.name2.lexeme;
       requiresConstConstructor |= _requiresConstConstructor(targetNode);
-    } else if (targetNode is SimpleIdentifier) {
+    } else if (targetNode case SimpleIdentifier(
+      :var parent,
+    ) when parent is! PropertyAccess && parent is! PrefixedIdentifier) {
       className = targetNode.nameOfType;
       requiresConstConstructor |= _requiresConstConstructor(targetNode);
     } else if (targetNode is PrefixedIdentifier) {
@@ -94,7 +96,7 @@ class CreateClass extends ResolvedCorrectionProducer {
       prefix = '$eol$eol';
     } else {
       for (var import in libraryElement2.firstFragment.libraryImports2) {
-        if (prefixElement is PrefixElement2 &&
+        if (prefixElement is PrefixElement &&
             import.prefix2?.element == prefixElement) {
           var library = import.importedLibrary2;
           if (library != null) {

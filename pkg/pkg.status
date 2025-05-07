@@ -91,10 +91,10 @@ dart_service_protocol_shared/test/*: SkipByDesign # Only meant to run on vm
 dartdev/test/*: SkipByDesign # Only meant to run on vm
 front_end/test/*: SkipByDesign # Only meant to run on vm, most use dart:mirrors and dart:io
 front_end/tool/*: SkipByDesign # Only meant to run on vm
+hooks_runner/test/*: SkipByDesign # Only meant to run on vm
 modular_test/test/memory_pipeline_test: Slow, Pass
 modular_test/test/validate_pipeline_test: Slow, Pass
 modular_test/test/validate_suite_test: Slow, Pass
-native_assets_builder/test/*: SkipByDesign # Only meant to run on vm
 smith/test/*: SkipByDesign # Only meant to run on vm
 status_file/test/normalize_test: SkipByDesign # Uses dart:io
 status_file/test/parse_and_normalize_test: SkipByDesign # Uses dart:io
@@ -254,7 +254,6 @@ vm/test/*: SkipByDesign # Only meant to run on vm
 vm_snapshot_analysis/test/*: SkipByDesign # Only meant to run on vm
 
 [ $system == windows ]
-_macros/test/executor/executor_test: Skip # dartbug.com/56002
 front_end/test/bootstrap_test: Skip # Issue 31902
 front_end/test/incremental_dart2js_load_from_dill_test: Pass, Slow
 vm_service/test/private_rpcs/dev_fs_http_put_test: Skip # Windows disallows "?" in paths

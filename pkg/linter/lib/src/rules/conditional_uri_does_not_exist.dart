@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 
@@ -41,7 +41,10 @@ class _Visitor extends SimpleAstVisitor<void> {
       // in the analysis server (although running the script when the files
       // don't exist on disk would also fail to find it).
       if (!(source?.exists() ?? false)) {
-        rule.reportLint(configuration.uri, arguments: [uri.relativeUriString]);
+        rule.reportAtNode(
+          configuration.uri,
+          arguments: [uri.relativeUriString],
+        );
       }
     }
   }

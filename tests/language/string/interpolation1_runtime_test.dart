@@ -15,9 +15,7 @@ class A {
 class StringInterpolation1NegativeTest {
   // Dollar not followed by "{" or identifier.
 
-  static testMain() {
-
-  }
+  static testMain() {}
 }
 
 main() {

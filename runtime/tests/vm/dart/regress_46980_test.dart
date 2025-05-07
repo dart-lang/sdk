@@ -12,25 +12,27 @@ import 'dart:typed_data';
 
 MapEntry<List<int>, Map<String, String>>? var0 =
     MapEntry<List<int>, Map<String, String>>(
-        Uint16List.fromList(<int>[-25]), <String, String>{
-  '': 'p8',
-  'VGiZ+x': 'n6\u{1f600}',
-  'j': 'hrNI',
-  '3@kX)\u{1f600}': 'TW+Z',
-  'D': '\u2665Yqu',
-  'wzBa\u{1f600}h': '-k'
-});
+      Uint16List.fromList(<int>[-25]),
+      <String, String>{
+        '': 'p8',
+        'VGiZ+x': 'n6\u{1f600}',
+        'j': 'hrNI',
+        '3@kX)\u{1f600}': 'TW+Z',
+        'D': '\u2665Yqu',
+        'wzBa\u{1f600}h': '-k',
+      },
+    );
 num? var78 = 29;
 MapEntry<String, int> var141 = MapEntry<String, int>('\u{1f600}', 16);
 
 MapEntry<Map<bool, int>, MapEntry<bool, int>>? var2896 =
     MapEntry<Map<bool, int>, MapEntry<bool, int>>(<bool, int>{
-  true: -79,
-  false: 13,
-  true: 35,
-  true: -84,
-  false: -9223372034707292159
-}, MapEntry<bool, int>(true, 0));
+      true: -79,
+      false: 13,
+      true: 35,
+      true: -84,
+      false: -9223372034707292159,
+    }, MapEntry<bool, int>(true, 0));
 
 main() {
   for (var i = 0; i < 1848; i++) {

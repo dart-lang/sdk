@@ -37,10 +37,7 @@ class FeatureSetProviderTest with ResourceProviderMixin {
   void setUp() {
     newFile('/test/lib/test.dart', '');
 
-    createMockSdk(
-      resourceProvider: resourceProvider,
-      root: sdkRoot,
-    );
+    createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
 
     _createSourceFactory();
   }
@@ -75,22 +72,20 @@ class FeatureSetProviderTest with ResourceProviderMixin {
 }
 ''');
 
-    var packages = Packages(
-      {
-        'aaa': Package(
-          name: 'aaa',
-          rootFolder: newFolder('/packages/aaa'),
-          libFolder: newFolder('/packages/aaa/lib'),
-          languageVersion: null,
-        ),
-        'bbb': Package(
-          name: 'bbb',
-          rootFolder: newFolder('/packages/bbb'),
-          libFolder: newFolder('/packages/bbb/lib'),
-          languageVersion: null,
-        ),
-      },
-    );
+    var packages = Packages({
+      'aaa': Package(
+        name: 'aaa',
+        rootFolder: newFolder('/packages/aaa'),
+        libFolder: newFolder('/packages/aaa/lib'),
+        languageVersion: null,
+      ),
+      'bbb': Package(
+        name: 'bbb',
+        rootFolder: newFolder('/packages/bbb'),
+        libFolder: newFolder('/packages/bbb/lib'),
+        languageVersion: null,
+      ),
+    });
 
     _createSourceFactory(
       packageUriResolver: _createPackageMapUriResolver(packages),
@@ -136,22 +131,20 @@ class FeatureSetProviderTest with ResourceProviderMixin {
       releaseVersion: null,
     );
 
-    var packages = Packages(
-      {
-        'aaa': Package(
-          name: 'aaa',
-          rootFolder: newFolder('/packages/aaa'),
-          libFolder: newFolder('/packages/aaa/lib'),
-          languageVersion: null,
-        ),
-        'bbb': Package(
-          name: 'bbb',
-          rootFolder: newFolder('/packages/bbb'),
-          libFolder: newFolder('/packages/bbb/lib'),
-          languageVersion: Version(2, 12, 0),
-        ),
-      },
-    );
+    var packages = Packages({
+      'aaa': Package(
+        name: 'aaa',
+        rootFolder: newFolder('/packages/aaa'),
+        libFolder: newFolder('/packages/aaa/lib'),
+        languageVersion: null,
+      ),
+      'bbb': Package(
+        name: 'bbb',
+        rootFolder: newFolder('/packages/bbb'),
+        libFolder: newFolder('/packages/bbb/lib'),
+        languageVersion: Version(2, 12, 0),
+      ),
+    });
 
     _createSourceFactory(
       packageUriResolver: _createPackageMapUriResolver(packages),
@@ -198,22 +191,20 @@ class FeatureSetProviderTest with ResourceProviderMixin {
       releaseVersion: null,
     );
 
-    var packages = Packages(
-      {
-        'aaa': Package(
-          name: 'aaa',
-          rootFolder: newFolder('/packages/aaa'),
-          libFolder: newFolder('/packages/aaa/lib'),
-          languageVersion: null,
-        ),
-        'bbb': Package(
-          name: 'bbb',
-          rootFolder: newFolder('/packages/bbb'),
-          libFolder: newFolder('/packages/bbb/lib'),
-          languageVersion: Version(2, 12, 0),
-        ),
-      },
-    );
+    var packages = Packages({
+      'aaa': Package(
+        name: 'aaa',
+        rootFolder: newFolder('/packages/aaa'),
+        libFolder: newFolder('/packages/aaa/lib'),
+        languageVersion: null,
+      ),
+      'bbb': Package(
+        name: 'bbb',
+        rootFolder: newFolder('/packages/bbb'),
+        libFolder: newFolder('/packages/bbb/lib'),
+        languageVersion: Version(2, 12, 0),
+      ),
+    });
 
     _createSourceFactory(
       packageUriResolver: _createPackageMapUriResolver(packages),
@@ -247,28 +238,26 @@ class FeatureSetProviderTest with ResourceProviderMixin {
   }
 
   test_packages_contextExperiments_nested() {
-    var packages = Packages(
-      {
-        'aaa': Package(
-          name: 'aaa',
-          rootFolder: getFolder('/packages/aaa'),
-          libFolder: getFolder('/packages/aaa/lib'),
-          languageVersion: Version.parse('2.5.0'),
-        ),
-        'bbb': Package(
-          name: 'bbb',
-          rootFolder: getFolder('/packages/aaa/bbb'),
-          libFolder: getFolder('/packages/aaa/bbb/lib'),
-          languageVersion: Version.parse('2.6.0'),
-        ),
-        'ccc': Package(
-          name: 'ccc',
-          rootFolder: getFolder('/packages/ccc'),
-          libFolder: getFolder('/packages/ccc/lib'),
-          languageVersion: Version.parse('2.7.0'),
-        ),
-      },
-    );
+    var packages = Packages({
+      'aaa': Package(
+        name: 'aaa',
+        rootFolder: getFolder('/packages/aaa'),
+        libFolder: getFolder('/packages/aaa/lib'),
+        languageVersion: Version.parse('2.5.0'),
+      ),
+      'bbb': Package(
+        name: 'bbb',
+        rootFolder: getFolder('/packages/aaa/bbb'),
+        libFolder: getFolder('/packages/aaa/bbb/lib'),
+        languageVersion: Version.parse('2.6.0'),
+      ),
+      'ccc': Package(
+        name: 'ccc',
+        rootFolder: getFolder('/packages/ccc'),
+        libFolder: getFolder('/packages/ccc/lib'),
+        languageVersion: Version.parse('2.7.0'),
+      ),
+    });
 
     provider = FeatureSetProvider.build(
       sourceFactory: sourceFactory,
@@ -284,8 +273,11 @@ class FeatureSetProviderTest with ResourceProviderMixin {
       var uri = Uri.parse(uriStr);
       var path = convertPath(posixPath);
       expect(
-        provider.getLanguageVersion(path, uri,
-            nonPackageLanguageVersion: ExperimentStatus.currentVersion),
+        provider.getLanguageVersion(
+          path,
+          uri,
+          nonPackageLanguageVersion: ExperimentStatus.currentVersion,
+        ),
         expected,
       );
     }
@@ -467,9 +459,7 @@ class FeatureSetProviderTest with ResourceProviderMixin {
       resolvers.add(packageUriResolver);
     }
     resolvers.addAll([
-      DartUriResolver(
-        FolderBasedDartSdk(resourceProvider, sdkRoot),
-      ),
+      DartUriResolver(FolderBasedDartSdk(resourceProvider, sdkRoot)),
       ResourceUriResolver(resourceProvider),
     ]);
     sourceFactory = SourceFactoryImpl(resolvers);
@@ -497,9 +487,12 @@ class FeatureSetProviderTest with ResourceProviderMixin {
   }) {
     var uri = Uri.parse(uriStr);
     var path = sourceFactory.forUri2(uri)!.fullName;
-    return provider.getFeatureSet(path, uri,
-        contextFeatures: contextFeatures,
-        nonPackageFeatureSet: nonPackageFeatureSet);
+    return provider.getFeatureSet(
+      path,
+      uri,
+      contextFeatures: contextFeatures,
+      nonPackageFeatureSet: nonPackageFeatureSet,
+    );
   }
 
   void _newSdkExperimentsFile(String content) {

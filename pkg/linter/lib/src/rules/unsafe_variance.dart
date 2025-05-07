@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/dart/element/element.dart'
@@ -55,26 +55,26 @@ class _UnsafeVarianceChecker extends VarianceChecker {
       if (typeParameterElement is TypeParameterElementImpl2) {
         if (typeParameterElement.firstFragment.isLegacyCovariant &&
             variance != Variance.out) {
-          rule.reportLint(typeAnnotation);
+          rule.reportAtNode(typeAnnotation);
         }
       }
     }
   }
 
-  bool owningDeclarationSupportsVariance(Element2 element) {
+  bool owningDeclarationSupportsVariance(Element element) {
     var parent = element.enclosingElement2;
     while (parent != null) {
       switch (parent) {
-        case InstanceElement2():
-          if (parent is ClassElement2 ||
-              parent is MixinElement2 ||
-              parent is EnumElement2) {
+        case InstanceElement():
+          if (parent is ClassElement ||
+              parent is MixinElement ||
+              parent is EnumElement) {
             return true;
           }
-          if (parent is ExtensionTypeElement2 || parent is ExtensionElement2) {
+          if (parent is ExtensionTypeElement || parent is ExtensionElement) {
             return false;
           }
-        case ExecutableElement2():
+        case ExecutableElement():
           return false;
       }
       parent = parent.enclosingElement2;

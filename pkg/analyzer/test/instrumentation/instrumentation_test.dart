@@ -19,7 +19,10 @@ class InstrumentationServiceTest {
   }
 
   void assertNormal(
-      TestInstrumentationLogger logger, String tag, String message) {
+    TestInstrumentationLogger logger,
+    String tag,
+    String message,
+  ) {
     String sent = logger.logged.toString();
     if (!sent.endsWith(':$tag:$message\n')) {
       fail('Expected "...:$tag:$message", found "$sent"');
@@ -54,7 +57,10 @@ class InstrumentationServiceTest {
     String message = 'exceptionMessage';
     service.logException(message);
     assertNormal(
-        logger, InstrumentationLogAdapter.TAG_EXCEPTION, '$message:null');
+      logger,
+      InstrumentationLogAdapter.TAG_EXCEPTION,
+      '$message:null',
+    );
   }
 
   void test_logLogEntry() {
@@ -67,8 +73,11 @@ class InstrumentationServiceTest {
     String stackTraceText = 'stackTrace';
     StackTrace stackTrace = StackTrace.fromString(stackTraceText);
     service.logLogEntry(level, time, message, exception, stackTrace);
-    assertNormal(logger, InstrumentationLogAdapter.TAG_LOG_ENTRY,
-        '$level:${time.millisecondsSinceEpoch}:$message:$exception:$stackTraceText');
+    assertNormal(
+      logger,
+      InstrumentationLogAdapter.TAG_LOG_ENTRY,
+      '$level:${time.millisecondsSinceEpoch}:$message:$exception:$stackTraceText',
+    );
   }
 
   void test_logNotification() {
@@ -87,8 +96,11 @@ class InstrumentationServiceTest {
     String message = 'exceptionMessage';
     String stackTraceText = 'stackTrace';
     service.logPluginError(plugin, code, message, stackTraceText);
-    assertNormal(logger, InstrumentationLogAdapter.TAG_PLUGIN_ERROR,
-        '$code:$message:$stackTraceText:path:name:version');
+    assertNormal(
+      logger,
+      InstrumentationLogAdapter.TAG_PLUGIN_ERROR,
+      '$code:$message:$stackTraceText:path:name:version',
+    );
   }
 
   void test_logPluginException_noTrace() {
@@ -97,8 +109,11 @@ class InstrumentationServiceTest {
     PluginData plugin = PluginData('path', 'name', 'version');
     String message = 'exceptionMessage';
     service.logPluginException(plugin, message, null);
-    assertNormal(logger, InstrumentationLogAdapter.TAG_PLUGIN_EXCEPTION,
-        '$message:null:path:name:version');
+    assertNormal(
+      logger,
+      InstrumentationLogAdapter.TAG_PLUGIN_EXCEPTION,
+      '$message:null:path:name:version',
+    );
   }
 
   void test_logPluginException_withTrace() {
@@ -109,8 +124,11 @@ class InstrumentationServiceTest {
     String stackTraceText = 'stackTrace';
     StackTrace stackTrace = StackTrace.fromString(stackTraceText);
     service.logPluginException(plugin, message, stackTrace);
-    assertNormal(logger, InstrumentationLogAdapter.TAG_PLUGIN_EXCEPTION,
-        '$message:$stackTraceText:path:name:version');
+    assertNormal(
+      logger,
+      InstrumentationLogAdapter.TAG_PLUGIN_EXCEPTION,
+      '$message:$stackTraceText:path:name:version',
+    );
   }
 
   void test_logPluginNotification() {
@@ -118,8 +136,11 @@ class InstrumentationServiceTest {
     InstrumentationService service = InstrumentationLogAdapter(logger);
     String notification = 'notification';
     service.logPluginNotification('path', notification);
-    assertNormal(logger, InstrumentationLogAdapter.TAG_PLUGIN_NOTIFICATION,
-        '$notification:path::');
+    assertNormal(
+      logger,
+      InstrumentationLogAdapter.TAG_PLUGIN_NOTIFICATION,
+      '$notification:path::',
+    );
   }
 
   void test_logPluginRequest() {
@@ -127,8 +148,11 @@ class InstrumentationServiceTest {
     InstrumentationService service = InstrumentationLogAdapter(logger);
     String request = 'request';
     service.logPluginRequest('path', request);
-    assertNormal(logger, InstrumentationLogAdapter.TAG_PLUGIN_REQUEST,
-        '$request:path::');
+    assertNormal(
+      logger,
+      InstrumentationLogAdapter.TAG_PLUGIN_REQUEST,
+      '$request:path::',
+    );
   }
 
   void test_logPluginResponse() {
@@ -136,8 +160,11 @@ class InstrumentationServiceTest {
     InstrumentationService service = InstrumentationLogAdapter(logger);
     String response = 'response';
     service.logPluginResponse('path', response);
-    assertNormal(logger, InstrumentationLogAdapter.TAG_PLUGIN_RESPONSE,
-        '$response:path::');
+    assertNormal(
+      logger,
+      InstrumentationLogAdapter.TAG_PLUGIN_RESPONSE,
+      '$response:path::',
+    );
   }
 
   void test_logPluginTimeout() {
@@ -146,8 +173,11 @@ class InstrumentationServiceTest {
     PluginData plugin = PluginData('path', 'name', 'version');
     String request = 'request';
     service.logPluginTimeout(plugin, request);
-    assertNormal(logger, InstrumentationLogAdapter.TAG_PLUGIN_TIMEOUT,
-        '$request:path:name:version');
+    assertNormal(
+      logger,
+      InstrumentationLogAdapter.TAG_PLUGIN_TIMEOUT,
+      '$request:path:name:version',
+    );
   }
 
   void test_logRequest() {
@@ -169,12 +199,19 @@ class InstrumentationServiceTest {
   void test_logVersion() {
     TestInstrumentationLogger logger = TestInstrumentationLogger();
     InstrumentationService service = InstrumentationLogAdapter(logger);
-    service.logVersion('myUuid', 'someClientId', 'someClientVersion',
-        'aServerVersion', 'anSdkVersion');
+    service.logVersion(
+      'myUuid',
+      'someClientId',
+      'someClientVersion',
+      'aServerVersion',
+      'anSdkVersion',
+    );
     expect(
-        logger.logged.toString(),
-        endsWith(
-            ':myUuid:someClientId:someClientVersion:aServerVersion:anSdkVersion\n'));
+      logger.logged.toString(),
+      endsWith(
+        ':myUuid:someClientId:someClientVersion:aServerVersion:anSdkVersion\n',
+      ),
+    );
   }
 
   void test_logWatch() {
@@ -190,16 +227,20 @@ class InstrumentationServiceTest {
 
   void test_logWatch_exclusions_excluded() {
     TestInstrumentationLogger logger = TestInstrumentationLogger();
-    InstrumentationService service = InstrumentationLogAdapter(logger,
-        watchEventExclusionFiles: {'/folder/excluded.txt'});
+    InstrumentationService service = InstrumentationLogAdapter(
+      logger,
+      watchEventExclusionFiles: {'/folder/excluded.txt'},
+    );
     service.logWatchEvent('/folder', '/folder/excluded.txt', 'modify');
     assertNoLogs(logger);
   }
 
   void test_logWatch_exclusions_notExcluded() {
     TestInstrumentationLogger logger = TestInstrumentationLogger();
-    InstrumentationService service = InstrumentationLogAdapter(logger,
-        watchEventExclusionFiles: {'/folder/excluded.txt'});
+    InstrumentationService service = InstrumentationLogAdapter(
+      logger,
+      watchEventExclusionFiles: {'/folder/excluded.txt'},
+    );
     service.logWatchEvent('/folder', '/folder/file.txt', 'modify');
     assertNormal(
       logger,
@@ -218,7 +259,7 @@ class MulticastInstrumentationServerTest {
   void setUp() {
     logger = MulticastInstrumentationService([
       InstrumentationLogAdapter(loggerA),
-      InstrumentationLogAdapter(loggerB)
+      InstrumentationLogAdapter(loggerB),
     ]);
   }
 

@@ -13,10 +13,11 @@ void testBadHostName() {
   client
       .getUrl(Uri.parse("https://some.bad.host.name.7654321/"))
       .then((HttpClientRequest request) {
-    Expect.fail("Should not open a request on bad hostname");
-  }).catchError((error) {
-    asyncEnd(); // Should throw an error on bad hostname.
-  });
+        Expect.fail("Should not open a request on bad hostname");
+      })
+      .catchError((error) {
+        asyncEnd(); // Should throw an error on bad hostname.
+      });
 }
 
 void main() {

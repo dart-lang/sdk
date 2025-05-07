@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 
@@ -30,7 +30,7 @@ class RecursiveGetters extends LintRule {
 
 class _BodyVisitor extends RecursiveAstVisitor<void> {
   final LintRule rule;
-  final ExecutableElement2 element;
+  final ExecutableElement element;
   _BodyVisitor(this.element, this.rule);
 
   bool isSelfReference(SimpleIdentifier node) {
@@ -58,7 +58,7 @@ class _BodyVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (isSelfReference(node)) {
-      rule.reportLint(node, arguments: [node.name]);
+      rule.reportAtNode(node, arguments: [node.name]);
     }
 
     // No need to call super visit (SimpleIdentifiers have no children).
@@ -86,7 +86,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     _verifyElement(node.body, node.declaredFragment?.element);
   }
 
-  void _verifyElement(AstNode node, ExecutableElement2? element) {
+  void _verifyElement(AstNode node, ExecutableElement? element) {
     if (element == null) return;
     node.accept(_BodyVisitor(element, rule));
   }

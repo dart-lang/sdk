@@ -5,9 +5,5 @@
 import 'package:flutter/widgets.dart';
 
 class GestureDetector extends StatelessWidget {
-  GestureDetector({
-    Key? key,
-    Widget? child,
-    onTap,
-  });
+  GestureDetector({Key? key, Widget? child, onTap});
 }

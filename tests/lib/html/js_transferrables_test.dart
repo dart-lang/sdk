@@ -69,8 +69,10 @@ main() {
     var typedContentWindow = js_util.getProperty(iframe, 'contentWindow');
     var typedForeignDoc = js_util.getProperty(typedContentWindow, 'document');
 
-    var typedForeignFunction =
-        js_util.getProperty(typedForeignDoc, 'createElement');
+    var typedForeignFunction = js_util.getProperty(
+      typedForeignDoc,
+      'createElement',
+    );
     expect(typedForeignFunction is Function, isTrue);
     js_util.callMethod(typedForeignDoc, 'createElement', ['div']);
   });

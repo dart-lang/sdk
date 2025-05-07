@@ -12,18 +12,22 @@ extension StreamRepeatLatestExtension<T extends Object> on Stream<T> {
     var done = false;
     T? latest = null;
     var currentListeners = <MultiStreamController<T>>{};
-    this.listen((event) {
-      latest = event;
-      for (var listener in [...currentListeners]) listener.addSync(event);
-    }, onError: (Object error, StackTrace stack) {
-      for (var listener in [...currentListeners])
-        listener.addErrorSync(error, stack);
-    }, onDone: () {
-      done = true;
-      latest = null;
-      for (var listener in currentListeners) listener.closeSync();
-      currentListeners.clear();
-    });
+    this.listen(
+      (event) {
+        latest = event;
+        for (var listener in [...currentListeners]) listener.addSync(event);
+      },
+      onError: (Object error, StackTrace stack) {
+        for (var listener in [...currentListeners])
+          listener.addErrorSync(error, stack);
+      },
+      onDone: () {
+        done = true;
+        latest = null;
+        for (var listener in currentListeners) listener.closeSync();
+        currentListeners.clear();
+      },
+    );
     return Stream.multi((controller) {
       if (done) {
         controller.close();
@@ -65,14 +69,15 @@ void testStreamsIndependent() {
   }
 
   asyncStart();
-  Future.wait([multi.forEach(logList), multi.forEach(logList)])
-      .whenComplete(() {
-    Expect.equals(7, log.length);
-    for (var element in ["1", "1-0", "1-1", "2", "2-0", "2-1", "2-2"]) {
-      Expect.isTrue(log.contains(element));
-    }
-    asyncEnd();
-  });
+  Future.wait([multi.forEach(logList), multi.forEach(logList)]).whenComplete(
+    () {
+      Expect.equals(7, log.length);
+      for (var element in ["1", "1-0", "1-1", "2", "2-0", "2-1", "2-2"]) {
+        Expect.isTrue(log.contains(element));
+      }
+      asyncEnd();
+    },
+  );
 }
 
 /// Test that stream can be listened to again after having no listener.
@@ -88,16 +93,20 @@ Future<void> testStreamNonOverlap() async {
   });
   for (var i in [1, 2, 3]) {
     var log = <Object?>[];
-    var subscription = stream.listen((v) {
-      log.add(v);
-      if (!completer.isCompleted) completer.complete(v);
-    }, onError: (e, s) {
-      log.add(e);
-      if (!completer.isCompleted) completer.complete(e);
-    }, onDone: () {
-      log.add(null);
-      if (!completer.isCompleted) completer.complete(null);
-    });
+    var subscription = stream.listen(
+      (v) {
+        log.add(v);
+        if (!completer.isCompleted) completer.complete(v);
+      },
+      onError: (e, s) {
+        log.add(e);
+        if (!completer.isCompleted) completer.complete(e);
+      },
+      onDone: () {
+        log.add(null);
+        if (!completer.isCompleted) completer.complete(null);
+      },
+    );
     Expect.isNotNull(controller);
     controller!.add(1);
     await completer.future;

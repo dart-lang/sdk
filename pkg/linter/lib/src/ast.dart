@@ -8,7 +8,7 @@ library;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor2.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/lint/constants.dart' // ignore: implementation_imports
@@ -23,9 +23,9 @@ import 'utils.dart';
 final List<String> reservedWords = _collectReservedWords();
 
 /// Returns direct children of [parent].
-List<Element2> getChildren(Element2 parent, [String? name]) {
-  var children = <Element2>[];
-  visitChildren(parent, (Element2 element) {
+List<Element> getChildren(Element parent, [String? name]) {
+  var children = <Element>[];
+  visitChildren(parent, (Element element) {
     if (name == null || element.displayName == name) {
       children.add(element);
     }
@@ -121,7 +121,7 @@ SyntacticEntity getNodeToAnnotate(Declaration node) {
 /// If the [node] is the finishing identifier of an assignment, return its
 /// "writeElement", otherwise return its "element", which might be
 /// thought as the "readElement".
-Element2? getWriteOrReadElement(SimpleIdentifier node) =>
+Element? getWriteOrReadElement(SimpleIdentifier node) =>
     _getWriteElement(node) ?? node.element;
 
 bool hasConstantError(Expression node) =>
@@ -295,7 +295,7 @@ File? locatePubspecFile(CompilationUnit compilationUnit) {
 
 /// Uses [processor] to visit all of the children of [element].
 /// If [processor] returns `true`, then children of a child are visited too.
-void visitChildren(Element2 element, ElementProcessor processor) {
+void visitChildren(Element element, ElementProcessor processor) {
   element.visitChildren2(_ElementVisitorAdapter(processor));
 }
 
@@ -382,7 +382,7 @@ int? _getIntValue(
 /// return the corresponding "writeElement", which is the local variable,
 /// the setter referenced with a [SimpleIdentifier] or a [PropertyAccess],
 /// or the `[]=` operator.
-Element2? _getWriteElement(AstNode node) {
+Element? _getWriteElement(AstNode node) {
   var parent = node.parent;
   if (parent is AssignmentExpression && parent.leftHandSide == node) {
     return parent.writeElement2;
@@ -409,9 +409,9 @@ bool _hasFieldOrMethod(ClassMember element, String name) =>
     (element is MethodDeclaration && element.name.lexeme == name) ||
     (element is FieldDeclaration && getFieldName(element, name) != null);
 
-/// An [Element2] processor function type.
+/// An [Element] processor function type.
 /// If `true` is returned, children of [element] will be visited.
-typedef ElementProcessor = bool Function(Element2 element);
+typedef ElementProcessor = bool Function(Element element);
 
 /// A [GeneralizingElementVisitor2] adapter for [ElementProcessor].
 class _ElementVisitorAdapter extends GeneralizingElementVisitor2<void> {
@@ -420,7 +420,7 @@ class _ElementVisitorAdapter extends GeneralizingElementVisitor2<void> {
   _ElementVisitorAdapter(this.processor);
 
   @override
-  void visitElement(Element2 element) {
+  void visitElement(Element element) {
     var visitChildren = processor(element);
     if (visitChildren) {
       element.visitChildren2(this);

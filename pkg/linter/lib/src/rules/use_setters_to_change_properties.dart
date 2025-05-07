@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
@@ -56,8 +56,8 @@ class _Visitor extends SimpleAstVisitor<void> {
         var rightOperand = expression.rightHandSide.canonicalElement;
         var parameterElement =
             node.declaredFragment?.element.formalParameters.first;
-        if (rightOperand == parameterElement && leftOperand is FieldElement2) {
-          rule.reportLintForToken(node.name);
+        if (rightOperand == parameterElement && leftOperand is FieldElement) {
+          rule.reportAtToken(node.name);
         }
       }
     }

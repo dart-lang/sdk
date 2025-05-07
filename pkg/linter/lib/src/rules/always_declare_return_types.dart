@@ -42,7 +42,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     if (!node.isSetter && node.returnType == null && !node.isAugmentation) {
-      rule.reportLintForToken(
+      rule.reportAtToken(
         node.name,
         arguments: [node.name.lexeme],
         errorCode: LinterLintCode.always_declare_return_types_of_functions,
@@ -53,7 +53,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     if (node.returnType == null) {
-      rule.reportLintForToken(
+      rule.reportAtToken(
         node.name,
         arguments: [node.name.lexeme],
         errorCode: LinterLintCode.always_declare_return_types_of_functions,
@@ -75,7 +75,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     }
 
-    rule.reportLintForToken(
+    rule.reportAtToken(
       node.name,
       arguments: [node.name.lexeme],
       errorCode: LinterLintCode.always_declare_return_types_of_methods,

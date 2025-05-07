@@ -9,6 +9,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         codeAssertAsExpression,
         codeSetOrMapLiteralTooManyTypeArguments;
 import 'package:analyzer/dart/ast/token.dart' show Token;
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
@@ -25,7 +26,11 @@ class FastaErrorReporter {
   FastaErrorReporter(this.errorReporter);
 
   void reportByCode(
-      String? analyzerCode, int offset, int length, Message message) {
+    String? analyzerCode,
+    int offset,
+    int length,
+    Message message,
+  ) {
     Map<String, dynamic> arguments = message.arguments;
 
     String lexeme() => (arguments['lexeme'] as Token).lexeme;
@@ -291,7 +296,7 @@ class FastaErrorReporter {
         _reportByCode(
           offset: offset,
           length: length,
-          errorCode: CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER,
+          code: CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER,
           message: message,
         );
         return;
@@ -299,7 +304,7 @@ class FastaErrorReporter {
         _reportByCode(
           offset: offset,
           length: length,
-          errorCode: ParserErrorCode.INVALID_OPERATOR_FOR_SUPER,
+          code: ParserErrorCode.INVALID_OPERATOR_FOR_SUPER,
           message: message,
         );
         return;
@@ -561,7 +566,7 @@ class FastaErrorReporter {
       var errorCode = fastaAnalyzerErrorCodes[index];
       if (errorCode != null) {
         errorReporter!.reportError(
-          AnalysisError.tmp(
+          Diagnostic.tmp(
             source: errorReporter!.source,
             offset: offset,
             length: length,
@@ -576,7 +581,10 @@ class FastaErrorReporter {
   }
 
   void reportScannerError(
-      ScannerErrorCode errorCode, int offset, List<Object>? arguments) {
+    ScannerErrorCode errorCode,
+    int offset,
+    List<Object>? arguments,
+  ) {
     // TODO(danrubel): update client to pass length in addition to offset.
     int length = 1;
     errorReporter?.atOffset(
@@ -590,16 +598,16 @@ class FastaErrorReporter {
   void _reportByCode({
     required int offset,
     required int length,
-    required ErrorCode errorCode,
+    required DiagnosticCode code,
     required Message message,
   }) {
     if (errorReporter != null) {
       errorReporter!.reportError(
-        AnalysisError.tmp(
+        Diagnostic.tmp(
           source: errorReporter!.source,
           offset: offset,
           length: length,
-          errorCode: errorCode,
+          errorCode: code,
           arguments: message.arguments.values.toList(),
         ),
       );

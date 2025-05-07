@@ -59,6 +59,38 @@ import 'meta_meta.dart';
 @Deprecated("Use a return type of 'Never' instead")
 const _AlwaysThrows alwaysThrows = _AlwaysThrows();
 
+/// Used to annotate a [Future]-returning function (including constructors,
+/// getters, methods, and operators), or a [Future]-typed field (including
+/// top-level, instance, and static) `f`. Indicates that the [Future] value that
+/// `f` returns does not need to be awaited. Any methods that override `f` in
+/// class inheritance, are also expected to conform to this contract.
+///
+/// Tools, such as the analyzer, can use this to understand whether to report
+/// that a [Future]-typed value does not need to be awaited:
+///
+/// ```dart
+/// @awaitNotRequired Future<LogMessage> log(String message) { ... }
+///
+/// void fn() {
+///   log('Message'); // Not important to wait for logging to complete.
+/// }
+/// ```
+///
+/// Without the annotation on `log`, the analyzer may report a lint diagnostic
+/// at the call to `log`, such as `discarded_futures` or `unawaited_futures`,
+/// regarding the danger of not awaiting the function call, depending on what
+/// lint rules are enabled.
+///
+/// Tools, such as the analyzer, can also provide feedback if
+///
+/// * the annotation is associated with anything other than a constructor,
+///   function, method, operator, field, or top-level variable, or
+/// * the annotation is associated with a constructor, function, method, or
+///   operator that does not return a [Future], or
+/// * the annotation is associated with a field or top-level variable that is
+///   not typed as a [Future].
+const _AwaitNotRequired awaitNotRequired = _AwaitNotRequired();
+
 /// Used to annotate a parameter of an instance method that overrides another
 /// method.
 ///
@@ -85,8 +117,9 @@ const _Checked checked = _Checked();
 ///
 /// * the annotation is associated with anything other than a library, class,
 ///   method or getter, top-level getter or function, or
-/// * an invocation of a member that has this annotation is returned by a method,
-///   getter or function that is not similarly annotated as `doNotStore`, or
+/// * an invocation of a member that has this annotation is returned by a
+///   method, function or getter that is not similarly annotated as
+///   `doNotStore`, or
 /// * an invocation of a member that has this annotation is assigned to a field
 ///   or top-level variable.
 const _DoNotStore doNotStore = _DoNotStore();
@@ -450,12 +483,16 @@ const _Reopen reopen = _Reopen();
 /// * an invocation of a method or function does not include an argument
 ///   corresponding to a named parameter that has this annotation.
 ///
-/// **Deprecated:** This annotation is set to be deprecated and later
-/// removed in a future release of `package:meta`.
+/// **Deprecated:** This annotation is set to be removed in a future release of
+/// `package:meta`.
+///
 /// In Dart 2.12 and later, use the built-in `required` keyword
 /// to mark a named parameter as required.
 /// To learn more about `required`, check out the documentation on
 /// [named parameters](https://dart.dev/language/functions#named-parameters).
+@Deprecated(
+    'In Dart 2.12 and later, use the built-in `required` keyword to mark a '
+    'named parameter as required.')
 const Required required = Required();
 
 /// Annotation marking a class as not allowed as a super-type
@@ -553,8 +590,7 @@ class RecordUse {
   /// Creates a [RecordUse] instance.
   ///
   /// This annotation can be placed as an annotation on functions whose
-  /// statically resolved calls should be registered together with the optional
-  /// [metadata] information.
+  /// statically resolved calls should be registered
   const RecordUse();
 }
 
@@ -562,12 +598,16 @@ class RecordUse {
 ///
 /// See [required] for more details.
 ///
-/// **Deprecated:** This annotation is set to be deprecated and later
-/// removed in a future release of `package:meta`.
+/// **Deprecated:** This annotation is set to be removed in a future release of
+/// `package:meta`.
+///
 /// In Dart 2.12 and later, use the built-in `required` keyword
 /// to mark a named parameter as required.
 /// To learn more about `required`, check out the documentation on
 /// [named parameters](https://dart.dev/language/functions#named-parameters).
+@Deprecated(
+    'In Dart 2.12 and later, use the built-in `required` keyword to mark a '
+    'named parameter as required.')
 class Required {
   /// A human-readable explanation of the reason why the annotated parameter is
   /// required. For example, the annotation might look like:
@@ -624,6 +664,19 @@ class UseResult {
 
 class _AlwaysThrows {
   const _AlwaysThrows();
+}
+
+/// See [awaitNotRequired] for more details.
+@Target({
+  TargetKind.constructor,
+  TargetKind.field,
+  TargetKind.function,
+  TargetKind.getter,
+  TargetKind.method,
+  TargetKind.topLevelVariable,
+})
+class _AwaitNotRequired {
+  const _AwaitNotRequired();
 }
 
 class _Checked {

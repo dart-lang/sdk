@@ -18,18 +18,13 @@ var intVar = 0;
 
 var stringVar = "";
 
-
 const list1 = [?nullVar, intConst, stringConst];
-//            ^
-// [cfe] Constant evaluation error:
 //              ^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_LIST_ELEMENT
 // [cfe] Not a constant expression.
 
 const list2 = [?null, ?nullVar, intConst, stringConst];
-//            ^
-// [cfe] Constant evaluation error:
 //                     ^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_LIST_ELEMENT
@@ -58,16 +53,12 @@ const set3 = {null, intConst, "", ?stringConst};
 // [analyzer] COMPILE_TIME_ERROR.EQUAL_ELEMENTS_IN_CONST_SET
 
 const set4 = {?nullVar, intConst, stringConst};
-//           ^
-// [cfe] Constant evaluation error:
 //             ^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_SET_ELEMENT
 // [cfe] Not a constant expression.
 
 const set5 = {nullConst, ?intVar, stringConst};
-//           ^
-// [cfe] Constant evaluation error:
 //                       ^
 // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
 //                        ^^^^^^
@@ -76,8 +67,6 @@ const set5 = {nullConst, ?intVar, stringConst};
 // [cfe] Not a constant expression.
 
 const set6 = {nullConst, intConst, ?stringVar};
-//           ^
-// [cfe] Constant evaluation error:
 //                                 ^
 // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
 //                                  ^^^^^^^^^
@@ -92,24 +81,18 @@ const map1 = {null: 1, nullConst: 1, intConst: 1, stringConst: 1};
 // [analyzer] COMPILE_TIME_ERROR.EQUAL_KEYS_IN_CONST_MAP
 
 const map2 = {?nullVar: 1, intConst: 1, stringConst: 1};
-//    ^
-// [cfe] Constant evaluation error:
 //             ^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_MAP_KEY
 // [cfe] Not a constant expression.
 
 const map3 = {null: ?nullVar, intConst: 1, stringConst: 1};
-//    ^
-// [cfe] Constant evaluation error:
 //                   ^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_MAP_VALUE
 // [cfe] Not a constant expression.
 
 const map4 = {null: 1, ?intVar: 1, stringConst: 1};
-//    ^
-// [cfe] Constant evaluation error:
 //                     ^
 // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
 //                      ^^^^^^
@@ -118,8 +101,6 @@ const map4 = {null: 1, ?intVar: 1, stringConst: 1};
 // [cfe] Not a constant expression.
 
 const map5 = {null: 1, 0: ?intVar, stringConst: 1};
-//    ^
-// [cfe] Constant evaluation error:
 //                        ^
 // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
 //                         ^^^^^^
@@ -128,8 +109,6 @@ const map5 = {null: 1, 0: ?intVar, stringConst: 1};
 // [cfe] Not a constant expression.
 
 const map6 = {null: 1, 0: 1, ?stringVar: 1};
-//    ^
-// [cfe] Constant evaluation error:
 //                           ^
 // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
 //                            ^^^^^^^^^
@@ -138,8 +117,6 @@ const map6 = {null: 1, 0: 1, ?stringVar: 1};
 // [cfe] Not a constant expression.
 
 const map7 = {null: 1, 0: 1, "": ?stringVar};
-//    ^
-// [cfe] Constant evaluation error:
 //                               ^
 // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
 //                                ^^^^^^^^^

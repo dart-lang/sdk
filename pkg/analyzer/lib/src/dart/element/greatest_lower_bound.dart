@@ -294,9 +294,10 @@ class GreatestLowerBoundHelper {
                 fParameter.type,
                 gParameter.type,
               ),
-              kind: fParameter.isOptional || gParameter.isOptional
-                  ? ParameterKind.POSITIONAL
-                  : ParameterKind.REQUIRED,
+              kind:
+                  fParameter.isOptional || gParameter.isOptional
+                      ? ParameterKind.POSITIONAL
+                      : ParameterKind.REQUIRED,
             ),
           );
         } else {
@@ -320,22 +321,19 @@ class GreatestLowerBoundHelper {
                   fParameter.type,
                   gParameter.type,
                 ),
-                kind: fParameter.isRequiredNamed && gParameter.isRequiredNamed
-                    ? ParameterKind.NAMED_REQUIRED
-                    : ParameterKind.NAMED,
+                kind:
+                    fParameter.isRequiredNamed && gParameter.isRequiredNamed
+                        ? ParameterKind.NAMED_REQUIRED
+                        : ParameterKind.NAMED,
               ),
             );
           } else if (compareNames < 0) {
             fIndex++;
-            parameters.add(
-              fParameter.copyWith(kind: ParameterKind.NAMED),
-            );
+            parameters.add(fParameter.copyWith(kind: ParameterKind.NAMED));
           } else {
             assert(compareNames > 0);
             gIndex++;
-            parameters.add(
-              gParameter.copyWith(kind: ParameterKind.NAMED),
-            );
+            parameters.add(gParameter.copyWith(kind: ParameterKind.NAMED));
           }
         } else {
           return NeverTypeImpl.instance;
@@ -346,28 +344,20 @@ class GreatestLowerBoundHelper {
     while (fIndex < fParameters.length) {
       var fParameter = fParameters[fIndex++];
       if (fParameter.isPositional) {
-        parameters.add(
-          fParameter.copyWith(kind: ParameterKind.POSITIONAL),
-        );
+        parameters.add(fParameter.copyWith(kind: ParameterKind.POSITIONAL));
       } else {
         assert(fParameter.isNamed);
-        parameters.add(
-          fParameter.copyWith(kind: ParameterKind.NAMED),
-        );
+        parameters.add(fParameter.copyWith(kind: ParameterKind.NAMED));
       }
     }
 
     while (gIndex < gParameters.length) {
       var gParameter = gParameters[gIndex++];
       if (gParameter.isPositional) {
-        parameters.add(
-          gParameter.copyWith(kind: ParameterKind.POSITIONAL),
-        );
+        parameters.add(gParameter.copyWith(kind: ParameterKind.POSITIONAL));
       } else {
         assert(gParameter.isNamed);
-        parameters.add(
-          gParameter.copyWith(kind: ParameterKind.NAMED),
-        );
+        parameters.add(gParameter.copyWith(kind: ParameterKind.NAMED));
       }
     }
 
@@ -399,11 +389,7 @@ class GreatestLowerBoundHelper {
       var field1 = positional1[i];
       var field2 = positional2[i];
       var type = getGreatestLowerBound(field1.type, field2.type);
-      positionalFields.add(
-        RecordTypePositionalFieldImpl(
-          type: type,
-        ),
-      );
+      positionalFields.add(RecordTypePositionalFieldImpl(type: type));
     }
 
     var namedFields = <RecordTypeNamedFieldImpl>[];
@@ -414,12 +400,7 @@ class GreatestLowerBoundHelper {
         return _typeSystem.typeProvider.neverType;
       }
       var type = getGreatestLowerBound(field1.type, field2.type);
-      namedFields.add(
-        RecordTypeNamedFieldImpl(
-          name: field1.name,
-          type: type,
-        ),
-      );
+      namedFields.add(RecordTypeNamedFieldImpl(name: field1.name, type: type));
     }
 
     return RecordTypeImpl(

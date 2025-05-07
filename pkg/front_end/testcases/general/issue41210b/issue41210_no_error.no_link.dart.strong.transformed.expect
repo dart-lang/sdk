@@ -26,7 +26,7 @@ abstract class _E&Object&A&D extends self::_E&Object&A implements iss::D /*isAno
   const synthetic constructor •() → self::_E&Object&A&D
     : super self::_E&Object&A::•()
     ;
-  forwarding-stub method method(covariant-by-declaration core::num i, {core::String s = #C1}) → core::String
+  forwarding-stub synthetic method method(covariant-by-declaration core::num i, {core::String s = #C1}) → core::String
     return super.{self::_E&Object&A::method}(i, s: s);
 }
 abstract class _G&Object&A extends core::Object implements iss::A /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
@@ -67,7 +67,7 @@ abstract class B extends core::Object implements iss::Interface /*isMixinDeclara
   abstract method method(core::num i) → core::String;
 }
 abstract class D extends core::Object implements iss::Interface, iss::Interface2 /*isMixinDeclaration*/  {
-  abstract forwarding-stub method method(covariant-by-declaration core::num i) → core::String;
+  abstract forwarding-stub synthetic method method(covariant-by-declaration core::num i) → core::String;
 }
 abstract class F extends core::Object implements iss::Interface /*isMixinDeclaration*/  {
 }

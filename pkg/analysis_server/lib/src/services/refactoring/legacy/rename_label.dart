@@ -6,18 +6,18 @@ import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/naming_conventions.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/rename.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 
-/// A [Refactoring] for renaming [LabelElement2]s.
+/// A [Refactoring] for renaming [LabelElement]s.
 class RenameLabelRefactoringImpl extends RenameRefactoringImpl {
   RenameLabelRefactoringImpl(
     super.workspace,
     super.sessionHelper,
-    LabelElement2 super.element,
+    LabelElement super.element,
   ) : super();
 
   @override
-  LabelElement2 get element => super.element as LabelElement2;
+  LabelElement get element => super.element as LabelElement;
 
   @override
   String get refactoringName => 'Rename Label';

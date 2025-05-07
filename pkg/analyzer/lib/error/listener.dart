@@ -7,14 +7,11 @@ import 'package:analyzer/dart/ast/ast.dart'
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/source.dart';
-import 'package:analyzer/src/dart/element/extensions.dart';
-import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart';
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
@@ -72,7 +69,7 @@ class ErrorReporter {
   /// The location of the diagnostic will be the name of the [node].
   void atConstructorDeclaration(
     ConstructorDeclaration node,
-    ErrorCode errorCode, {
+    DiagnosticCode errorCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     Object? data,
@@ -89,48 +86,23 @@ class ErrorReporter {
         arguments: arguments,
       );
     } else {
-      atNode(
-        node.returnType,
-        errorCode,
-        arguments: arguments,
-      );
+      atNode(node.returnType, errorCode, arguments: arguments);
     }
   }
 
-  /// Report an error with the given [errorCode] and [arguments].
-  /// The [element] is used to compute the location of the error.
-  @Deprecated('Use atElement2() instead')
-  void atElement(
-    Element element,
-    ErrorCode errorCode, {
-    List<Object>? arguments,
-    List<DiagnosticMessage>? contextMessages,
-    Object? data,
-  }) {
-    var nonSynthetic = element.nonSynthetic;
-    atOffset(
-      errorCode: errorCode,
-      offset: nonSynthetic.nameOffset,
-      length: nonSynthetic.nameLength,
-      arguments: arguments,
-      contextMessages: contextMessages,
-      data: data,
-    );
-  }
-
-  /// Report an error with the given [errorCode] and [arguments].
+  /// Report an error with the given [diagnosticCode] and [arguments].
   /// The [element] is used to compute the location of the error.
   @experimental
   void atElement2(
-    Element2 element2,
-    ErrorCode errorCode, {
+    Element element2,
+    DiagnosticCode diagnosticCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     Object? data,
   }) {
     var nonSynthetic = element2.nonSynthetic2;
     atOffset(
-      errorCode: errorCode,
+      errorCode: diagnosticCode,
       offset: nonSynthetic.firstFragment.nameOffset2 ?? -1,
       length: nonSynthetic.name3?.length ?? 0,
       arguments: arguments,
@@ -143,7 +115,7 @@ class ErrorReporter {
   /// The [entity] is used to compute the location of the error.
   void atEntity(
     SyntacticEntity entity,
-    ErrorCode errorCode, {
+    DiagnosticCode errorCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     Object? data,
@@ -158,17 +130,17 @@ class ErrorReporter {
     );
   }
 
-  /// Report an error with the given [errorCode] and [arguments].
+  /// Report an error with the given [diagnosticCode] and [arguments].
   /// The [node] is used to compute the location of the error.
   void atNode(
     AstNode node,
-    ErrorCode errorCode, {
+    DiagnosticCode diagnosticCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     Object? data,
   }) {
     atOffset(
-      errorCode: errorCode,
+      errorCode: diagnosticCode,
       offset: node.offset,
       length: node.length,
       arguments: arguments,
@@ -182,7 +154,7 @@ class ErrorReporter {
   void atOffset({
     required int offset,
     required int length,
-    required ErrorCode errorCode,
+    required DiagnosticCode errorCode,
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     Object? data,
@@ -192,20 +164,23 @@ class ErrorReporter {
     }
 
     if (arguments != null) {
-      var invalid = arguments
-          .whereNotType<String>()
-          .whereNotType<DartType>()
-          .whereNotType<Element2>()
-          .whereNotType<int>()
-          .whereNotType<Uri>();
+      var invalid =
+          arguments
+              .whereNotType<String>()
+              .whereNotType<DartType>()
+              .whereNotType<Element>()
+              .whereNotType<int>()
+              .whereNotType<Uri>();
       if (invalid.isNotEmpty) {
-        throw ArgumentError('Tried to format an error using '
-            '${invalid.map((e) => e.runtimeType).join(', ')}');
+        throw ArgumentError(
+          'Tried to format an error using '
+          '${invalid.map((e) => e.runtimeType).join(', ')}',
+        );
       }
     }
 
     contextMessages ??= [];
-    contextMessages.addAll(_convertTypeNames(arguments));
+    contextMessages.addAll(convertTypeNames(arguments));
     _errorListener.onError(
       AnalysisError.tmp(
         source: _source,
@@ -223,7 +198,7 @@ class ErrorReporter {
   /// The [span] is used to compute the location of the error.
   void atSourceSpan(
     SourceSpan span,
-    ErrorCode errorCode, {
+    DiagnosticCode errorCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     Object? data,
@@ -238,17 +213,17 @@ class ErrorReporter {
     );
   }
 
-  /// Report an error with the given [errorCode] and [arguments]. The [token] is
+  /// Report an error with the given [diagnosticCode] and [arguments]. The [token] is
   /// used to compute the location of the error.
   void atToken(
     Token token,
-    ErrorCode errorCode, {
+    DiagnosticCode diagnosticCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     Object? data,
   }) {
     atOffset(
-      errorCode: errorCode,
+      errorCode: diagnosticCode,
       offset: token.offset,
       length: token.length,
       arguments: arguments,
@@ -260,88 +235,6 @@ class ErrorReporter {
   /// Report the given [error].
   void reportError(AnalysisError error) {
     _errorListener.onError(error);
-  }
-
-  /// Given an array of [arguments] that is expected to contain two or more
-  /// types, convert the types into strings by using the display names of the
-  /// types, unless there are two or more types with the same names, in which
-  /// case the extended display names of the types will be used in order to
-  /// clarify the message.
-  List<DiagnosticMessage> _convertTypeNames(List<Object?>? arguments) {
-    if (arguments == null) {
-      return const [];
-    }
-
-    var typeGroups = <String, List<_ToConvert>>{};
-    for (var i = 0; i < arguments.length; i++) {
-      var argument = arguments[i];
-      if (argument is TypeImpl) {
-        var displayName = argument.getDisplayString(preferTypeAlias: true);
-        var types = typeGroups.putIfAbsent(displayName, () => []);
-        types.add(_TypeToConvert(i, argument, displayName));
-      } else if (argument is Element2) {
-        var displayName = argument.displayString2();
-        var types = typeGroups.putIfAbsent(displayName, () => []);
-        types.add(_ElementToConvert(i, argument, displayName));
-      }
-    }
-
-    var messages = <DiagnosticMessage>[];
-    for (var typeGroup in typeGroups.values) {
-      if (typeGroup.length == 1) {
-        var typeToConvert = typeGroup[0];
-        // If the display name of a type is unambiguous, just replace the type
-        // in the arguments list with its display name.
-        arguments[typeToConvert.index] = typeToConvert.displayName;
-        continue;
-      }
-
-      const unnamedExtension = '<unnamed extension>';
-      const unnamed = '<unnamed>';
-      var nameToElementMap = <String, Set<Element2>>{};
-      for (var typeToConvert in typeGroup) {
-        for (var element in typeToConvert.allElements) {
-          var name = element.name3;
-          name ??= element is ExtensionElement2 ? unnamedExtension : unnamed;
-
-          var elements = nameToElementMap.putIfAbsent(name, () => {});
-          elements.add(element);
-        }
-      }
-
-      for (var typeToConvert in typeGroup) {
-        // TODO(brianwilkerson): When clients do a better job of displaying
-        // context messages, remove the extra text added to the buffer.
-        StringBuffer? buffer;
-        for (var element in typeToConvert.allElements) {
-          var name = element.name3;
-          name ??= element is ExtensionElement2 ? unnamedExtension : unnamed;
-          var sourcePath =
-              element.firstFragment.libraryFragment!.source.fullName;
-          if (nameToElementMap[name]!.length > 1) {
-            if (buffer == null) {
-              buffer = StringBuffer();
-              buffer.write('where ');
-            } else {
-              buffer.write(', ');
-            }
-            buffer.write('$name is defined in $sourcePath');
-          }
-          messages.add(DiagnosticMessageImpl(
-            filePath: sourcePath,
-            length: element.name3?.length ?? 0,
-            message: '$name is defined in $sourcePath',
-            offset: element.firstFragment.nameOffset2 ?? -1,
-            url: null,
-          ));
-        }
-
-        arguments[typeToConvert.index] = buffer != null
-            ? '${typeToConvert.displayName} ($buffer)'
-            : typeToConvert.displayName;
-      }
-    }
-    return messages;
   }
 }
 
@@ -372,85 +265,10 @@ class RecordingErrorListener implements AnalysisErrorListener {
   }
 }
 
-/// Used by [ErrorReporter._convertTypeNames] to keep track of an error argument
-/// that is an [Element2], that is being converted to a display string.
-class _ElementToConvert implements _ToConvert {
-  @override
-  final int index;
-
-  @override
-  final String displayName;
-
-  @override
-  final Iterable<Element2> allElements;
-
-  _ElementToConvert(this.index, Element2 element, this.displayName)
-      : allElements = [element];
-}
-
 /// An [AnalysisErrorListener] that ignores error.
 class _NullErrorListener implements AnalysisErrorListener {
   @override
   void onError(AnalysisError event) {
     // Ignore errors
   }
-}
-
-/// Used by [ErrorReporter._convertTypeNames] to keep track of an argument that
-/// is being converted to a display string.
-abstract class _ToConvert {
-  /// A list of all elements involved in the [DartType] or [Element2]'s display
-  /// string.
-  Iterable<Element2> get allElements;
-
-  /// The argument's display string, to replace the argument in the argument
-  /// list.
-  String get displayName;
-
-  /// The index of the argument in the argument list.
-  int get index;
-}
-
-/// Used by [ErrorReporter._convertTypeNames] to keep track of an error argument
-/// that is a [DartType], that is being converted to a display string.
-class _TypeToConvert implements _ToConvert {
-  @override
-  final int index;
-
-  final DartType _type;
-
-  @override
-  final String displayName;
-
-  @override
-  late final Iterable<Element2> allElements = () {
-    var elements = <Element2>{};
-
-    void addElementsFrom(DartType type) {
-      if (type is FunctionType) {
-        addElementsFrom(type.returnType);
-        for (var parameter in type.formalParameters) {
-          addElementsFrom(parameter.type);
-        }
-      } else if (type is RecordType) {
-        for (var parameter in type.fields) {
-          addElementsFrom(parameter.type);
-        }
-      } else if (type is InterfaceType) {
-        if (elements.add(type.element3)) {
-          for (var typeArgument in type.typeArguments) {
-            addElementsFrom(typeArgument);
-          }
-        }
-      }
-    }
-
-    addElementsFrom(_type);
-    return elements.where((element) {
-      var name = element.name3;
-      return name != null && name.isNotEmpty;
-    });
-  }();
-
-  _TypeToConvert(this.index, this._type, this.displayName);
 }

@@ -17,8 +17,10 @@ Future<HttpServer> createServer() => HttpServer.bind("127.0.0.1", 0);
 
 Future<WebSocket> createClient(int port, bool compression) => compression
     ? WebSocket.connect('ws://127.0.0.1:$port/')
-    : WebSocket.connect('ws://127.0.0.1:$port/',
-        compression: CompressionOptions.compressionOff);
+    : WebSocket.connect(
+        'ws://127.0.0.1:$port/',
+        compression: CompressionOptions.compressionOff,
+      );
 
 void test(expected, testData, compression) {
   createServer().then((server) {
@@ -26,7 +28,8 @@ void test(expected, testData, compression) {
     var transformer = compression
         ? new WebSocketTransformer()
         : new WebSocketTransformer(
-            compression: CompressionOptions.compressionOff);
+            compression: CompressionOptions.compressionOff,
+          );
     server.transform(transformer).listen((webSocket) {
       webSocket.listen((message) {
         Expect.listEquals(expected, message);
@@ -78,7 +81,8 @@ void testOutOfRangeClient({bool compression = false}) {
     var transformer = compression
         ? new WebSocketTransformer()
         : new WebSocketTransformer(
-            compression: CompressionOptions.compressionOff);
+            compression: CompressionOptions.compressionOff,
+          );
     server.transform(transformer).listen((webSocket) {
       webSocket.listen((message) => Expect.fail("No message expected"));
     });
@@ -183,7 +187,8 @@ void testOutOfRangeServer({bool compression = false}) {
     var transformer = compression
         ? new WebSocketTransformer()
         : new WebSocketTransformer(
-            compression: CompressionOptions.compressionOff);
+            compression: CompressionOptions.compressionOff,
+          );
     server.transform(transformer).listen((webSocket) {
       webSocket.listen((message) {
         messageCount++;
@@ -197,17 +202,20 @@ void testOutOfRangeServer({bool compression = false}) {
     Future x(int i) {
       var completer = new Completer();
       createClient(server.port, compression).then((webSocket) {
-        webSocket.listen((message) => Expect.fail("No message expected"),
-            onDone: () => completer.complete(true),
-            onError: (e) => completer.completeError(e));
+        webSocket.listen(
+          (message) => Expect.fail("No message expected"),
+          onDone: () => completer.complete(true),
+          onError: (e) => completer.completeError(e),
+        );
         webSocket.add([i]);
       });
       return completer.future;
     }
 
     for (int i = 0; i < testData.length; i++) futures.add(x(i));
-    allDone.future
-        .then((_) => Future.wait(futures).then((_) => server.close()));
+    allDone.future.then(
+      (_) => Future.wait(futures).then((_) => server.close()),
+    );
   });
 }
 

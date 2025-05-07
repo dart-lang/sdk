@@ -8,7 +8,8 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -32,8 +33,8 @@ class AddMissingRequiredArgument extends ResolvedCorrectionProducer {
   @override
   FixKind get fixKind => DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT;
 
-  /// All the error codes that this fix can be applied to.
-  List<ErrorCode> get _errorCodesWhereThisIsValid {
+  /// All the diagnostic codes that this fix can be applied to.
+  List<DiagnosticCode> get _codesWhereThisIsValid {
     var producerGenerators = [AddMissingRequiredArgument.new];
     var nonLintProducers = registeredFixGenerators.nonLintProducers;
     return [
@@ -47,7 +48,7 @@ class AddMissingRequiredArgument extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     InstanceCreationExpression? creation;
-    Element2? targetElement;
+    Element? targetElement;
     ArgumentList? argumentList;
 
     if (node is SimpleIdentifier ||
@@ -67,11 +68,11 @@ class AddMissingRequiredArgument extends ResolvedCorrectionProducer {
     }
 
     var diagnostic = this.diagnostic;
-    if (diagnostic is! AnalysisError) {
+    if (diagnostic is! Diagnostic) {
       return;
     }
 
-    var validErrors = _errorCodesWhereThisIsValid;
+    var validErrors = _codesWhereThisIsValid;
     var errors = unitResult.errors.where(
       (e) => diagnostic.sameRangeAs(e) && validErrors.contains(e.errorCode),
     );
@@ -91,7 +92,7 @@ class AddMissingRequiredArgument extends ResolvedCorrectionProducer {
     _missingParameters = errors.length;
 
     for (var (index, diagnostic) in errors.indexed) {
-      if (targetElement is ExecutableElement2 && argumentList != null) {
+      if (targetElement is ExecutableElement && argumentList != null) {
         // Format: "Missing required argument 'foo'."
         var messageParts = diagnostic.problemMessage
             .messageText(includeUrl: false)
@@ -185,8 +186,8 @@ extension<T> on Iterable<T> {
   }
 }
 
-extension on AnalysisError {
-  bool sameRangeAs(AnalysisError other) {
+extension on Diagnostic {
+  bool sameRangeAs(Diagnostic other) {
     return offset == other.offset && length == other.length;
   }
 }

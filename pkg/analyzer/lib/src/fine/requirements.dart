@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
@@ -18,314 +18,12 @@ import 'package:meta/meta.dart';
 
 /// When [withFineDependencies], this variable might be set to accumulate
 /// requirements for the analysis result being computed.
-BundleRequirementsManifest? linkingBundleManifest;
+RequirementsManifest? globalResultRequirements;
 
-/// Whether fine grained dependencies feature is enabled.
+/// Whether fine-grained dependencies feature is enabled.
 ///
 /// This cannot be `const` because we change it in tests.
 bool withFineDependencies = false;
-
-class BundleRequirementsManifest {
-  /// LibraryUri => TopName => ID
-  final Map<Uri, Map<LookupName, ManifestItemId?>> topLevels = {};
-
-  /// LibraryUri => TopName => MemberName => ID
-  final Map<Uri, Map<LookupName, Map<LookupName, ManifestItemId?>>>
-      interfaceMembers = {};
-
-  final List<ExportRequirement> exportRequirements = [];
-
-  BundleRequirementsManifest();
-
-  factory BundleRequirementsManifest.read(SummaryDataReader reader) {
-    var result = BundleRequirementsManifest();
-
-    Map<LookupName, ManifestItemId?> readNameToIdMap() {
-      return reader.readMap(
-        readKey: () => LookupName.read(reader),
-        readValue: () => reader.readOptionalObject(
-          () => ManifestItemId.read(reader),
-        ),
-      );
-    }
-
-    result.topLevels.addAll(
-      reader.readMap(
-        readKey: () => reader.readUri(),
-        readValue: readNameToIdMap,
-      ),
-    );
-
-    result.interfaceMembers.addAll(
-      reader.readMap(
-        readKey: () => reader.readUri(),
-        readValue: () {
-          return reader.readMap(
-            readKey: () => LookupName.read(reader),
-            readValue: readNameToIdMap,
-          );
-        },
-      ),
-    );
-
-    result.exportRequirements.addAll(
-      reader.readTypedList(() => ExportRequirement.read(reader)),
-    );
-
-    return result;
-  }
-
-  /// Adds requirements to exports from libraries.
-  ///
-  /// We have already computed manifests for each library.
-  void addExports({
-    required LinkedElementFactory elementFactory,
-    required Set<Uri> libraryUriSet,
-  }) {
-    for (var libraryUri in libraryUriSet) {
-      var libraryElement = elementFactory.libraryOfUri2(libraryUri);
-      _addExports(libraryElement);
-    }
-  }
-
-  /// Returns the first unsatisfied requirement, or `null` if all requirements
-  /// are satisfied.
-  RequirementFailure? isSatisfied({
-    required LinkedElementFactory elementFactory,
-    required Map<Uri, LibraryManifest> libraryManifests,
-  }) {
-    for (var libraryEntry in topLevels.entries) {
-      var libraryUri = libraryEntry.key;
-
-      var libraryElement = elementFactory.libraryOfUri(libraryUri);
-      var libraryManifest = libraryElement?.manifest;
-      if (libraryManifest == null) {
-        return LibraryMissing(uri: libraryUri);
-      }
-
-      for (var topLevelEntry in libraryEntry.value.entries) {
-        var name = topLevelEntry.key;
-        var actualId = libraryManifest.getExportedId(name);
-        if (topLevelEntry.value != actualId) {
-          return TopLevelIdMismatch(
-            libraryUri: libraryUri,
-            name: name,
-            expectedId: topLevelEntry.value,
-            actualId: actualId,
-          );
-        }
-      }
-    }
-
-    for (var libraryEntry in interfaceMembers.entries) {
-      var libraryUri = libraryEntry.key;
-
-      var libraryElement = elementFactory.libraryOfUri(libraryUri);
-      var libraryManifest = libraryElement?.manifest;
-      if (libraryManifest == null) {
-        return LibraryMissing(uri: libraryUri);
-      }
-
-      for (var interfaceEntry in libraryEntry.value.entries) {
-        var interfaceName = interfaceEntry.key;
-        var interfaceItem = libraryManifest.items[interfaceName];
-        if (interfaceItem is! ClassItem) {
-          return TopLevelNotClass(
-            libraryUri: libraryUri,
-            name: interfaceName,
-          );
-        }
-
-        for (var memberEntry in interfaceEntry.value.entries) {
-          var memberName = memberEntry.key;
-          var memberItem = interfaceItem.members[memberName];
-          var expectedId = memberEntry.value;
-          if (expectedId != memberItem?.id) {
-            return InstanceMemberIdMismatch(
-              libraryUri: libraryUri,
-              interfaceName: interfaceName,
-              memberName: memberName,
-              expectedId: expectedId,
-              actualId: memberItem?.id,
-            );
-          }
-        }
-      }
-    }
-
-    for (var exportRequirement in exportRequirements) {
-      var failure = exportRequirement.isSatisfied(
-        elementFactory: elementFactory,
-      );
-      if (failure != null) {
-        return failure;
-      }
-    }
-
-    return null;
-  }
-
-  /// This method is invoked by [InheritanceManager3] to notify the collector
-  /// that a member with [nameObj] was requested from the [element].
-  void notifyInterfaceRequest({
-    required InterfaceElement2 element,
-    required Name nameObj,
-  }) {
-    // Skip private names, cannot be used outside this library.
-    if (!nameObj.isPublic) {
-      return;
-    }
-
-    var libraryElement = element.library2 as LibraryElementImpl;
-    var manifest = libraryElement.manifest;
-
-    // If we are linking the library, its manifest is not set yet.
-    // But then we also don't care about this dependency.
-    if (manifest == null) {
-      return;
-    }
-
-    // TODO(scheglov): support other elements
-    if (element is! ClassElement2) {
-      return;
-    }
-
-    var interfacesMap = interfaceMembers[libraryElement.uri] ??= {};
-
-    var interfaceName = element.lookupName!.asLookupName;
-    var interfaceMap = interfacesMap[interfaceName] ??= {};
-
-    var classItem = manifest.items[interfaceName] as ClassItem?;
-    // TODO(scheglov): can this happen?
-    if (classItem == null) {
-      return;
-    }
-
-    var name = nameObj.name.asLookupName;
-    var member = classItem.members[name];
-    interfaceMap[name] = member?.id;
-  }
-
-  /// This method is invoked by an import scope to notify the collector that
-  /// the name [nameStr] was requested from [importedLibrary].
-  void notifyRequest({
-    required LibraryElementImpl importedLibrary,
-    required String nameStr,
-  }) {
-    if (importedLibrary.manifest case var manifest?) {
-      var uri = importedLibrary.uri;
-      var nameToId = topLevels[uri] ??= {};
-      var name = nameStr.asLookupName;
-      nameToId[name] = manifest.getExportedId(name);
-    }
-  }
-
-  /// This method is invoked after linking of a library cycle, to exclude
-  /// requirements to the libraries of this same library cycle. We already
-  /// link these libraries together, so only requirements to the previous
-  /// libraries are interesting.
-  void removeReqForLibs(Set<Uri> bundleLibraryUriList) {
-    var uriSet = bundleLibraryUriList.toSet();
-    exportRequirements.removeWhere((export) {
-      return uriSet.contains(export.exportedUri);
-    });
-
-    for (var libUri in bundleLibraryUriList) {
-      topLevels.remove(libUri);
-    }
-
-    for (var libUri in bundleLibraryUriList) {
-      interfaceMembers.remove(libUri);
-    }
-  }
-
-  void write(BufferedSink sink) {
-    void writeNameToIdMap(Map<LookupName, ManifestItemId?> map) {
-      sink.writeMap(
-        map,
-        writeKey: (name) => name.write(sink),
-        writeValue: (id) {
-          sink.writeOptionalObject(id, (id) {
-            id.write(sink);
-          });
-        },
-      );
-    }
-
-    sink.writeMap(
-      topLevels,
-      writeKey: (uri) => sink.writeUri(uri),
-      writeValue: writeNameToIdMap,
-    );
-
-    sink.writeMap(
-      interfaceMembers,
-      writeKey: (uri) => sink.writeUri(uri),
-      writeValue: (nameToInterfaceMap) {
-        sink.writeMap(
-          nameToInterfaceMap,
-          writeKey: (name) => name.write(sink),
-          writeValue: writeNameToIdMap,
-        );
-      },
-    );
-
-    sink.writeList(
-      exportRequirements,
-      (requirement) => requirement.write(sink),
-    );
-  }
-
-  void _addExports(LibraryElementImpl libraryElement) {
-    for (var fragment in libraryElement.fragments) {
-      for (var export in fragment.libraryExports) {
-        var exportedLibrary = export.exportedLibrary;
-
-        // If no library, then there is nothing to re-export.
-        if (exportedLibrary == null) {
-          continue;
-        }
-
-        var combinators = export.combinators.map((combinator) {
-          switch (combinator) {
-            case HideElementCombinator():
-              return ExportRequirementHideCombinator(
-                hiddenBaseNames: combinator.hiddenNames.toBaseNameSet(),
-              );
-            case ShowElementCombinator():
-              return ExportRequirementShowCombinator(
-                shownBaseNames: combinator.shownNames.toBaseNameSet(),
-              );
-          }
-        }).toList();
-
-        // SAFETY: every library has the manifest.
-        var manifest = exportedLibrary.manifest!;
-
-        var exportedIds = <LookupName, ManifestItemId>{};
-        var exportMap =
-            NamespaceBuilder().createExportNamespaceForDirective2(export);
-        for (var entry in exportMap.definedNames2.entries) {
-          var lookupName = entry.key.asLookupName;
-          // TODO(scheglov): must always be not null.
-          var item = manifest.items[lookupName];
-          if (item != null) {
-            exportedIds[lookupName] = item.id;
-          }
-        }
-
-        exportRequirements.add(
-          ExportRequirement(
-            fragmentUri: fragment.source.uri,
-            exportedUri: exportedLibrary.uri,
-            combinators: combinators,
-            exportedIds: exportedIds,
-          ),
-        );
-      }
-    }
-  }
-}
 
 @visibleForTesting
 class ExportRequirement {
@@ -355,9 +53,7 @@ class ExportRequirement {
     );
   }
 
-  ExportFailure? isSatisfied({
-    required LinkedElementFactory elementFactory,
-  }) {
+  ExportFailure? isSatisfied({required LinkedElementFactory elementFactory}) {
     var libraryElement = elementFactory.libraryOfUri(exportedUri);
     var libraryManifest = libraryElement?.manifest;
     if (libraryManifest == null) {
@@ -454,9 +150,7 @@ final class ExportRequirementHideCombinator
     extends ExportRequirementCombinator {
   final Set<BaseName> hiddenBaseNames;
 
-  ExportRequirementHideCombinator({
-    required this.hiddenBaseNames,
-  });
+  ExportRequirementHideCombinator({required this.hiddenBaseNames});
 
   factory ExportRequirementHideCombinator.read(SummaryDataReader reader) {
     return ExportRequirementHideCombinator(
@@ -476,9 +170,7 @@ final class ExportRequirementShowCombinator
     extends ExportRequirementCombinator {
   final Set<BaseName> shownBaseNames;
 
-  ExportRequirementShowCombinator({
-    required this.shownBaseNames,
-  });
+  ExportRequirementShowCombinator({required this.shownBaseNames});
 
   factory ExportRequirementShowCombinator.read(SummaryDataReader reader) {
     return ExportRequirementShowCombinator(
@@ -493,7 +185,576 @@ final class ExportRequirementShowCombinator
   }
 }
 
-enum _ExportRequirementCombinatorKind {
-  hide,
-  show,
+/// Requirements for [InstanceElementImpl2].
+///
+/// If [InterfaceElementImpl2], there are additional requirements in form
+/// of [InterfaceItemRequirements].
+class InstanceItemRequirements {
+  /// These are "methods" in wide meaning: methods, getters, setters.
+  final Map<LookupName, ManifestItemId?> requestedMethods;
+
+  InstanceItemRequirements({required this.requestedMethods});
+
+  factory InstanceItemRequirements.empty() {
+    return InstanceItemRequirements(requestedMethods: {});
+  }
+
+  factory InstanceItemRequirements.read(SummaryDataReader reader) {
+    return InstanceItemRequirements(requestedMethods: reader.readNameToIdMap());
+  }
+
+  void write(BufferedSink sink) {
+    sink.writeNameToIdMap(requestedMethods);
+  }
+}
+
+/// Requirements for [InterfaceElementImpl2], in addition to those that
+/// we already record as [InstanceItemRequirements].
+///
+/// Includes all requirements from class-like items: classes, enums,
+/// extension types, mixins.
+class InterfaceItemRequirements {
+  final Map<LookupName, ManifestItemId?> constructors;
+
+  /// These are "methods" in wide meaning: methods, getters, setters.
+  final Map<LookupName, ManifestItemId?> methods;
+
+  InterfaceItemRequirements({
+    required this.constructors,
+    required this.methods,
+  });
+
+  factory InterfaceItemRequirements.empty() {
+    return InterfaceItemRequirements(constructors: {}, methods: {});
+  }
+
+  factory InterfaceItemRequirements.read(SummaryDataReader reader) {
+    return InterfaceItemRequirements(
+      constructors: reader.readNameToIdMap(),
+      methods: reader.readNameToIdMap(),
+    );
+  }
+
+  void write(BufferedSink sink) {
+    sink.writeNameToIdMap(constructors);
+    sink.writeNameToIdMap(methods);
+  }
+}
+
+class RequirementsManifest {
+  /// LibraryUri => TopName => ID
+  final Map<Uri, Map<LookupName, ManifestItemId?>> topLevels = {};
+
+  /// LibraryUri => TopName => InstanceItemRequirements
+  final Map<Uri, Map<LookupName, InstanceItemRequirements>> instances = {};
+
+  /// LibraryUri => TopName => InterfaceItemRequirements
+  final Map<Uri, Map<LookupName, InterfaceItemRequirements>> interfaces = {};
+
+  final List<ExportRequirement> exportRequirements = [];
+
+  RequirementsManifest();
+
+  factory RequirementsManifest.read(SummaryDataReader reader) {
+    var result = RequirementsManifest();
+
+    result.topLevels.addAll(
+      reader.readMap(
+        readKey: () => reader.readUri(),
+        readValue: () => reader.readNameToIdMap(),
+      ),
+    );
+
+    result.instances.addAll(
+      reader.readMap(
+        readKey: () => reader.readUri(),
+        readValue: () {
+          return reader.readMap(
+            readKey: () => LookupName.read(reader),
+            readValue: () => InstanceItemRequirements.read(reader),
+          );
+        },
+      ),
+    );
+
+    result.interfaces.addAll(
+      reader.readMap(
+        readKey: () => reader.readUri(),
+        readValue: () {
+          return reader.readMap(
+            readKey: () => LookupName.read(reader),
+            readValue: () => InterfaceItemRequirements.read(reader),
+          );
+        },
+      ),
+    );
+
+    result.exportRequirements.addAll(
+      reader.readTypedList(() => ExportRequirement.read(reader)),
+    );
+
+    return result;
+  }
+
+  /// Adds requirements to exports from libraries.
+  ///
+  /// We have already computed manifests for each library.
+  void addExports({
+    required LinkedElementFactory elementFactory,
+    required Set<Uri> libraryUriSet,
+  }) {
+    for (var libraryUri in libraryUriSet) {
+      var libraryElement = elementFactory.libraryOfUri2(libraryUri);
+      _addExports(libraryElement);
+    }
+  }
+
+  /// Returns the first unsatisfied requirement, or `null` if all requirements
+  /// are satisfied.
+  RequirementFailure? isSatisfied({
+    required LinkedElementFactory elementFactory,
+    required Map<Uri, LibraryManifest> libraryManifests,
+  }) {
+    for (var libraryEntry in topLevels.entries) {
+      var libraryUri = libraryEntry.key;
+
+      var libraryElement = elementFactory.libraryOfUri(libraryUri);
+      var libraryManifest = libraryElement?.manifest;
+      if (libraryManifest == null) {
+        return LibraryMissing(uri: libraryUri);
+      }
+
+      for (var topLevelEntry in libraryEntry.value.entries) {
+        var name = topLevelEntry.key;
+        var actualId = libraryManifest.getExportedId(name);
+        if (topLevelEntry.value != actualId) {
+          return TopLevelIdMismatch(
+            libraryUri: libraryUri,
+            name: name,
+            expectedId: topLevelEntry.value,
+            actualId: actualId,
+          );
+        }
+      }
+    }
+
+    for (var libraryEntry in instances.entries) {
+      var libraryUri = libraryEntry.key;
+
+      var libraryElement = elementFactory.libraryOfUri(libraryUri);
+      var libraryManifest = libraryElement?.manifest;
+      if (libraryManifest == null) {
+        return LibraryMissing(uri: libraryUri);
+      }
+
+      for (var instanceEntry in libraryEntry.value.entries) {
+        var instanceName = instanceEntry.key;
+        var instanceItem = libraryManifest.items[instanceName];
+        if (instanceItem is! InstanceItem) {
+          return TopLevelNotInterface(
+            libraryUri: libraryUri,
+            name: instanceName,
+          );
+        }
+
+        var methods = instanceEntry.value.requestedMethods;
+        for (var methodEntry in methods.entries) {
+          var methodName = methodEntry.key;
+          var methodId = instanceItem.getDeclaredMemberId(methodName);
+          var expectedId = methodEntry.value;
+          if (expectedId != methodId) {
+            return InstanceMethodIdMismatch(
+              libraryUri: libraryUri,
+              interfaceName: instanceName,
+              methodName: methodName,
+              expectedId: expectedId,
+              actualId: methodId,
+            );
+          }
+        }
+      }
+    }
+
+    for (var libraryEntry in interfaces.entries) {
+      var libraryUri = libraryEntry.key;
+
+      var libraryElement = elementFactory.libraryOfUri(libraryUri);
+      var libraryManifest = libraryElement?.manifest;
+      if (libraryManifest == null) {
+        return LibraryMissing(uri: libraryUri);
+      }
+
+      for (var interfaceEntry in libraryEntry.value.entries) {
+        var interfaceName = interfaceEntry.key;
+        var interfaceItem = libraryManifest.items[interfaceName];
+        if (interfaceItem is! InterfaceItem) {
+          return TopLevelNotInterface(
+            libraryUri: libraryUri,
+            name: interfaceName,
+          );
+        }
+
+        var constructors = interfaceEntry.value.constructors;
+        for (var constructorEntry in constructors.entries) {
+          var constructorName = constructorEntry.key;
+          var constructorId = interfaceItem.getConstructorId(constructorName);
+          var expectedId = constructorEntry.value;
+          if (expectedId != constructorId) {
+            return InterfaceConstructorIdMismatch(
+              libraryUri: libraryUri,
+              interfaceName: interfaceName,
+              constructorName: constructorName,
+              expectedId: expectedId,
+              actualId: constructorId,
+            );
+          }
+        }
+
+        var methods = interfaceEntry.value.methods;
+        for (var methodEntry in methods.entries) {
+          var methodName = methodEntry.key;
+          var methodId = interfaceItem.getInterfaceMethodId(methodName);
+          var expectedId = methodEntry.value;
+          if (expectedId != methodId) {
+            return InstanceMethodIdMismatch(
+              libraryUri: libraryUri,
+              interfaceName: interfaceName,
+              methodName: methodName,
+              expectedId: expectedId,
+              actualId: methodId,
+            );
+          }
+        }
+      }
+    }
+
+    for (var exportRequirement in exportRequirements) {
+      var failure = exportRequirement.isSatisfied(
+        elementFactory: elementFactory,
+      );
+      if (failure != null) {
+        return failure;
+      }
+    }
+
+    return null;
+  }
+
+  void notify_interfaceElement_getNamedConstructor({
+    required InterfaceElementImpl2 element,
+    required String name,
+  }) {
+    var itemRequirements = _getInterfaceItem(element);
+    if (itemRequirements == null) {
+      return;
+    }
+
+    var item = itemRequirements.item;
+    var requirements = itemRequirements.requirements;
+
+    var constructorName = name.asLookupName;
+    var constructorId = item.getConstructorId(constructorName);
+    requirements.constructors[constructorName] = constructorId;
+  }
+
+  /// This method is invoked by [InheritanceManager3] to notify the collector
+  /// that a member with [nameObj] was requested from the [element].
+  void notifyInterfaceRequest({
+    required InterfaceElementImpl2 element,
+    required Name nameObj,
+    required ExecutableElement? methodElement,
+  }) {
+    // Skip private names, cannot be used outside this library.
+    if (!nameObj.isPublic) {
+      return;
+    }
+
+    var itemRequirements = _getInterfaceItem(element);
+    if (itemRequirements == null) {
+      return;
+    }
+
+    var item = itemRequirements.item;
+    var requirements = itemRequirements.requirements;
+
+    var methodName = nameObj.name.asLookupName;
+    var methodId = item.getInterfaceMethodId(methodName);
+    requirements.methods[methodName] = methodId;
+
+    // Check for consistency between the actual interface and manifest.
+    if (methodElement != null) {
+      if (methodId == null) {
+        var qName = _qualifiedMethodName(element, methodName);
+        throw StateError('Expected ID for $qName');
+      }
+    } else {
+      if (methodId != null) {
+        var qName = _qualifiedMethodName(element, methodName);
+        throw StateError('Expected no ID for $qName');
+      }
+    }
+
+    requirements.methods[methodName] = methodId;
+  }
+
+  /// This method is invoked by an import scope to notify the collector that
+  /// the name [nameStr] was requested from [importedLibrary].
+  void notifyRequest({
+    required LibraryElementImpl importedLibrary,
+    required String nameStr,
+  }) {
+    if (importedLibrary.manifest case var manifest?) {
+      var uri = importedLibrary.uri;
+      var nameToId = topLevels[uri] ??= {};
+      var name = nameStr.asLookupName;
+      nameToId[name] = manifest.getExportedId(name);
+    }
+  }
+
+  void record_instanceElement_getGetter({
+    required InstanceElementImpl2 element,
+    required String name,
+  }) {
+    record_instanceElement_getMethod(element: element, name: name);
+  }
+
+  void record_instanceElement_getMethod({
+    required InstanceElementImpl2 element,
+    required String name,
+  }) {
+    var itemRequirements = _getInstanceItem(element);
+    if (itemRequirements == null) {
+      return;
+    }
+
+    var item = itemRequirements.item;
+    var requirements = itemRequirements.requirements;
+
+    var methodName = name.asLookupName;
+    var methodId = item.getDeclaredMemberId(methodName);
+    requirements.requestedMethods[methodName] = methodId;
+  }
+
+  void record_instanceElement_getSetter({
+    required InstanceElementImpl2 element,
+    required String name,
+  }) {
+    record_instanceElement_getMethod(element: element, name: '$name=');
+  }
+
+  /// This method is invoked after linking of a library cycle, to exclude
+  /// requirements to the libraries of this same library cycle. We already
+  /// link these libraries together, so only requirements to the previous
+  /// libraries are interesting.
+  void removeReqForLibs(Set<Uri> bundleLibraryUriList) {
+    var uriSet = bundleLibraryUriList.toSet();
+    exportRequirements.removeWhere((export) {
+      return uriSet.contains(export.exportedUri);
+    });
+
+    for (var libUri in bundleLibraryUriList) {
+      topLevels.remove(libUri);
+    }
+
+    for (var libUri in bundleLibraryUriList) {
+      interfaces.remove(libUri);
+    }
+  }
+
+  void write(BufferedSink sink) {
+    sink.writeMap(
+      topLevels,
+      writeKey: (uri) => sink.writeUri(uri),
+      writeValue: (map) => sink.writeNameToIdMap(map),
+    );
+
+    sink.writeMap(
+      instances,
+      writeKey: (uri) => sink.writeUri(uri),
+      writeValue: (nameToInstanceMap) {
+        sink.writeMap(
+          nameToInstanceMap,
+          writeKey: (name) => name.write(sink),
+          writeValue: (instance) => instance.write(sink),
+        );
+      },
+    );
+
+    sink.writeMap(
+      interfaces,
+      writeKey: (uri) => sink.writeUri(uri),
+      writeValue: (nameToInterfaceMap) {
+        sink.writeMap(
+          nameToInterfaceMap,
+          writeKey: (name) => name.write(sink),
+          writeValue: (interface) => interface.write(sink),
+        );
+      },
+    );
+
+    sink.writeList(
+      exportRequirements,
+      (requirement) => requirement.write(sink),
+    );
+  }
+
+  void _addExports(LibraryElementImpl libraryElement) {
+    for (var fragment in libraryElement.fragments) {
+      for (var export in fragment.libraryExports) {
+        var exportedLibrary = export.exportedLibrary2;
+
+        // If no library, then there is nothing to re-export.
+        if (exportedLibrary == null) {
+          continue;
+        }
+
+        var combinators =
+            export.combinators.map((combinator) {
+              switch (combinator) {
+                case HideElementCombinator():
+                  return ExportRequirementHideCombinator(
+                    hiddenBaseNames: combinator.hiddenNames.toBaseNameSet(),
+                  );
+                case ShowElementCombinator():
+                  return ExportRequirementShowCombinator(
+                    shownBaseNames: combinator.shownNames.toBaseNameSet(),
+                  );
+              }
+            }).toList();
+
+        // SAFETY: every library has the manifest.
+        var manifest = exportedLibrary.manifest!;
+
+        var exportedIds = <LookupName, ManifestItemId>{};
+        var exportMap = NamespaceBuilder().createExportNamespaceForDirective2(
+          export,
+        );
+        for (var entry in exportMap.definedNames2.entries) {
+          var lookupName = entry.key.asLookupName;
+          // TODO(scheglov): must always be not null.
+          var item = manifest.items[lookupName];
+          if (item != null) {
+            exportedIds[lookupName] = item.id;
+          }
+        }
+
+        exportRequirements.add(
+          ExportRequirement(
+            fragmentUri: fragment.source.uri,
+            exportedUri: exportedLibrary.uri,
+            combinators: combinators,
+            exportedIds: exportedIds,
+          ),
+        );
+      }
+    }
+  }
+
+  _InstanceItemWithRequirements? _getInstanceItem(
+    InstanceElementImpl2 element,
+  ) {
+    var libraryElement = element.library2;
+    var manifest = libraryElement.manifest;
+
+    // If we are linking the library, its manifest is not set yet.
+    // But then we also don't care about this dependency.
+    if (manifest == null) {
+      return null;
+    }
+
+    // SAFETY: we don't export elements without name.
+    var instanceName = element.lookupName!.asLookupName;
+
+    var instancesMap = instances[libraryElement.uri] ??= {};
+    var instanceItem = manifest.items[instanceName];
+
+    // SAFETY: every instance element must be in the manifest.
+    instanceItem as InstanceItem;
+
+    var requirements =
+        instancesMap[instanceName] ??= InstanceItemRequirements.empty();
+    return _InstanceItemWithRequirements(
+      item: instanceItem,
+      requirements: requirements,
+    );
+  }
+
+  _InterfaceItemWithRequirements? _getInterfaceItem(
+    InterfaceElementImpl2 element,
+  ) {
+    var libraryElement = element.library2;
+    var manifest = libraryElement.manifest;
+
+    // If we are linking the library, its manifest is not set yet.
+    // But then we also don't care about this dependency.
+    if (manifest == null) {
+      return null;
+    }
+
+    // SAFETY: we don't export elements without name.
+    var interfaceName = element.lookupName!.asLookupName;
+
+    var interfacesMap = interfaces[libraryElement.uri] ??= {};
+    var interfaceItem = manifest.items[interfaceName];
+
+    // SAFETY: every interface element must be in the manifest.
+    interfaceItem as InterfaceItem;
+
+    var requirements =
+        interfacesMap[interfaceName] ??= InterfaceItemRequirements.empty();
+    return _InterfaceItemWithRequirements(
+      item: interfaceItem,
+      requirements: requirements,
+    );
+  }
+
+  String _qualifiedMethodName(
+    InterfaceElementImpl2 element,
+    LookupName methodName,
+  ) {
+    return '${element.library2.uri} '
+        '${element.displayName}.'
+        '${methodName.asString}';
+  }
+}
+
+enum _ExportRequirementCombinatorKind { hide, show }
+
+class _InstanceItemWithRequirements {
+  final InstanceItem item;
+  final InstanceItemRequirements requirements;
+
+  _InstanceItemWithRequirements({
+    required this.item,
+    required this.requirements,
+  });
+}
+
+class _InterfaceItemWithRequirements {
+  final InterfaceItem item;
+  final InterfaceItemRequirements requirements;
+
+  _InterfaceItemWithRequirements({
+    required this.item,
+    required this.requirements,
+  });
+}
+
+extension _BufferedSinkExtension on BufferedSink {
+  void writeNameToIdMap(Map<LookupName, ManifestItemId?> map) {
+    writeMap(
+      map,
+      writeKey: (name) => name.write(this),
+      writeValue: (id) => id.writeOptional(this),
+    );
+  }
+}
+
+extension _SummaryDataReaderExtension on SummaryDataReader {
+  Map<LookupName, ManifestItemId?> readNameToIdMap() {
+    return readMap(
+      readKey: () => LookupName.read(this),
+      readValue: () => ManifestItemId.readOptional(this),
+    );
+  }
 }

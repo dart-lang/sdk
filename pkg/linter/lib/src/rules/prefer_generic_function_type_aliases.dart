@@ -52,6 +52,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     var parameterSource = parameters.toSource();
     var replacement =
         '${returnTypeSource}Function$typeParameterSource$parameterSource';
-    rule.reportLintForToken(node.name, arguments: [replacement]);
+    rule.reportAtToken(node.name, arguments: [replacement]);
   }
 }

@@ -1072,6 +1072,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeModifier(node.isCovariantByClass, 'covariant-by-class');
     writeModifier(node.isFinal, 'final');
     writeModifier(node.isConst, 'const');
+    writeModifier(node.isErroneous, 'erroneous');
     // Only show implicit getter/setter modifiers in cases where they are
     // out of the ordinary.
     if (node.isFinal) {
@@ -1110,6 +1111,8 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeModifier(node.isForwardingSemiStub, 'forwarding-semi-stub');
     writeModifier(node.isExtensionMember, 'extension-member');
     writeModifier(node.isExtensionTypeMember, 'extension-type-member');
+    writeModifier(node.isSynthetic, 'synthetic');
+    writeModifier(node.isErroneous, 'erroneous');
     switch (node.stubKind) {
       case ProcedureStubKind.Regular:
       case ProcedureStubKind.AbstractForwardingStub:
@@ -1177,6 +1180,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeModifier(node.isExternal, 'external');
     writeModifier(node.isConst, 'const');
     writeModifier(node.isSynthetic, 'synthetic');
+    writeModifier(node.isErroneous, 'erroneous');
     writeWord('constructor');
     List<String> features = <String>[];
     if (node.enclosingClass.fileUri != node.fileUri) {

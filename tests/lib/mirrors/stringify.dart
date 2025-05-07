@@ -125,8 +125,9 @@ String stringifyDependencies(LibraryMirror l) {
       }
       return a.prefix == null ? 1 : -1;
     }
-    return n(a.targetLibrary.simpleName)
-        .compareTo(n(b.targetLibrary.simpleName));
+    return n(
+      a.targetLibrary.simpleName,
+    ).compareTo(n(b.targetLibrary.simpleName));
   }
 
   int compareCom(a, b) => n(a.identifier).compareTo(n(b.identifier));

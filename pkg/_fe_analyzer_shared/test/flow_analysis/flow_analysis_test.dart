@@ -237,7 +237,7 @@ main() {
           checkReachable(true),
           checkNotPromoted(x),
         ], [
-          checkReachable(true),
+          checkReachable(false),
           checkNotPromoted(x),
         ])
       ]);
@@ -329,7 +329,7 @@ main() {
       h.run([
         declare(x, type: 'int', initializer: expr('int')),
         if_(x.eq(nullLiteral), [
-          checkReachable(true),
+          checkReachable(false),
           checkNotPromoted(x),
         ], [
           checkReachable(true),
@@ -396,46 +396,6 @@ main() {
       h.run([
         if_(expr('Null').notEq(expr('Null')), [
           checkReachable(false),
-        ], [
-          checkReachable(true),
-        ]),
-      ]);
-    });
-
-    test('equalityOp(null == non-null) is not equivalent to false', () {
-      h.run([
-        if_(expr('Null').eq(expr('int')), [
-          checkReachable(true),
-        ], [
-          checkReachable(true),
-        ]),
-      ]);
-    });
-
-    test('equalityOp(null != non-null) is not equivalent to true', () {
-      h.run([
-        if_(expr('Null').notEq(expr('int')), [
-          checkReachable(true),
-        ], [
-          checkReachable(true),
-        ]),
-      ]);
-    });
-
-    test('equalityOp(non-null == null) is not equivalent to false', () {
-      h.run([
-        if_(expr('int').eq(expr('Null')), [
-          checkReachable(true),
-        ], [
-          checkReachable(true),
-        ]),
-      ]);
-    });
-
-    test('equalityOp(non-null != null) is not equivalent to true', () {
-      h.run([
-        if_(expr('int').notEq(expr('Null')), [
-          checkReachable(true),
         ], [
           checkReachable(true),
         ]),
@@ -561,6 +521,8 @@ main() {
     });
 
     test('equalityOp_end does not set reachability for `this`', () {
+      // Note: sound flow analysis changes this behavior.
+      h.disableSoundFlowAnalysis();
       h.thisType = 'C';
       h.addSuperInterfaces('C', (_) => [Type('Object')]);
       h.run([
@@ -1330,6 +1292,8 @@ main() {
     });
 
     test('ifNullExpression does not detect when RHS is unreachable', () {
+      // Note: sound flow analysis changes this behavior.
+      h.disableSoundFlowAnalysis();
       h.run([
         expr('int')
             .ifNull(second(checkReachable(true), expr('int')))
@@ -1359,6 +1323,8 @@ main() {
     test(
         'ifNullExpression sets shortcut reachability correctly for non-null '
         'type', () {
+      // Note: sound flow analysis changes this behavior.
+      h.disableSoundFlowAnalysis();
       h.run([
         expr('Object')
             .ifNull(second(checkReachable(true), throw_(expr('Object'))))
@@ -2020,27 +1986,6 @@ main() {
         expr('Null')
             .invokeMethod('f', [checkReachable(false)], isNullAware: true),
         checkReachable(true),
-      ]);
-    });
-
-    test('nullAwareAccess_end ignores shorting if target is non-nullable', () {
-      var x = Var('x');
-      h.addMember('int', 'f', 'Null Function(Object?)');
-      h.run([
-        declare(x, type: 'int?', initializer: expr('int?')),
-        expr('int').invokeMethod(
-            'f',
-            [
-              listLiteral(elementType: 'dynamic', [
-                checkReachable(true),
-                x.as_('int'),
-                checkPromoted(x, 'int'),
-              ])
-            ],
-            isNullAware: true),
-        // Since the null-shorting path was reachable, promotion of `x` should
-        // be cancelled.
-        checkNotPromoted(x),
       ]);
     });
 
@@ -5869,12 +5814,13 @@ main() {
         });
 
         test('even a field of a write captured variable can be promoted', () {
+          h.addSuperInterfaces('C', (_) => [Type('Object')]);
           h.addMember('C', '_field', 'int?', promotable: true);
           var x = Var('x');
           h.run([
-            declare(x, initializer: expr('C')),
+            declare(x, initializer: expr('C?')),
             localFunction([
-              x.write(expr('C')),
+              x.write(expr('C?')),
             ]),
             x
                 .cascade(isNullAware: true, [
@@ -5887,6 +5833,7 @@ main() {
                 // be sound to preserve the promotion, but it's extra work to do
                 // so, and it's not clear that there would be enough user
                 // benefit to justify the work).
+                .nonNullAssert
                 .property('_field')
                 .checkType('int?'),
           ]);
@@ -7126,20 +7073,6 @@ main() {
         h.run([
           ifCase(expr('int?'),
               nullLiteral.pattern.or(wildcard(expectInferredType: 'int')), []),
-        ]);
-      });
-
-      test('Null pattern can even match non-nullable types', () {
-        // Due to mixed mode unsoundness, attempting to match `null` to a
-        // non-nullable type can still succeed, so in order to avoid unsoundness
-        // escalation, it's important that the matching case is considered
-        // reachable.
-        h.run([
-          ifCase(expr('int'), nullLiteral.pattern, [
-            checkReachable(true),
-          ], [
-            checkReachable(true),
-          ]),
         ]);
       });
 
@@ -9080,20 +9013,6 @@ main() {
           ]);
         });
 
-        test('Null pattern can even match non-nullable types', () {
-          // Due to mixed mode unsoundness, attempting to match `null` to a
-          // non-nullable type can still succeed, so in order to avoid
-          // unsoundness escalation, it's important that the matching case is
-          // considered reachable.
-          h.run([
-            ifCase(expr('int'), relationalPattern('==', nullLiteral), [
-              checkReachable(true),
-            ], [
-              checkReachable(true),
-            ]),
-          ]);
-        });
-
         group('Demonstrated type:', () {
           test('== value', () {
             // The demonstrated type of a relational pattern using `==` is the
@@ -9200,20 +9119,6 @@ main() {
             'unnecessaryWildcardPattern(pattern: WILDCARD, '
                 'kind: logicalAndPatternOperand)'
           });
-        });
-
-        test('Null pattern can even match non-nullable types', () {
-          // Due to mixed mode unsoundness, attempting to match `null` to a
-          // non-nullable type can still succeed, so in order to avoid
-          // unsoundness escalation, it's important that the matching case is
-          // considered reachable.
-          h.run([
-            ifCase(expr('int'), relationalPattern('!=', nullLiteral), [
-              checkReachable(true),
-            ], [
-              checkReachable(true),
-            ]),
-          ]);
         });
 
         group('Demonstrated type:', () {
@@ -10770,6 +10675,1067 @@ main() {
           ], [
             checkReachable(true),
           ]),
+        ]);
+      });
+    });
+
+    group('<nonNullable> == <Null>:', () {
+      test('When enabled, is guaranteed false', () {
+        h.run([
+          if_(expr('int').eq(expr('Null')), [
+            checkReachable(false),
+          ], [
+            checkReachable(true),
+          ]),
+        ]);
+      });
+
+      test('When disabled, no effect', () {
+        h.disableSoundFlowAnalysis();
+        h.run([
+          if_(expr('int').eq(expr('Null')), [
+            checkReachable(true),
+          ], [
+            checkReachable(true),
+          ]),
+        ]);
+      });
+    });
+
+    group('<nonNullable> != <Null>:', () {
+      test('When enabled, is guaranteed false', () {
+        h.run([
+          if_(expr('int').notEq(expr('Null')), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ]),
+        ]);
+      });
+
+      test('When disabled, no effect', () {
+        h.disableSoundFlowAnalysis();
+        h.run([
+          if_(expr('int').notEq(expr('Null')), [
+            checkReachable(true),
+          ], [
+            checkReachable(true),
+          ]),
+        ]);
+      });
+    });
+
+    group('<Null> == <nonNullable>:', () {
+      test('When enabled, is guaranteed false', () {
+        h.run([
+          if_(expr('Null').eq(expr('int')), [
+            checkReachable(false),
+          ], [
+            checkReachable(true),
+          ]),
+        ]);
+      });
+
+      test('When disabled, no effect', () {
+        h.disableSoundFlowAnalysis();
+        h.run([
+          if_(expr('Null').eq(expr('int')), [
+            checkReachable(true),
+          ], [
+            checkReachable(true),
+          ]),
+        ]);
+      });
+    });
+
+    group('<Null> != <nonNullable>:', () {
+      test('When enabled, is guaranteed false', () {
+        h.run([
+          if_(expr('Null').notEq(expr('int')), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ]),
+        ]);
+      });
+
+      test('When disabled, no effect', () {
+        h.disableSoundFlowAnalysis();
+        h.run([
+          if_(expr('Null').notEq(expr('int')), [
+            checkReachable(true),
+          ], [
+            checkReachable(true),
+          ]),
+        ]);
+      });
+    });
+
+    group('<Null> == <Null>:', () {
+      test('When enabled, is guaranteed true', () {
+        h.run([
+          if_(expr('Null').eq(expr('Null')), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ]),
+        ]);
+      });
+
+      test('When disabled, is guaranteed true', () {
+        // Flow analysis has considered `<Null> == <Null>` as "guaranteed to be
+        // true" since its inception.
+        h.disableSoundFlowAnalysis();
+        h.run([
+          if_(expr('Null').eq(expr('Null')), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ]),
+        ]);
+      });
+    });
+
+    group('<Null> != <Null>:', () {
+      test('When enabled, is guaranteed false', () {
+        h.run([
+          if_(expr('Null').notEq(expr('Null')), [
+            checkReachable(false),
+          ], [
+            checkReachable(true),
+          ]),
+        ]);
+      });
+
+      test('When disabled, is guaranteed false', () {
+        // Flow analysis has considered `<Null> != <Null>` as "guaranteed to be
+        // false" since its inception.
+        h.disableSoundFlowAnalysis();
+        h.run([
+          if_(expr('Null').notEq(expr('Null')), [
+            checkReachable(false),
+          ], [
+            checkReachable(true),
+          ]),
+        ]);
+      });
+    });
+
+    group('== pattern:', () {
+      test("When enabled, null pattern can't match non-nullable types", () {
+        h.run([
+          ifCase(expr('int'), relationalPattern('==', nullLiteral), [
+            checkReachable(false),
+          ], [
+            checkReachable(true),
+          ]),
+        ]);
+      });
+
+      test('When disabled, null pattern can even match non-nullable types', () {
+        // Due to mixed mode unsoundness, attempting to match `null` to a
+        // non-nullable type can still succeed, so in order to avoid
+        // unsoundness escalation, it's important that the matching case is
+        // considered reachable.
+        h.disableSoundFlowAnalysis();
+        h.run([
+          ifCase(expr('int'), relationalPattern('==', nullLiteral), [
+            checkReachable(true),
+          ], [
+            checkReachable(true),
+          ]),
+        ]);
+      });
+    });
+
+    group('!= pattern:', () {
+      test("When enabled, null pattern can't match non-nullable types", () {
+        h.run([
+          ifCase(expr('int'), relationalPattern('!=', nullLiteral), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ]),
+        ]);
+      });
+
+      test('When disabled, null pattern can even match non-nullable types', () {
+        // Due to mixed mode unsoundness, attempting to match `null` to a
+        // non-nullable type can still succeed, so in order to avoid
+        // unsoundness escalation, it's important that the matching case is
+        // considered reachable.
+        h.disableSoundFlowAnalysis();
+        h.run([
+          ifCase(expr('int'), relationalPattern('!=', nullLiteral), [
+            checkReachable(true),
+          ], [
+            checkReachable(true),
+          ]),
+        ]);
+      });
+    });
+
+    group('null pattern:', () {
+      test("When enabled, null pattern can't match non-nullable types", () {
+        h.run([
+          ifCase(expr('int'), nullLiteral.pattern, [
+            checkReachable(false),
+          ], [
+            checkReachable(true),
+          ]),
+        ]);
+      });
+
+      test('When disabled, null pattern can even match non-nullable types', () {
+        // Due to mixed mode unsoundness, attempting to match `null` to a
+        // non-nullable type can still succeed, so in order to avoid unsoundness
+        // escalation, it's important that the matching case is considered
+        // reachable.
+        h.disableSoundFlowAnalysis();
+        h.run([
+          ifCase(expr('int'), nullLiteral.pattern, [
+            checkReachable(true),
+          ], [
+            checkReachable(true),
+          ]),
+        ]);
+      });
+    });
+
+    group('<nonNull>?.foo(<expr>)', () {
+      test('When enabled, guaranteed to execute <expr>', () {
+        h.addMember('C', 'foo', 'dynamic');
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'int'),
+          expr('C')
+              .invokeMethod(isNullAware: true, 'foo', [x.write(expr('int'))]),
+          checkAssigned(x, true)
+        ]);
+      });
+
+      test('When disabled, not guaranteed to execute <expr>', () {
+        h.disableSoundFlowAnalysis();
+        h.addMember('C', 'foo', 'dynamic');
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'int'),
+          expr('C')
+              .invokeMethod(isNullAware: true, 'foo', [x.write(expr('int'))]),
+          checkAssigned(x, false)
+        ]);
+      });
+    });
+
+    group('<nonNull>?..foo(<expr>)', () {
+      test('When enabled, guaranteed to execute <expr>', () {
+        h.addMember('C', 'foo', 'dynamic');
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'int'),
+          expr('C').cascade(isNullAware: true, [
+            (e) => e.invokeMethod('foo', [x.write(expr('int'))])
+          ]),
+          checkAssigned(x, true)
+        ]);
+      });
+
+      test('When disabled, not guaranteed to execute <expr>', () {
+        h.disableSoundFlowAnalysis();
+        h.addMember('C', 'foo', 'dynamic');
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'int'),
+          expr('C').cascade(isNullAware: true, [
+            (e) => e.invokeMethod('foo', [x.write(expr('int'))])
+          ]),
+          checkAssigned(x, false)
+        ]);
+      });
+    });
+
+    group('<nonNullable> ?? <expr>', () {
+      test('When enabled, <expr> is dead', () {
+        h.run([
+          expr('int').ifNull(checkReachable(false)),
+        ]);
+      });
+
+      test('When disabled, <expr> is live', () {
+        h.disableSoundFlowAnalysis();
+        h.run([
+          expr('int').ifNull(checkReachable(true)),
+        ]);
+      });
+    });
+
+    group('{ ?<nonNullable>: <expr> }', () {
+      test('When enabled, guaranteed to execute <expr>', () {
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'int'),
+          mapLiteral(keyType: 'dynamic', valueType: 'dynamic', [
+            mapEntry(expr('int'), x.write(expr('int')), isKeyNullAware: true),
+          ]),
+          checkAssigned(x, true),
+        ]);
+      });
+
+      test('When disabled, guaranteed to execute <expr>', () {
+        // Flow analysis has considered `{ ?<nonNullable>: <expr> }` as
+        // guaranteed to execute <expr> since null-aware map entries were added
+        // to the language.
+        h.disableSoundFlowAnalysis();
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'int'),
+          mapLiteral(keyType: 'dynamic', valueType: 'dynamic', [
+            mapEntry(expr('int'), x.write(expr('int')), isKeyNullAware: true),
+          ]),
+          checkAssigned(x, true),
+        ]);
+      });
+    });
+
+    group('{ ?<Null>: <expr> }', () {
+      test('When enabled, guaranteed to skip execution of <expr>', () {
+        h.run([
+          mapLiteral(keyType: 'dynamic', valueType: 'dynamic', [
+            mapEntry(expr('Null'), checkReachable(false), isKeyNullAware: true),
+          ]),
+        ]);
+      });
+
+      test('When disabled, not guaranteed to skip execution of <expr>', () {
+        // Note: it would always have been sound for flow analysis to reason
+        // that `{ ?<Null>: <expr> }` was guaranteed to skip execution of
+        // `<expr>` (even when flow analysis had to assume that code might be
+        // running in unsound null safety mode). But this functionality wasn't
+        // implemented. It's been added as part of `sound-flow-analysis`; this
+        // test verifies that the old behavior is preserved when
+        // `sound-flow-analysis` is disabled.
+        h.disableSoundFlowAnalysis();
+        h.run([
+          mapLiteral(keyType: 'dynamic', valueType: 'dynamic', [
+            mapEntry(expr('Null'), checkReachable(true), isKeyNullAware: true),
+          ]),
+        ]);
+      });
+    });
+
+    group('? pattern applied to non-nullable type', () {
+      test('When enabled, guaranteed to match', () {
+        h.run([
+          ifCase(expr('int'), wildcard().nullCheck..errorId = 'nullCheck', [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ]),
+        ], expectedErrors: {
+          'matchedTypeIsStrictlyNonNullable(pattern: nullCheck, '
+              'matchedType: int)'
+        });
+      });
+
+      test('When disabled, not guaranteed to match', () {
+        h.disableSoundFlowAnalysis();
+        h.run([
+          ifCase(expr('int'), wildcard().nullCheck..errorId = 'nullCheck', [
+            checkReachable(true),
+          ], [
+            checkReachable(true),
+          ]),
+        ], expectedErrors: {
+          'matchedTypeIsStrictlyNonNullable(pattern: nullCheck, '
+              'matchedType: int)'
+        });
+      });
+    });
+
+    group('Map pattern', () {
+      test('When enabled, guaranteed to match non-nullable map', () {
+        h.run([
+          ifCase(
+              expr('Map<int, int>'), mapPattern([])..errorId = 'mapPattern', [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ])
+        ], expectedErrors: {
+          'emptyMapPattern(pattern: mapPattern)'
+        });
+      });
+
+      test('When disabled, not guaranteed to match non-nullable map', () {
+        h.disableSoundFlowAnalysis();
+        h.run([
+          ifCase(
+              expr('Map<int, int>'), mapPattern([])..errorId = 'mapPattern', [
+            checkReachable(true),
+          ], [
+            checkReachable(true),
+          ])
+        ], expectedErrors: {
+          'emptyMapPattern(pattern: mapPattern)'
+        });
+      });
+    });
+
+    group('Null() pattern with non-nullable matched value type', () {
+      test('When enabled, guaranteed not to match', () {
+        h.run([
+          ifCase(expr('int'), objectPattern(requiredType: 'Null', fields: []), [
+            checkReachable(false),
+          ], [
+            checkReachable(true),
+          ])
+        ]);
+      });
+
+      test('When disabled, might match', () {
+        h.disableSoundFlowAnalysis();
+        h.run([
+          ifCase(expr('int'), objectPattern(requiredType: 'Null', fields: []), [
+            checkReachable(true),
+          ], [
+            checkReachable(true),
+          ])
+        ]);
+      });
+    });
+
+    group('Null _ pattern with non-nullable matched value type', () {
+      test('When enabled, guaranteed not to match', () {
+        h.run([
+          ifCase(expr('int'), wildcard(type: 'Null'), [
+            checkReachable(false),
+          ], [
+            checkReachable(true),
+          ])
+        ]);
+      });
+
+      test('When disabled, might match', () {
+        h.disableSoundFlowAnalysis();
+        h.run([
+          ifCase(expr('int'), wildcard(type: 'Null'), [
+            checkReachable(true),
+          ], [
+            checkReachable(true),
+          ])
+        ]);
+      });
+    });
+
+    group('Null variable pattern with non-nullable matched value type', () {
+      test('When enabled, guaranteed not to match', () {
+        var x = Var('x');
+        h.run([
+          ifCase(expr('int'), x.pattern(type: 'Null'), [
+            checkReachable(false),
+          ], [
+            checkReachable(true),
+          ])
+        ]);
+      });
+
+      test('When disabled, might match', () {
+        h.disableSoundFlowAnalysis();
+        var x = Var('x');
+        h.run([
+          ifCase(expr('int'), x.pattern(type: 'Null'), [
+            checkReachable(true),
+          ], [
+            checkReachable(true),
+          ])
+        ]);
+      });
+    });
+
+    group('Non-nullable cast pattern with Null matched value type', () {
+      test('When enabled, guaranteed not to match', () {
+        h.run([
+          ifCase(expr('Null'), wildcard().as_('int'), [
+            checkReachable(false),
+          ], [
+            checkReachable(false),
+          ])
+        ]);
+      });
+
+      test('When disabled, might match', () {
+        // Note: it would always have been sound for flow analysis to reason
+        // that `_ as int` was guaranteed not to match `Null` (even when flow
+        // analysis had to assume that code might be running in unsound null
+        // safety mode). But this functionality wasn't implemented. It's been
+        // added as part of `sound-flow-analysis`; this test verifies that the
+        // old behavior is preserved when `sound-flow-analysis` is disabled.
+        h.disableSoundFlowAnalysis();
+        h.run([
+          ifCase(expr('Null'), wildcard().as_('int'), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ])
+        ]);
+      });
+    });
+
+    group('Nullable cast pattern with Null matched value type', () {
+      test('When enabled, guaranteed to match', () {
+        // This is just to check that the logic to handle non-nullable cast
+        // patterns is not over-broad.
+        h.run([
+          ifCase(
+              expr('Null'), wildcard().as_('int?')..errorId = 'castPattern', [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ])
+        ], expectedErrors: {
+          'matchedTypeIsSubtypeOfRequired(pattern: castPattern, '
+              'matchedType: Null, requiredType: int?)'
+        });
+      });
+
+      test('When disabled, guaranteed to match', () {
+        // This is just to check that the logic to handle non-nullable cast
+        // patterns is not over-broad.
+        h.disableSoundFlowAnalysis();
+        h.run([
+          ifCase(
+              expr('Null'), wildcard().as_('int?')..errorId = 'castPattern', [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ])
+        ], expectedErrors: {
+          'matchedTypeIsSubtypeOfRequired(pattern: castPattern, '
+              'matchedType: Null, requiredType: int?)'
+        });
+      });
+    });
+
+    group('Null cast pattern with Null matched value type', () {
+      test('When enabled, guaranteed to match', () {
+        // This is just to check that the logic to handle non-nullable cast
+        // patterns is not over-broad.
+        h.run([
+          ifCase(
+              expr('Null'), wildcard().as_('Null')..errorId = 'castPattern', [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ])
+        ], expectedErrors: {
+          'matchedTypeIsSubtypeOfRequired(pattern: castPattern, '
+              'matchedType: Null, requiredType: Null)'
+        });
+      });
+
+      test('When disabled, guaranteed to match', () {
+        // This is just to check that the logic to handle non-nullable cast
+        // patterns is not over-broad.
+        h.disableSoundFlowAnalysis();
+        h.run([
+          ifCase(
+              expr('Null'), wildcard().as_('Null')..errorId = 'castPattern', [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ])
+        ], expectedErrors: {
+          'matchedTypeIsSubtypeOfRequired(pattern: castPattern, '
+              'matchedType: Null, requiredType: Null)'
+        });
+      });
+    });
+
+    group('Non-nullable variable pattern with Null matched value type', () {
+      test('When enabled, guaranteed not to match', () {
+        var x = Var('x');
+        h.run([
+          ifCase(expr('Null'), x.pattern(type: 'int'), [
+            checkReachable(false),
+          ], [
+            checkReachable(true),
+          ])
+        ]);
+      });
+
+      test('When disabled, might match', () {
+        // Note: it would always have been sound for flow analysis to reason
+        // that `int x` was guaranteed not to match `Null` (even when flow
+        // analysis had to assume that code might be running in unsound null
+        // safety mode). But this functionality wasn't implemented. It's been
+        // added as part of `sound-flow-analysis`; this test verifies that the
+        // old behavior is preserved when `sound-flow-analysis` is disabled.
+        h.disableSoundFlowAnalysis();
+        var x = Var('x');
+        h.run([
+          ifCase(expr('Null'), x.pattern(type: 'int'), [
+            checkReachable(true),
+          ], [
+            checkReachable(true),
+          ])
+        ]);
+      });
+    });
+
+    group('Nullable variable pattern with Null matched value type', () {
+      test('When enabled, guaranteed to match', () {
+        // This is just to check that the logic to handle non-nullable variable
+        // patterns is not over-broad.
+        var x = Var('x');
+        h.run([
+          ifCase(expr('Null'), x.pattern(type: 'int?'), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ])
+        ]);
+      });
+
+      test('When disabled, guaranteed to match', () {
+        // This is just to check that the logic to handle non-nullable variable
+        // patterns is not over-broad.
+        h.disableSoundFlowAnalysis();
+        var x = Var('x');
+        h.run([
+          ifCase(expr('Null'), x.pattern(type: 'int?'), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ])
+        ]);
+      });
+    });
+
+    group('Null variable pattern with Null matched value type', () {
+      test('When enabled, guaranteed to match', () {
+        // This is just to check that the logic to handle non-nullable variable
+        // patterns is not over-broad.
+        var x = Var('x');
+        h.run([
+          ifCase(expr('Null'), x.pattern(type: 'Null'), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ])
+        ]);
+      });
+
+      test('When disabled, guaranteed to match', () {
+        // This is just to check that the logic to handle non-nullable variable
+        // patterns is not over-broad.
+        h.disableSoundFlowAnalysis();
+        var x = Var('x');
+        h.run([
+          ifCase(expr('Null'), x.pattern(type: 'Null'), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ])
+        ]);
+      });
+    });
+
+    group('List pattern with Null matched value type', () {
+      test('When enabled, guaranteed not to match', () {
+        h.run([
+          ifCase(expr('Null'), listPattern([]), [
+            checkReachable(false),
+          ], [
+            checkReachable(true),
+          ])
+        ]);
+      });
+
+      test('When disabled, might match', () {
+        // Note: it would always have been sound for flow analysis to reason
+        // that `[]` was guaranteed not to match `Null` (even when flow analysis
+        // had to assume that code might be running in unsound null safety
+        // mode). But this functionality wasn't implemented. It's been added as
+        // part of `sound-flow-analysis`; this test verifies that the old
+        // behavior is preserved when `sound-flow-analysis` is disabled.
+        h.disableSoundFlowAnalysis();
+        h.run([
+          ifCase(expr('Null'), listPattern([]), [
+            checkReachable(true),
+          ], [
+            checkReachable(true),
+          ])
+        ]);
+      });
+    });
+
+    group('Map pattern with Null matched value type', () {
+      test('When enabled, guaranteed not to match', () {
+        h.run([
+          ifCase(expr('Null'), mapPattern([])..errorId = 'mapPattern', [
+            checkReachable(false),
+          ], [
+            checkReachable(true),
+          ])
+        ], expectedErrors: {
+          'emptyMapPattern(pattern: mapPattern)'
+        });
+      });
+
+      test('When disabled, might match', () {
+        // Note: it would always have been sound for flow analysis to reason
+        // that `{}` was guaranteed not to match `Null` (even when flow analysis
+        // had to assume that code might be running in unsound null safety
+        // mode). But this functionality wasn't implemented. It's been added as
+        // part of `sound-flow-analysis`; this test verifies that the old
+        // behavior is preserved when `sound-flow-analysis` is disabled.
+        h.disableSoundFlowAnalysis();
+        h.run([
+          ifCase(expr('Null'), mapPattern([])..errorId = 'mapPattern', [
+            checkReachable(true),
+          ], [
+            checkReachable(true),
+          ])
+        ], expectedErrors: {
+          'emptyMapPattern(pattern: mapPattern)'
+        });
+      });
+    });
+
+    group('Non-nullable object pattern with Null matched value type', () {
+      test('When enabled, guaranteed not to match', () {
+        h.run([
+          ifCase(expr('Null'), objectPattern(requiredType: 'int', fields: []), [
+            checkReachable(false),
+          ], [
+            checkReachable(true),
+          ])
+        ]);
+      });
+
+      test('When disabled, might match', () {
+        // Note: it would always have been sound for flow analysis to reason
+        // that `int()` was guaranteed not to match `Null` (even when flow
+        // analysis had to assume that code might be running in unsound null
+        // safety mode). But this functionality wasn't implemented. It's been
+        // added as part of `sound-flow-analysis`; this test verifies that the
+        // old behavior is preserved when `sound-flow-analysis` is disabled.
+        h.disableSoundFlowAnalysis();
+        h.run([
+          ifCase(expr('Null'), objectPattern(requiredType: 'int', fields: []), [
+            checkReachable(true),
+          ], [
+            checkReachable(true),
+          ])
+        ]);
+      });
+    });
+
+    group('Nullable object pattern with Null matched value type', () {
+      test('When enabled, guaranteed to match', () {
+        // This is just to check that the logic to handle non-nullable object
+        // patterns is not over-broad.
+        h.run([
+          ifCase(expr('Null'),
+              objectPattern(requiredType: 'dynamic', fields: []), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ])
+        ]);
+      });
+
+      test('When disabled, guaranteed to match', () {
+        // This is just to check that the logic to handle non-nullable object
+        // patterns is not over-broad.
+        h.disableSoundFlowAnalysis();
+        h.run([
+          ifCase(expr('Null'),
+              objectPattern(requiredType: 'dynamic', fields: []), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ])
+        ]);
+      });
+    });
+
+    group('Null object pattern with Null matched value type', () {
+      test('When enabled, guaranteed to match', () {
+        // This is just to check that the logic to handle non-nullable object
+        // patterns is not over-broad.
+        h.run([
+          ifCase(
+              expr('Null'), objectPattern(requiredType: 'Null', fields: []), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ])
+        ]);
+      });
+
+      test('When disabled, guaranteed to match', () {
+        // This is just to check that the logic to handle non-nullable object
+        // patterns is not over-broad.
+        h.disableSoundFlowAnalysis();
+        h.run([
+          ifCase(
+              expr('Null'), objectPattern(requiredType: 'Null', fields: []), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ])
+        ]);
+      });
+    });
+
+    group('Record pattern with Null matched value type', () {
+      test('When enabled, guaranteed not to match', () {
+        h.run([
+          ifCase(expr('Null'), recordPattern([wildcard().recordField()]), [
+            checkReachable(false),
+          ], [
+            checkReachable(true),
+          ])
+        ]);
+      });
+
+      test('When disabled, might match', () {
+        // Note: it would always have been sound for flow analysis to reason
+        // that `(_,)` was guaranteed not to match `Null` (even when flow
+        // analysis had to assume that code might be running in unsound null
+        // safety mode). But this functionality wasn't implemented. It's been
+        // added as part of `sound-flow-analysis`; this test verifies that the
+        // old behavior is preserved when `sound-flow-analysis` is disabled.
+        h.disableSoundFlowAnalysis();
+        h.run([
+          ifCase(expr('Null'), recordPattern([wildcard().recordField()]), [
+            checkReachable(true),
+          ], [
+            checkReachable(true),
+          ])
+        ]);
+      });
+    });
+
+    group('Non-nullable wildcard pattern with Null matched value type', () {
+      test('When enabled, guaranteed not to match', () {
+        h.run([
+          ifCase(expr('Null'), wildcard(type: 'int'), [
+            checkReachable(false),
+          ], [
+            checkReachable(true),
+          ])
+        ]);
+      });
+
+      test('When disabled, might match', () {
+        // Note: it would always have been sound for flow analysis to reason
+        // that `int _` was guaranteed not to match `Null` (even when flow
+        // analysis had to assume that code might be running in unsound null
+        // safety mode). But this functionality wasn't implemented. It's been
+        // added as part of `sound-flow-analysis`; this test verifies that the
+        // old behavior is preserved when `sound-flow-analysis` is disabled.
+        h.disableSoundFlowAnalysis();
+        h.run([
+          ifCase(expr('Null'), wildcard(type: 'int'), [
+            checkReachable(true),
+          ], [
+            checkReachable(true),
+          ])
+        ]);
+      });
+    });
+
+    group('Nullable wildcard pattern with Null matched value type', () {
+      test('When enabled, guaranteed to match', () {
+        // This is just to check that the logic to handle non-nullable wildcard
+        // patterns is not over-broad.
+        h.run([
+          ifCase(expr('Null'), wildcard(type: 'int?'), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ])
+        ]);
+      });
+
+      test('When disabled, guaranteed to match', () {
+        // This is just to check that the logic to handle non-nullable wildcard
+        // patterns is not over-broad.
+        h.disableSoundFlowAnalysis();
+        h.run([
+          ifCase(expr('Null'), wildcard(type: 'int?'), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ])
+        ]);
+      });
+    });
+
+    group('Null wildcard pattern with Null matched value type', () {
+      test('When enabled, guaranteed to match', () {
+        // This is just to check that the logic to handle non-nullable wildcard
+        // patterns is not over-broad.
+        h.run([
+          ifCase(expr('Null'), wildcard(type: 'Null'), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ])
+        ]);
+      });
+
+      test('When disabled, guaranteed to match', () {
+        // This is just to check that the logic to handle non-nullable wildcard
+        // patterns is not over-broad.
+        h.disableSoundFlowAnalysis();
+        h.run([
+          ifCase(expr('Null'), wildcard(type: 'Null'), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ])
+        ]);
+      });
+    });
+
+    group('Declared variable pattern with matching non-nullable types', () {
+      test('When enabled, guaranteed to match', () {
+        var x = Var('x');
+        h.run([
+          ifCase(expr('int'), x.pattern(type: 'int'), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ])
+        ]);
+      });
+
+      test('When disabled, guaranteed to match', () {
+        // Flow analysis has considered `int x` as guaranteed to match a value
+        // with static type `int` since patterns were added to the language
+        // (even though that was not technically guaranteed to be the case when
+        // running in unsound null safety mode).
+        h.disableSoundFlowAnalysis();
+        var x = Var('x');
+        h.run([
+          ifCase(expr('int'), x.pattern(type: 'int'), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ])
+        ]);
+      });
+    });
+
+    group('List pattern', () {
+      test('When enabled, guaranteed to match non-nullable list', () {
+        h.run([
+          ifCase(expr('List<int>'), listPattern([restPattern()]), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ])
+        ]);
+      });
+
+      test('When disabled, guaranteed to match non-nullable list', () {
+        // Flow analysis has considered a list pattern as guaranteed to match a
+        // value with static type `List` since patterns were added to the
+        // language (even though that was not technically guaranteed to be the
+        // case when running in unsound null safety mode).
+        h.disableSoundFlowAnalysis();
+        h.run([
+          ifCase(expr('List<int>'), listPattern([restPattern()]), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ])
+        ]);
+      });
+    });
+
+    group('Object pattern with matching non-nullable types', () {
+      test('When enabled, guaranteed to match', () {
+        h.run([
+          ifCase(expr('int'), objectPattern(requiredType: 'int', fields: []), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ])
+        ]);
+      });
+
+      test('When disabled, guaranteed to match', () {
+        // Flow analysis has considered an object pattern as guaranteed to match
+        // a value with a matching static type since patterns were added to the
+        // language (even though that was not technically guaranteed to be the
+        // case when running in unsound null safety mode).
+        h.disableSoundFlowAnalysis();
+        h.run([
+          ifCase(expr('int'), objectPattern(requiredType: 'int', fields: []), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ])
+        ]);
+      });
+    });
+
+    group('Record pattern with matching non-nullable type', () {
+      test('When enabled, guaranteed to match', () {
+        h.run([
+          ifCase(expr('(int,)'),
+              recordPattern([wildcard(type: 'int').recordField()]), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ])
+        ]);
+      });
+
+      test('When disabled, guaranteed to match', () {
+        // Flow analysis has considered a record pattern as guaranteed to match
+        // a value with a matching static type since patterns were added to the
+        // language (even though that was not technically guaranteed to be the
+        // case when running in unsound null safety mode).
+        h.disableSoundFlowAnalysis();
+        h.run([
+          ifCase(expr('(int,)'),
+              recordPattern([wildcard(type: 'int').recordField()]), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ])
+        ]);
+      });
+    });
+
+    group('Wildcard pattern with matching non-nullable types', () {
+      test('When enabled, guaranteed to match', () {
+        h.run([
+          ifCase(expr('int'), wildcard(type: 'int'), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ])
+        ]);
+      });
+
+      test('When disabled, guaranteed to match', () {
+        // Flow analysis has considered `int _` as guaranteed to match a value
+        // with static type `int` since patterns were added to the language
+        // (even though that was not technically guaranteed to be the case when
+        // running in unsound null safety mode).
+        h.disableSoundFlowAnalysis();
+        h.run([
+          ifCase(expr('int'), wildcard(type: 'int'), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ])
         ]);
       });
     });

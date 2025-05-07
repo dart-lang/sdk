@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/utilities/extensions/ast.dart';
+import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -20,8 +20,10 @@ void main() {
 class NodeCoveringTest extends PubPackageResolutionTest {
   Future<AstNode> coveringNode(String sourceCode) async {
     var range = await _range(sourceCode);
-    var node =
-        result.unit.nodeCovering(offset: range.offset, length: range.length);
+    var node = result.unit.nodeCovering(
+      offset: range.offset,
+      length: range.length,
+    );
     return node!;
   }
 
@@ -258,7 +260,7 @@ var x = o^.m();
   }
 
   Future<void>
-      test_between_identifierAndTypeArgumentList_methodInvocation() async {
+  test_between_identifierAndTypeArgumentList_methodInvocation() async {
     var node = await coveringNode('''
 void f(C c) {
   c.m^<int>();

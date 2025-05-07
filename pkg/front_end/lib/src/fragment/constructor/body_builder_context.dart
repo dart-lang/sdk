@@ -22,7 +22,7 @@ import 'declaration.dart';
 class ConstructorBodyBuilderContext extends BodyBuilderContext {
   final SourceConstructorBuilderImpl _builder;
 
-  final ConstructorDeclaration _declaration;
+  final ConstructorFragmentDeclaration _declaration;
 
   final Member _member;
 

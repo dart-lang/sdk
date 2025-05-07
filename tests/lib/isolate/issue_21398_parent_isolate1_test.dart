@@ -64,8 +64,10 @@ spawnFuncTest() {
             // Now spawn an isolate using spawnUri and send these send
             // ports over to it. This isolate will send one of the
             // sendports over to the other.
-            Isolate.spawnUri(Uri.parse('issue_21398_child_isolate1.dart'), [],
-                [spawnFunctionIsolate1SendPort, spawnFunctionIsolate2SendPort]);
+            Isolate.spawnUri(Uri.parse('issue_21398_child_isolate1.dart'), [], [
+              spawnFunctionIsolate1SendPort,
+              spawnFunctionIsolate2SendPort,
+            ]);
           }, onError: (e) => print('$e'));
         });
       } else if (msg == "done") {
@@ -112,9 +114,11 @@ spawnUriTest() {
         // wait for the third isolate spawned using spawnUri to send it
         // a sendPort to which it will try and send a non "literal-like"
         // object.
-        Isolate.spawnUri(Uri.parse('issue_21398_child_isolate11.dart'), [],
-                receive2.sendPort)
-            .then((isolate) {
+        Isolate.spawnUri(
+          Uri.parse('issue_21398_child_isolate11.dart'),
+          [],
+          receive2.sendPort,
+        ).then((isolate) {
           receive2.listen((msg) {
             spawnUriIsolateSendPort = msg;
             receive2.close();
@@ -122,8 +126,10 @@ spawnUriTest() {
             // Now spawn an isolate using spawnUri and send these send
             // ports over to it. This isolate will send one of the
             // sendports over to the other.
-            Isolate.spawnUri(Uri.parse('issue_21398_child_isolate1.dart'), [],
-                [spawnFunctionIsolateSendPort, spawnUriIsolateSendPort]);
+            Isolate.spawnUri(Uri.parse('issue_21398_child_isolate1.dart'), [], [
+              spawnFunctionIsolateSendPort,
+              spawnUriIsolateSendPort,
+            ]);
           }, onError: (e) => print('$e'));
         });
       } else if (msg == "done") {

@@ -51,14 +51,16 @@ Future main(List<String> args) async {
     final Uint8List bytes = File(helloDillFile).readAsBytesSync();
     new BinaryBuilderWithMetadata(bytes).readComponent(component);
 
-    final libVmService = component.libraries
-        .singleWhere((lib) => lib.importUri.toString() == 'dart:_vmservice');
+    final libVmService = component.libraries.singleWhere(
+      (lib) => lib.importUri.toString() == 'dart:_vmservice',
+    );
     Expect.isTrue(libVmService.procedures.isEmpty);
     Expect.isTrue(libVmService.classes.isEmpty);
     Expect.isTrue(libVmService.fields.isEmpty);
 
-    final libVmServiceIo = component.libraries
-        .singleWhere((lib) => lib.importUri.toString() == 'dart:vmservice_io');
+    final libVmServiceIo = component.libraries.singleWhere(
+      (lib) => lib.importUri.toString() == 'dart:vmservice_io',
+    );
     Expect.isTrue(libVmServiceIo.procedures.isEmpty);
     Expect.isTrue(libVmServiceIo.classes.isEmpty);
 

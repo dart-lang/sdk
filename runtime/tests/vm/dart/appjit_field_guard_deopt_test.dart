@@ -14,4 +14,5 @@ import 'dart:io' show Platform;
 import 'snapshot_test_helper.dart';
 
 Future<void> main() => runAppJitTest(
-    Platform.script.resolve('appjit_field_guard_deopt_test_body.dart'));
+  Platform.script.resolve('appjit_field_guard_deopt_test_body.dart'),
+);

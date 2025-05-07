@@ -16,15 +16,16 @@ main() {
 @reflectiveTest
 class UnusedCatchStackTest extends PubPackageResolutionTest {
   test_on_unusedStack() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   try {
   } on String catch (exception, stackTrace) {
   }
 }
-''', [
-      error(WarningCode.UNUSED_CATCH_STACK, 49, 10),
-    ]);
+''',
+      [error(WarningCode.UNUSED_CATCH_STACK, 49, 10)],
+    );
   }
 
   test_on_usedStack() async {
@@ -39,15 +40,16 @@ main() {
   }
 
   test_unusedStack() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   try {
   } catch (exception, stackTrace) {
   }
 }
-''', [
-      error(WarningCode.UNUSED_CATCH_STACK, 39, 10),
-    ]);
+''',
+      [error(WarningCode.UNUSED_CATCH_STACK, 39, 10)],
+    );
   }
 
   test_usedStack() async {

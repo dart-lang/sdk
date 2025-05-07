@@ -17,35 +17,38 @@ main() {
 class UndefinedPrefixedNameTest extends PubPackageResolutionTest {
   test_getterContext() async {
     newFile('$testPackageLibPath/lib.dart', '');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'lib.dart' as p;
 f() => p.c;
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME, 33, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME, 33, 1)],
+    );
   }
 
   test_new() async {
     newFile('$testPackageLibPath/lib.dart', '');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'lib.dart' as p;
 void f() {
   p.new;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME, 39, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME, 39, 3)],
+    );
   }
 
   test_setterContext() async {
     newFile('$testPackageLibPath/lib.dart', '');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'lib.dart' as p;
 f() {
   p.c = 0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME, 34, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME, 34, 1)],
+    );
   }
 }

@@ -11,7 +11,8 @@ final y3 = fib(5);
 
 foo() => 499;
 
-incrementCreator() => (x) => x + 1;
+incrementCreator() =>
+    (x) => x + 1;
 fib(x) {
   if (x < 2) return x;
   return fib(x - 1) + fib(x - 2);
@@ -31,7 +32,8 @@ class A {
 
   static toto() => 666;
 
-  static decrementCreator() => (x) => x - 1;
+  static decrementCreator() =>
+      (x) => x - 1;
   static fact(x) {
     if (x <= 1) return x;
     return x * fact(x - 1);

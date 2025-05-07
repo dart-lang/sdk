@@ -118,8 +118,9 @@ class BenchmarkConfig {
 }
 
 Future<void> main() async {
-  final jsonString =
-      File('benchmarks/IsolateJson/dart/sample.json').readAsStringSync();
+  final jsonString = File(
+    'benchmarks/IsolateJson/dart/sample.json',
+  ).readAsStringSync();
   final json250KB = utf8.encode(jsonString); // 294356 bytes
   final decoded = json.decode(utf8.decode(json250KB));
   final decoded1MB = <dynamic, dynamic>{

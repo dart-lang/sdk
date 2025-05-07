@@ -934,7 +934,9 @@ class CompilerOptions implements DiagnosticOptions {
         options,
         Flags.laxRuntimeTypeToString,
       )
-      ..enableProtoShaking = _hasOption(options, Flags.enableProtoShaking)
+      ..enableProtoShaking =
+          _hasOption(options, Flags.enableProtoShaking) ||
+          _hasOption(options, Flags.enableProtoMixinShaking)
       ..enableProtoMixinShaking = _hasOption(
         options,
         Flags.enableProtoMixinShaking,
@@ -1062,6 +1064,8 @@ class CompilerOptions implements DiagnosticOptions {
     }
   }
 
+  // This should only be used to derive options to be used during compilation,
+  // not for options needed during set up of the compiler.
   void deriveOptions() {
     if (benchmarkingProduction) {
       trustPrimitives = true;
@@ -1143,10 +1147,6 @@ class CompilerOptions implements DiagnosticOptions {
 
     if (_mergeFragmentsThreshold != null) {
       mergeFragmentsThreshold = _mergeFragmentsThreshold;
-    }
-
-    if (enableProtoMixinShaking) {
-      enableProtoShaking = true;
     }
 
     environment['dart.web.assertions_enabled'] = '$enableUserAssertions';

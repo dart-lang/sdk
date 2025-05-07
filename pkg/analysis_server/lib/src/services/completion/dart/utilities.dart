@@ -10,11 +10,12 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     as protocol
     show Element, ElementKind;
@@ -88,7 +89,7 @@ String buildClosureParameters(
 /// Compute default argument list text and ranges based on the given
 /// [requiredParams] and [namedParams].
 CompletionDefaultArgumentList computeCompletionDefaultArgumentList(
-  Element2 element,
+  Element element,
   Iterable<FormalParameterElement> requiredParams,
   Iterable<FormalParameterElement> namedParams,
 ) {
@@ -179,8 +180,12 @@ DefaultArgument? getDefaultStringParameterValue(
       return DefaultArgument('$quote$quote', cursorPosition: 1);
     }
   } else if (type is FunctionType) {
-    var params = type.formalParameters
-        .map((p) => '${getTypeString(p.type)}${p.displayName}')
+    var params = type.formalParameters.indexed
+        .map((r) {
+          var (index, parameter) = r;
+          var name = parameter.displayName.ifNotEmptyOrElse('p${index + 1}');
+          return '${getTypeString(parameter.type)}$name';
+        })
         .join(', ');
     // TODO(devoncarew): Support having this method return text with newlines.
     var text = '($params) {  }';
@@ -213,9 +218,9 @@ String getTypeString(DartType type) {
   }
 }
 
-/// Instantiates the given [InterfaceElement2]
+/// Instantiates the given [InterfaceElement]
 InterfaceType instantiateInstanceElement(
-  InterfaceElement2 element,
+  InterfaceElement element,
   NeverType neverType,
 ) {
   var typeParameters = element.typeParameters2;
@@ -233,7 +238,7 @@ InterfaceType instantiateInstanceElement(
 /// `Widget`.
 bool isFlutterWidgetParameter(FormalParameterElement parameter) {
   var element = parameter.enclosingElement2;
-  if (element is ConstructorElement2 && element.enclosingElement2.isWidget) {
+  if (element is ConstructorElement && element.enclosingElement2.isWidget) {
     return true;
   }
   return false;
@@ -247,19 +252,19 @@ String? nameForType(SimpleIdentifier identifier, TypeAnnotation? declaredType) {
   var element = identifier.element;
   if (element == null) {
     return DYNAMIC;
-  } else if (element is FunctionTypedElement2) {
-    if (element is PropertyAccessorElement2 && element is SetterElement) {
+  } else if (element is FunctionTypedElement) {
+    if (element is PropertyAccessorElement && element is SetterElement) {
       return null;
     }
     type = element.returnType;
-  } else if (element is TypeAliasElement2) {
+  } else if (element is TypeAliasElement) {
     var aliasedType = element.aliasedType;
     if (aliasedType is FunctionType) {
       type = aliasedType.returnType;
     } else {
       return null;
     }
-  } else if (element is VariableElement2) {
+  } else if (element is VariableElement) {
     type = element.type;
   } else {
     return null;

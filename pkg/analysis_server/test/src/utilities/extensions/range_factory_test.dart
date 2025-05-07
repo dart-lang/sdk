@@ -28,7 +28,8 @@ abstract class BaseRangeFactoryTest extends AbstractSingleUnitTest {
     return invocation.argumentList.arguments;
   }
 
-  void _assertArgumentRange(int index, SourceRange expectedRange) {
+  void _assertArgumentRange(int index) {
+    var expectedRange = parsedTestCode.range.sourceRange;
     var list = _argumentList;
     expect(
       range.nodeInListWithComments(testUnit.lineInfo, list, list[index]),
@@ -121,101 +122,101 @@ class RangeFactory_NodeInListTest extends BaseRangeFactoryTest {
   Future<void> test_argumentList_first_named() async {
     await resolveTestCode('''
 void f() {
-  g(a: 1, b: 2);
+  g([!a: 1, !]b: 2);
 }
 void g({int? a, int? b}) {}
 ''');
-    _assertArgumentRange(0, SourceRange(15, 6));
+    _assertArgumentRange(0);
   }
 
   Future<void> test_argumentList_first_positional() async {
     await resolveTestCode('''
 void f() {
-  g(1, 2);
+  g([!1, !]2);
 }
 void g(int a, int b) {}
 ''');
-    _assertArgumentRange(0, SourceRange(15, 3));
+    _assertArgumentRange(0);
   }
 
   Future<void> test_argumentList_last_named() async {
     await resolveTestCode('''
 void f() {
-  g(a: 1, b: 2);
+  g(a: 1[!, b: 2!]);
 }
 void g({int? a, int? b}) {}
 ''');
-    _assertArgumentRange(1, SourceRange(19, 6));
+    _assertArgumentRange(1);
   }
 
   Future<void> test_argumentList_last_positional() async {
     await resolveTestCode('''
 void f() {
-  g(1, 2);
+  g(1[!, 2!]);
 }
 void g(int a, int b) {}
 ''');
-    _assertArgumentRange(1, SourceRange(16, 3));
+    _assertArgumentRange(1);
   }
 
   Future<void> test_argumentList_middle_named() async {
     await resolveTestCode('''
 void f() {
-  g(a: 1, b: 2, c: 3);
+  g(a: 1[!, b: 2!], c: 3);
 }
 void g({int? a, int? b, int? c}) {}
 ''');
-    _assertArgumentRange(1, SourceRange(19, 6));
+    _assertArgumentRange(1);
   }
 
   Future<void> test_argumentList_middle_positional() async {
     await resolveTestCode('''
 void f() {
-  g(1, 2, 3);
+  g(1[!, 2!], 3);
 }
 void g(int a, int b, int c) {}
 ''');
-    _assertArgumentRange(1, SourceRange(16, 3));
+    _assertArgumentRange(1);
   }
 
   Future<void> test_argumentList_only_named() async {
     await resolveTestCode('''
 void f() {
-  g(a: 1);
+  g([!a: 1!]);
 }
 void g({int? a}) {}
 ''');
-    _assertArgumentRange(0, SourceRange(15, 4));
+    _assertArgumentRange(0);
   }
 
   Future<void> test_argumentList_only_named_trailingComma() async {
     await resolveTestCode('''
 void f() {
-  g(a: 1,);
+  g([!a: 1,!]);
 }
 void g({int? a}) {}
 ''');
-    _assertArgumentRange(0, SourceRange(15, 5));
+    _assertArgumentRange(0);
   }
 
   Future<void> test_argumentList_only_positional() async {
     await resolveTestCode('''
 void f() {
-  g(1);
+  g([!1!]);
 }
 void g(int a) {}
 ''');
-    _assertArgumentRange(0, SourceRange(15, 1));
+    _assertArgumentRange(0);
   }
 
   Future<void> test_argumentList_only_positional_trailingComma() async {
     await resolveTestCode('''
 void f() {
-  g(1,);
+  g([!1,!]);
 }
 void g(int a) {}
 ''');
-    _assertArgumentRange(0, SourceRange(15, 2));
+    _assertArgumentRange(0);
   }
 }
 
@@ -225,85 +226,85 @@ class RangeFactory_NodeInListWithCommentsTest extends BaseRangeFactoryTest {
     await resolveTestCode('''
 void f() {
   g(
-    // comment
+    [!// comment
     a: 1, // comment
-    // comment
+    !]// comment
     b: 2,
   );
 }
 void g({int? a, int? b}) {}
 ''');
-    _assertArgumentRange(0, SourceRange(20, 36));
+    _assertArgumentRange(0);
   }
 
   Future<void> test_argumentList_first_named_leadingComment() async {
     await resolveTestCode('''
 void f() {
   g(
-    // comment
+    [!// comment
     a: 1,
-    // comment
+    !]// comment
     b: 2,
   );
 }
 void g({int? a, int? b}) {}
 ''');
-    _assertArgumentRange(0, SourceRange(20, 25));
+    _assertArgumentRange(0);
   }
 
   Future<void> test_argumentList_first_named_trailingComment() async {
     await resolveTestCode('''
 void f() {
   g(
-    a: 1, // comment
-    // comment
+    [!a: 1, // comment
+    !]// comment
     b: 2,
   );
 }
 void g({int? a, int? b}) {}
 ''');
-    _assertArgumentRange(0, SourceRange(20, 21));
+    _assertArgumentRange(0);
   }
 
   Future<void> test_argumentList_last_named_leadingAndTrailingComment() async {
     await resolveTestCode('''
 void f() {
   g(
-    a: 1, // comment
+    a: 1, // comment[!
     // comment
-    b: 2, // comment
+    b: 2, // comment!]
   );
 }
 void g({int? a, int? b}) {}
 ''');
-    _assertArgumentRange(1, SourceRange(36, 36));
+    _assertArgumentRange(1);
   }
 
   Future<void> test_argumentList_last_named_leadingComment() async {
     await resolveTestCode('''
 void f() {
   g(
-    a: 1, // comment
+    a: 1, // comment[!
     // comment
-    b: 2,
+    b: 2,!]
   );
 }
 void g({int? a, int? b}) {}
 ''');
-    _assertArgumentRange(1, SourceRange(36, 25));
+    _assertArgumentRange(1);
   }
 
   Future<void> test_argumentList_last_named_trailingComment() async {
     await resolveTestCode('''
 void f() {
   g(
-    a: 1, // comment
-    b: 2, // comment
+    a: 1, // comment[!
+    b: 2, // comment!]
   );
 }
 void g({int? a, int? b}) {}
 ''');
-    _assertArgumentRange(1, SourceRange(36, 21));
+    _assertArgumentRange(1);
   }
 
   Future<void>
@@ -311,14 +312,14 @@ void g({int? a, int? b}) {}
     await resolveTestCode('''
 void f() {
   g(
-    a: 1, // comment
-    b: 2, // comment
+    a: 1, // comment[!
+    b: 2, // comment!]
     // final comment
   );
 }
 void g({int? a, int? b}) {}
 ''');
-    _assertArgumentRange(1, SourceRange(36, 21));
+    _assertArgumentRange(1);
   }
 
   Future<void>
@@ -326,47 +327,47 @@ void g({int? a, int? b}) {}
     await resolveTestCode('''
 void f() {
   g(
-    a: 1, // comment
+    a: 1, // comment[!
     // comment
-    b: 2, // comment
+    b: 2, // comment!]
     // comment
     c: 3,
   );
 }
 void g({int? a, int? b, int? c}) {}
 ''');
-    _assertArgumentRange(1, SourceRange(36, 36));
+    _assertArgumentRange(1);
   }
 
   Future<void> test_argumentList_middle_named_leadingComment() async {
     await resolveTestCode('''
 void f() {
   g(
-    a: 1, // comment
+    a: 1, // comment[!
     // comment
-    b: 2,
+    b: 2,!]
     // comment
     c: 3,
   );
 }
 void g({int? a, int? b, int? c}) {}
 ''');
-    _assertArgumentRange(1, SourceRange(36, 25));
+    _assertArgumentRange(1);
   }
 
   Future<void> test_argumentList_middle_named_trailingComment() async {
     await resolveTestCode('''
 void f() {
   g(
-    a: 1, // comment
-    b: 2, // comment
+    a: 1, // comment[!
+    b: 2, // comment!]
     // comment
     c: 3,
   );
 }
 void g({int? a, int? b, int? c}) {}
 ''');
-    _assertArgumentRange(1, SourceRange(36, 21));
+    _assertArgumentRange(1);
   }
 
   Future<void>
@@ -374,52 +375,52 @@ void g({int? a, int? b, int? c}) {}
     await resolveTestCode('''
 void f() {
   g(
-    a: 1,
-    b: 2, // comment
+    a: 1,[!
+    b: 2, // comment!]
     c: 3,
   );
 }
 void g({int? a, int? b, int? c}) {}
 ''');
-    _assertArgumentRange(1, SourceRange(25, 21));
+    _assertArgumentRange(1);
   }
 
   Future<void> test_argumentList_only_named_leadingAndTrailingComment() async {
     await resolveTestCode('''
 void f() {
   g(
-    // comment
-    a: 1, // comment
+    [!// comment
+    a: 1, // comment!]
   );
 }
 void g({int? a}) {}
 ''');
-    _assertArgumentRange(0, SourceRange(20, 31));
+    _assertArgumentRange(0);
   }
 
   Future<void> test_argumentList_only_named_leadingComment() async {
     await resolveTestCode('''
 void f() {
   g(
-    // comment
-    a: 1,
+    [!// comment
+    a: 1,!]
   );
 }
 void g({int? a}) {}
 ''');
-    _assertArgumentRange(0, SourceRange(20, 20));
+    _assertArgumentRange(0);
   }
 
   Future<void> test_argumentList_only_named_trailingComment() async {
     await resolveTestCode('''
 void f() {
   g(
-    a: 1, // comment
+    [!a: 1, // comment!]
   );
 }
 void g({int? a}) {}
 ''');
-    _assertArgumentRange(0, SourceRange(20, 16));
+    _assertArgumentRange(0);
   }
 }
 

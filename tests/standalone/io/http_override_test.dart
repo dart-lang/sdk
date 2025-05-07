@@ -19,8 +19,11 @@ class MyHttpClient1 implements HttpClient {
   bool enableTimelineLogging = false;
 
   Future<HttpClientRequest> open(
-          String method, String host, int port, String path) =>
-      throw "";
+    String method,
+    String host,
+    int port,
+    String path,
+  ) => throw "";
   Future<HttpClientRequest> openUrl(String method, Uri url) => throw "";
   Future<HttpClientRequest> get(String host, int port, String path) => throw "";
   Future<HttpClientRequest> getUrl(Uri url) => throw "";
@@ -40,18 +43,31 @@ class MyHttpClient1 implements HttpClient {
   Future<HttpClientRequest> headUrl(Uri url) => throw "";
   set authenticate(Future<bool> f(Uri url, String scheme, String realm)?) {}
   void addCredentials(
-      Uri url, String realm, HttpClientCredentials credentials) {}
+    Uri url,
+    String realm,
+    HttpClientCredentials credentials,
+  ) {}
   set connectionFactory(
-      Future<ConnectionTask<Socket>> Function(
-              Uri url, String? proxyHost, int? proxyPort)?
-          f) {}
+    Future<ConnectionTask<Socket>> Function(
+      Uri url,
+      String? proxyHost,
+      int? proxyPort,
+    )?
+    f,
+  ) {}
   set findProxy(String f(Uri url)?) {}
   set authenticateProxy(
-      Future<bool> f(String host, int port, String scheme, String realm)?) {}
+    Future<bool> f(String host, int port, String scheme, String realm)?,
+  ) {}
   void addProxyCredentials(
-      String host, int port, String realm, HttpClientCredentials credentials) {}
+    String host,
+    int port,
+    String realm,
+    HttpClientCredentials credentials,
+  ) {}
   set badCertificateCallback(
-      bool callback(X509Certificate cert, String host, int port)?) {}
+    bool callback(X509Certificate cert, String host, int port)?,
+  ) {}
   void set keyLog(Function(String line)? callback) {}
   void close({bool force = false}) {}
 }
@@ -68,8 +84,11 @@ class MyHttpClient2 implements HttpClient {
   bool enableTimelineLogging = false;
 
   Future<HttpClientRequest> open(
-          String method, String host, int port, String path) =>
-      throw "";
+    String method,
+    String host,
+    int port,
+    String path,
+  ) => throw "";
   Future<HttpClientRequest> openUrl(String method, Uri url) => throw "";
   Future<HttpClientRequest> get(String host, int port, String path) => throw "";
   Future<HttpClientRequest> getUrl(Uri url) => throw "";
@@ -89,18 +108,31 @@ class MyHttpClient2 implements HttpClient {
   Future<HttpClientRequest> headUrl(Uri url) => throw "";
   set authenticate(Future<bool> f(Uri url, String scheme, String realm)?) {}
   void addCredentials(
-      Uri url, String realm, HttpClientCredentials credentials) {}
+    Uri url,
+    String realm,
+    HttpClientCredentials credentials,
+  ) {}
   set connectionFactory(
-      Future<ConnectionTask<Socket>> Function(
-              Uri url, String? proxyHost, int? proxyPort)?
-          f) {}
+    Future<ConnectionTask<Socket>> Function(
+      Uri url,
+      String? proxyHost,
+      int? proxyPort,
+    )?
+    f,
+  ) {}
   set findProxy(String f(Uri url)?) {}
   set authenticateProxy(
-      Future<bool> f(String host, int port, String scheme, String realm)?) {}
+    Future<bool> f(String host, int port, String scheme, String realm)?,
+  ) {}
   void addProxyCredentials(
-      String host, int port, String realm, HttpClientCredentials credentials) {}
+    String host,
+    int port,
+    String realm,
+    HttpClientCredentials credentials,
+  ) {}
   set badCertificateCallback(
-      bool callback(X509Certificate cert, String host, int port)?) {}
+    bool callback(X509Certificate cert, String host, int port)?,
+  ) {}
   void set keyLog(Function(String line)? callback) {}
   void close({bool force = false}) {}
 }
@@ -170,8 +202,10 @@ nestedDifferentOverridesTest() {
       Expect.isNotNull(httpClient);
       Expect.isTrue(httpClient is MyHttpClient1);
       Expect.equals((new MyHttpClient1(null)).userAgent, httpClient.userAgent);
-      Expect.equals(myFindProxyFromEnvironment(new Uri(), null),
-          HttpClient.findProxyFromEnvironment(new Uri()));
+      Expect.equals(
+        myFindProxyFromEnvironment(new Uri(), null),
+        HttpClient.findProxyFromEnvironment(new Uri()),
+      );
     }, findProxyFromEnvironment: myFindProxyFromEnvironment);
     httpClient = new HttpClient();
     Expect.isNotNull(httpClient);

@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
@@ -87,7 +87,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   bool _isSimpleIdDeclByCoreObj(SimpleIdentifier simpleIdentifier) {
     var encloser = simpleIdentifier.element?.enclosingElement2;
-    return encloser is ClassElement2 && encloser.isDartCoreObject;
+    return encloser is ClassElement && encloser.isDartCoreObject;
   }
 
   bool _isToStringOnCoreTypeClass(
@@ -104,7 +104,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     SimpleIdentifier methodIdentifier,
   ) {
     if (_isToStringOnCoreTypeClass(targetType, methodIdentifier)) {
-      rule.reportLint(methodIdentifier);
+      rule.reportAtNode(methodIdentifier);
     }
   }
 

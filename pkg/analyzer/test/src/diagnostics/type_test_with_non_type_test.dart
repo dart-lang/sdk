@@ -16,13 +16,14 @@ main() {
 @reflectiveTest
 class TypeTestWithNonTypeTest extends PubPackageResolutionTest {
   test_parameter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var A = 0;
 f(var p) {
   if (p is A) {
   }
-}''', [
-      error(CompileTimeErrorCode.TYPE_TEST_WITH_NON_TYPE, 33, 1),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.TYPE_TEST_WITH_NON_TYPE, 33, 1)],
+    );
   }
 }

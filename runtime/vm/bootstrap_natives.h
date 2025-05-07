@@ -149,6 +149,9 @@ namespace dart {
   V(Timeline_getTraceClock, 0)                                                 \
   V(Timeline_isDartStreamEnabled, 0)                                           \
   V(Timeline_reportTaskEvent, 5)                                               \
+  V(MicrotaskMirrorQueue_onScheduleAsyncCallback, 0)                           \
+  V(MicrotaskMirrorQueue_onSchedulePriorityAsyncCallback, 0)                   \
+  V(MicrotaskMirrorQueue_onAsyncCallbackComplete, 2)                           \
   V(TypedDataBase_length, 1)                                                   \
   V(TypedDataBase_setClampedRange, 5)                                          \
   V(TypedData_GetFloat32, 2)                                                   \
@@ -312,7 +315,8 @@ namespace dart {
   V(DartApiDLMinorVersion, 0)                                                  \
   V(DartNativeApiFunctionPointer, 1)                                           \
   V(TransferableTypedData_factory, 2)                                          \
-  V(TransferableTypedData_materialize, 1)
+  V(TransferableTypedData_materialize, 1)                                      \
+  V(Timer_postTimerEvent, 1)
 
 // List of bootstrap native entry points used in the dart:mirror library.
 #define MIRRORS_BOOTSTRAP_NATIVE_LIST(V)                                       \
@@ -371,6 +375,7 @@ namespace dart {
   V(ConditionVariable_NotifyAll, void, (Dart_Handle))                          \
   V(ConditionVariable_Wait, void, (Dart_Handle, Dart_Handle))                  \
   V(FinalizerEntry_SetExternalSize, void, (Dart_Handle, intptr_t))             \
+  V(IsolateGroup_runSync, Dart_Handle, (Dart_Handle))                          \
   V(Mutex_Initialize, void, (Dart_Handle))                                     \
   V(Mutex_RunLocked, Dart_Handle, (Dart_Handle, Dart_Handle))                  \
   V(Pointer_asTypedListFinalizerAllocateData, void*, ())                       \

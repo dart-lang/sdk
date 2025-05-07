@@ -67,8 +67,14 @@ void main() {
     });
 
     Isolate.spawnUri(
-        Uri.parse("http://127.0.0.1:${server.port}"), [], port.sendPort);
+      Uri.parse("http://127.0.0.1:${server.port}"),
+      [],
+      port.sendPort,
+    );
     Isolate.spawnUri(
-        Uri.parse("http://127.0.0.1:${server.port}"), [], port.sendPort);
+      Uri.parse("http://127.0.0.1:${server.port}"),
+      [],
+      port.sendPort,
+    );
   });
 }

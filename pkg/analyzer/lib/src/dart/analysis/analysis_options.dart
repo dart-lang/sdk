@@ -209,7 +209,9 @@ final class AnalysisOptionsBuilder {
   }
 
   void _applyPluginsOptions(
-      YamlNode? plugins, ResourceProvider? resourceProvider) {
+    YamlNode? plugins,
+    ResourceProvider? resourceProvider,
+  ) {
     if (plugins is! YamlMap) {
       return;
     }
@@ -223,10 +225,12 @@ final class AnalysisOptionsBuilder {
       // If the plugin name just maps to a String, then that is the version
       // constraint; use it and move on.
       if (pluginNode case YamlScalar(:String value)) {
-        pluginConfigurations.add(PluginConfiguration(
-          name: pluginName,
-          source: VersionedPluginSource(constraint: value),
-        ));
+        pluginConfigurations.add(
+          PluginConfiguration(
+            name: pluginName,
+            source: VersionedPluginSource(constraint: value),
+          ),
+        );
         return;
       }
 
@@ -258,8 +262,10 @@ final class AnalysisOptionsBuilder {
               resourceProvider.pathContext.isRelative(pathValue)) {
             // We need to store the absolute path, before this value is used in
             // a synthetic pub package.
-            pathValue =
-                resourceProvider.pathContext.join(file.parent.path, pathValue);
+            pathValue = resourceProvider.pathContext.join(
+              file.parent.path,
+              pathValue,
+            );
             pathValue = resourceProvider.pathContext.normalize(pathValue);
           }
           source = PathPluginSource(path: pathValue);
@@ -273,16 +279,19 @@ final class AnalysisOptionsBuilder {
       }
 
       var diagnostics = pluginNode.valueAt(AnalysisOptionsFile.diagnostics);
-      var diagnosticConfigurations = diagnostics == null
-          ? const <String, RuleConfig>{}
-          : parseDiagnosticsSection(diagnostics);
+      var diagnosticConfigurations =
+          diagnostics == null
+              ? const <String, RuleConfig>{}
+              : parseDiagnosticsSection(diagnostics);
 
-      pluginConfigurations.add(PluginConfiguration(
-        name: pluginName,
-        source: source,
-        diagnosticConfigs: diagnosticConfigurations,
-        // TODO(srawlins): Implement `enabled: false`.
-      ));
+      pluginConfigurations.add(
+        PluginConfiguration(
+          name: pluginName,
+          source: source,
+          diagnosticConfigs: diagnosticConfigurations,
+          // TODO(srawlins): Implement `enabled: false`.
+        ),
+      );
     });
   }
 
@@ -301,8 +310,9 @@ final class AnalysisOptionsBuilder {
         for (var e in errorCodeValues) {
           // If the severity of [error] is also changed in this options file
           // to be [severity], we add [error] to the un-ignorable list.
-          var processors =
-              errorProcessors.where((processor) => processor.code == e.name);
+          var processors = errorProcessors.where(
+            (processor) => processor.code == e.name,
+          );
           if (processors.isNotEmpty &&
               processors.first.severity?.displayName == severity) {
             unignorableNames.add(e.name);
@@ -333,8 +343,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   /// The constraint on the language version for every Dart file.
   /// Violations will be reported as analysis errors.
-  final VersionConstraint? sourceLanguageConstraint =
-      VersionConstraint.parse('>= 2.12.0');
+  final VersionConstraint? sourceLanguageConstraint = VersionConstraint.parse(
+    '>= 2.12.0',
+  );
 
   ExperimentStatus _contextFeatures;
 
@@ -422,8 +433,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       builder.errorProcessors = ErrorConfig(filters).processors;
 
       // Process enabled experiments.
-      var experimentNames =
-          analyzer.valueAt(AnalysisOptionsFile.enableExperiment);
+      var experimentNames = analyzer.valueAt(
+        AnalysisOptionsFile.enableExperiment,
+      );
       if (experimentNames is YamlList) {
         var enabledExperiments = <String>[];
         for (var element in experimentNames.nodes) {
@@ -432,10 +444,12 @@ class AnalysisOptionsImpl implements AnalysisOptions {
             enabledExperiments.add(experimentName);
           }
         }
-        builder.contextFeatures = FeatureSet.fromEnableFlags2(
-          sdkLanguageVersion: ExperimentStatus.currentVersion,
-          flags: enabledExperiments,
-        ) as ExperimentStatus;
+        builder.contextFeatures =
+            FeatureSet.fromEnableFlags2(
+                  sdkLanguageVersion: ExperimentStatus.currentVersion,
+                  flags: enabledExperiments,
+                )
+                as ExperimentStatus;
         builder.nonPackageFeatureSet = builder.contextFeatures;
       }
 
@@ -537,8 +551,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
       // Append error processors.
       buffer.addInt(errorProcessors.length);
-      for (ErrorProcessor processor
-          in errorProcessors.sortedBy((processor) => processor.description)) {
+      for (ErrorProcessor processor in errorProcessors.sortedBy(
+        (processor) => processor.description,
+      )) {
         buffer.addString(processor.description);
       }
 
@@ -556,8 +571,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
       // Append plugin configurations.
       buffer.addInt(pluginConfigurations.length);
-      for (var pluginConfiguration in pluginConfigurations
-          .sortedBy((pluginConfiguration) => pluginConfiguration.name)) {
+      for (var pluginConfiguration in pluginConfigurations.sortedBy(
+        (pluginConfiguration) => pluginConfiguration.name,
+      )) {
         buffer.addString(pluginConfiguration.name);
         buffer.addBool(pluginConfiguration.isEnabled);
         buffer.addInt(pluginConfiguration.diagnosticConfigs.length);

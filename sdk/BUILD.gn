@@ -42,7 +42,8 @@ declare_args() {
 # ......utils/gen_snapshot or utils/gen_snapshot.exe (if not on ia32)
 # ......snapshots/
 # ........analysis_server.dart.snapshot
-# ........dart2bytecode.snapshot (if dart_dynamic_modules)
+# ........analysis_server_aot.dart.snapshot (AOT snapshot, if not on ia32)
+# ........dart2bytecode.snapshot (AOT snapshot, for selected targets)
 # ........dart2js_aot.dart.snapshot (AOT snapshot, if not on ia32)
 # ........dart2js.dart.snapshot (JIT snapshot only on ia32)
 # ........dart2wasm_product.snapshot (if not on ia32)
@@ -131,6 +132,11 @@ _platform_sdk_snapshots = [
 if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
   _platform_sdk_snapshots += [
     [
+      "analysis_server_aot_product",
+      "../utils/analysis_server:analysis_server_aot_product",
+      "analysis_server_aot",
+    ],
+    [
       "frontend_server_aot_product",
       "../utils/kernel-service:frontend_server_aot_product",
       "frontend_server_aot",
@@ -167,7 +173,11 @@ if (dart_snapshot_kind == "app-jit") {
         "kernel-service",
       ] ]
 }
-if (dart_dynamic_modules) {
+
+# dart2bytecode is an AOT snapshot, which is not supported on the ia32
+# architecture. It is only included as needed on a subset of OS targets.
+if ((dart_target_arch == "x64" || dart_target_arch == "arm64") &&
+    (dart_dynamic_modules || target_os == "linux" || target_os == "mac")) {
   _platform_sdk_snapshots += [ [
         "dart2bytecode",
         "../utils/dart2bytecode:dart2bytecode",
@@ -781,15 +791,6 @@ copy("copy_sdk_packages_yaml") {
   outputs = [ "$root_out_dir/$dart_sdk_output/sdk_packages.yaml" ]
 }
 
-# This rule copies pkg/_macros to pkg/_macros in the built SDK. This is a
-# vendored SDK package.
-copy_tree("copy_pkg_macros") {
-  visibility = [ ":create_common_sdk" ]
-  source = "../pkg/_macros"
-  dest = "$root_out_dir/$dart_sdk_output/pkg/_macros"
-  exclude = "{}"
-}
-
 # Parts common to both platform and full SDKs.
 group("create_common_sdk") {
   visibility = [
@@ -803,7 +804,6 @@ group("create_common_sdk") {
     ":copy_headers",
     ":copy_libraries_specification",
     ":copy_license",
-    ":copy_pkg_macros",
     ":copy_prebuilt_devtools",
     ":copy_readme",
     ":copy_sdk_packages_yaml",

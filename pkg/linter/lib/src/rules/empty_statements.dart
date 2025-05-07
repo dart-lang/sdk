@@ -48,6 +48,6 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitEmptyStatement(EmptyStatement node) {
     if (definesSemantics(node)) return;
-    rule.reportLint(node);
+    rule.reportAtNode(node);
   }
 }

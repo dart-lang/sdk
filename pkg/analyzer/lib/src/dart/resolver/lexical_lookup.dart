@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
@@ -41,7 +41,7 @@ class LexicalLookup {
     var scopeGetter = scopeResult.getter2;
     var scopeSetter = scopeResult.setter2;
     if (scopeGetter != null || scopeSetter != null) {
-      if (scopeGetter is VariableElement2) {
+      if (scopeGetter is VariableElement) {
         return LexicalLookupResult(requested: scopeGetter);
       }
       if (scopeSetter != null) {
@@ -57,8 +57,8 @@ class LexicalLookup {
 }
 
 class LexicalLookupResult {
-  final Element2? requested;
-  final Element2? recovery;
+  final Element? requested;
+  final Element? recovery;
 
   /// The type, usually [FunctionType] referenced with `call`.
   final DartType? callFunctionType;

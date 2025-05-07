@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/test_utilities/find_element2.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
@@ -58,6 +58,12 @@ class PubPackageResolutionTest extends AbstractContextTest {
 class SearchEngineImplTest extends PubPackageResolutionTest {
   SearchEngineImpl get searchEngine {
     return SearchEngineImpl(allDrivers);
+  }
+
+  @override
+  void setUp() {
+    useLineEndingsForPlatform = false;
+    super.setUp();
   }
 
   Future<void> test_membersOfSubtypes_classByClass_hasMembers() async {
@@ -208,7 +214,7 @@ class C implements B {}
 
     var element = findElement2.class_('T');
 
-    var subtypes = <InterfaceElement2>{};
+    var subtypes = <InterfaceElement>{};
     await searchEngine.appendAllSubtypes(
       element,
       subtypes,
@@ -237,7 +243,7 @@ class C extends B {}
     await resolveFile2(a);
     var element = findElement2.class_('T');
 
-    var subtypes = <InterfaceElement2>{};
+    var subtypes = <InterfaceElement>{};
     await searchEngine.appendAllSubtypes(
       element,
       subtypes,
@@ -258,7 +264,7 @@ extension type C(int it) implements A {}
 
     var element = findElement2.class_('A');
 
-    var subtypes = <InterfaceElement2>{};
+    var subtypes = <InterfaceElement>{};
     await searchEngine.appendAllSubtypes(
       element,
       subtypes,
@@ -284,7 +290,7 @@ mixin E implements C {}
 
     var element = findElement2.class_('T');
 
-    var subtypes = <InterfaceElement2>{};
+    var subtypes = <InterfaceElement>{};
     await searchEngine.appendAllSubtypes(
       element,
       subtypes,
@@ -762,12 +768,12 @@ class B extends A {}
   }
 
   static void _assertContainsClass(
-    Set<InterfaceElement2> subtypes,
+    Set<InterfaceElement> subtypes,
     String name,
   ) {
     expect(
       subtypes,
-      contains(predicate((InterfaceElement2 e) => e.name3 == name)),
+      contains(predicate((InterfaceElement e) => e.name3 == name)),
     );
   }
 }
@@ -775,6 +781,12 @@ class B extends A {}
 @reflectiveTest
 class SearchEngineImplWithNonFunctionTypeAliasesTest
     extends SearchEngineImplTest {
+  @override
+  void setUp() {
+    useLineEndingsForPlatform = false;
+    super.setUp();
+  }
+
   Future<void> test_searchReferences_typeAlias_interfaceType() async {
     await resolveTestCode('''
 typedef A<T> = Map<T, String>;
@@ -785,7 +797,7 @@ void f(A<int> a, A<double> b) {}
     var element = findElement2.typeAlias('A');
     var matches = await searchEngine.searchReferences(element);
 
-    Matcher hasOne(Element2 element, String search) {
+    Matcher hasOne(Element element, String search) {
       return predicate((SearchMatch match) {
         return match.element == element &&
             match.sourceRange.offset == findNode.offset(search);

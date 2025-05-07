@@ -16,15 +16,22 @@ main() {
 @reflectiveTest
 class UndefinedConstructorInInitializerTest extends PubPackageResolutionTest {
   test_explicit_named() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 class B extends A {
   B() : super.named();
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER, 39, 13,
-          messageContains: ["class 'A'", "named 'named'"]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER,
+          39,
+          13,
+          messageContains: ["class 'A'", "named 'named'"],
+        ),
+      ],
+    );
   }
 
   test_explicit_named_defined() async {

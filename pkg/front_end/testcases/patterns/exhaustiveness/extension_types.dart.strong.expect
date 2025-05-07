@@ -41,25 +41,25 @@ static extension-type-member method ExtensionTypeNullable|constructor#(core::Str
   lowered final self::ExtensionTypeNullable% /* erasure=core::String?, declared=! */ #this = s;
   return #this;
 }
-static extension-type-member method ExtensionTypeNullable|constructor#_#new#tearOff(core::String? s) → self::ExtensionTypeNullable% /* erasure=core::String?, declared=! */
+static extension-type-member synthetic method ExtensionTypeNullable|constructor#_#new#tearOff(core::String? s) → self::ExtensionTypeNullable% /* erasure=core::String?, declared=! */
   return self::ExtensionTypeNullable|constructor#(s);
 static extension-type-member method ExtensionTypeNum|constructor#(core::num n) → self::ExtensionTypeNum% /* erasure=core::num, declared=! */ {
   lowered final self::ExtensionTypeNum% /* erasure=core::num, declared=! */ #this = n;
   return #this;
 }
-static extension-type-member method ExtensionTypeNum|constructor#_#new#tearOff(core::num n) → self::ExtensionTypeNum% /* erasure=core::num, declared=! */
+static extension-type-member synthetic method ExtensionTypeNum|constructor#_#new#tearOff(core::num n) → self::ExtensionTypeNum% /* erasure=core::num, declared=! */
   return self::ExtensionTypeNum|constructor#(n);
 static extension-type-member method ExtensionTypeBool|constructor#(core::bool b) → self::ExtensionTypeBool% /* erasure=core::bool, declared=! */ {
   lowered final self::ExtensionTypeBool% /* erasure=core::bool, declared=! */ #this = b;
   return #this;
 }
-static extension-type-member method ExtensionTypeBool|constructor#_#new#tearOff(core::bool b) → self::ExtensionTypeBool% /* erasure=core::bool, declared=! */
+static extension-type-member synthetic method ExtensionTypeBool|constructor#_#new#tearOff(core::bool b) → self::ExtensionTypeBool% /* erasure=core::bool, declared=! */
   return self::ExtensionTypeBool|constructor#(b);
 static extension-type-member method ExtensionTypeSealed|constructor#(self::S s) → self::ExtensionTypeSealed% /* erasure=self::S, declared=! */ {
   lowered final self::ExtensionTypeSealed% /* erasure=self::S, declared=! */ #this = s;
   return #this;
 }
-static extension-type-member method ExtensionTypeSealed|constructor#_#new#tearOff(self::S s) → self::ExtensionTypeSealed% /* erasure=self::S, declared=! */
+static extension-type-member synthetic method ExtensionTypeSealed|constructor#_#new#tearOff(self::S s) → self::ExtensionTypeSealed% /* erasure=self::S, declared=! */
   return self::ExtensionTypeSealed|constructor#(s);
 static method methodNull1(self::ExtensionTypeNullable% /* erasure=core::String?, declared=! */ o) → dynamic
   return block {

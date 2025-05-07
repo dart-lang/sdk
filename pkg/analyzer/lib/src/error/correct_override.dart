@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
@@ -28,15 +28,13 @@ class CorrectOverrideHelper {
   CorrectOverrideHelper({
     required TypeSystemImpl typeSystem,
     required ExecutableElement2OrMember thisMember,
-  })  : _typeSystem = typeSystem,
-        _thisMember = thisMember {
+  }) : _typeSystem = typeSystem,
+       _thisMember = thisMember {
     _computeThisTypeForSubtype();
   }
 
   /// Return `true` if [_thisMember] is a correct override of [superMember].
-  bool isCorrectOverrideOf({
-    required ExecutableElement2OrMember superMember,
-  }) {
+  bool isCorrectOverrideOf({required ExecutableElement2OrMember superMember}) {
     var superType = superMember.type;
     return _typeSystem.isSubtypeOf(_thisTypeForSubtype!, superType);
   }
@@ -47,21 +45,23 @@ class CorrectOverrideHelper {
     required ExecutableElement2OrMember superMember,
     required ErrorReporter errorReporter,
     required SyntacticEntity errorNode,
-    required ErrorCode errorCode,
+    required DiagnosticCode diagnosticCode,
   }) {
     var isCorrect = isCorrectOverrideOf(superMember: superMember);
     if (!isCorrect) {
       var member = _thisMember;
       var memberName = member.name3;
       if (memberName != null) {
-        errorReporter.reportError(_diagnosticFactory.invalidOverride(
-          errorReporter.source,
-          errorCode,
-          errorNode,
-          _thisMember,
-          superMember,
-          memberName,
-        ));
+        errorReporter.reportError(
+          _diagnosticFactory.invalidOverride(
+            errorReporter.source,
+            diagnosticCode,
+            errorNode,
+            _thisMember,
+            superMember,
+            memberName,
+          ),
+        );
       }
     }
   }
@@ -77,9 +77,7 @@ class CorrectOverrideHelper {
       var parameter = parameters[i];
       if (parameter.isCovariant) {
         newParameters ??= parameters.toList(growable: false);
-        newParameters[i] = parameter.copyWith(
-          type: _typeSystem.objectQuestion,
-        );
+        newParameters[i] = parameter.copyWith(type: _typeSystem.objectQuestion);
       }
     }
 
@@ -102,11 +100,10 @@ class CovariantParametersVerifier {
 
   final ExecutableElement2OrMember _thisMember;
 
-  CovariantParametersVerifier({
-    required ExecutableElement2OrMember thisMember,
-  })  : _session = thisMember.library2.session as AnalysisSessionImpl,
-        _typeSystem = thisMember.library2.typeSystem as TypeSystemImpl,
-        _thisMember = thisMember;
+  CovariantParametersVerifier({required ExecutableElement2OrMember thisMember})
+    : _session = thisMember.library2.session as AnalysisSessionImpl,
+      _typeSystem = thisMember.library2.typeSystem as TypeSystemImpl,
+      _thisMember = thisMember;
 
   void verify({
     required ErrorReporter errorReporter,
@@ -150,9 +147,7 @@ class CovariantParametersVerifier {
     for (var interface in interfaces) {
       var superMember = _correspondingMember(interface.element3, _thisMember);
       if (superMember != null) {
-        superMembers.add(
-          _SuperMember(interface, superMember),
-        );
+        superMembers.add(_SuperMember(interface, superMember));
       }
     }
 
@@ -176,11 +171,10 @@ class CovariantParametersVerifier {
           );
           if (superParameter != null) {
             var parameterSuperList = result[parameter] ??= [];
-            var superType = _superSubstitution(superMember)
-                .substituteType(superParameter.type);
-            parameterSuperList.add(
-              _SuperParameter(superParameter, superType),
-            );
+            var superType = _superSubstitution(
+              superMember,
+            ).substituteType(superParameter.type);
+            parameterSuperList.add(_SuperParameter(superParameter, superType));
           }
         }
       }
@@ -202,9 +196,7 @@ class CovariantParametersVerifier {
         var typeParametersSubstitution = Substitution.fromPairs2(
           superTypeParameters,
           thisTypeParameters.map((e) {
-            return e.instantiate(
-              nullabilitySuffix: NullabilitySuffix.none,
-            );
+            return e.instantiate(nullabilitySuffix: NullabilitySuffix.none);
           }).toList(),
         );
         result = Substitution.combine(result, typeParametersSubstitution);
@@ -216,14 +208,14 @@ class CovariantParametersVerifier {
 
   /// Return a member from [classElement] that corresponds to the [proto],
   /// or `null` if no such member exist.
-  static ExecutableElement2? _correspondingMember(
-    InterfaceElement2 classElement,
-    ExecutableElement2 proto,
+  static ExecutableElement? _correspondingMember(
+    InterfaceElement classElement,
+    ExecutableElement proto,
   ) {
-    if (proto is MethodElement2) {
+    if (proto is MethodElement) {
       return classElement.getMethod2(proto.displayName);
     }
-    if (proto is PropertyAccessorElement2) {
+    if (proto is PropertyAccessorElement) {
       if (proto is GetterElement) {
         return classElement.getGetter2(proto.displayName);
       }
@@ -260,7 +252,7 @@ class CovariantParametersVerifier {
 
 class _SuperMember {
   final InterfaceType interface;
-  final ExecutableElement2 rawElement;
+  final ExecutableElement rawElement;
 
   _SuperMember(this.interface, this.rawElement);
 }
@@ -271,6 +263,6 @@ class _SuperParameter {
 
   _SuperParameter(this.element, this.type);
 
-  ExecutableElement2 get member =>
-      element.enclosingElement2 as ExecutableElement2;
+  ExecutableElement get member =>
+      element.enclosingElement2 as ExecutableElement;
 }

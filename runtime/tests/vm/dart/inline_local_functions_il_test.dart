@@ -42,8 +42,11 @@ void matchIL$main_foo(FlowGraph graph) {
           'v5' << match.Phi(match.any, 'v13'),
           'v6' << match.Phi(match.any, 'v15'),
           match.CheckStackOverflow(),
-          match.Branch(match.RelationalOp('v6', match.any, kind: '<'),
-              ifTrue: 'B3', ifFalse: 'B4'),
+          match.Branch(
+            match.RelationalOp('v6', match.any, kind: '<'),
+            ifTrue: 'B3',
+            ifFalse: 'B4',
+          ),
         ]),
     'B3' <<
         match.block('Target', [

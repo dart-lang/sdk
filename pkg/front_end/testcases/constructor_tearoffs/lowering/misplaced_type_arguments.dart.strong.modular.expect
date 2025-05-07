@@ -53,17 +53,17 @@ class A<T extends core::Object? = dynamic> extends core::Object {
   constructor named() → self::A<self::A::T%>
     : super core::Object::•()
     ;
-  static method _#new#tearOff<T extends core::Object? = dynamic>() → self::A<self::A::_#new#tearOff::T%>
+  static synthetic method _#new#tearOff<T extends core::Object? = dynamic>() → self::A<self::A::_#new#tearOff::T%>
     return new self::A::•<self::A::_#new#tearOff::T%>();
-  static method _#named#tearOff<T extends core::Object? = dynamic>() → self::A<self::A::_#named#tearOff::T%>
+  static synthetic method _#named#tearOff<T extends core::Object? = dynamic>() → self::A<self::A::_#named#tearOff::T%>
     return new self::A::named<self::A::_#named#tearOff::T%>();
   static factory fact<T extends core::Object? = dynamic>() → self::A<self::A::fact::T%>
     return new self::A::•<self::A::fact::T%>();
-  static method _#fact#tearOff<T extends core::Object? = dynamic>() → self::A<self::A::_#fact#tearOff::T%>
+  static synthetic method _#fact#tearOff<T extends core::Object? = dynamic>() → self::A<self::A::_#fact#tearOff::T%>
     return self::A::fact<self::A::_#fact#tearOff::T%>();
   static factory redirect<T extends core::Object? = dynamic>() → self::A<self::A::redirect::T%> /* redirection-target: self::A::•<self::A::redirect::T%>*/
     return new self::A::•<self::A::redirect::T%>();
-  static method _#redirect#tearOff<T extends core::Object? = dynamic>() → self::A<self::A::_#redirect#tearOff::T%>
+  static synthetic method _#redirect#tearOff<T extends core::Object? = dynamic>() → self::A<self::A::_#redirect#tearOff::T%>
     return new self::A::•<self::A::_#redirect#tearOff::T%>();
 }
 static method test() → dynamic {
@@ -101,11 +101,11 @@ Try removing the type arguments or placing them after the class name.
             ^";
 }
 static method main() → dynamic {}
-static method _#B#new#tearOff<T extends core::num>() → self::A<self::_#B#new#tearOff::T>
+static synthetic method _#B#new#tearOff<T extends core::num>() → self::A<self::_#B#new#tearOff::T>
   return new self::A::•<self::_#B#new#tearOff::T>();
-static method _#B#named#tearOff<T extends core::num>() → self::A<self::_#B#named#tearOff::T>
+static synthetic method _#B#named#tearOff<T extends core::num>() → self::A<self::_#B#named#tearOff::T>
   return new self::A::named<self::_#B#named#tearOff::T>();
-static method _#B#fact#tearOff<T extends core::num>() → self::A<self::_#B#fact#tearOff::T>
+static synthetic method _#B#fact#tearOff<T extends core::num>() → self::A<self::_#B#fact#tearOff::T>
   return self::A::fact<self::_#B#fact#tearOff::T>();
-static method _#B#redirect#tearOff<T extends core::num>() → self::A<self::_#B#redirect#tearOff::T>
+static synthetic method _#B#redirect#tearOff<T extends core::num>() → self::A<self::_#B#redirect#tearOff::T>
   return self::A::_#redirect#tearOff<self::_#B#redirect#tearOff::T>();

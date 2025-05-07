@@ -55,12 +55,14 @@ void testAbsoluteUriInRequest() {
       socket.write("Host: google.com\r\n");
       socket.write("Connection: close\r\n");
       socket.write("\r\n");
-      socket.flush().then((_) => socket.drain().then((_) {
-            Expect.equals(Uri.http("google.com", "/"), requestedUri);
-            socket.close();
-            server.close();
-            asyncEnd();
-          }));
+      socket.flush().then(
+        (_) => socket.drain().then((_) {
+          Expect.equals(Uri.http("google.com", "/"), requestedUri);
+          socket.close();
+          server.close();
+          asyncEnd();
+        }),
+      );
     });
   });
 }

@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:meta/meta.dart';
 
-/// Indirection between a name and the corresponding [ElementImpl].
+/// Indirection between a name and the corresponding [FragmentImpl].
 ///
 /// References are organized in a prefix tree.
-/// Each reference knows its parent, children, and the [ElementImpl].
+/// Each reference knows its parent, children, and the [FragmentImpl].
 ///
 ///      Library:
 ///         URI of library
@@ -24,7 +24,7 @@ import 'package:meta/meta.dart';
 ///         "@method"
 ///         Name of the method
 ///
-/// There is only one reference object per [ElementImpl].
+/// There is only one reference object per [FragmentImpl].
 class Reference {
   /// The name of the container used for duplicate declarations.
   static const _defName = '@def';
@@ -35,11 +35,11 @@ class Reference {
   /// The simple name of the reference in its [parent].
   String name;
 
-  /// The corresponding [ElementImpl], or `null` if a named container.
-  ElementImpl? element;
+  /// The corresponding [FragmentImpl], or `null` if a named container.
+  FragmentImpl? element;
 
-  /// The corresponding [Element2], or `null` if a named container.
-  Element2? element2;
+  /// The corresponding [Element], or `null` if a named container.
+  Element? element2;
 
   /// Temporary index used during serialization and linking.
   int? index;
@@ -170,8 +170,10 @@ class Reference {
       childrenUnionAsMap[childrenUnion.name] = childrenUnion;
       return childrenUnionAsMap[name] = Reference._(this, name);
     }
-    return (childrenUnion as Map<String, Reference>)[name] ??=
-        Reference._(this, name);
+    return (childrenUnion as Map<String, Reference>)[name] ??= Reference._(
+      this,
+      name,
+    );
   }
 
   /// Returns children with the given name.

@@ -7,7 +7,7 @@ class Class<T extends core::Object? = dynamic> extends core::Object /*hasConstCo
   const constructor •(self::Class::T% field) → self::Class<self::Class::T%>
     : self::Class::field = field, super core::Object::•()
     ;
-  static method _#new#tearOff<T extends core::Object? = dynamic>(self::Class::_#new#tearOff::T% field) → self::Class<self::Class::_#new#tearOff::T%>
+  static synthetic method _#new#tearOff<T extends core::Object? = dynamic>(self::Class::_#new#tearOff::T% field) → self::Class<self::Class::_#new#tearOff::T%>
     return new self::Class::•<self::Class::_#new#tearOff::T%>(field);
 }
 static const field (core::int) → core::int partialInstantiation = self::id<core::int>;

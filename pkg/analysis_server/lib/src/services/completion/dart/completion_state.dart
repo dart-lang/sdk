@@ -8,7 +8,7 @@ import 'package:analysis_server_plugin/src/utilities/selection.dart';
 import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/utilities/completion_matcher.dart';
 
@@ -58,7 +58,7 @@ class CompletionState {
   }
 
   /// The element of the library containing the completion location.
-  LibraryElement2 get libraryElement => request.libraryElement;
+  LibraryElement get libraryElement => request.libraryElement;
 
   /// The type of quotes preferred for [String]s as specified in [CodeStyleOptions].
   String get preferredQuoteForStrings =>

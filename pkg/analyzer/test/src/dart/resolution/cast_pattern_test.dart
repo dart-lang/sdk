@@ -16,13 +16,14 @@ main() {
 @reflectiveTest
 class CastPatternResolutionTest extends PubPackageResolutionTest {
   test_ifCase() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(x) {
   if (x case var y as int) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 29, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 29, 1)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 CastPattern
@@ -70,13 +71,14 @@ CastPattern
   }
 
   test_variableDeclaration() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(x) {
   var (a as int) = x;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 19, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 19, 1)],
+    );
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration

@@ -8,7 +8,8 @@ import "package:expect/expect.dart";
 
 void main() {
   Expect.isTrue(
-      reflectClass(MyException).superclass!.reflectedType == FormatException);
+    reflectClass(MyException).superclass!.reflectedType == FormatException,
+  );
 
   Expect.isTrue(reflectClass(FormatException).reflectedType == FormatException);
 }

@@ -26,7 +26,7 @@ class Visitor extends PubspecVisitor<void> {
   void visitPackageName(PSEntry name) {
     var packageName = name.value.text;
     if (packageName != null && !isValidPackageName(packageName)) {
-      rule.reportPubLint(name.value, arguments: [packageName]);
+      rule.reportAtPubNode(name.value, arguments: [packageName]);
     }
   }
 }

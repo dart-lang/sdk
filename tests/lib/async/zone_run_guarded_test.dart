@@ -18,20 +18,23 @@ main() {
   Expect.identical(Zone.root, Zone.current);
   late Zone forked;
   forked = Zone.current.fork(
-      specification: new ZoneSpecification(
-          run: <R>(Zone self, ZoneDelegate parent, Zone origin, R f()) {
-    // The zone is still the same as when origin.run was invoked, which
-    // is the root zone. (The origin zone hasn't been set yet).
-    Expect.identical(Zone.root, Zone.current);
-    events.add("forked.run");
-    return parent.run(origin, f);
-  }, handleUncaughtError:
-              (Zone self, ZoneDelegate parent, Zone origin, error, stackTrace) {
-    Expect.identical(Zone.root, Zone.current);
-    Expect.identical(forked, origin);
-    events.add("forked.handleUncaught $error");
-    result = 499;
-  }));
+    specification: new ZoneSpecification(
+      run: <R>(Zone self, ZoneDelegate parent, Zone origin, R f()) {
+        // The zone is still the same as when origin.run was invoked, which
+        // is the root zone. (The origin zone hasn't been set yet).
+        Expect.identical(Zone.root, Zone.current);
+        events.add("forked.run");
+        return parent.run(origin, f);
+      },
+      handleUncaughtError:
+          (Zone self, ZoneDelegate parent, Zone origin, error, stackTrace) {
+            Expect.identical(Zone.root, Zone.current);
+            Expect.identical(forked, origin);
+            events.add("forked.handleUncaught $error");
+            result = 499;
+          },
+    ),
+  );
 
   forked.runGuarded(() {
     events.add("runGuarded 1");
@@ -56,7 +59,7 @@ main() {
     "after runGuarded 1",
     "forked.run",
     "runGuarded 2",
-    "forked.handleUncaught 42"
+    "forked.handleUncaught 42",
   ], events);
 
   result = null;
@@ -84,7 +87,7 @@ main() {
       "after nested scheduleMicrotask",
       "forked.run",
       "run closure 2",
-      "forked.handleUncaught 88"
+      "forked.handleUncaught 88",
     ], events);
     asyncEnd();
   });

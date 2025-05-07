@@ -16,62 +16,67 @@ main() {
 @reflectiveTest
 class UndefinedNamedParameterTest extends PubPackageResolutionTest {
   test_constConstructor() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const A();
 }
 main() {
   const A(p: 0);
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, 44, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, 44, 1)],
+    );
   }
 
   test_constructor() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A();
 }
 main() {
   A(p: 0);
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, 32, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, 32, 1)],
+    );
   }
 
   test_enumConstant() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v(a: 0);
   const E();
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, 13, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, 13, 1)],
+    );
   }
 
   test_function() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f({a, b}) {}
 main() {
   f(c: 1);
-}''', [
-      error(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, 26, 1),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, 26, 1)],
+    );
   }
 
   test_method() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   m() {}
 }
 main() {
   A().m(p: 0);
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, 38, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, 38, 1)],
+    );
   }
 }

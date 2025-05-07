@@ -30,51 +30,54 @@ void main() {}
 ''');
 
     {
-      final process = await Process.start(dartExecutable,
-          <String>[...Platform.executableArguments, sharedUseTest]);
+      final process = await Process.start(dartExecutable, <String>[
+        ...Platform.executableArguments,
+        sharedUseTest,
+      ]);
       process.stdout
           .transform(utf8.decoder)
           .transform(const LineSplitter())
           .listen((String line) {
-        stdout.writeln('stdout:>$line');
-        stdout.writeln(line);
-      });
+            stdout.writeln('stdout:>$line');
+            stdout.writeln(line);
+          });
       final sb = StringBuffer();
       process.stderr
           .transform(utf8.decoder)
           .transform(const LineSplitter())
           .listen((String line) {
-        stderr.writeln('stderr:>$line');
-        sb.writeln(line);
-      });
+            stderr.writeln('stderr:>$line');
+            sb.writeln(line);
+          });
       Expect.notEquals(0, await process.exitCode);
       Expect.contains(
-          "Encountered vm:shared when functionality is disabled. "
-          "Pass --experimental-shared-data",
-          sb.toString());
+        "Encountered vm:shared when functionality is disabled. "
+        "Pass --experimental-shared-data",
+        sb.toString(),
+      );
     }
 
     {
       final process = await Process.start(dartExecutable, <String>[
         ...Platform.executableArguments,
         '--experimental_shared_data',
-        sharedUseTest
+        sharedUseTest,
       ]);
       process.stdout
           .transform(utf8.decoder)
           .transform(const LineSplitter())
           .listen((String line) {
-        stdout.writeln('stdout:>$line');
-        stdout.writeln(line);
-      });
+            stdout.writeln('stdout:>$line');
+            stdout.writeln(line);
+          });
       final sb = StringBuffer();
       process.stderr
           .transform(utf8.decoder)
           .transform(const LineSplitter())
           .listen((String line) {
-        stderr.writeln('stderr:>$line');
-        sb.writeln(line);
-      });
+            stderr.writeln('stderr:>$line');
+            sb.writeln(line);
+          });
       final exitCode = await process.exitCode;
       if (Platform.version.contains('(main)') ||
           Platform.version.contains('(dev)')) {
@@ -82,9 +85,10 @@ void main() {}
       } else {
         Expect.notEquals(0, exitCode);
         Expect.contains(
-            "Shared memory multithreading in only available for "
-            "experimentation in dev or main",
-            sb.toString());
+          "Shared memory multithreading in only available for "
+          "experimentation in dev or main",
+          sb.toString(),
+        );
       }
     }
   } finally {

@@ -33,8 +33,10 @@ class B {
 }
 ''');
     expect(names.topLevelNames, unorderedEquals(['A', 'B']));
-    expect(names.classMemberNames,
-        unorderedEquals(['a', 'b', 'd', 'e', 'f', 'g']));
+    expect(
+      names.classMemberNames,
+      unorderedEquals(['a', 'b', 'd', 'e', 'f', 'g']),
+    );
   }
 
   test_classMemberNames_extensionType() {
@@ -52,8 +54,10 @@ extension type B(int it) {
 }
 ''');
     expect(names.topLevelNames, unorderedEquals(['A', 'B']));
-    expect(names.classMemberNames,
-        unorderedEquals(['a', 'b', 'd', 'e', 'f', 'g']));
+    expect(
+      names.classMemberNames,
+      unorderedEquals(['a', 'b', 'd', 'e', 'f', 'g']),
+    );
   }
 
   test_classMemberNames_mixin() {
@@ -69,8 +73,10 @@ mixin B {
 }
 ''');
     expect(names.topLevelNames, unorderedEquals(['A', 'B']));
-    expect(names.classMemberNames,
-        unorderedEquals(['a', 'b', 'd', 'e', 'f', 'g']));
+    expect(
+      names.classMemberNames,
+      unorderedEquals(['a', 'b', 'd', 'e', 'f', 'g']),
+    );
   }
 
   test_topLevelNames() {
@@ -84,15 +90,14 @@ set F(_) {}
 var G, H;
 mixin M {}
 ''');
-    expect(names.topLevelNames,
-        unorderedEquals(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'M']));
+    expect(
+      names.topLevelNames,
+      unorderedEquals(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'M']),
+    );
     expect(names.classMemberNames, isEmpty);
   }
 
-  DefinedNames _computeDefinedNames(
-    String code, {
-    FeatureSet? featureSet,
-  }) {
+  DefinedNames _computeDefinedNames(String code, {FeatureSet? featureSet}) {
     var parseResult = parseString(
       content: code,
       featureSet: featureSet ?? FeatureSets.latestWithExperiments,

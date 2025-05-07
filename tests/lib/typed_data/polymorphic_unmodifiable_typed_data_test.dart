@@ -115,8 +115,11 @@ testUint16() {
     writeUint16(internal);
   }
 
-  var view =
-      new Uint16List.view(new Uint16List(kListSize).buffer, 0, kListSize);
+  var view = new Uint16List.view(
+    new Uint16List(kListSize).buffer,
+    0,
+    kListSize,
+  );
   for (var i = 0; i < kLoopSize; i++) {
     readUint16(view);
   }
@@ -196,8 +199,11 @@ testUint32() {
     writeUint32(internal);
   }
 
-  var view =
-      new Uint32List.view(new Uint32List(kListSize).buffer, 0, kListSize);
+  var view = new Uint32List.view(
+    new Uint32List(kListSize).buffer,
+    0,
+    kListSize,
+  );
   for (var i = 0; i < kLoopSize; i++) {
     readUint32(view);
   }
@@ -277,8 +283,11 @@ testUint64() {
     writeUint64(internal);
   }
 
-  var view =
-      new Uint64List.view(new Uint64List(kListSize).buffer, 0, kListSize);
+  var view = new Uint64List.view(
+    new Uint64List(kListSize).buffer,
+    0,
+    kListSize,
+  );
   for (var i = 0; i < kLoopSize; i++) {
     readUint64(view);
   }
@@ -358,8 +367,11 @@ testFloat32() {
     writeFloat32(internal);
   }
 
-  var view =
-      new Float32List.view(new Float32List(kListSize).buffer, 0, kListSize);
+  var view = new Float32List.view(
+    new Float32List(kListSize).buffer,
+    0,
+    kListSize,
+  );
   for (var i = 0; i < kLoopSize; i++) {
     readFloat32(view);
   }
@@ -399,8 +411,11 @@ testFloat64() {
     writeFloat64(internal);
   }
 
-  var view =
-      new Float64List.view(new Float64List(kListSize).buffer, 0, kListSize);
+  var view = new Float64List.view(
+    new Float64List(kListSize).buffer,
+    0,
+    kListSize,
+  );
   for (var i = 0; i < kLoopSize; i++) {
     readFloat64(view);
   }
@@ -443,8 +458,11 @@ testInt32x4() {
     writeInt32x4(internal);
   }
 
-  var view =
-      new Int32x4List.view(new Int32x4List(kListSize).buffer, 0, kListSize);
+  var view = new Int32x4List.view(
+    new Int32x4List(kListSize).buffer,
+    0,
+    kListSize,
+  );
   for (var i = 0; i < kLoopSize; i++) {
     readInt32x4(view);
   }
@@ -487,8 +505,11 @@ testFloat32x4() {
     writeFloat32x4(internal);
   }
 
-  var view =
-      new Float32x4List.view(new Float32x4List(kListSize).buffer, 0, kListSize);
+  var view = new Float32x4List.view(
+    new Float32x4List(kListSize).buffer,
+    0,
+    kListSize,
+  );
   for (var i = 0; i < kLoopSize; i++) {
     readFloat32x4(view);
   }
@@ -529,8 +550,11 @@ testFloat64x2() {
     writeFloat64x2(internal);
   }
 
-  var view =
-      new Float64x2List.view(new Float64x2List(kListSize).buffer, 0, kListSize);
+  var view = new Float64x2List.view(
+    new Float64x2List(kListSize).buffer,
+    0,
+    kListSize,
+  );
   for (var i = 0; i < kLoopSize; i++) {
     readFloat64x2(view);
   }

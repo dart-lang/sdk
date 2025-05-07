@@ -30,8 +30,10 @@ void timeoutHandler(Timer timer) {
     // certain amount of time to have passed.  Checking the time on
     // each iteration doesn't work because the timeoutHandler runs
     // concurrently with the periodic timer.
-    Expect.isTrue(stopwatch.elapsedMilliseconds + safetyMargin >=
-        ITERATIONS * TIMEOUT.inMilliseconds);
+    Expect.isTrue(
+      stopwatch.elapsedMilliseconds + safetyMargin >=
+          ITERATIONS * TIMEOUT.inMilliseconds,
+    );
     timer.cancel();
     completer.complete();
   }

@@ -80,7 +80,7 @@ class DirectivesOrdering extends LintRule {
   }
 
   void _reportLintWithDartDirectiveGoFirstMessage(AstNode node, String type) {
-    reportLint(
+    reportAtNode(
       node,
       errorCode: LinterLintCode.directives_ordering_dart,
       arguments: [type],
@@ -90,21 +90,21 @@ class DirectivesOrdering extends LintRule {
   void _reportLintWithDirectiveSectionOrderedAlphabeticallyMessage(
     AstNode node,
   ) {
-    reportLint(
+    reportAtNode(
       node,
       errorCode: LinterLintCode.directives_ordering_alphabetical,
     );
   }
 
   void _reportLintWithExportDirectiveAfterImportDirectiveMessage(AstNode node) {
-    reportLint(node, errorCode: LinterLintCode.directives_ordering_exports);
+    reportAtNode(node, errorCode: LinterLintCode.directives_ordering_exports);
   }
 
   void _reportLintWithPackageDirectiveBeforeRelativeMessage(
     AstNode node,
     String type,
   ) {
-    reportLint(
+    reportAtNode(
       node,
       errorCode: LinterLintCode.directives_ordering_package_before_relative,
       arguments: [type],

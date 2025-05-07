@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -83,7 +83,7 @@ class ConvertToMapLiteral extends ResolvedCorrectionProducer {
 
   /// Return `true` if the [element] represents either the class `Map` or
   /// `LinkedHashMap`.
-  bool _isMapClass(InterfaceElement2 element) =>
+  bool _isMapClass(InterfaceElement element) =>
       element == typeProvider.mapElement2 ||
       (element.name3 == 'LinkedHashMap' &&
           element.library2.name3 == 'dart.collection');

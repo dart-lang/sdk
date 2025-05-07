@@ -16,12 +16,13 @@ void main() {
 @reflectiveTest
 class DocImportCannotHaveCombinatorsTest extends PubPackageResolutionTest {
   test_configurations() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 /// @docImport 'dart:math' show max;
 class C {}
-''', [
-      error(WarningCode.DOC_IMPORT_CANNOT_HAVE_COMBINATORS, 27, 8),
-    ]);
+''',
+      [error(WarningCode.DOC_IMPORT_CANNOT_HAVE_COMBINATORS, 27, 8)],
+    );
   }
 
   test_noConfigurations() async {

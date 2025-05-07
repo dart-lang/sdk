@@ -31,11 +31,12 @@ enum E {}
   }
 
   test_noConstants() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 enum E {}
-''', [
-      error(CompileTimeErrorCode.ENUM_WITHOUT_CONSTANTS, 5, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ENUM_WITHOUT_CONSTANTS, 5, 1)],
+    );
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation

@@ -28,7 +28,8 @@ class B3 {
 }
 
 class D3 extends B3 {
-  String foo3({num a = 1.5, num b = 2.5}) => '$a, $b, '
+  String foo3({num a = 1.5, num b = 2.5}) =>
+      '$a, $b, '
       '${a is int ? "int" : "double"}, '
       '${b is int ? "int" : "double"}';
 }
@@ -70,14 +71,8 @@ void check2(B2 b) {
 
 @pragma('dart2js:never-inline')
 void check3(B3 b, bool first) {
-  Expect.equals(
-    first ? '100, 200' : '1.5, 2.5, double, double',
-    b.foo3(),
-  );
-  Expect.equals(
-    first ? '666, 200' : '666, 2.5, int, double',
-    b.foo3(a: 666),
-  );
+  Expect.equals(first ? '100, 200' : '1.5, 2.5, double, double', b.foo3());
+  Expect.equals(first ? '666, 200' : '666, 2.5, int, double', b.foo3(a: 666));
   Expect.equals(
     first ? '666, 777' : '666, 777, int, int',
     b.foo3(a: 666, b: 777),
@@ -87,12 +82,13 @@ void check3(B3 b, bool first) {
 @pragma('dart2js:never-inline')
 void check4(B4 b, bool isB) {
   Expect.equals(
-      isB
-          ? 1
-          : jsNumbers
-              ? 0xfffffff1 // Should be 'unsigned' when using JS numbers.
-              : -15,
-      b.foo4());
+    isB
+        ? 1
+        : jsNumbers
+        ? 0xfffffff1 // Should be 'unsigned' when using JS numbers.
+        : -15,
+    b.foo4(),
+  );
   Expect.equals(3, b.foo4(2));
 }
 

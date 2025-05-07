@@ -33,7 +33,7 @@ import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analysis_server_plugin/src/correction/performance.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -162,7 +162,7 @@ class LspAnalysisServer extends AnalysisServer {
     this.detachableFileSystemManager,
     super.enableBlazeWatcher,
     super.dartFixPromptManager,
-    super.retainDataForTesting,
+    super.messageSchedulerListener,
   }) : lspClientConfiguration = LspClientConfiguration(
          baseResourceProvider.pathContext,
        ),
@@ -358,7 +358,7 @@ class LspAnalysisServer extends AnalysisServer {
       // If the above code is extended to support multiple sets of config
       // this will need tweaking to handle the item for each section.
       if (result != null &&
-          result is List<dynamic> &&
+          result is List<Object?> &&
           result.length == 1 + folders.length) {
         // Config is stored as a map keyed by the workspace folder, and a key of
         // null for the global config
@@ -1394,12 +1394,12 @@ class LspServerContextManagerCallbacks
 
   bool _shouldSendError(protocol.AnalysisError error) {
     // Non-TODOs are always shown.
-    if (error.type.name != ErrorType.TODO.name) {
+    if (error.type.name != engine.DiagnosticType.TODO.name) {
       return true;
     }
 
     // TODOs that are upgraded from INFO are always shown.
-    if (error.severity.name != ErrorSeverity.INFO.name) {
+    if (error.severity.name != engine.DiagnosticSeverity.INFO.name) {
       return true;
     }
 

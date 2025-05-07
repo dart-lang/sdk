@@ -20,10 +20,10 @@ class C2 {
 instance_method_invocation(C1 c) {
   if (c.bad == null) return;
   c.bad();
-//^^^^^
-// [analyzer 1] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-//     ^
-// [cfe 7] Can't use an expression of type 'C2?' as a function because it's potentially null.
+  // [error column 3, length 5]
+  // [analyzer 1] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+  //   ^
+  // [cfe 7] Can't use an expression of type 'C2?' as a function because it's potentially null.
 }
 
 class C3 {
@@ -51,10 +51,10 @@ extension_invocation_method(C3 c) {
   c.ok();
   if (c.bad == null) return;
   c.bad();
-//^^^^^
-// [analyzer 2] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-//     ^
-// [cfe 8] Can't use an expression of type 'C5?' as a function because it's potentially null.
+  // [error column 3, length 5]
+  // [analyzer 2] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+  //   ^
+  // [cfe 8] Can't use an expression of type 'C5?' as a function because it's potentially null.
 }
 
 class C6 {
@@ -71,11 +71,11 @@ class C7 {
 instance_getter_invocation(C6 c) {
   if (c.bad == null) return;
   c.bad();
-//^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
-// [analyzer 3] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-//     ^
-// [cfe 9] Can't use an expression of type 'C7?' as a function because it's potentially null.
+  // [error column 3, length 5]
+  // [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
+  // [analyzer 3] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+  //   ^
+  // [cfe 9] Can't use an expression of type 'C7?' as a function because it's potentially null.
 }
 
 class C8 {
@@ -94,10 +94,10 @@ extension on C10 {
 extension_invocation_getter(C8 c) {
   if (c.bad == null) return;
   c.bad();
-//^^^^^
-// [analyzer 4] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-//     ^
-// [cfe 10] Can't use an expression of type 'C10?' as a function because it's potentially null.
+  // [error column 3, length 5]
+  // [analyzer 4] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+  //   ^
+  // [cfe 10] Can't use an expression of type 'C10?' as a function because it's potentially null.
 }
 
 class C11 {
@@ -110,10 +110,10 @@ class C11 {
 function_invocation(C11 c) {
   if (c.bad == null) return;
   c.bad();
-//^^^^^
-// [analyzer 5] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-//     ^
-// [cfe 11] Can't use an expression of type 'void Function()?' as a function because it's potentially null.
+  // [error column 3, length 5]
+  // [analyzer 5] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+  //   ^
+  // [cfe 11] Can't use an expression of type 'void Function()?' as a function because it's potentially null.
 }
 
 class C12 {
@@ -133,7 +133,7 @@ instance_field_invocation(C12 c) {
   // Note: the CFE error message is misleading here.  See
   // https://github.com/dart-lang/sdk/issues/45552
   c.bad.foo();
-//      ^^^
-// [analyzer 6] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-// [cfe 12] Can't use an expression of type 'C13?' as a function because it's potentially null.
+  //    ^^^
+  // [analyzer 6] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+  // [cfe 12] Can't use an expression of type 'C13?' as a function because it's potentially null.
 }

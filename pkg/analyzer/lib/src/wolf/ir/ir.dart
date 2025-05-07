@@ -68,18 +68,19 @@ abstract class BaseIRContainer with IRToStringMixin {
   final List<List<int>> _stackIndicesTable;
 
   BaseIRContainer(RawIRWriter writer)
-      : _opcodes = writer._opcodes,
-        _params0 = writer._params0,
-        _params1 = writer._params1,
-        _argumentNamesTable = writer._argumentNamesTable,
-        _stackIndicesTable = writer._stackIndicesTable;
+    : _opcodes = writer._opcodes,
+      _params0 = writer._params0,
+      _params1 = writer._params1,
+      _argumentNamesTable = writer._argumentNamesTable,
+      _stackIndicesTable = writer._stackIndicesTable;
 
   int get endAddress => _opcodes.length;
 
   @override
-  String argumentNamesRefToString(ArgumentNamesRef argumentNames) => [
+  String argumentNamesRefToString(ArgumentNamesRef argumentNames) =>
+      [
         for (var literal in decodeArgumentNames(argumentNames))
-          json.encode(literal)
+          json.encode(literal),
       ].toString();
 
   @override
@@ -148,11 +149,14 @@ class FunctionFlags {
 
   final int _flags;
 
-  const FunctionFlags(
-      {bool async = false, bool generator = false, bool instance = false})
-      : _flags = (async ? (1 << _asyncBit) : 0) |
-            (generator ? (1 << _generatorBit) : 0) |
-            (instance ? (1 << _instanceBit) : 0);
+  const FunctionFlags({
+    bool async = false,
+    bool generator = false,
+    bool instance = false,
+  }) : _flags =
+           (async ? (1 << _asyncBit) : 0) |
+           (generator ? (1 << _generatorBit) : 0) |
+           (instance ? (1 << _instanceBit) : 0);
 
   const FunctionFlags._(this._flags);
 
@@ -175,7 +179,7 @@ class FunctionFlags {
     var parts = [
       if (isAsync) 'async',
       if (isGenerator) 'generator',
-      if (isInstance) 'instance'
+      if (isInstance) 'instance',
     ];
     return parts.isEmpty ? '0' : parts.join('|');
   }
@@ -251,10 +255,14 @@ class RawIRWriter with _RawIRWriterMixin {
   final _params1 = <int>[];
   final _argumentNamesTable = <List<String?>>[];
   final _argumentNamesToRef = LinkedHashMap<List<String?>, ArgumentNamesRef>(
-      equals: const ListEquality<String?>().equals, hashCode: Object.hashAll);
+    equals: const ListEquality<String?>().equals,
+    hashCode: Object.hashAll,
+  );
   final _stackIndicesTable = <List<int>>[];
   final _stackIndicesToRef = LinkedHashMap<List<int>, StackIndicesRef>(
-      equals: const ListEquality<int>().equals, hashCode: Object.hashAll);
+    equals: const ListEquality<int>().equals,
+    hashCode: Object.hashAll,
+  );
 
   int _localVariableCount = 0;
 
@@ -279,20 +287,20 @@ class RawIRWriter with _RawIRWriterMixin {
   }
 
   ArgumentNamesRef encodeArgumentNames(List<String?> argumentNames) =>
-      // TODO(paulberry): is `putIfAbsent` the best-performing way to do this?
-      _argumentNamesToRef.putIfAbsent(argumentNames, () {
-        var encoding = ArgumentNamesRef(_argumentNamesTable.length);
-        _argumentNamesTable.add(argumentNames);
-        return encoding;
-      });
+  // TODO(paulberry): is `putIfAbsent` the best-performing way to do this?
+  _argumentNamesToRef.putIfAbsent(argumentNames, () {
+    var encoding = ArgumentNamesRef(_argumentNamesTable.length);
+    _argumentNamesTable.add(argumentNames);
+    return encoding;
+  });
 
   StackIndicesRef encodeStackIndices(List<int> stackIndices) =>
-      // TODO(paulberry): is `putIfAbsent` the best-performing way to do this?
-      _stackIndicesToRef.putIfAbsent(stackIndices, () {
-        var encoding = StackIndicesRef(_stackIndicesTable.length);
-        _stackIndicesTable.add(stackIndices);
-        return encoding;
-      });
+  // TODO(paulberry): is `putIfAbsent` the best-performing way to do this?
+  _stackIndicesToRef.putIfAbsent(stackIndices, () {
+    var encoding = StackIndicesRef(_stackIndicesTable.length);
+    _stackIndicesTable.add(stackIndices);
+    return encoding;
+  });
 
   @override
   void end() {

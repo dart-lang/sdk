@@ -51,6 +51,7 @@ import 'dart:_js_helper'
         lookupAndCacheInterceptor,
         StringMatch,
         firstMatchAfter,
+        SafeToStringHook,
         TrustedGetRuntimeType;
 
 import 'dart:_foreign_helper'

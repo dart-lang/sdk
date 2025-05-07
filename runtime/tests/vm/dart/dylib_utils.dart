@@ -18,8 +18,9 @@ ffi.DynamicLibrary dlopenPlatformSpecific(String name, {String path = ""}) {
   return ffi.DynamicLibrary.open(fullPath);
 }
 
-ffi.DynamicLibrary ffiTestFunctions =
-    dlopenPlatformSpecific("ffi_test_functions");
+ffi.DynamicLibrary ffiTestFunctions = dlopenPlatformSpecific(
+  "ffi_test_functions",
+);
 
 final triggerGc = ffiTestFunctions
     .lookupFunction<ffi.Void Function(), void Function()>("TriggerGC");

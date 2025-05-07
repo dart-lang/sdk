@@ -28,32 +28,40 @@ main() {
   late int _message;
 
   void timeoutHandler1() {
-    Expect.isTrue((_stopwatch1.elapsedMilliseconds + safetyMargin) >=
-        TIMEOUT1.inMilliseconds);
+    Expect.isTrue(
+      (_stopwatch1.elapsedMilliseconds + safetyMargin) >=
+          TIMEOUT1.inMilliseconds,
+    );
     Expect.equals(_order[_message], 0);
     _message++;
     asyncEnd();
   }
 
   void timeoutHandler2() {
-    Expect.isTrue((_stopwatch2.elapsedMilliseconds + safetyMargin) >=
-        TIMEOUT2.inMilliseconds);
+    Expect.isTrue(
+      (_stopwatch2.elapsedMilliseconds + safetyMargin) >=
+          TIMEOUT2.inMilliseconds,
+    );
     Expect.equals(_order[_message], 1);
     _message++;
     asyncEnd();
   }
 
   void timeoutHandler3() {
-    Expect.isTrue((_stopwatch3.elapsedMilliseconds + safetyMargin) >=
-        TIMEOUT3.inMilliseconds);
+    Expect.isTrue(
+      (_stopwatch3.elapsedMilliseconds + safetyMargin) >=
+          TIMEOUT3.inMilliseconds,
+    );
     Expect.equals(_order[_message], 2);
     _message++;
     asyncEnd();
   }
 
   void timeoutHandler4() {
-    Expect.isTrue((_stopwatch4.elapsedMilliseconds + safetyMargin) >=
-        TIMEOUT4.inMilliseconds);
+    Expect.isTrue(
+      (_stopwatch4.elapsedMilliseconds + safetyMargin) >=
+          TIMEOUT4.inMilliseconds,
+    );
     Expect.equals(_order[_message], 3);
     _message++;
     asyncEnd();

@@ -33,9 +33,9 @@ static field self::E /* erasure=self::C */ e;
 static field self::D /* erasure=self::C */ d;
 static extension-type-member method E|constructor#(self::C c) → self::E /* erasure=self::C */
   ;
-static extension-type-member method E|constructor#_#new#tearOff(self::C c) → self::E /* erasure=self::C */
+static extension-type-member synthetic method E|constructor#_#new#tearOff(self::C c) → self::E /* erasure=self::C */
   return self::E|constructor#(c);
 static extension-type-member method D|constructor#(self::C c) → self::D /* erasure=self::C */
   ;
-static extension-type-member method D|constructor#_#new#tearOff(self::C c) → self::D /* erasure=self::C */
+static extension-type-member synthetic method D|constructor#_#new#tearOff(self::C c) → self::D /* erasure=self::C */
   return self::D|constructor#(c);

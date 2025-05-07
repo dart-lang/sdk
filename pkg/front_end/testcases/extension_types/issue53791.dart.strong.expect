@@ -61,29 +61,29 @@ static extension-type-member method E|constructor#(core::Object? it) → self::E
   lowered final self::E% /* erasure=core::Object?, declared=! */ #this = it;
   return #this;
 }
-static extension-type-member method E|constructor#_#new#tearOff(core::Object? it) → self::E% /* erasure=core::Object?, declared=! */
+static extension-type-member synthetic method E|constructor#_#new#tearOff(core::Object? it) → self::E% /* erasure=core::Object?, declared=! */
   return self::E|constructor#(it);
 static extension-type-member method E1|constructor#(self::A it) → self::E1 /* erasure=self::A */ {
   lowered final self::E1 /* erasure=self::A */ #this = it;
   return #this;
 }
-static extension-type-member method E1|constructor#_#new#tearOff(self::A it) → self::E1 /* erasure=self::A */
+static extension-type-member synthetic method E1|constructor#_#new#tearOff(self::A it) → self::E1 /* erasure=self::A */
   return self::E1|constructor#(it);
 static extension-type-member method E2|constructor#(self::E% /* erasure=core::Object?, declared=! */ it) → self::E2% /* erasure=core::Object?, declared=! */ {
   lowered final self::E2% /* erasure=core::Object?, declared=! */ #this = it;
   return #this;
 }
-static extension-type-member method E2|constructor#_#new#tearOff(self::E% /* erasure=core::Object?, declared=! */ it) → self::E2% /* erasure=core::Object?, declared=! */
+static extension-type-member synthetic method E2|constructor#_#new#tearOff(self::E% /* erasure=core::Object?, declared=! */ it) → self::E2% /* erasure=core::Object?, declared=! */
   return self::E2|constructor#(it);
 static extension-type-member method E3|constructor#(self::A it) → self::E3 /* erasure=self::A */ {
   lowered final self::E3 /* erasure=self::A */ #this = it;
   return #this;
 }
-static extension-type-member method E3|constructor#_#new#tearOff(self::A it) → self::E3 /* erasure=self::A */
+static extension-type-member synthetic method E3|constructor#_#new#tearOff(self::A it) → self::E3 /* erasure=self::A */
   return self::E3|constructor#(it);
 static extension-type-member method E4|constructor#(self::E% /* erasure=core::Object?, declared=! */ it) → self::E4% /* erasure=core::Object?, declared=! */ {
   lowered final self::E4% /* erasure=core::Object?, declared=! */ #this = it;
   return #this;
 }
-static extension-type-member method E4|constructor#_#new#tearOff(self::E% /* erasure=core::Object?, declared=! */ it) → self::E4% /* erasure=core::Object?, declared=! */
+static extension-type-member synthetic method E4|constructor#_#new#tearOff(self::E% /* erasure=core::Object?, declared=! */ it) → self::E4% /* erasure=core::Object?, declared=! */
   return self::E4|constructor#(it);

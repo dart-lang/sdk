@@ -8,7 +8,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer_utilities/package_root.dart';
+import 'package:analyzer_testing/package_root.dart';
 import 'package:test/test.dart';
 
 /// The purpose of this test is to validate that all elements

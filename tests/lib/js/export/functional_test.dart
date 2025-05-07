@@ -172,8 +172,10 @@ void testOverrides(WrapperCreator creator) {
   setProperty(overrides, 'getSet', 'derivedSetter');
 
   expect(callMethod(overrides, 'method', []), dartOverrides.method());
-  expect(callMethod(overrides, 'nonOverriddenMethod', []),
-      dartOverrides.nonOverriddenMethod());
+  expect(
+    callMethod(overrides, 'nonOverriddenMethod', []),
+    dartOverrides.nonOverriddenMethod(),
+  );
 }
 
 // Test case where some members are overridden by members not marked for export,
@@ -239,7 +241,10 @@ void testArity(WrapperCreator creator) {
 // Test that the transformation occurs in other js_util calls.
 void testNestedJsUtil(WrapperCreator creator) {
   setProperty(
-      globalThis, 'export', creator.createExportAll(ExportAll.constructor()));
+    globalThis,
+    'export',
+    creator.createExportAll(ExportAll.constructor()),
+  );
   expect(hasProperty(globalThis, 'export'), true);
   expect(hasProperty(getProperty(globalThis, 'export'), 'field'), true);
 }

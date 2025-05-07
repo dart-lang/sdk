@@ -4,7 +4,8 @@
 
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -23,7 +24,8 @@ final class LinterConstantEvaluationResult {
   final DartObject? value;
 
   /// The errors reported during the evaluation.
-  final List<AnalysisError> errors;
+  // TODO(srawlins): Rename to `diagnostics`.
+  final List<Diagnostic> errors;
 
   LinterConstantEvaluationResult._(this.value, this.errors);
 }
@@ -36,17 +38,18 @@ class _ConstantAnalysisErrorListener extends AnalysisErrorListener {
   bool hasConstError = false;
 
   @override
-  void onError(AnalysisError error) {
+  void onError(Diagnostic error) {
     ErrorCode errorCode = error.errorCode;
     if (errorCode is CompileTimeErrorCode) {
       switch (errorCode) {
         case CompileTimeErrorCode
-              .CONST_CONSTRUCTOR_CONSTANT_FROM_DEFERRED_LIBRARY:
+            .CONST_CONSTRUCTOR_CONSTANT_FROM_DEFERRED_LIBRARY:
         case CompileTimeErrorCode
-              .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST:
+            .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST:
         case CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD:
         case CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD:
         case CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION:
+        case CompileTimeErrorCode.CONST_EVAL_NULL_AWARE_ACCESS:
         case CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS:
         case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL:
         case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT:
@@ -65,7 +68,7 @@ class _ConstantAnalysisErrorListener extends AnalysisErrorListener {
         case CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT:
         case CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS:
         case CompileTimeErrorCode
-              .CONST_WITH_TYPE_PARAMETERS_CONSTRUCTOR_TEAROFF:
+            .CONST_WITH_TYPE_PARAMETERS_CONSTRUCTOR_TEAROFF:
         case CompileTimeErrorCode.INVALID_CONSTANT:
         case CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL:
         case CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL:
@@ -106,13 +109,7 @@ extension on AstNode {
     var listener = _ConstantAnalysisErrorListener();
     var errorReporter = ErrorReporter(listener, unitFragment.source);
 
-    accept(
-      ConstantVerifier(
-        errorReporter,
-        libraryElement,
-        declaredVariables,
-      ),
-    );
+    accept(ConstantVerifier(errorReporter, libraryElement, declaredVariables));
     return listener.hasConstError;
   }
 }
@@ -122,7 +119,7 @@ extension ConstructorDeclarationExtension on ConstructorDeclaration {
     var element = declaredFragment!.element;
 
     var classElement = element.enclosingElement2;
-    if (classElement is ClassElement2 && classElement.hasNonFinalField) {
+    if (classElement is ClassElement && classElement.hasNonFinalField) {
       return false;
     }
 

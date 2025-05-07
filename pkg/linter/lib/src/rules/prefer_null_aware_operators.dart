@@ -75,7 +75,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         _ => null,
       };
       if (resultExpression.toString() == conditionText) {
-        rule.reportLint(node);
+        rule.reportAtNode(node);
         return;
       }
     }

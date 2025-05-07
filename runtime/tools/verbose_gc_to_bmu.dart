@@ -93,16 +93,20 @@ Interval parseVerboseGCLine(String line) {
 
 void main() {
   Timeline t = new Timeline();
-  for (String? line = stdin.readLineSync();
-      line != null;
-      line = stdin.readLineSync()) {
+  for (
+    String? line = stdin.readLineSync();
+    line != null;
+    line = stdin.readLineSync()
+  ) {
     t.addPause(parseVerboseGCLine(line));
   }
   print('# window_size_ms, bounded_mutator_utilization');
   var minimumSeen = 1.0;
-  for (int w = t._run.length;
-      w > 1000 * MINIMUM_WINDOW_SIZE_MS;
-      w = (w * WINDOW_STEP_FACTOR).floor()) {
+  for (
+    int w = t._run.length;
+    w > 1000 * MINIMUM_WINDOW_SIZE_MS;
+    w = (w * WINDOW_STEP_FACTOR).floor()
+  ) {
     minimumSeen = min(minimumSeen, t.minUtilization(w));
     print('${w / 1000}, $minimumSeen');
   }

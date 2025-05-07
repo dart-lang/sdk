@@ -37,7 +37,8 @@ class AnalysisServer {
     this.enabledExperiments = const [],
     this.disableStatusNotificationDebouncing = false,
     this.suppressAnalytics = false,
-  });
+    bool useAotSnapshot = false,
+  }) : _useAotSnapshot = useAotSnapshot;
 
   final String? cacheDirectoryPath;
   final File? packagesFile;
@@ -48,6 +49,7 @@ class AnalysisServer {
   final List<String> enabledExperiments;
   final bool disableStatusNotificationDebouncing;
   final bool suppressAnalytics;
+  final bool _useAotSnapshot;
 
   Process? _process;
 
@@ -107,24 +109,8 @@ class AnalysisServer {
   /// Starts the process and returns the pid for it.
   Future<int> start({bool setAnalysisRoots = true}) async {
     preAnalysisServerStart?.call(commandName, analysisRoots, argResults);
-    final command = [
-      sdk.analysisServerSnapshot,
-      if (suppressAnalytics) '--${Driver.SUPPRESS_ANALYTICS_FLAG}',
-      '--${Driver.CLIENT_ID}=dart-$commandName',
-      '--disable-server-feature-completion',
-      '--disable-server-feature-search',
-      if (disableStatusNotificationDebouncing)
-        '--disable-status-notification-debouncing',
-      '--disable-silent-analysis-exceptions',
-      '--sdk',
-      sdkPath.path,
-      if (cacheDirectoryPath != null) '--cache=$cacheDirectoryPath',
-      if (packagesFile != null) '--packages=${packagesFile!.path}',
-      if (enabledExperiments.isNotEmpty)
-        '--$experimentFlagName=${enabledExperiments.join(',')}'
-    ];
 
-    final process = await startDartProcess(sdk, command);
+    final process = await _startProcess();
     _process = process;
     _shutdownResponseReceived = false;
     // This callback hookup can't throw.
@@ -204,6 +190,32 @@ class AnalysisServer {
     }
 
     return process.pid;
+  }
+
+  Future<Process> _startProcess() {
+    final executable = _useAotSnapshot ? sdk.dartAotRuntime : sdk.dart;
+    final arguments = [
+      if (_useAotSnapshot)
+        sdk.analysisServerAotSnapshot
+      else
+        sdk.analysisServerSnapshot,
+      if (suppressAnalytics) '--${Driver.SUPPRESS_ANALYTICS_FLAG}',
+      '--${Driver.CLIENT_ID}=dart-$commandName',
+      '--disable-server-feature-completion',
+      '--disable-server-feature-search',
+      if (disableStatusNotificationDebouncing)
+        '--disable-status-notification-debouncing',
+      '--disable-silent-analysis-exceptions',
+      '--sdk',
+      sdkPath.path,
+      if (cacheDirectoryPath != null) '--cache=$cacheDirectoryPath',
+      if (packagesFile != null) '--packages=${packagesFile!.path}',
+      if (enabledExperiments.isNotEmpty)
+        '--$experimentFlagName=${enabledExperiments.join(',')}',
+    ];
+
+    log.trace('$executable ${arguments.join(' ')}');
+    return Process.start(executable, arguments);
   }
 
   Future<String> getVersion() {
@@ -290,7 +302,7 @@ class AnalysisServer {
           _streamController(event).add(params.cast<String, dynamic>());
         }
       } else if (response case {'id': final String id}) {
-        if (response case {'error': final Map error}) {
+        if (response case {'error': final Map<String, Object?> error}) {
           _requestCompleters.remove(id)?.completeError(
               RequestError.parse(error.cast<String, dynamic>()));
         } else {

@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
@@ -22,7 +22,7 @@ import 'package:analyzer/src/error/getter_setter_types_verifier.dart';
 import 'package:analyzer/src/error/inference_error.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 
-final _missingMustBeOverridden = Expando<List<ExecutableElement2>>();
+final _missingMustBeOverridden = Expando<List<ExecutableElement>>();
 final _missingOverrides = Expando<List<ExecutableElement2OrMember>>();
 
 class InheritanceOverrideVerifier {
@@ -130,17 +130,19 @@ class InheritanceOverrideVerifier {
     }
   }
 
-  /// Returns [ExecutableElement2] members that are in the interface of the
+  /// Returns [ExecutableElement] members that are in the interface of the
   /// given class with `@mustBeOverridden`, but don't have implementations.
-  static List<ExecutableElement2> missingMustBeOverridden(
-      NamedCompilationUnitMember node) {
+  static List<ExecutableElement> missingMustBeOverridden(
+    NamedCompilationUnitMember node,
+  ) {
     return _missingMustBeOverridden[node.name] ?? const [];
   }
 
-  /// Returns [ExecutableElement2] members that are in the interface of the
+  /// Returns [ExecutableElement] members that are in the interface of the
   /// given class, but don't have concrete implementations.
-  static List<ExecutableElement2> missingOverrides(
-      NamedCompilationUnitMember node) {
+  static List<ExecutableElement> missingOverrides(
+    NamedCompilationUnitMember node,
+  ) {
     return _missingOverrides[node.name] ?? const [];
   }
 }
@@ -154,7 +156,7 @@ class _ClassVerifier {
   final FeatureSet featureSet;
   final LibraryElementImpl library;
   final Uri libraryUri;
-  final InterfaceElementImpl classElement;
+  final InterfaceFragmentImpl classElement;
 
   final Token classNameToken;
   final List<ClassMember> members;
@@ -165,8 +167,8 @@ class _ClassVerifier {
 
   final List<InterfaceType> directSuperInterfaces = [];
 
-  late final bool implementsDartCoreEnum =
-      classElement.allSupertypes.any((e) => e.isDartCoreEnum);
+  late final bool implementsDartCoreEnum = classElement.element.allSupertypes
+      .any((e) => e.isDartCoreEnum);
 
   _ClassVerifier({
     required this.typeSystem,
@@ -195,8 +197,8 @@ class _ClassVerifier {
     var element = fragment.element;
     var firstFragment = element.firstFragment;
 
-    if (firstFragment is! EnumElementImpl &&
-        firstFragment is ClassElementImpl &&
+    if (firstFragment is! EnumFragmentImpl &&
+        firstFragment is ClassFragmentImpl &&
         !firstFragment.isAbstract &&
         implementsDartCoreEnum) {
       reporter.atToken(
@@ -248,12 +250,18 @@ class _ClassVerifier {
       if (member is FieldDeclarationImpl) {
         var fieldList = member.fields;
         for (var field in fieldList.variables) {
-          var fieldElement = field.declaredFragment! as FieldElementImpl;
+          var fieldElement = field.declaredFragment! as FieldFragmentImpl;
           _checkDeclaredMember(
-              field.name, libraryUri, fieldElement.getter?.asElement2);
+            field.name,
+            libraryUri,
+            fieldElement.getter?.asElement2,
+          );
           _checkDeclaredMember(
-              field.name, libraryUri, fieldElement.setter?.asElement2);
-          if (!member.isStatic && firstFragment is! EnumElementImpl) {
+            field.name,
+            libraryUri,
+            fieldElement.setter?.asElement2,
+          );
+          if (!member.isStatic && firstFragment is! EnumFragmentImpl) {
             _checkIllegalEnumValuesDeclaration(field.name);
           }
           if (!member.isStatic) {
@@ -267,12 +275,15 @@ class _ClassVerifier {
         }
 
         _checkDeclaredMember(
-            member.name, libraryUri, member.declaredFragment!.asElement2,
-            methodParameterNodes: member.parameters?.parameters);
+          member.name,
+          libraryUri,
+          member.declaredFragment!.asElement2,
+          methodParameterNodes: member.parameters?.parameters,
+        );
         if (!(member.isStatic || member.isAbstract || member.isSetter)) {
           _checkIllegalConcreteEnumMemberDeclaration(member.name);
         }
-        if (!member.isStatic && firstFragment is! EnumElementImpl) {
+        if (!member.isStatic && firstFragment is! EnumFragmentImpl) {
           _checkIllegalEnumValuesDeclaration(member.name);
         }
       }
@@ -282,12 +293,12 @@ class _ClassVerifier {
     _checkIllegalEnumValuesInheritance();
 
     GetterSetterTypesVerifier(
-      typeSystem: typeSystem,
+      library: library,
       errorReporter: reporter,
     ).checkInterface(element, interface);
 
-    if (firstFragment is ClassElementImpl && !firstFragment.isAbstract ||
-        firstFragment is EnumElementImpl) {
+    if (firstFragment is ClassFragmentImpl && !firstFragment.isAbstract ||
+        firstFragment is EnumFragmentImpl) {
       List<ExecutableElement2OrMember>? inheritedAbstract;
 
       for (var name in interface.map.keys) {
@@ -307,7 +318,7 @@ class _ClassVerifier {
             continue;
           }
           // We already reported ILLEGAL_ENUM_VALUES_INHERITANCE.
-          if (firstFragment is EnumElementImpl &&
+          if (firstFragment is EnumFragmentImpl &&
               const {'values', 'values='}.contains(name.name)) {
             continue;
           }
@@ -343,9 +354,10 @@ class _ClassVerifier {
           superMember: interfaceElement,
           errorReporter: reporter,
           errorNode: classNameToken,
-          errorCode: concreteElement is SetterElement2OrMember
-              ? CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE_SETTER
-              : CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE,
+          diagnosticCode:
+              concreteElement is SetterElement2OrMember
+                  ? CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE_SETTER
+                  : CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE,
         );
       }
 
@@ -393,26 +405,30 @@ class _ClassVerifier {
       }
 
       correctOverrideHelper.verify(
-          superMember: superMember.asElement2,
-          errorReporter: reporter,
-          errorNode: node,
-          errorCode: member is SetterElement
-              ? CompileTimeErrorCode.INVALID_OVERRIDE_SETTER
-              : CompileTimeErrorCode.INVALID_OVERRIDE);
+        superMember: superMember.asElement2,
+        errorReporter: reporter,
+        errorNode: node,
+        diagnosticCode:
+            member is SetterElement
+                ? CompileTimeErrorCode.INVALID_OVERRIDE_SETTER
+                : CompileTimeErrorCode.INVALID_OVERRIDE,
+      );
     }
 
     if (mixinIndex == -1) {
-      CovariantParametersVerifier(thisMember: member).verify(
-        errorReporter: reporter,
-        errorEntity: node,
-      );
+      CovariantParametersVerifier(
+        thisMember: member,
+      ).verify(errorReporter: reporter, errorEntity: node);
     }
   }
 
   /// Check that instance members of [type] are valid overrides of the
   /// corresponding instance members in each of [directSuperInterfaces].
-  void _checkDeclaredMembers(AstNode node, InterfaceTypeImpl type,
-      {required int mixinIndex}) {
+  void _checkDeclaredMembers(
+    AstNode node,
+    InterfaceTypeImpl type, {
+    required int mixinIndex,
+  }) {
     var libraryUri = type.element3.library2.uri;
     for (var method in type.methods2) {
       _checkDeclaredMember(node, libraryUri, method, mixinIndex: mixinIndex);
@@ -443,12 +459,12 @@ class _ClassVerifier {
     var typeElement = type.element3;
 
     var classElement = this.classElement;
-    if (typeElement is ClassElement2 &&
+    if (typeElement is ClassElement &&
         typeElement.isDartCoreEnum &&
         library.featureSet.isEnabled(Feature.enhanced_enums)) {
-      if (classElement is ClassElementImpl && classElement.isAbstract ||
-          classElement is EnumElementImpl ||
-          classElement is MixinElementImpl) {
+      if (classElement is ClassFragmentImpl && classElement.isAbstract ||
+          classElement is EnumFragmentImpl ||
+          classElement is MixinFragmentImpl) {
         return false;
       }
       hasEnum?.call();
@@ -465,7 +481,10 @@ class _ClassVerifier {
 
   /// Verify that the given [namedType] does not extend, implement, or mixes-in
   /// types such as `num` or `String`.
-  bool _checkDirectSuperTypeNode(NamedType namedType, ErrorCode errorCode) {
+  bool _checkDirectSuperTypeNode(
+    NamedType namedType,
+    DiagnosticCode diagnosticCode,
+  ) {
     if (namedType.isSynthetic) {
       return false;
     }
@@ -480,11 +499,7 @@ class _ClassVerifier {
         );
       },
       notSubtypable: () {
-        reporter.atNode(
-          namedType,
-          errorCode,
-          arguments: [type],
-        );
+        reporter.atNode(namedType, diagnosticCode, arguments: [type]);
       },
     );
   }
@@ -530,7 +545,7 @@ class _ClassVerifier {
         )) {
           hasError = true;
         }
-        if (classElement is EnumElementImpl && _checkMixinOfEnum(namedType)) {
+        if (classElement is EnumFragmentImpl && _checkMixinOfEnum(namedType)) {
           hasError = true;
         }
       }
@@ -547,9 +562,11 @@ class _ClassVerifier {
   /// [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS],
   /// [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_ON],
   /// [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_WITH].
-  bool _checkForRecursiveInterfaceInheritance(InterfaceElementImpl2 element,
-      [List<InterfaceElement2>? path]) {
-    path ??= <InterfaceElement2>[];
+  bool _checkForRecursiveInterfaceInheritance(
+    InterfaceElementImpl2 element, [
+    List<InterfaceElement>? path,
+  ]) {
+    path ??= <InterfaceElement>[];
 
     // Detect error condition.
     int size = path.length;
@@ -626,10 +643,10 @@ class _ClassVerifier {
   void _checkIllegalConcreteEnumMemberDeclaration(Token name) {
     if (implementsDartCoreEnum) {
       var classElement = this.classElement;
-      if (classElement is ClassElementImpl &&
+      if (classElement is ClassFragmentImpl &&
               !classElement.isDartCoreEnumImpl ||
-          classElement is EnumElementImpl ||
-          classElement is MixinElementImpl) {
+          classElement is EnumFragmentImpl ||
+          classElement is MixinFragmentImpl) {
         if (const {'index', 'hashCode', '=='}.contains(name.lexeme)) {
           reporter.atToken(
             name,
@@ -645,7 +662,7 @@ class _ClassVerifier {
     // We ignore mixins because they don't inherit and members.
     // But to support `super.foo()` invocations we put members from superclass
     // constraints into the `superImplemented` bucket, the same we look below.
-    if (classElement is MixinElementImpl) {
+    if (classElement is MixinFragmentImpl) {
       return;
     }
 
@@ -654,13 +671,13 @@ class _ClassVerifier {
 
       void checkSingle(
         String memberName,
-        bool Function(ClassElement2 enclosingClass) filter,
+        bool Function(ClassElement enclosingClass) filter,
       ) {
         var member = concreteMap[Name(libraryUri, memberName)];
         if (member != null) {
           var enclosingClass = member.asElement2.enclosingElement2;
           if (enclosingClass != null) {
-            if (enclosingClass is! ClassElement2 || filter(enclosingClass)) {
+            if (enclosingClass is! ClassElement || filter(enclosingClass)) {
               reporter.atToken(
                 classNameToken,
                 CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE,
@@ -714,8 +731,8 @@ class _ClassVerifier {
     }
 
     var interfaceElement = type.element3;
-    if (interfaceElement is EnumElement2 ||
-        interfaceElement is ExtensionTypeElement2) {
+    if (interfaceElement is EnumElement ||
+        interfaceElement is ExtensionTypeElement) {
       return false;
     }
 
@@ -732,12 +749,12 @@ class _ClassVerifier {
 
   /// Return the error code that should be used when the given class [element]
   /// references itself directly.
-  ErrorCode _getRecursiveErrorCode(InterfaceElement2 element) {
+  DiagnosticCode _getRecursiveErrorCode(InterfaceElement element) {
     if (element.supertype?.element3 == classElement.asElement2) {
       return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS;
     }
 
-    if (element is MixinElement2) {
+    if (element is MixinElement) {
       for (var type in element.superclassConstraints) {
         if (type.element3 == classElement.asElement2) {
           return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_ON;
@@ -756,9 +773,7 @@ class _ClassVerifier {
 
   /// If [name] is not implemented in the extended concrete class, the
   /// issue should be fixed there, and then [classElement] will not have it too.
-  bool _isNotImplementedInConcreteSuperClass(
-    Name name,
-  ) {
+  bool _isNotImplementedInConcreteSuperClass(Name name) {
     var superElement = classElement.supertype?.element3;
     if (superElement is ClassElementImpl2 && !superElement.isAbstract) {
       var superInterface = inheritance.getInterface2(superElement);
@@ -773,11 +788,14 @@ class _ClassVerifier {
   /// report the more specific error, and return `true`.
   bool _reportConcreteClassWithAbstractMember(String name) {
     bool checkMemberNameCombo(
-        ClassMember member, String memberName, String displayName) {
+      ClassMember member,
+      String memberName,
+      String displayName,
+    ) {
       if (memberName == name) {
         reporter.atNode(
           member,
-          classElement.asElement2 is EnumElement2
+          classElement.asElement2 is EnumElement
               ? CompileTimeErrorCode.ENUM_WITH_ABSTRACT_MEMBER
               : CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
           arguments: [displayName, classElement.name],
@@ -823,15 +841,17 @@ class _ClassVerifier {
         arguments: [
           name.name,
           conflict.getter2.enclosingElement2!.name3!,
-          conflict.method2.enclosingElement2!.name3!
+          conflict.method2.enclosingElement2!.name3!,
         ],
       );
     } else if (conflict is CandidatesConflict) {
-      var candidatesStr = conflict.candidates2.map((candidate) {
-        var className = candidate.enclosingElement2!.name3;
-        var typeStr = candidate.type.getDisplayString();
-        return '$className.${name.name} ($typeStr)';
-      }).join(', ');
+      var candidatesStr = conflict.candidates2
+          .map((candidate) {
+            var className = candidate.enclosingElement2!.name3;
+            var typeStr = candidate.type.getDisplayString();
+            return '$className.${name.name} ($typeStr)';
+          })
+          .join(', ');
 
       reporter.atToken(
         token,
@@ -844,7 +864,8 @@ class _ClassVerifier {
   }
 
   void _reportInheritedAbstractMembers(
-      List<ExecutableElement2OrMember>? elements) {
+    List<ExecutableElement2OrMember>? elements,
+  ) {
     if (elements == null) {
       return;
     }
@@ -894,7 +915,7 @@ class _ClassVerifier {
           descriptions[0],
           descriptions[1],
           descriptions[2],
-          descriptions[3]
+          descriptions[3],
         ],
       );
     } else {
@@ -907,7 +928,7 @@ class _ClassVerifier {
           descriptions[1],
           descriptions[2],
           descriptions[3],
-          descriptions.length - 4
+          descriptions.length - 4,
         ],
       );
     }
@@ -915,17 +936,14 @@ class _ClassVerifier {
 
   bool _reportNoCombinedSuperSignature(MethodDeclarationImpl node) {
     var fragment = node.declaredFragment;
-    if (fragment is MethodElementImpl) {
+    if (fragment is MethodFragmentImpl) {
       var inferenceError = fragment.typeInferenceError;
       if (inferenceError?.kind ==
           TopLevelInferenceErrorKind.overrideNoCombinedSuperSignature) {
         reporter.atToken(
           node.name,
           CompileTimeErrorCode.NO_COMBINED_SUPER_SIGNATURE,
-          arguments: [
-            classElement.name,
-            inferenceError!.arguments[0],
-          ],
+          arguments: [classElement.name, inferenceError!.arguments[0]],
         );
         return true;
       }
@@ -944,13 +962,14 @@ class _ClassVerifier {
       return;
     }
 
-    var noSuchMethodDeclaration =
-        classElement.getMethod2(MethodElement2.NO_SUCH_METHOD_METHOD_NAME);
+    var noSuchMethodDeclaration = classElement.getMethod2(
+      MethodElement.NO_SUCH_METHOD_METHOD_NAME,
+    );
     if (noSuchMethodDeclaration != null &&
         !noSuchMethodDeclaration.isAbstract) {
       return;
     }
-    var notOverridden = <ExecutableElement2>[];
+    var notOverridden = <ExecutableElement>[];
     for (var supertype in classElement.allSupertypes) {
       // TODO(srawlins): This looping may be expensive. Since the vast majority
       // of classes will have zero elements annotated with `@mustBeOverridden`,
@@ -1007,16 +1026,17 @@ class _ClassVerifier {
     }
 
     _missingMustBeOverridden[classNameToken] = notOverridden.toList();
-    var namesForError = notOverridden
-        .map((e) {
-          var name = e.name3!;
-          if (name.endsWith('=')) {
-            name = name.substring(0, name.length - 1);
-          }
-          return name;
-        })
-        .toSet()
-        .toList();
+    var namesForError =
+        notOverridden
+            .map((e) {
+              var name = e.name3!;
+              if (name.endsWith('=')) {
+                name = name.substring(0, name.length - 1);
+              }
+              return name;
+            })
+            .toSet()
+            .toList();
 
     if (namesForError.length == 1) {
       reporter.atToken(

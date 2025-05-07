@@ -545,6 +545,8 @@ abstract final class LintNames {
   static const String unnecessary_to_list_in_spreads =
       'unnecessary_to_list_in_spreads';
 
+  static const String unnecessary_unawaited = 'unnecessary_unawaited';
+
   static const String unnecessary_underscores = 'unnecessary_underscores';
 
   static const String unreachable_from_main = 'unreachable_from_main';

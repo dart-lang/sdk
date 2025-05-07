@@ -42,7 +42,8 @@ f(C c) {
   }
 
   test_expressionStatement() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {}
 extension E on C {
   void m() {}
@@ -50,7 +51,9 @@ extension E on C {
 f(C c) {
   E(c);
 }
-''', [error(CompileTimeErrorCode.EXTENSION_OVERRIDE_WITHOUT_ACCESS, 57, 4)]);
+''',
+      [error(CompileTimeErrorCode.EXTENSION_OVERRIDE_WITHOUT_ACCESS, 57, 4)],
+    );
     assertTypeDynamic(findNode.extensionOverride('E(c)'));
   }
 

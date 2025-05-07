@@ -427,6 +427,7 @@ class StreamManager {
   static const kEchoStream = '_Echo';
   static const kDebugStream = 'Debug';
   static const kExtensionStream = 'Extension';
+  static const kTimerStream = 'Timer';
   static const kHeapSnapshotStream = 'HeapSnapshot';
   static const kIsolateStream = 'Isolate';
   static const kGCStream = 'GC';
@@ -463,10 +464,11 @@ class StreamManager {
     kIsolateStream,
   };
 
-  // Never cancel the logging and extension event streams as `LoggingRepository`
-  // requires them keep history.
+  // Never cancel the logging, timer, and extension event streams as
+  // `LoggingRepository` requires them keep history.
   static const loggingRepositoryStreams = <String>{
     kExtensionStream,
+    kTimerStream,
     kLoggingStream,
     kStderrStream,
     kStdoutStream,

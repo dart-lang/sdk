@@ -6,22 +6,29 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
 
-typedef SharedPatternField
-    = shared.RecordPatternField<PatternFieldImpl, DartPatternImpl>;
+typedef SharedPatternField =
+    shared.RecordPatternField<PatternFieldImpl, DartPatternImpl>;
 
 /// Implementation of [shared.TypeAnalyzerErrors] that reports errors using the
 /// analyzer's [ErrorReporter] class.
 class SharedTypeAnalyzerErrors
     implements
-        shared.TypeAnalyzerErrors<AstNodeImpl, StatementImpl, ExpressionImpl,
-            PromotableElementImpl2, SharedTypeView, DartPatternImpl, void> {
+        shared.TypeAnalyzerErrors<
+          AstNodeImpl,
+          StatementImpl,
+          ExpressionImpl,
+          PromotableElementImpl2,
+          SharedTypeView,
+          DartPatternImpl,
+          void
+        > {
   final ErrorReporter _errorReporter;
 
   SharedTypeAnalyzerErrors(this._errorReporter);
@@ -30,11 +37,12 @@ class SharedTypeAnalyzerErrors
   void assertInErrorRecovery() {}
 
   @override
-  void caseExpressionTypeMismatch(
-      {required Expression scrutinee,
-      required Expression caseExpression,
-      required SharedTypeView scrutineeType,
-      required SharedTypeView caseExpressionType}) {
+  void caseExpressionTypeMismatch({
+    required Expression scrutinee,
+    required Expression caseExpression,
+    required SharedTypeView scrutineeType,
+    required SharedTypeView caseExpressionType,
+  }) {
     _errorReporter.atNode(
       caseExpression,
       CompileTimeErrorCode
@@ -45,7 +53,7 @@ class SharedTypeAnalyzerErrors
 
   @override
   void duplicateAssignmentPatternVariable({
-    required covariant PromotableElement2 variable,
+    required covariant PromotableElement variable,
     required covariant AssignedVariablePatternImpl original,
     required covariant AssignedVariablePatternImpl duplicate,
   }) {
@@ -95,19 +103,14 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
-  void emptyMapPattern({
-    required DartPattern pattern,
-  }) {
-    _errorReporter.atNode(
-      pattern,
-      CompileTimeErrorCode.EMPTY_MAP_PATTERN,
-    );
+  void emptyMapPattern({required DartPattern pattern}) {
+    _errorReporter.atNode(pattern, CompileTimeErrorCode.EMPTY_MAP_PATTERN);
   }
 
   @override
   void inconsistentJoinedPatternVariable({
-    required PromotableElement2 variable,
-    required PromotableElement2 component,
+    required PromotableElement variable,
+    required PromotableElement component,
   }) {
     _errorReporter.atElement2(
       component,
@@ -150,10 +153,7 @@ class SharedTypeAnalyzerErrors
 
   @override
   void nonBooleanCondition({required Expression node}) {
-    _errorReporter.atNode(
-      node,
-      CompileTimeErrorCode.NON_BOOL_CONDITION,
-    );
+    _errorReporter.atNode(node, CompileTimeErrorCode.NON_BOOL_CONDITION);
   }
 
   @override
@@ -184,8 +184,10 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
-  void refutablePatternInIrrefutableContext(
-      {required AstNode pattern, required AstNode context}) {
+  void refutablePatternInIrrefutableContext({
+    required AstNode pattern,
+    required AstNode context,
+  }) {
     _errorReporter.atNode(
       pattern,
       CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT,
@@ -229,8 +231,10 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
-  void switchCaseCompletesNormally(
-      {required covariant SwitchStatementImpl node, required int caseIndex}) {
+  void switchCaseCompletesNormally({
+    required covariant SwitchStatementImpl node,
+    required int caseIndex,
+  }) {
     _errorReporter.atToken(
       node.members[caseIndex].keyword,
       CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY,

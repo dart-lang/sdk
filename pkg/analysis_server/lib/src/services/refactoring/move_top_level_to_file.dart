@@ -9,7 +9,7 @@ import 'package:analysis_server/src/utilities/extensions/string.dart';
 import 'package:analysis_server/src/utilities/import_analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -150,7 +150,7 @@ class MoveTopLevelToFile extends RefactoringProducer {
         builder.addDeletion(sourceRange);
       }
     });
-    var libraries = <LibraryElement2, Set<Element2>>{};
+    var libraries = <LibraryElement, Set<Element>>{};
     for (var element2 in analyzer.movingDeclarations) {
       var element = element2;
       var matches = await searchEngine.searchReferences(element);
@@ -174,13 +174,13 @@ class MoveTopLevelToFile extends RefactoringProducer {
         );
         // And also for the getter if this might be something like a top-level
         // variable.
-        if (element case PropertyInducingElement2(:var getter2?)) {
+        if (element case PropertyInducingElement(:var getter2?)) {
           prefixes.addAll(
             await searchEngine.searchPrefixesUsedInLibrary(library, getter2),
           );
         }
         // And setters.
-        if (element case PropertyInducingElement2(:var setter2?)) {
+        if (element case PropertyInducingElement(:var setter2?)) {
           prefixes.addAll(
             await searchEngine.searchPrefixesUsedInLibrary(library, setter2),
           );
@@ -501,10 +501,10 @@ class _SealedSubclassIndex {
   final CompilationUnit unit;
 
   /// The set of initial candidate elements.
-  final Set<Element2> candidateElements;
+  final Set<Element> candidateElements;
 
   /// A map of sealed named classes/mixin elements to a set of their subclasses.
-  final Map<Element2, Set<CompilationUnitMember>> sealedTypeSubclasses = {};
+  final Map<Element, Set<CompilationUnitMember>> sealedTypeSubclasses = {};
 
   /// Whether or not the candidate set is invalid.
   ///
@@ -559,11 +559,11 @@ class _SealedSubclassIndex {
 }
 
 extension on CompilationUnitMember {
-  /// Gets all sealed [ClassElement2]s that are superclasses of this member.
-  Iterable<ClassElement2> get sealedSuperclassElements {
+  /// Gets all sealed [ClassElement]s that are superclasses of this member.
+  Iterable<ClassElement> get sealedSuperclassElements {
     return superclasses
         .map((type) => type?.element2)
-        .whereType<ClassElement2>()
+        .whereType<ClassElement>()
         .where((element) => element.isSealed);
   }
 

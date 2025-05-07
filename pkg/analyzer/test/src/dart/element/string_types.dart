@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -55,23 +55,12 @@ mixin StringTypes on AbstractTypeSystemTest {
 
     _defineType(
       'List<Comparable<Object>>',
-      listNone(
-        comparableNone(objectNone),
-      ),
+      listNone(comparableNone(objectNone)),
     );
-    _defineType(
-      'List<Comparable<num>>',
-      listNone(
-        comparableNone(numNone),
-      ),
-    );
+    _defineType('List<Comparable<num>>', listNone(comparableNone(numNone)));
     _defineType(
       'List<Comparable<Comparable<num>>>',
-      listNone(
-        comparableNone(
-          comparableNone(numNone),
-        ),
-      ),
+      listNone(comparableNone(comparableNone(numNone))),
     );
 
     _defineType('Iterable<Object>', iterableNone(objectNone));
@@ -104,25 +93,10 @@ mixin StringTypes on AbstractTypeSystemTest {
     _defineType('Function', functionNone);
     _defineType('Function?', functionQuestion);
 
-    _defineType(
-      'void Function()',
-      functionTypeNone(
-        returnType: voidNone,
-      ),
-    );
+    _defineType('void Function()', functionTypeNone(returnType: voidNone));
 
-    _defineType(
-      'int Function()',
-      functionTypeNone(
-        returnType: intNone,
-      ),
-    );
-    _defineType(
-      'int Function()?',
-      functionTypeQuestion(
-        returnType: intNone,
-      ),
-    );
+    _defineType('int Function()', functionTypeNone(returnType: intNone));
+    _defineType('int Function()?', functionTypeQuestion(returnType: intNone));
 
     _defineType(
       'num Function(num)',
@@ -279,74 +253,43 @@ mixin StringTypes on AbstractTypeSystemTest {
     _defineType('Future<Object>', futureNone(objectNone));
     _defineType(
       'FutureOr<Future<Object>>',
-      futureOrNone(
-        futureNone(objectNone),
-      ),
+      futureOrNone(futureNone(objectNone)),
     );
     _defineType(
       'FutureOr<Future<Object>>?',
-      futureOrQuestion(
-        futureNone(objectNone),
-      ),
+      futureOrQuestion(futureNone(objectNone)),
     );
     _defineType(
       'FutureOr<Future<Object>?>',
-      futureOrNone(
-        futureQuestion(objectNone),
-      ),
+      futureOrNone(futureQuestion(objectNone)),
     );
     _defineType(
       'FutureOr<Future<Object>?>?',
-      futureOrQuestion(
-        futureQuestion(objectNone),
-      ),
+      futureOrQuestion(futureQuestion(objectNone)),
     );
 
-    _defineType(
-      'Future<Future<num>>?',
-      futureQuestion(
-        futureNone(numNone),
-      ),
-    );
+    _defineType('Future<Future<num>>?', futureQuestion(futureNone(numNone)));
     _defineType(
       'Future<Future<num?>?>?',
-      futureQuestion(
-        futureQuestion(numQuestion),
-      ),
+      futureQuestion(futureQuestion(numQuestion)),
     );
 
     _defineType(
       'Future<Future<Future<num>>>?',
-      futureQuestion(
-        futureNone(
-          futureNone(numNone),
-        ),
-      ),
+      futureQuestion(futureNone(futureNone(numNone))),
     );
     _defineType(
       'Future<Future<Future<num?>?>?>?',
-      futureQuestion(
-        futureQuestion(
-          futureQuestion(numQuestion),
-        ),
-      ),
+      futureQuestion(futureQuestion(futureQuestion(numQuestion))),
     );
 
     _defineType(
       'FutureOr<FutureOr<FutureOr<num>>?>',
-      futureOrNone(
-        futureOrQuestion(
-          futureOrNone(numNone),
-        ),
-      ),
+      futureOrNone(futureOrQuestion(futureOrNone(numNone))),
     );
     _defineType(
       'FutureOr<FutureOr<FutureOr<num?>>>',
-      futureOrNone(
-        futureOrNone(
-          futureOrNone(numQuestion),
-        ),
-      ),
+      futureOrNone(futureOrNone(futureOrNone(numQuestion))),
     );
   }
 
@@ -370,9 +313,7 @@ mixin StringTypes on AbstractTypeSystemTest {
     }
 
     void allPositionalQuestion(String str, List<TypeImpl> types) {
-      var type = recordTypeQuestion(
-        positionalTypes: types,
-      );
+      var type = recordTypeQuestion(positionalTypes: types);
       _defineType(str, type);
     }
 
@@ -400,9 +341,7 @@ mixin StringTypes on AbstractTypeSystemTest {
     }
 
     void allNamedQuestion(String str, Map<String, TypeImpl> types) {
-      var type = recordTypeQuestion(
-        namedTypes: types,
-      );
+      var type = recordTypeQuestion(namedTypes: types);
       _defineType(str, type);
     }
 
@@ -471,7 +410,7 @@ class _TypeParameterCollector extends TypeVisitor<void> {
   /// We don't need to print bounds for these type parameters, because
   /// they are already included into the function type itself, and cannot
   /// be promoted.
-  final Set<TypeParameterElement2> functionTypeParameters = {};
+  final Set<TypeParameterElement> functionTypeParameters = {};
 
   @override
   void visitDynamicType(DynamicType type) {}
@@ -506,10 +445,7 @@ class _TypeParameterCollector extends TypeVisitor<void> {
 
   @override
   void visitRecordType(RecordType type) {
-    var fields = [
-      ...type.positionalFields,
-      ...type.namedFields,
-    ];
+    var fields = [...type.positionalFields, ...type.namedFields];
     for (var field in fields) {
       field.type.accept(this);
     }

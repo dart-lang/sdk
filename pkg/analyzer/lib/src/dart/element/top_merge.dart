@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -213,12 +213,7 @@ class TopMergeHelper {
         R_type = mergeTypes(T_parameter.type, S_parameter.type);
       }
 
-      R_parameters.add(
-        T_parameter.copyWith(
-          type: R_type,
-          kind: R_kind,
-        ),
-      );
+      R_parameters.add(T_parameter.copyWith(type: R_type, kind: R_kind));
     }
 
     return FunctionTypeImpl.v2(
@@ -291,11 +286,7 @@ class TopMergeHelper {
       var field1 = positional1[i];
       var field2 = positional2[i];
       var type = topMerge(field1.type, field2.type);
-      positionalFields.add(
-        RecordTypePositionalFieldImpl(
-          type: type,
-        ),
-      );
+      positionalFields.add(RecordTypePositionalFieldImpl(type: type));
     }
 
     var named1 = T1.namedFields;
@@ -312,12 +303,7 @@ class TopMergeHelper {
         throw _TopMergeStateError(T1, T2, 'Different named field names');
       }
       var type = topMerge(field1.type, field2.type);
-      namedFields.add(
-        RecordTypeNamedFieldImpl(
-          name: field1.name,
-          type: type,
-        ),
-      );
+      namedFields.add(RecordTypeNamedFieldImpl(name: field1.name, type: type));
     }
 
     return RecordTypeImpl(

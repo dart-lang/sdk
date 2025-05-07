@@ -47,10 +47,11 @@ void main() {
   }
 }
 
-final variadicAt1Int64x2 = ffiTestFunctions.lookupFunction<
-  Int64 Function(Int64, VarArgs<(Int64,)>),
-  int Function(int, int)
->("VariadicAt1Int64x2");
+final variadicAt1Int64x2 = ffiTestFunctions
+    .lookupFunction<
+      Int64 Function(Int64, VarArgs<(Int64,)>),
+      int Function(int, int)
+    >("VariadicAt1Int64x2");
 
 /// Single variadic argument.
 void testVariadicAt1Int64x2() {
@@ -67,10 +68,11 @@ void testVariadicAt1Int64x2() {
   Expect.equals(1, result);
 }
 
-final variadicAt1Doublex2 = ffiTestFunctions.lookupFunction<
-  Double Function(Double, VarArgs<(Double,)>),
-  double Function(double, double)
->("VariadicAt1Doublex2");
+final variadicAt1Doublex2 = ffiTestFunctions
+    .lookupFunction<
+      Double Function(Double, VarArgs<(Double,)>),
+      double Function(double, double)
+    >("VariadicAt1Doublex2");
 
 /// Single variadic argument.
 void testVariadicAt1Doublex2() {
@@ -87,10 +89,11 @@ void testVariadicAt1Doublex2() {
   Expect.approxEquals(1.0, result);
 }
 
-final variadicAt1Int64x5 = ffiTestFunctions.lookupFunction<
-  Int64 Function(Int64, VarArgs<(Int64, Int64, Int64, Int64)>),
-  int Function(int, int, int, int, int)
->("VariadicAt1Int64x5");
+final variadicAt1Int64x5 = ffiTestFunctions
+    .lookupFunction<
+      Int64 Function(Int64, VarArgs<(Int64, Int64, Int64, Int64)>),
+      int Function(int, int, int, int, int)
+    >("VariadicAt1Int64x5");
 
 /// Variadic arguments.
 void testVariadicAt1Int64x5() {
@@ -113,10 +116,11 @@ void testVariadicAt1Int64x5() {
   Expect.equals(-3, result);
 }
 
-final variadicAt1Doublex5 = ffiTestFunctions.lookupFunction<
-  Double Function(Double, VarArgs<(Double, Double, Double, Double)>),
-  double Function(double, double, double, double, double)
->("VariadicAt1Doublex5");
+final variadicAt1Doublex5 = ffiTestFunctions
+    .lookupFunction<
+      Double Function(Double, VarArgs<(Double, Double, Double, Double)>),
+      double Function(double, double, double, double, double)
+    >("VariadicAt1Doublex5");
 
 /// Variadic arguments.
 void testVariadicAt1Doublex5() {
@@ -139,56 +143,57 @@ void testVariadicAt1Doublex5() {
   Expect.approxEquals(-3.0, result);
 }
 
-final variadicAt1Int64x20 = ffiTestFunctions.lookupFunction<
-  Int64 Function(
-    Int64,
-    VarArgs<
-      (
+final variadicAt1Int64x20 = ffiTestFunctions
+    .lookupFunction<
+      Int64 Function(
         Int64,
-        Int64,
-        Int64,
-        Int64,
-        Int64,
-        Int64,
-        Int64,
-        Int64,
-        Int64,
-        Int64,
-        Int64,
-        Int64,
-        Int64,
-        Int64,
-        Int64,
-        Int64,
-        Int64,
-        Int64,
-        Int64,
+        VarArgs<
+          (
+            Int64,
+            Int64,
+            Int64,
+            Int64,
+            Int64,
+            Int64,
+            Int64,
+            Int64,
+            Int64,
+            Int64,
+            Int64,
+            Int64,
+            Int64,
+            Int64,
+            Int64,
+            Int64,
+            Int64,
+            Int64,
+            Int64,
+          )
+        >,
+      ),
+      int Function(
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
+        int,
       )
-    >,
-  ),
-  int Function(
-    int,
-    int,
-    int,
-    int,
-    int,
-    int,
-    int,
-    int,
-    int,
-    int,
-    int,
-    int,
-    int,
-    int,
-    int,
-    int,
-    int,
-    int,
-    int,
-    int,
-  )
->("VariadicAt1Int64x20");
+    >("VariadicAt1Int64x20");
 
 /// Variadic arguments exhaust registers.
 void testVariadicAt1Int64x20() {
@@ -262,56 +267,57 @@ void testVariadicAt1Int64x20() {
   Expect.equals(10, result);
 }
 
-final variadicAt1Doublex20 = ffiTestFunctions.lookupFunction<
-  Double Function(
-    Double,
-    VarArgs<
-      (
+final variadicAt1Doublex20 = ffiTestFunctions
+    .lookupFunction<
+      Double Function(
         Double,
-        Double,
-        Double,
-        Double,
-        Double,
-        Double,
-        Double,
-        Double,
-        Double,
-        Double,
-        Double,
-        Double,
-        Double,
-        Double,
-        Double,
-        Double,
-        Double,
-        Double,
-        Double,
+        VarArgs<
+          (
+            Double,
+            Double,
+            Double,
+            Double,
+            Double,
+            Double,
+            Double,
+            Double,
+            Double,
+            Double,
+            Double,
+            Double,
+            Double,
+            Double,
+            Double,
+            Double,
+            Double,
+            Double,
+            Double,
+          )
+        >,
+      ),
+      double Function(
+        double,
+        double,
+        double,
+        double,
+        double,
+        double,
+        double,
+        double,
+        double,
+        double,
+        double,
+        double,
+        double,
+        double,
+        double,
+        double,
+        double,
+        double,
+        double,
+        double,
       )
-    >,
-  ),
-  double Function(
-    double,
-    double,
-    double,
-    double,
-    double,
-    double,
-    double,
-    double,
-    double,
-    double,
-    double,
-    double,
-    double,
-    double,
-    double,
-    double,
-    double,
-    double,
-    double,
-    double,
-  )
->("VariadicAt1Doublex20");
+    >("VariadicAt1Doublex20");
 
 /// Variadic arguments exhaust registers.
 void testVariadicAt1Doublex20() {
@@ -385,10 +391,11 @@ void testVariadicAt1Doublex20() {
   Expect.approxEquals(10.0, result);
 }
 
-final variadicAt1Int64x2Struct8BytesIntInt64 = ffiTestFunctions.lookupFunction<
-  Int64 Function(Int64, VarArgs<(Int64, Struct8BytesInt, Int64)>),
-  int Function(int, int, Struct8BytesInt, int)
->("VariadicAt1Int64x2Struct8BytesIntInt64");
+final variadicAt1Int64x2Struct8BytesIntInt64 = ffiTestFunctions
+    .lookupFunction<
+      Int64 Function(Int64, VarArgs<(Int64, Struct8BytesInt, Int64)>),
+      int Function(int, int, Struct8BytesInt, int)
+    >("VariadicAt1Int64x2Struct8BytesIntInt64");
 
 /// Variadic arguments including struct.
 void testVariadicAt1Int64x2Struct8BytesIntInt64() {
@@ -541,10 +548,11 @@ void testVariadicAt1DoubleStruct20BytesHomogeneousFloatDoub() {
   calloc.free(a1Pointer);
 }
 
-final variadicAt2Int32Int64IntPtr = ffiTestFunctions.lookupFunction<
-  Int32 Function(Int32, Int64, VarArgs<(IntPtr,)>),
-  int Function(int, int, int)
->("VariadicAt2Int32Int64IntPtr");
+final variadicAt2Int32Int64IntPtr = ffiTestFunctions
+    .lookupFunction<
+      Int32 Function(Int32, Int64, VarArgs<(IntPtr,)>),
+      int Function(int, int, int)
+    >("VariadicAt2Int32Int64IntPtr");
 
 /// Regression test for variadic arguments.
 /// https://github.com/dart-lang/sdk/issues/49460
@@ -801,10 +809,11 @@ void testVariadicAt1DoubleInt64Int32Struct20BytesHomogeneou() {
   calloc.free(a7Pointer);
 }
 
-final variadicAt5Doublex5 = ffiTestFunctions.lookupFunction<
-  Double Function(Double, Double, Double, Double, Double, VarArgs<()>),
-  double Function(double, double, double, double, double)
->("VariadicAt5Doublex5");
+final variadicAt5Doublex5 = ffiTestFunctions
+    .lookupFunction<
+      Double Function(Double, Double, Double, Double, Double, VarArgs<()>),
+      double Function(double, double, double, double, double)
+    >("VariadicAt5Doublex5");
 
 /// Variadic arguments function definition, but not passing any.
 void testVariadicAt5Doublex5() {

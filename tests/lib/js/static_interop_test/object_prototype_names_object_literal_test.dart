@@ -92,7 +92,9 @@ testObjectLiteralUnset() {
   Expect.equals(objectHasOwnProperty, getProperty(obj, 'hasOwnProperty'));
   Expect.equals(objectIsPrototypeOf, getProperty(obj, 'isPrototypeOf'));
   Expect.equals(
-      objectPropertyIsEnumerable, getProperty(obj, 'propertyIsEnumerable'));
+    objectPropertyIsEnumerable,
+    getProperty(obj, 'propertyIsEnumerable'),
+  );
   Expect.equals(objectToLocaleString, getProperty(obj, 'toLocaleString'));
   Expect.equals(objectToString, getProperty(obj, 'toString'));
   Expect.equals(objectValueOf, getProperty(obj, 'valueOf'));
@@ -107,7 +109,9 @@ testObjectLiteralStaticInteropUnset() {
   Expect.equals(objectHasOwnProperty, getProperty(obj, 'hasOwnProperty'));
   Expect.equals(objectIsPrototypeOf, getProperty(obj, 'isPrototypeOf'));
   Expect.equals(
-      objectPropertyIsEnumerable, getProperty(obj, 'propertyIsEnumerable'));
+    objectPropertyIsEnumerable,
+    getProperty(obj, 'propertyIsEnumerable'),
+  );
   Expect.equals(objectToLocaleString, getProperty(obj, 'toLocaleString'));
   Expect.equals(objectToString, getProperty(obj, 'toString'));
   Expect.equals(objectValueOf, getProperty(obj, 'valueOf'));
@@ -115,13 +119,14 @@ testObjectLiteralStaticInteropUnset() {
 
 testObjectLiteralConflict() {
   var obj = ObjectLiteral.named(
-      constructor: 'Cello',
-      hasOwnProperty: true,
-      isPrototypeOf: 5,
-      propertyIsEnumerable: 'Fosse',
-      toLocaleString: false,
-      toString: 16,
-      valueOf: 'Cello');
+    constructor: 'Cello',
+    hasOwnProperty: true,
+    isPrototypeOf: 5,
+    propertyIsEnumerable: 'Fosse',
+    toLocaleString: false,
+    toString: 16,
+    valueOf: 'Cello',
+  );
   // Unset properties are null.
   Expect.isNull(getProperty(obj, 'a'));
   // Set properties have the expected value.
@@ -135,14 +140,17 @@ testObjectLiteralConflict() {
 }
 
 testConflictStaticInterop() {
-  var obj = ObjectLiteralStaticInterop.named(
-      constructor: 'Cello',
-      hasOwnProperty: true,
-      isPrototypeOf: 5,
-      propertyIsEnumerable: 'Fosse',
-      toLocaleString: false,
-      toString: 16,
-      valueOf: 'Cello') as JSObject;
+  var obj =
+      ObjectLiteralStaticInterop.named(
+            constructor: 'Cello',
+            hasOwnProperty: true,
+            isPrototypeOf: 5,
+            propertyIsEnumerable: 'Fosse',
+            toLocaleString: false,
+            toString: 16,
+            valueOf: 'Cello',
+          )
+          as JSObject;
   // Unset properties are null.
   Expect.isNull(getProperty(obj, 'a'));
   // Set properties have the expected value.

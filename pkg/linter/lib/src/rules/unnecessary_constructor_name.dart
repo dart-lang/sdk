@@ -56,8 +56,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   void _check(Token? name) {
-    if (name?.lexeme == 'new') {
-      rule.reportLintForToken(name);
+    if (name != null && name.lexeme == 'new') {
+      rule.reportAtToken(name);
     }
   }
 }

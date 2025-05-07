@@ -48,7 +48,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (literal is! StringToken) return;
 
       if (literal.lexeme.contains(' \n')) {
-        rule.reportLintForToken(literal);
+        rule.reportAtToken(literal);
       }
     }
   }

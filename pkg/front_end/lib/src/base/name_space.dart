@@ -8,6 +8,7 @@ import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/name_iterator.dart';
 import '../dill/dill_library_builder.dart';
+import 'lookup_result.dart';
 import 'scope.dart';
 
 abstract class NameSpace {
@@ -16,7 +17,24 @@ abstract class NameSpace {
   /// Adds [builder] to the extensions in this name space.
   void addExtension(ExtensionBuilder builder);
 
-  Builder? lookupLocalMember(String name, {required bool setter});
+  /// Returns the [LookupResult] for the [Builder]s of the given [name] in the
+  /// name space.
+  ///
+  /// If [staticOnly] is `true`, instance members are not returned.
+  ///
+  /// If the [Builder]s are duplicates, an [AmbiguousBuilder] is created for
+  /// the access, using the [fileUri] and [fileOffset].
+  LookupResult? lookupLocal(String name,
+      {required Uri fileUri,
+      required int fileOffset,
+      required bool staticOnly});
+
+  /// Returns the [LookupResult] for the [Builder]s of the given [name] in the
+  /// name space.
+  ///
+  /// The returned [LookupResult] contains the [Builder]s directly mapped in the
+  /// name space without any filtering or processed of duplicates.
+  LookupResult? lookupLocalMember(String name);
 
   void forEachLocalMember(void Function(String name, Builder member) f);
 
@@ -171,9 +189,22 @@ class NameSpaceImpl implements NameSpace {
   Iterable<Builder> get localMembers => _getables?.values ?? const [];
 
   @override
-  Builder? lookupLocalMember(String name, {required bool setter}) {
-    Map<String, Builder>? map = setter ? _setables : _getables;
-    return map?[name];
+  LookupResult? lookupLocal(String name,
+      {required Uri fileUri,
+      required int fileOffset,
+      required bool staticOnly}) {
+    Builder? getable = _getables?[name];
+    Builder? setable = _setables?[name];
+    return LookupResult.createProcessedResult(getable, setable,
+        name: name,
+        fileUri: fileUri,
+        fileOffset: fileOffset,
+        staticOnly: staticOnly);
+  }
+
+  @override
+  LookupResult? lookupLocalMember(String name) {
+    return LookupResult.createResult(_getables?[name], _setables?[name]);
   }
 
   @override

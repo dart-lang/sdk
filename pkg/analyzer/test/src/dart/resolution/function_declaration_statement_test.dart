@@ -17,13 +17,14 @@ main() {
 class FunctionDeclarationStatementResolutionTest
     extends PubPackageResolutionTest {
   test_generic() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   T g<T, U>(T a, U b) => a;
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 15, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 15, 1)],
+    );
 
     var node = findNode.singleFunctionDeclarationStatement;
     assertResolvedNodeText(node, r'''
@@ -80,13 +81,14 @@ FunctionDeclarationStatement
   }
 
   test_generic_fBounded() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   void g<T extends U, U, V extends U>(T x, U y, V z) {}
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 18, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 18, 1)],
+    );
 
     var node = findNode.singleFunctionDeclarationStatement;
     assertResolvedNodeText(node, r'''
@@ -161,13 +163,14 @@ FunctionDeclarationStatement
   }
 
   test_generic_formalParameters_optionalNamed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   void g<T>({T? a}) {}
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 18, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 18, 1)],
+    );
 
     var node = findNode.singleFunctionDeclarationStatement;
     assertResolvedNodeText(node, r'''
@@ -216,13 +219,14 @@ FunctionDeclarationStatement
   }
 
   test_generic_formalParameters_optionalPositional() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   void g<T>([T? a]) {}
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 18, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 18, 1)],
+    );
 
     var node = findNode.singleFunctionDeclarationStatement;
     assertResolvedNodeText(node, r'''
@@ -271,13 +275,14 @@ FunctionDeclarationStatement
   }
 
   test_generic_formalParameters_requiredNamed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   void g<T>({required T? a}) {}
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 18, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 18, 1)],
+    );
 
     var node = findNode.singleFunctionDeclarationStatement;
     assertResolvedNodeText(node, r'''
@@ -327,13 +332,14 @@ FunctionDeclarationStatement
   }
 
   test_generic_formalParameters_requiredPositional() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   void g<T>(T a) {}
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 18, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 18, 1)],
+    );
 
     var node = findNode.singleFunctionDeclarationStatement;
     assertResolvedNodeText(node, r'''
@@ -376,13 +382,14 @@ FunctionDeclarationStatement
   }
 
   test_returnType_implicit_blockBody() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   g() {}
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 13, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 13, 1)],
+    );
 
     var node = findNode.singleFunctionDeclarationStatement;
     assertResolvedNodeText(node, r'''
@@ -406,13 +413,14 @@ FunctionDeclarationStatement
   }
 
   test_returnType_implicit_expressionBody() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   g() => 0;
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 13, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 13, 1)],
+    );
 
     var node = findNode.singleFunctionDeclarationStatement;
     assertResolvedNodeText(node, r'''

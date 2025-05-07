@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/fine/lookup_name.dart';
 import 'package:analyzer/src/fine/manifest_id.dart';
 import 'package:analyzer/src/fine/manifest_item.dart';
@@ -13,18 +13,25 @@ import 'package:analyzer/src/summary2/linked_element_factory.dart';
 
 class EncodeContext {
   final LinkedElementFactory elementFactory;
-  final Map<TypeParameterElement2, int> _typeParameters = {};
+  final Map<TypeParameterElement, int> _typeParameters = Map.identity();
+  final Map<FormalParameterElement, int> _formalParameters = Map.identity();
 
-  EncodeContext({
-    required this.elementFactory,
-  });
+  EncodeContext({required this.elementFactory});
 
   /// Returns the id of [element], or `null` if from this bundle.
-  ManifestItemId? getElementId(Element2 element) {
+  ManifestItemId? getElementId(Element element) {
     return elementFactory.getElementId(element);
   }
 
-  int indexOfTypeParameter(TypeParameterElement2 element) {
+  int indexOfFormalParameter(FormalParameterElement element) {
+    if (_formalParameters[element] case var result?) {
+      return result;
+    }
+
+    throw StateError('No formal parameter $element');
+  }
+
+  int indexOfTypeParameter(TypeParameterElement element) {
     if (_typeParameters[element] case var bottomIndex?) {
       return _typeParameters.length - 1 - bottomIndex;
     }
@@ -32,8 +39,24 @@ class EncodeContext {
     return throw StateError('No type parameter $element');
   }
 
+  T withFormalParameters<T>(
+    List<FormalParameterElement> formalParameters,
+    T Function() operation,
+  ) {
+    for (var formalParameter in formalParameters) {
+      _formalParameters[formalParameter] = _formalParameters.length;
+    }
+    try {
+      return operation();
+    } finally {
+      for (var formalParameter in formalParameters) {
+        _formalParameters.remove(formalParameter);
+      }
+    }
+  }
+
   T withTypeParameters<T>(
-    List<TypeParameterElement2> typeParameters,
+    List<TypeParameterElement> typeParameters,
     T Function(List<ManifestTypeParameter> typeParameters) operation,
   ) {
     for (var typeParameter in typeParameters) {
@@ -42,7 +65,7 @@ class EncodeContext {
 
     var encoded = <ManifestTypeParameter>[
       for (var typeParameter in typeParameters)
-        ManifestTypeParameter.encode(this, typeParameter)
+        ManifestTypeParameter.encode(this, typeParameter),
     ];
 
     try {
@@ -108,11 +131,11 @@ final class ManifestElement {
 
   /// If [element] matches this description, records the reference and id.
   /// If not, returns `false`, it is a mismatch anyway.
-  bool match(MatchContext context, Element2 element) {
+  bool match(MatchContext context, Element element) {
     var enclosingElement = element.enclosingElement2!;
-    Element2 givenTopLevelElement;
-    Element2? givenMemberElement;
-    if (enclosingElement is LibraryElement2) {
+    Element givenTopLevelElement;
+    Element? givenMemberElement;
+    if (enclosingElement is LibraryElement) {
       givenTopLevelElement = element;
     } else {
       givenTopLevelElement = enclosingElement;
@@ -141,20 +164,18 @@ final class ManifestElement {
     sink.writeUri(libraryUri);
     sink.writeStringUtf8(topLevelName);
     sink.writeOptionalStringUtf8(memberName);
-    sink.writeOptionalObject(id, (it) => it.write(sink));
+    id.writeOptional(sink);
   }
 
-  static ManifestElement encode(
-    EncodeContext context,
-    Element2 element,
-  ) {
-    Element2 topLevelElement;
-    Element2? memberElement;
+  static ManifestElement encode(EncodeContext context, Element element) {
+    Element topLevelElement;
+    Element? memberElement;
     var enclosingElement = element.enclosingElement2!;
-    if (enclosingElement is LibraryElement2) {
+    if (enclosingElement is LibraryElement) {
       topLevelElement = element;
     } else {
       topLevelElement = enclosingElement;
+      assert(topLevelElement.enclosingElement2 is LibraryElement);
       memberElement = element;
     }
 
@@ -175,28 +196,35 @@ class MatchContext {
   final MatchContext? parent;
 
   /// Any referenced elements, from this bundle or not.
-  final Set<Element2> elements = {};
+  final Set<Element> elements = {};
 
   /// The required identifiers of referenced elements that are not from this
   /// bundle.
-  final Map<Element2, ManifestItemId> externalIds = {};
+  final Map<Element, ManifestItemId> externalIds = {};
 
-  final Map<TypeParameterElement2, int> _typeParameters = {};
+  final Map<TypeParameterElement, int> _typeParameters = Map.identity();
+  final Map<FormalParameterElement, int> _formalParameters = Map.identity();
 
-  MatchContext({
-    required this.parent,
-  });
+  MatchContext({required this.parent});
 
   /// Any referenced elements, from this bundle or not.
-  List<Element2> get elementList => elements.toList(growable: false);
+  List<Element> get elementList => elements.toList(growable: false);
 
-  void addTypeParameters(List<TypeParameterElement2> typeParameters) {
+  void addTypeParameters(List<TypeParameterElement> typeParameters) {
     for (var typeParameter in typeParameters) {
       _typeParameters[typeParameter] = _typeParameters.length;
     }
   }
 
-  int indexOfTypeParameter(TypeParameterElement2 element) {
+  int indexOfFormalParameter(FormalParameterElement element) {
+    if (_formalParameters[element] case var result?) {
+      return result;
+    }
+
+    throw StateError('No formal parameter $element');
+  }
+
+  int indexOfTypeParameter(TypeParameterElement element) {
     if (_typeParameters[element] case var result?) {
       return _typeParameters.length - 1 - result;
     }
@@ -209,8 +237,24 @@ class MatchContext {
     throw StateError('No type parameter $element');
   }
 
+  T withFormalParameters<T>(
+    List<FormalParameterElement> formalParameters,
+    T Function() operation,
+  ) {
+    for (var formalParameter in formalParameters) {
+      _formalParameters[formalParameter] = _formalParameters.length;
+    }
+    try {
+      return operation();
+    } finally {
+      for (var formalParameter in formalParameters) {
+        _formalParameters.remove(formalParameter);
+      }
+    }
+  }
+
   T withTypeParameters<T>(
-    List<TypeParameterElement2> typeParameters,
+    List<TypeParameterElement> typeParameters,
     T Function() operation,
   ) {
     addTypeParameters(typeParameters);
@@ -226,14 +270,14 @@ class MatchContext {
 
 extension LinkedElementFactoryExtension on LinkedElementFactory {
   /// Returns the id of [element], or `null` if from this bundle.
-  ManifestItemId? getElementId(Element2 element2) {
-    Element2 topLevelElement;
-    Element2? memberElement;
-    if (element2.enclosingElement2 is LibraryElement2) {
-      topLevelElement = element2;
+  ManifestItemId? getElementId(Element element) {
+    Element topLevelElement;
+    Element? memberElement;
+    if (element.enclosingElement2 is LibraryElement) {
+      topLevelElement = element;
     } else {
-      topLevelElement = element2.enclosingElement2!;
-      memberElement = element2;
+      topLevelElement = element.enclosingElement2!;
+      memberElement = element;
     }
 
     // SAFETY: if we can reference the element, it is in a library.
@@ -259,11 +303,14 @@ extension LinkedElementFactoryExtension on LinkedElementFactory {
     }
 
     // TODO(scheglov): When implementation is complete, cast unconditionally.
-    if (topLevelItem is InstanceItem) {
+    if (topLevelItem is InterfaceItem) {
       var memberName = memberElement.lookupName!.asLookupName;
-      var memberItem = topLevelItem.members[memberName];
+      if (element is ConstructorElement) {
+        return topLevelItem.getConstructorId(memberName);
+      }
+      var methodId = topLevelItem.getInterfaceMethodId(memberName);
       // TODO(scheglov): When implementation is complete, null assert.
-      return memberItem?.id;
+      return methodId;
     }
 
     return null;

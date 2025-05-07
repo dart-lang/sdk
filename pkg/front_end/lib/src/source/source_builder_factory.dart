@@ -1347,17 +1347,12 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required TypeBuilder type,
       required String name,
       required int nameOffset}) {
-    _declarationFragments.current.addPrimaryConstructorField(_addField(
-        metadata: metadata,
-        modifiers: Modifiers.Final,
-        isTopLevel: false,
-        type: type,
-        name: name,
-        nameOffset: nameOffset,
-        endOffset: nameOffset,
-        initializerToken: null,
-        hasInitializer: false,
-        isPrimaryConstructorField: true));
+    _declarationFragments.current.addPrimaryConstructorField(
+        _addPrimaryConstructorField(
+            metadata: metadata,
+            type: type,
+            name: name,
+            nameOffset: nameOffset));
   }
 
   @override
@@ -1819,8 +1814,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
               initializerToken: startToken,
               hasInitializer: hasInitializer,
               constInitializerToken:
-                  potentiallyNeedInitializerInOutline ? startToken : null,
-              isPrimaryConstructorField: false));
+                  potentiallyNeedInitializerInOutline ? startToken : null));
     }
   }
 
@@ -1834,8 +1828,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required int endOffset,
       required Token? initializerToken,
       required bool hasInitializer,
-      Token? constInitializerToken,
-      required bool isPrimaryConstructorField}) {
+      Token? constInitializerToken}) {
     DeclarationFragmentImpl? enclosingDeclaration =
         _declarationFragments.currentOrNull;
     if (hasInitializer) {
@@ -1852,11 +1845,31 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         type: type,
         isTopLevel: isTopLevel,
         modifiers: modifiers,
-        isPrimaryConstructorField: isPrimaryConstructorField,
         enclosingScope:
             enclosingDeclaration?.bodyScope ?? _compilationUnitScope,
         enclosingDeclaration: enclosingDeclaration,
         enclosingCompilationUnit: _compilationUnit);
+    _addFragment(fragment);
+    return fragment;
+  }
+
+  PrimaryConstructorFieldFragment _addPrimaryConstructorField(
+      {required List<MetadataBuilder>? metadata,
+      required TypeBuilder type,
+      required String name,
+      required int nameOffset}) {
+    DeclarationFragmentImpl enclosingDeclaration =
+        _declarationFragments.current;
+    PrimaryConstructorFieldFragment fragment =
+        new PrimaryConstructorFieldFragment(
+            name: name,
+            fileUri: _compilationUnit.fileUri,
+            nameOffset: nameOffset,
+            metadata: metadata,
+            type: type,
+            enclosingScope: enclosingDeclaration.bodyScope,
+            enclosingDeclaration: enclosingDeclaration,
+            enclosingCompilationUnit: _compilationUnit);
     _addFragment(fragment);
     return fragment;
   }
@@ -2113,7 +2126,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   int finishNativeMethods() {
     for (FactoryFragment fragment in _nativeFactoryFragments) {
-      fragment.builder.becomeNative(loader);
+      fragment.declaration.becomeNative(loader);
     }
     for (GetterFragment fragment in _nativeGetterFragments) {
       fragment.declaration.becomeNative(loader);
@@ -2125,7 +2138,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       fragment.declaration.becomeNative(loader);
     }
     for (ConstructorFragment fragment in _nativeConstructorFragments) {
-      fragment.builder.becomeNative(loader);
+      fragment.declaration.becomeNative(loader);
     }
     return _nativeFactoryFragments.length;
   }

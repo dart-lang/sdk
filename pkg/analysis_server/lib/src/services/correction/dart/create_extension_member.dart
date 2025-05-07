@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
@@ -42,25 +42,25 @@ class CreateExtensionGetter extends _CreateExtensionMember {
     _getterName = nameNode.name;
 
     // prepare target
-    Expression? target;
+    DartType? targetType;
     switch (nameNode.parent) {
       case PrefixedIdentifier prefixedIdentifier:
         if (prefixedIdentifier.identifier == nameNode) {
-          target = prefixedIdentifier.prefix;
+          targetType = prefixedIdentifier.prefix.staticType;
         }
       case PropertyAccess propertyAccess:
         if (propertyAccess.propertyName == nameNode) {
-          target = propertyAccess.realTarget;
+          targetType = propertyAccess.realTarget.staticType;
         }
-    }
-    if (target == null) {
-      return;
+      case ExpressionFunctionBody expressionFunctionBody:
+        if (expressionFunctionBody.expression == nameNode) {
+          targetType = node.enclosingInstanceElement?.thisType;
+        }
     }
 
     // TODO(FMorschel): We should take into account if the target type contains
     // a setter for the same name and stop the fix from being applied.
     // We need the type for the extension.
-    var targetType = target.staticType;
     if (targetType == null ||
         targetType is DynamicType ||
         targetType is InvalidType) {
@@ -418,7 +418,7 @@ abstract class _CreateExtensionMember extends ResolvedCorrectionProducer {
     return CorrectionApplicability.singleLocation;
   }
 
-  ExecutableElement2? get methodBeingCopied =>
+  ExecutableElement? get methodBeingCopied =>
       _enclosingFunction?.declaredFragment?.element;
 
   FunctionDeclaration? get _enclosingFunction => node.thisOrAncestorOfType();
@@ -517,7 +517,7 @@ extension on List<DartType?> {
   /// it uses and get any type parameters they use by using this same getter.
   ///
   /// These types are added internally to a set so that we don't add duplicates.
-  List<TypeParameterElement2> get typeParameters =>
+  List<TypeParameterElement> get typeParameters =>
       {
         for (var type in whereType<TypeParameterType>()) ...[
           type.element3,
@@ -528,10 +528,10 @@ extension on List<DartType?> {
       }.toList();
 }
 
-extension on Element2? {
+extension on Element? {
   bool get declaresIndex {
     var element = this;
-    if (element is! InterfaceElement2) {
+    if (element is! InterfaceElement) {
       return false;
     }
     var inheritanceManager3 = InheritanceManager3();

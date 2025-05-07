@@ -480,6 +480,7 @@ StreamInfo Service::gc_stream("GC");
 StreamInfo Service::echo_stream("_Echo");
 StreamInfo Service::heapsnapshot_stream("HeapSnapshot");
 StreamInfo Service::logging_stream("Logging");
+StreamInfo Service::timer_stream("Timer");
 StreamInfo Service::extension_stream("Extension");
 StreamInfo Service::timeline_stream("Timeline");
 StreamInfo Service::profiler_stream("Profiler");
@@ -490,11 +491,12 @@ intptr_t Service::dart_library_kernel_len_ = 0;
 // Keep streams_ in sync with the protected streams in
 // lib/developer/extension.dart
 static StreamInfo* const streams_[] = {
-    &Service::vm_stream,       &Service::isolate_stream,
-    &Service::debug_stream,    &Service::gc_stream,
-    &Service::echo_stream,     &Service::heapsnapshot_stream,
-    &Service::logging_stream,  &Service::extension_stream,
-    &Service::timeline_stream, &Service::profiler_stream,
+    &Service::vm_stream,        &Service::isolate_stream,
+    &Service::debug_stream,     &Service::gc_stream,
+    &Service::echo_stream,      &Service::heapsnapshot_stream,
+    &Service::logging_stream,   &Service::timer_stream,
+    &Service::extension_stream, &Service::timeline_stream,
+    &Service::profiler_stream,
 };
 
 bool Service::ListenStream(const char* stream_id,
@@ -1640,7 +1642,7 @@ static void ActOnIsolateGroup(JSONStream* js,
     PrintInvalidParamError(js, "isolateGroupId");
     return;
   }
-  uint64_t isolate_group_id = UInt64Parameter::Parse(
+  Dart_Port isolate_group_id = Int64Parameter::Parse(
       String::Handle(String::SubString(s, prefix.Length())).ToCString());
   IsolateGroup::RunWithIsolateGroup(
       isolate_group_id,
@@ -3687,7 +3689,7 @@ static void GetInstances(Thread* thread, JSONStream* js) {
   GetInstancesVisitor visitor(&storage, limit);
   {
     ObjectGraph graph(thread);
-    HeapIterationScope iteration_scope(Thread::Current(), true);
+    HeapIterationScope iteration_scope(thread, true);
     MarkClasses(cls, include_subclasses, include_implementers);
     graph.IterateObjects(&visitor);
     UnmarkClasses();
@@ -3737,7 +3739,7 @@ static void GetInstancesAsList(Thread* thread, JSONStream* js) {
     GetInstancesVisitor visitor(&storage, kSmiMax);
     {
       ObjectGraph graph(thread);
-      HeapIterationScope iteration_scope(Thread::Current(), true);
+      HeapIterationScope iteration_scope(thread, true);
       MarkClasses(cls, include_subclasses, include_implementers);
       graph.IterateObjects(&visitor);
       UnmarkClasses();
@@ -5106,12 +5108,18 @@ void Service::SendLogEvent(Isolate* isolate,
   Service::HandleEvent(&event);
 }
 
+void Service::SendTimerEvent(Isolate* isolate, intptr_t milliseconds_overdue) {
+  if (!Service::timer_stream.enabled()) {
+    return;
+  }
+  ServiceEvent event(isolate, ServiceEvent::kTimerSignificantlyOverdue);
+  event.set_milliseconds_overdue(milliseconds_overdue);
+  Service::HandleEvent(&event);
+}
+
 void Service::SendExtensionEvent(Isolate* isolate,
                                  const String& event_kind,
                                  const String& event_data) {
-  if (!Service::extension_stream.enabled()) {
-    return;
-  }
   ServiceEvent::ExtensionEvent extension_event;
   extension_event.event_kind = &event_kind;
   extension_event.event_data = &event_data;
@@ -5128,8 +5136,8 @@ static const MethodParameter* const get_persistent_handles_params[] = {
 template <typename T>
 class PersistentHandleVisitor : public HandleVisitor {
  public:
-  PersistentHandleVisitor(Thread* thread, JSONArray* handles)
-      : HandleVisitor(thread), handles_(handles) {
+  explicit PersistentHandleVisitor(JSONArray* handles)
+      : HandleVisitor(), handles_(handles) {
     ASSERT(handles_ != nullptr);
   }
 
@@ -5191,7 +5199,7 @@ static void GetPersistentHandles(Thread* thread, JSONStream* js) {
       api_state->RunWithLockedPersistentHandles(
           [&](PersistentHandles& handles) {
             PersistentHandleVisitor<PersistentHandle> visitor(
-                thread, &persistent_handles);
+                &persistent_handles);
             handles.Visit(&visitor);
           });
     }
@@ -5201,7 +5209,7 @@ static void GetPersistentHandles(Thread* thread, JSONStream* js) {
       api_state->RunWithLockedWeakPersistentHandles(
           [&](FinalizablePersistentHandles& handles) {
             PersistentHandleVisitor<FinalizablePersistentHandle> visitor(
-                thread, &weak_persistent_handles);
+                &weak_persistent_handles);
             handles.VisitHandles(&visitor);
           });
     }

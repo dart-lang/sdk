@@ -197,11 +197,7 @@ void main() {
 }
 
 /// Small enum that is used to test binary search switches.
-enum S {
-  _0,
-  _1,
-  _2,
-}
+enum S { _0, _1, _2 }
 
 /// Large enum that is used to test jump table switches.
 ///

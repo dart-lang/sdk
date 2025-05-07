@@ -1990,23 +1990,24 @@ R? runZonedGuarded<R>(
   ZoneSpecification? zoneSpecification,
 }) {
   _Zone parentZone = Zone._current;
-  HandleUncaughtErrorHandler errorHandler = (
-    Zone self,
-    ZoneDelegate parent,
-    Zone zone,
-    Object error,
-    StackTrace stackTrace,
-  ) {
-    try {
-      parentZone.runBinary(onError, error, stackTrace);
-    } catch (e, s) {
-      if (identical(e, error)) {
-        parent.handleUncaughtError(zone, error, stackTrace);
-      } else {
-        parent.handleUncaughtError(zone, e, s);
-      }
-    }
-  };
+  HandleUncaughtErrorHandler errorHandler =
+      (
+        Zone self,
+        ZoneDelegate parent,
+        Zone zone,
+        Object error,
+        StackTrace stackTrace,
+      ) {
+        try {
+          parentZone.runBinary(onError, error, stackTrace);
+        } catch (e, s) {
+          if (identical(e, error)) {
+            parent.handleUncaughtError(zone, error, stackTrace);
+          } else {
+            parent.handleUncaughtError(zone, e, s);
+          }
+        }
+      };
   if (zoneSpecification == null) {
     zoneSpecification = ZoneSpecification(handleUncaughtError: errorHandler);
   } else {

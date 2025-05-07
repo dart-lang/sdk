@@ -1,0 +1,11 @@
+class A {}
+
+class B extends A {}
+
+class Sub extends Super {
+  A foo() => new A();
+}
+
+class Super {
+  B foo() => new B();
+}

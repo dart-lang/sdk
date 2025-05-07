@@ -17,32 +17,47 @@ main() {
 @reflectiveTest
 class FieldInitializerFactoryConstructorTest extends PubPackageResolutionTest {
   test_class_fieldFormalParameter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int x = 0;
   factory A(this.x) => throw 0;
 }
-''', [
-      error(CompileTimeErrorCode.FIELD_INITIALIZER_FACTORY_CONSTRUCTOR, 35, 6),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.FIELD_INITIALIZER_FACTORY_CONSTRUCTOR,
+          35,
+          6,
+        ),
+      ],
+    );
   }
 
   test_class_fieldFormalParameter_functionTyped() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int Function()? x;
   factory A(int this.x());
 }
-''', [
-      // TODO(srawlins): Only report one error. Theoretically change Fasta to
-      // report "Field initializer in factory constructor" as a parse error.
-      error(CompileTimeErrorCode.FIELD_INITIALIZER_FACTORY_CONSTRUCTOR, 43, 12),
-      error(ParserErrorCode.MISSING_FUNCTION_BODY, 56, 1),
-    ]);
+''',
+      [
+        // TODO(srawlins): Only report one error. Theoretically change Fasta to
+        // report "Field initializer in factory constructor" as a parse error.
+        error(
+          CompileTimeErrorCode.FIELD_INITIALIZER_FACTORY_CONSTRUCTOR,
+          43,
+          12,
+        ),
+        error(ParserErrorCode.MISSING_FUNCTION_BODY, 56, 1),
+      ],
+    );
   }
 
   test_enum_fieldFormalParameter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v;
   final int x = 0;
@@ -53,8 +68,14 @@ enum E {
 void f() {
   E._(0);
 }
-''', [
-      error(CompileTimeErrorCode.FIELD_INITIALIZER_FACTORY_CONSTRUCTOR, 60, 6),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.FIELD_INITIALIZER_FACTORY_CONSTRUCTOR,
+          60,
+          6,
+        ),
+      ],
+    );
   }
 }

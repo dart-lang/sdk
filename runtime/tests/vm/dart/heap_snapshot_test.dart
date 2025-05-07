@@ -28,7 +28,9 @@ main() async {
       exception = e;
     }
     Expect.contains(
-        'Heap snapshots are only supported in non-product mode.', '$exception');
+      'Heap snapshots are only supported in non-product mode.',
+      '$exception',
+    );
     return;
   }
 
@@ -56,11 +58,14 @@ Future runTest() async {
     NativeRuntime.writeHeapSnapshotToFile(state3);
 
     final int count1 = countFooInstances(
-        findReachableObjects(loadHeapSnapshotFromFile(state1)));
+      findReachableObjects(loadHeapSnapshotFromFile(state1)),
+    );
     final int count2 = countFooInstances(
-        findReachableObjects(loadHeapSnapshotFromFile(state2)));
+      findReachableObjects(loadHeapSnapshotFromFile(state2)),
+    );
     final int count3 = countFooInstances(
-        findReachableObjects(loadHeapSnapshotFromFile(state3)));
+      findReachableObjects(loadHeapSnapshotFromFile(state3)),
+    );
 
     Expect.equals(0, count1);
     Expect.equals(2, count2);

@@ -17,8 +17,9 @@ A _leading = A();
 
 @pragma('vm:never-inline')
 double computeMaxIntrinsicWidth(double height, double horizontalPadding) {
-  final leadingWidth =
-      _leading == null ? 0 : _leading.getMaxIntrinsicWidth() as int;
+  final leadingWidth = _leading == null
+      ? 0
+      : _leading.getMaxIntrinsicWidth() as int;
   return horizontalPadding + leadingWidth;
 }
 

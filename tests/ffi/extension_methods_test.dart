@@ -32,12 +32,12 @@ void testStoreLoad() {
   Expect.equals(20, p[1]);
   if (sizeOf<IntPtr>() == 4) {
     // Test round tripping.
-    Expect.equals(20, p.elementAt(0x100000001).value);
+    Expect.equals(20, (p + 0x100000001).value);
     Expect.equals(20, p[0x100000001]);
   }
 
   // Test negative index.
-  final pUseNegative = p.elementAt(1);
+  final pUseNegative = p + 1;
   Expect.equals(10, pUseNegative[-1]);
 
   // Test negative index using operators
@@ -89,8 +89,8 @@ void testCompoundLoadAndStore() {
     foos[i] = reference;
     Expect.isTrue(foos[i].a == 10);
 
-    foos.elementAt(i).ref = reference;
-    Expect.isTrue(foos.elementAt(i).ref.a == 10);
+    (foos + i).ref = reference;
+    Expect.isTrue((foos + i).ref.a == 10);
   }
 
   for (var i = 1; i < 9; i++) {
@@ -106,7 +106,7 @@ void testCompoundLoadAndStore() {
 
   for (var i = 1; i < 9; i++) {
     bars[i] = bars[0];
-    Expect.isTrue(bars.elementAt(i).ref.foo.a == 10);
+    Expect.isTrue((bars + i).ref.foo.a == 10);
     Expect.isTrue((bars + i).ref.foo.a == 10);
   }
 

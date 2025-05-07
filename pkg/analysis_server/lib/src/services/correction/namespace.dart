@@ -3,12 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 
-/// Returns the [Element2] exported from the given [LibraryElement2].
-Element2? getExportedElement(LibraryElement2? library, String name) {
+/// Returns the [Element] exported from the given [LibraryElement].
+Element? getExportedElement(LibraryElement? library, String name) {
   if (library == null) {
     return null;
   }
@@ -30,15 +30,15 @@ LibraryImport? getImportElement(SimpleIdentifier prefixNode) {
 
 /// Return the [LibraryImport] that declared [prefix] and imports [element].
 ///
-/// [libraryElement] - the [LibraryElement2] where reference is.
+/// [libraryElement] - the [LibraryElement] where reference is.
 /// [prefix] - the import prefix, maybe `null`.
 /// [element] - the referenced element.
 LibraryImport? _getImportElement(
-  LibraryElement2 libraryElement,
+  LibraryElement libraryElement,
   String prefix,
-  Element2 element,
+  Element element,
 ) {
-  if (element.enclosingElement2 is! LibraryElement2) {
+  if (element.enclosingElement2 is! LibraryElement) {
     return null;
   }
   var usedLibrary = element.library2;
@@ -74,7 +74,7 @@ LibraryImport? _getImportElement(
     return candidates[0];
   }
 
-  var importElementsMap = <LibraryImport, Set<Element2>>{};
+  var importElementsMap = <LibraryImport, Set<Element>>{};
   // ensure that each ImportElement has set of elements
   for (var importElement in candidates) {
     if (importElementsMap.containsKey(importElement)) {
@@ -97,7 +97,7 @@ LibraryImport? _getImportElement(
 }
 
 /// Returns the [LibraryImport] that is referenced by [prefixNode] with a
-/// [PrefixElement2], maybe `null`.
+/// [PrefixElement], maybe `null`.
 LibraryImport? _getImportElementInfo(SimpleIdentifier prefixNode) {
   // prepare environment
   var parent = prefixNode.parent;
@@ -107,7 +107,7 @@ LibraryImport? _getImportElementInfo(SimpleIdentifier prefixNode) {
     return null;
   }
   // prepare used element
-  Element2? usedElement;
+  Element? usedElement;
   if (parent is PrefixedIdentifier) {
     var prefixed = parent;
     if (prefixed.prefix == prefixNode) {

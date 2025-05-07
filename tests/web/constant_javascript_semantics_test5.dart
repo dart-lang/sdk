@@ -12,16 +12,13 @@ class Color {
 
 class ColorHaver {
   const ColorHaver({this.color = const Color(0xFF000000)})
-      : assert(color != null);
+    : assert(color != null);
   final Color color;
 }
 
 const c = const ColorHaver(color: const Color(0xFF00FF00));
 
-enum Enum {
-  a,
-  b,
-}
+enum Enum { a, b }
 
 class EnumHaver {
   const EnumHaver({this.myEnum = Enum.a}) : assert(myEnum != null);

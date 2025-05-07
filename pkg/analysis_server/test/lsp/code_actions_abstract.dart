@@ -3,12 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 
+import '../utils/lsp_protocol_extensions.dart';
 import '../utils/test_code_extensions.dart';
 import 'change_verifier.dart';
 import 'server_abstract.dart';
@@ -16,7 +18,7 @@ import 'server_abstract.dart';
 abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
   /// Initializes the server with some basic configuration and expects to find
   /// a [CodeAction] with [kind]/[command]/[title].
-  Future<CodeAction> expectAction(
+  Future<CodeActionLiteral> expectCodeActionLiteral(
     String content, {
     CodeActionKind? kind,
     String? command,
@@ -44,7 +46,7 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
       triggerKind: triggerKind,
     );
 
-    var action = findAction(
+    var action = findCodeActionLiteral(
       codeActions,
       kind: kind,
       command: command,
@@ -69,7 +71,7 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
   }
 
   /// Initializes the server with some basic configuration and expects not to
-  /// find a [CodeAction] with [kind]/[command]/[title].
+  /// find a [CodeActionLiteral] with [kind]/[command]/[title].
   Future<void> expectNoAction(
     String content, {
     String? filePath,
@@ -95,25 +97,31 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
     );
 
     expect(
-      findAction(codeActions, kind: kind, command: command, title: title),
+      findCodeActionLiteral(
+        codeActions,
+        kind: kind,
+        command: command,
+        title: title,
+      ),
       isNull,
     );
   }
 
-  /// Finds the single action matching [title], [kind] and [command].
+  /// Finds the single [CodeActionLiteral] matching [title], [kind] and
+  /// [command].
   ///
-  /// If [command] and/or [commandArgs] are supplied, ensures the action has
-  /// a matching command/args.
+  /// If [command] and/or [commandArgs] are supplied, ensures the result is
+  /// either that command, or a literal code action with that command.
   ///
-  /// Throws if zero or more than one actions match.
-  CodeAction? findAction(
-    List<Either2<Command, CodeAction>> actions, {
+  /// Returns `null` if there is not exactly one match.
+  CodeActionLiteral? findCodeActionLiteral(
+    List<CodeAction> actions, {
     String? title,
     CodeActionKind? kind,
     String? command,
     List<Object>? commandArgs,
   }) {
-    return findActions(
+    return findCodeActionLiterals(
       actions,
       title: title,
       kind: kind,
@@ -122,15 +130,15 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
     ).singleOrNull;
   }
 
-  List<CodeAction> findActions(
-    List<Either2<Command, CodeAction>> actions, {
+  List<CodeActionLiteral> findCodeActionLiterals(
+    List<Either2<CodeActionLiteral, Command>> actions, {
     String? title,
     CodeActionKind? kind,
     String? command,
     List<Object>? commandArgs,
   }) {
     return actions
-        .map((action) => action.map((cmd) => null, (action) => action))
+        .map((action) => action.map((action) => action, (cmd) => null))
         .where((action) => title == null || action?.title == title)
         .where((action) => kind == null || action?.kind == kind)
         // Some tests filter by only supplying a command, so if there is no
@@ -165,17 +173,14 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
         .toList();
   }
 
-  Either2<Command, CodeAction>? findCommand(
-    List<Either2<Command, CodeAction>> actions,
+  CodeAction? findCommand(
+    List<CodeAction> actions,
     String commandID, [
     String? wantedTitle,
   ]) {
     for (var codeAction in actions) {
-      var id = codeAction.map(
-        (cmd) => cmd.command,
-        (action) => action.command?.command,
-      );
-      var title = codeAction.map((cmd) => cmd.title, (action) => action.title);
+      var id = codeAction.command?.command;
+      var title = codeAction.title;
       if (id == commandID && (wantedTitle == null || wantedTitle == title)) {
         return codeAction;
       }
@@ -199,9 +204,9 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
   }
 
   /// Initializes the server with some basic configuration and expects to find
-  /// a [CodeAction] with [kind]/[title] that applies edits resulting in
+  /// a [CodeActionLiteral] with [kind]/[title] that applies edits resulting in
   /// [expected].
-  Future<LspChangeVerifier> verifyActionEdits(
+  Future<LspChangeVerifier> verifyCodeActionLiteralEdits(
     String content,
     String expected, {
     String? filePath,
@@ -222,7 +227,7 @@ ${LspChangeVerifier.editMarkerStart} ${relativePath(filePath)}
 $expected''';
     }
 
-    var action = await expectAction(
+    var action = await expectCodeActionLiteral(
       filePath: filePath,
       content,
       kind: kind,
@@ -236,7 +241,7 @@ $expected''';
     // the edits attached directly to the code action.
     // Don't try to execute 'dart.logAction' because it will never produce
     // edits.
-    if (command != null && command != 'dart.logAction') {
+    if (command != null && command != Commands.logAction) {
       return await verifyCommandEdits(
         action.command!,
         expected,

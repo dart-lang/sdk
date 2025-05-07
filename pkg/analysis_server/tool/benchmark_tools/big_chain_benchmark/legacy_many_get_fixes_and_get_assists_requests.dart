@@ -4,7 +4,8 @@
 
 import '../language_server_benchmark.dart';
 import '../legacy_messages.dart';
-import 'utils.dart';
+import '../run_utils.dart';
+import 'benchmark_utils.dart';
 
 /// In reports of the analyzer being slow we've seen `edit.getFixes` causing a
 /// long queue because they take longer to execute than the wait before the next
@@ -19,9 +20,11 @@ Future<void> main(List<String> args) async {
   await runHelper(
     args,
     LegacyManyGetFixesAndGetAssisstRequestsBenchmark.new,
+    copyData,
+    extraIterations: getExtraIterations,
     runAsLsp: false,
     // The number of files doesn't seem to be important on this one.
-    numberOfFileOptions: [4],
+    sizeOptions: [4],
   );
 }
 

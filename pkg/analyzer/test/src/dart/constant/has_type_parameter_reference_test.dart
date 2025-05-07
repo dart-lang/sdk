@@ -27,9 +27,7 @@ class HasTypeParameterReferenceTest extends AbstractTypeSystemTest {
     var T = typeParameter('T');
     var T_none = typeParameterTypeNone(T);
 
-    _checkTrue(
-      functionTypeNone(returnType: T_none),
-    );
+    _checkTrue(functionTypeNone(returnType: T_none));
 
     _checkTrue(
       functionTypeNone(

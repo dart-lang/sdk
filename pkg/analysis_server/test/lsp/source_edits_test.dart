@@ -3,10 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -319,13 +321,14 @@ Delete 1:24-1:26
   /// https://github.com/Dart-Code/Dart-Code/issues/5200
   Future<void> test_minimalEdits_comment_multiLine_trailingWhitespace() async {
     // The initial content has a trailing space on the end of the comment.
-    const startContent = r'''
+    var startContent =
+        TestCode.parse(r'''
 /**
- * line with trailing whitespace 
- * line with trailing whitespace 
+ * line with trailing whitespace /**/
+ * line with trailing whitespace /**/
  */
 int? a;
-''';
+''').code;
     // We expect the trailing spaces to be removed.
     const endContent = r'''
 /**
@@ -619,6 +622,9 @@ void g() {
     String? expectedFormatResult,
     Range? range,
   }) async {
+    start = normalizeSource(start);
+    end = normalizeSource(end);
+
     await parseTestCode(start);
     var edits =
         generateEditsForFormatting(testParsedResult, range: range).result!;
@@ -639,10 +645,26 @@ void g() {
     String? expectedFormatResult,
     Range? range,
   }) async {
-    start = start.trim();
-    end = end.trim();
+    start = normalizeSource(start.trim());
+    end = normalizeSource(end.trim());
+    if (expectedFormatResult != null) {
+      expectedFormatResult = normalizeSource(expectedFormatResult.trim());
+    }
     expected = expected.trim();
-    expectedFormatResult = expectedFormatResult?.trim();
+
+    // Expectation descriptions are always written with literal newlines as '\n'
+    // so on Windows we will need to update the expectation to '\r\n' before
+    // comparing.
+    expect(
+      expected,
+      isNot(contains(r'\r')),
+      reason:
+          'Expectations should always be written with literal '
+          r"'\n' to indicate newlines regardless of platform",
+    );
+    if (Platform.isWindows) {
+      expected = expected.replaceAll(r'\n', r'\r\n');
+    }
 
     await parseTestCode(start);
     var edits = generateMinimalEdits(testParsedResult, end, range: range);

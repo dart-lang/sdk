@@ -22,65 +22,72 @@ const int? x = null;
   }
 
   test_assignNullToUndefined() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const Unresolved x = null;
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 6, 10),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 6, 10)],
+    );
   }
 
   test_assignUnrelatedTypes() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const int x = 'foo';
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 14, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 14, 5)],
+    );
   }
 
   test_assignValueToUndefined() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const Unresolved x = 'foo';
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 6, 10),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 6, 10)],
+    );
   }
 
   test_int_to_double_variable_reference_is_not_promoted() async {
     // Note: in the following code, the declaration of `y` should produce an
     // error because we should only promote literal ints to doubles; we
     // shouldn't promote the reference to the variable `x`.
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const dynamic x = 0;
 const double y = x;
-''', [
-      error(CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, 38, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, 38, 1)],
+    );
   }
 
   test_listLiteral_inferredElementType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const dynamic x = [1];
 const List<String> y = x;
-''', [
-      error(CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, 46, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, 46, 1)],
+    );
   }
 
   test_mapLiteral_inferredKeyType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const dynamic x = {1: 1};
 const Map<String, dynamic> y = x;
-''', [
-      error(CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, 57, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, 57, 1)],
+    );
   }
 
   test_mapLiteral_inferredValueType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const dynamic x = {1: 1};
 const Map<dynamic, String> y = x;
-''', [
-      error(CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, 57, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, 57, 1)],
+    );
   }
 }

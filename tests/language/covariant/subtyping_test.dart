@@ -116,8 +116,8 @@ testFieldOfFunctionType() {
 }
 
 testFieldOfGenericFunctionType() {
-  FnChecks<Object> c =
-      new FnChecks<num>()..g = <S extends num>(S s) => s.isNegative;
+  FnChecks<Object> c = new FnChecks<num>()
+    ..g = <S extends num>(S s) => s.isNegative;
 
   Expect.throwsTypeError(() {
     G<Object> g = c.g;

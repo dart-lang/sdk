@@ -25,6 +25,11 @@ import 'dart:_js_helper'
 import 'dart:_foreign_helper' show JS;
 import 'dart:_interceptors' show JavaScriptObject, JSExtendableArray;
 
+// This comment is an extra padding to work around Flutter license script
+// cutting a copyright notice in the middle of this file because it reads
+// only the first kMaxSize bytes of a file.
+// (https://github.com/flutter/flutter/issues/168065)
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 
@@ -59,7 +59,7 @@ class _Visitor extends SimpleAstVisitor<void> {
                 .unnamedConstructor2;
       }
     }
-    if (superConstructor is! ConstructorElement2) return;
+    if (superConstructor is! ConstructorElement) return;
 
     var positionalParametersOfSuper =
         superConstructor.formalParameters.where((p) => p.isPositional).toList();
@@ -74,7 +74,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       var parameterOfSuperName = positionalParametersOfSuper[i].name3;
       if (parameterOfSuperName != null &&
           superParameterName != parameterOfSuperName) {
-        rule.reportLint(
+        rule.reportAtNode(
           superParameter,
           arguments: [superParameterName, parameterOfSuperName],
         );

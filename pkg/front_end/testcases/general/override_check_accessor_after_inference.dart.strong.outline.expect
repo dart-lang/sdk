@@ -60,9 +60,9 @@ class E extends self::D {
 class F extends self::D {
   synthetic constructor •() → self::F
     ;
-  set x(self::B value) → void
+  erroneous set x(self::B value) → void
     ;
-  get y() → self::A
+  erroneous get y() → self::A
     ;
 }
 static method main() → dynamic

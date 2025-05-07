@@ -3,10 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 void main() {
-  final funs = <String Function({Object? shared})>[
-    foo,
-    bar,
-  ];
+  final funs = <String Function({Object? shared})>[foo, bar];
 
   final one = int.parse('1');
   final barS = funs[one] as String Function({Object? barSpecific});

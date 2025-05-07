@@ -21,25 +21,31 @@ main() {
   // and the error reaches `handleError`.
   catchErrors(() {
     catchErrors(() {
-      controller = new StreamController();
+          controller = new StreamController();
 
-      // Assign to the "global" `stream`.
-      stream = controller.stream.map((x) {
-        events.add("map $x");
-        return x + 100;
-      }).transform(
-          new StreamTransformer.fromHandlers(handleError: (e, st, sink) {
-        sink.add("error $e");
-      })).asBroadcastStream();
+          // Assign to the "global" `stream`.
+          stream = controller.stream
+              .map((x) {
+                events.add("map $x");
+                return x + 100;
+              })
+              .transform(
+                new StreamTransformer.fromHandlers(
+                  handleError: (e, st, sink) {
+                    sink.add("error $e");
+                  },
+                ),
+              )
+              .asBroadcastStream();
 
-      // Listen to the `stream` in the inner zone (but wait in a microtask).
-      scheduleMicrotask(() {
-        stream.listen((x) {
-          events.add("stream $x");
-          if (x == "error 2") done.complete(true);
-        });
-      });
-    })
+          // Listen to the `stream` in the inner zone (but wait in a microtask).
+          scheduleMicrotask(() {
+            stream.listen((x) {
+              events.add("stream $x");
+              if (x == "error 2") done.complete(true);
+            });
+          });
+        })
         .listen((x) {
           events.add(x);
         })
@@ -59,11 +65,14 @@ main() {
       controller.addError(2);
       controller.close();
     });
-  }).listen((x) {
-    events.add("outer: $x");
-  }, onDone: () {
-    Expect.fail("Unexpected callback");
-  });
+  }).listen(
+    (x) {
+      events.add("outer: $x");
+    },
+    onDone: () {
+      Expect.fail("Unexpected callback");
+    },
+  );
 
   done.future.whenComplete(() {
     // Give handlers time to complete.

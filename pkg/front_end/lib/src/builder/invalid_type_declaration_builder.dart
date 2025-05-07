@@ -4,6 +4,7 @@
 
 part of 'declaration_builders.dart';
 
+// TODO(johnniwinther): Make this a [ProblemBuilder].
 class InvalidTypeDeclarationBuilder extends TypeDeclarationBuilderImpl
     with ErroneousMemberBuilderMixin
     implements TypeDeclarationBuilder {

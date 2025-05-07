@@ -13,7 +13,7 @@ import 'package:analysis_server/src/plugin/result_merger.dart';
 import 'package:analysis_server/src/protocol_server.dart' show NavigationTarget;
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
@@ -226,7 +226,7 @@ class DefinitionHandler
     // for the code range because otherwise previews will just show `(int a)`
     // which is not what the user expects.
     if (codeFragment.element.enclosingElement2
-        case ExtensionTypeElement2 enclosingElement
+        case ExtensionTypeElement enclosingElement
         when enclosingElement.primaryConstructor2 == codeFragment.element) {
       codeFragment = codeFragment.enclosingFragment;
     }
@@ -234,7 +234,7 @@ class DefinitionHandler
     // Read the main codeOffset from the element. This may include doc comments
     // but will give the correct end position.
     int? codeOffset, codeLength;
-    if (codeFragment case ElementImpl codeFragment) {
+    if (codeFragment case FragmentImpl codeFragment) {
       codeOffset = codeFragment.codeOffset;
       codeLength = codeFragment.codeLength;
     }

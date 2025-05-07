@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -53,7 +53,7 @@ class ConstructorReferenceResolver {
       // Only report errors when the constructor tearoff feature is enabled,
       // to avoid reporting redundant errors.
       var enclosingElement = node.constructorName.type.element2;
-      if (enclosingElement is TypeAliasElement2) {
+      if (enclosingElement is TypeAliasElement) {
         var aliasedType = enclosingElement.aliasedType;
         enclosingElement =
             aliasedType is InterfaceType ? aliasedType.element3 : null;
@@ -61,20 +61,19 @@ class ConstructorReferenceResolver {
       // TODO(srawlins): Handle `enclosingElement` being a function typedef:
       // typedef F<T> = void Function(); var a = F<int>.extensionOnType;`.
       // This is illegal.
-      if (enclosingElement is InterfaceElement2) {
-        var method = enclosingElement.getMethod2(name.name) ??
+      if (enclosingElement is InterfaceElement) {
+        var method =
+            enclosingElement.getMethod2(name.name) ??
             enclosingElement.getGetter2(name.name) ??
             enclosingElement.getSetter2(name.name);
         if (method != null) {
-          var error = method.isStatic
-              ? CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_STATIC_MEMBER
-              : CompileTimeErrorCode
-                  .CLASS_INSTANTIATION_ACCESS_TO_INSTANCE_MEMBER;
-          _resolver.errorReporter.atNode(
-            node,
-            error,
-            arguments: [name.name],
-          );
+          var error =
+              method.isStatic
+                  ? CompileTimeErrorCode
+                      .CLASS_INSTANTIATION_ACCESS_TO_STATIC_MEMBER
+                  : CompileTimeErrorCode
+                      .CLASS_INSTANTIATION_ACCESS_TO_INSTANCE_MEMBER;
+          _resolver.errorReporter.atNode(node, error, arguments: [name.name]);
         } else if (!name.isSynthetic) {
           _resolver.errorReporter.atNode(
             node,
@@ -87,11 +86,14 @@ class ConstructorReferenceResolver {
     _inferArgumentTypes(node, contextType: contextType);
   }
 
-  void _inferArgumentTypes(ConstructorReferenceImpl node,
-      {required DartType contextType}) {
+  void _inferArgumentTypes(
+    ConstructorReferenceImpl node, {
+    required DartType contextType,
+  }) {
     var constructorName = node.constructorName;
     var elementToInfer = _resolver.inferenceHelper.constructorElementToInfer(
-      constructorName: constructorName,
+      typeElement: constructorName.type.element2,
+      constructorName: constructorName.name,
       definingLibrary: _resolver.definingLibrary,
     );
 
@@ -117,17 +119,24 @@ class ConstructorReferenceResolver {
       var rawElement = elementToInfer.element2.baseElement;
       var constructorType = elementToInfer.asType;
 
-      var inferred = _resolver.inferenceHelper.inferTearOff(
-          node, constructorName.name!, constructorType,
-          contextType: contextType) as FunctionType?;
+      var inferred =
+          _resolver.inferenceHelper.inferTearOff(
+                node,
+                constructorName.name!,
+                constructorType,
+                contextType: contextType,
+              )
+              as FunctionType?;
 
       if (inferred != null) {
         var inferredReturnType = inferred.returnType as InterfaceType;
 
         // Update the static element as well. This is used in some cases, such
         // as computing constant values. It is stored in two places.
-        var constructorElement =
-            ConstructorMember.from2(rawElement, inferredReturnType);
+        var constructorElement = ConstructorMember.from2(
+          rawElement,
+          inferredReturnType,
+        );
 
         constructorName.element = constructorElement.baseElement;
         constructorName.name?.element = constructorElement.baseElement;
@@ -138,10 +147,11 @@ class ConstructorReferenceResolver {
     } else {
       var constructorElement = constructorName.element;
       node.recordStaticType(
-          constructorElement == null
-              ? InvalidTypeImpl.instance
-              : constructorElement.type,
-          resolver: _resolver);
+        constructorElement == null
+            ? InvalidTypeImpl.instance
+            : constructorElement.type,
+        resolver: _resolver,
+      );
       // The NamedType child of `constructorName` doesn't have a static type.
       constructorName.type.type = null;
     }

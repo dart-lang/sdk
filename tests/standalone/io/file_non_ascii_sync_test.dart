@@ -6,8 +6,9 @@ import "package:expect/expect.dart";
 import 'dart:io';
 
 main() {
-  Directory tempDir =
-      Directory.systemTemp.createTempSync('dart_file_non_ascii_sync');
+  Directory tempDir = Directory.systemTemp.createTempSync(
+    'dart_file_non_ascii_sync',
+  );
   Directory nonAsciiDir = new Directory('${tempDir.path}/æøå');
   nonAsciiDir.createSync();
   Expect.isTrue(nonAsciiDir.existsSync());
@@ -26,7 +27,8 @@ main() {
   Expect.equals(6, nonAsciiFile.lengthSync());
   nonAsciiFile.lastModifiedSync();
   path = nonAsciiFile.resolveSymbolicLinksSync();
-  Expect.isTrue(path.endsWith('${precomposed}.txt') ||
-      path.endsWith('${decomposed}.txt'));
+  Expect.isTrue(
+    path.endsWith('${precomposed}.txt') || path.endsWith('${decomposed}.txt'),
+  );
   tempDir.deleteSync(recursive: true);
 }

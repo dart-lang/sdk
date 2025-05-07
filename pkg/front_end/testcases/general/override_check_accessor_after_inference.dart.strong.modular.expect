@@ -63,8 +63,8 @@ class F extends self::D {
   synthetic constructor •() → self::F
     : super self::D::•()
     ;
-  set x(self::B value) → void {}
-  get y() → self::A
+  erroneous set x(self::B value) → void {}
+  erroneous get y() → self::A
     return throw "";
 }
 static method main() → dynamic {}

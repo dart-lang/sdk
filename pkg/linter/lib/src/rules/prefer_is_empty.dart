@@ -89,23 +89,23 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (value == 0) {
       if (operator.type == TokenType.EQ_EQ ||
           operator.type == TokenType.LT_EQ) {
-        rule.reportLint(
+        rule.reportAtNode(
           expression,
           errorCode: LinterLintCode.prefer_is_empty_use_is_empty,
         );
       } else if (operator.type == TokenType.GT ||
           operator.type == TokenType.BANG_EQ) {
-        rule.reportLint(
+        rule.reportAtNode(
           expression,
           errorCode: LinterLintCode.prefer_is_empty_use_is_not_empty,
         );
       } else if (operator.type == TokenType.LT) {
-        rule.reportLint(
+        rule.reportAtNode(
           expression,
           errorCode: LinterLintCode.prefer_is_empty_always_false,
         );
       } else if (operator.type == TokenType.GT_EQ) {
-        rule.reportLint(
+        rule.reportAtNode(
           expression,
           errorCode: LinterLintCode.prefer_is_empty_always_true,
         );
@@ -115,12 +115,12 @@ class _Visitor extends SimpleAstVisitor<void> {
         // 'length >= 1' is same as 'isNotEmpty',
         // and 'length < 1' is same as 'isEmpty'
         if (operator.type == TokenType.GT_EQ) {
-          rule.reportLint(
+          rule.reportAtNode(
             expression,
             errorCode: LinterLintCode.prefer_is_empty_use_is_not_empty,
           );
         } else if (operator.type == TokenType.LT) {
-          rule.reportLint(
+          rule.reportAtNode(
             expression,
             errorCode: LinterLintCode.prefer_is_empty_use_is_empty,
           );
@@ -129,12 +129,12 @@ class _Visitor extends SimpleAstVisitor<void> {
         // '1 <= length' is same as 'isNotEmpty',
         // and '1 > length' is same as 'isEmpty'
         if (operator.type == TokenType.LT_EQ) {
-          rule.reportLint(
+          rule.reportAtNode(
             expression,
             errorCode: LinterLintCode.prefer_is_empty_use_is_not_empty,
           );
         } else if (operator.type == TokenType.GT) {
-          rule.reportLint(
+          rule.reportAtNode(
             expression,
             errorCode: LinterLintCode.prefer_is_empty_use_is_empty,
           );
@@ -146,14 +146,14 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (operator.type == TokenType.EQ_EQ ||
             operator.type == TokenType.LT_EQ ||
             operator.type == TokenType.LT) {
-          rule.reportLint(
+          rule.reportAtNode(
             expression,
             errorCode: LinterLintCode.prefer_is_empty_always_false,
           );
         } else if (operator.type == TokenType.BANG_EQ ||
             operator.type == TokenType.GT_EQ ||
             operator.type == TokenType.GT) {
-          rule.reportLint(
+          rule.reportAtNode(
             expression,
             errorCode: LinterLintCode.prefer_is_empty_always_true,
           );
@@ -163,14 +163,14 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (operator.type == TokenType.EQ_EQ ||
             operator.type == TokenType.GT_EQ ||
             operator.type == TokenType.GT) {
-          rule.reportLint(
+          rule.reportAtNode(
             expression,
             errorCode: LinterLintCode.prefer_is_empty_always_false,
           );
         } else if (operator.type == TokenType.BANG_EQ ||
             operator.type == TokenType.LT_EQ ||
             operator.type == TokenType.LT) {
-          rule.reportLint(
+          rule.reportAtNode(
             expression,
             errorCode: LinterLintCode.prefer_is_empty_always_true,
           );

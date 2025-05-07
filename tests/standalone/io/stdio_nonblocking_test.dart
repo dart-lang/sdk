@@ -10,17 +10,18 @@ import "dart:io";
 import "package:expect/expect.dart";
 
 void main() {
-  var script =
-      Platform.script.resolve("stdio_nonblocking_script.dart").toFilePath();
+  var script = Platform.script
+      .resolve("stdio_nonblocking_script.dart")
+      .toFilePath();
   Process.run(
-          Platform.executable,
-          []
-            ..addAll(Platform.executableArguments)
-            ..add('--verbosity=warning')
-            ..add(script),
-          stdoutEncoding: ascii,
-          stderrEncoding: ascii)
-      .then((result) {
+    Platform.executable,
+    []
+      ..addAll(Platform.executableArguments)
+      ..add('--verbosity=warning')
+      ..add(script),
+    stdoutEncoding: ascii,
+    stderrEncoding: ascii,
+  ).then((result) {
     print(result.stdout);
     print(result.stderr);
     Expect.equals(1, result.exitCode);

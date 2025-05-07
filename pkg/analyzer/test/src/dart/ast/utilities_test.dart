@@ -12,7 +12,6 @@ import '../../../util/ast_type_matchers.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(NodeLocatorTest);
     defineReflectiveTests(NodeLocator2Test);
   });
 }
@@ -20,11 +19,7 @@ main() {
 @reflectiveTest
 class NodeLocator2Test extends _SharedNodeLocatorTests {
   @override
-  AstNode? locate(
-    CompilationUnit unit,
-    int start, [
-    int? end,
-  ]) {
+  AstNode? locate(CompilationUnit unit, int start, [int? end]) {
     var locator = NodeLocator2(start, end);
     var node = locator.searchWithin(unit)!;
     return node;
@@ -64,62 +59,8 @@ class NodeLocator2Test extends _SharedNodeLocatorTests {
   }
 }
 
-@reflectiveTest
-class NodeLocatorTest extends _SharedNodeLocatorTests {
-  @override
-  AstNode? locate(
-    CompilationUnit unit,
-    int start, [
-    int? end,
-  ]) {
-    var locator = NodeLocator(start, end);
-    var node = locator.searchWithin(unit)!;
-    expect(locator.foundNode, same(node));
-    return node;
-  }
-
-  void test_range() {
-    CompilationUnit unit = parseCompilationUnit("library myLib;");
-    var node = _assertLocate(unit, 4, 10);
-    expect(node, isLibraryDirective);
-  }
-
-  void test_searchWithin_null() {
-    NodeLocator locator = NodeLocator(0, 0);
-    expect(locator.searchWithin(null), isNull);
-  }
-
-  void test_searchWithin_offset() {
-    CompilationUnit unit = parseCompilationUnit("library myLib;");
-    var node = _assertLocate(unit, 10, 10);
-    expect(node, isSimpleIdentifier);
-  }
-
-  void test_searchWithin_offsetAfterNode() {
-    CompilationUnit unit = parseCompilationUnit(r'''
-class A {}
-class B {}''');
-    NodeLocator locator = NodeLocator(1024, 1024);
-    var node = locator.searchWithin(unit.declarations[0]);
-    expect(node, isNull);
-  }
-
-  void test_searchWithin_offsetBeforeNode() {
-    CompilationUnit unit = parseCompilationUnit(r'''
-class A {}
-class B {}''');
-    NodeLocator locator = NodeLocator(0, 0);
-    var node = locator.searchWithin(unit.declarations[1]);
-    expect(node, isNull);
-  }
-}
-
 abstract class _SharedNodeLocatorTests extends ParserTestCase {
-  AstNode? locate(
-    CompilationUnit unit,
-    int start, [
-    int? end,
-  ]);
+  AstNode? locate(CompilationUnit unit, int start, [int? end]);
 
   void test_searchWithin_class_afterName_beforeTypeParameters() {
     var source = r'''
@@ -202,16 +143,15 @@ set s(int i) {}
     expect(node, isFunctionDeclaration);
   }
 
-  AstNode _assertLocate(
-    CompilationUnit unit,
-    int start, [
-    int? end,
-  ]) {
+  AstNode _assertLocate(CompilationUnit unit, int start, [int? end]) {
     end ??= start;
     var node = locate(unit, start, end)!;
     expect(node.offset <= start, isTrue, reason: "Node starts after range");
-    expect(node.offset + node.length > end, isTrue,
-        reason: "Node ends before range");
+    expect(
+      node.offset + node.length > end,
+      isTrue,
+      reason: "Node ends before range",
+    );
     return node;
   }
 }

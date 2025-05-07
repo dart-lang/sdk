@@ -9,7 +9,7 @@ import 'package:test/test.dart';
 import '../utils.dart';
 import 'helpers.dart';
 
-void main(List<String> args) async {
+void main([List<String> args = const []]) async {
   if (!nativeAssetsExperimentAvailableOnCurrentChannel) {
     return;
   }
@@ -24,7 +24,8 @@ void main(List<String> args) async {
     'system_library',
   ]) {
     test('package:$package dart test', timeout: longTimeout, () async {
-      await nativeAssetsTest(package, (packageUri) async {
+      await nativeAssetsTest(package, usePubWorkspace: true,
+          (packageUri) async {
         final result = await runDart(
           arguments: [
             '--enable-experiment=native-assets',
@@ -123,28 +124,32 @@ void main(List<String> args) async {
       );
     });
   });
-  test(
-    'dart test with user defines',
-    timeout: longTimeout,
-    () async {
-      await nativeAssetsTest('user_defines', (packageUri) async {
-        final result = await runDart(
-          arguments: [
-            '--enable-experiment=native-assets',
-            'test',
-          ],
-          workingDirectory: packageUri,
-          logger: logger,
-        );
-        expect(
-          result.stdout,
-          stringContainsInOrder(
-            [
-              'All tests passed!',
+
+  for (final usePubWorkspace in [true, false]) {
+    test(
+      'dart test with user defines',
+      timeout: longTimeout,
+      () async {
+        await nativeAssetsTest('user_defines', usePubWorkspace: usePubWorkspace,
+            (packageUri) async {
+          final result = await runDart(
+            arguments: [
+              '--enable-experiment=native-assets',
+              'test',
             ],
-          ),
-        );
-      });
-    },
-  );
+            workingDirectory: packageUri,
+            logger: logger,
+          );
+          expect(
+            result.stdout,
+            stringContainsInOrder(
+              [
+                'All tests passed!',
+              ],
+            ),
+          );
+        });
+      },
+    );
+  }
 }

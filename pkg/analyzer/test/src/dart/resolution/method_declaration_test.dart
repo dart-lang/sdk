@@ -82,13 +82,14 @@ SimpleIdentifier
   }
 
   test_wildCardMethod() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   _() {}
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 12, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 12, 1)],
+    );
 
     var node = findNode.methodDeclaration('_');
     assertResolvedNodeText(node, r'''
@@ -107,16 +108,17 @@ MethodDeclaration
   }
 
   test_wildCardMethod_preWildCards() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 // @dart = 3.4
 // (pre wildcard-variables)
 
 class C {
   _() {}
 }
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 56, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 56, 1)],
+    );
 
     var node = findNode.methodDeclaration('_');
     assertResolvedNodeText(node, r'''

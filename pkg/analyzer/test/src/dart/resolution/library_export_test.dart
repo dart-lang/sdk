@@ -43,11 +43,12 @@ ExportDirective
   }
 
   test_inLibrary_combinators_hide_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 export 'dart:math' hide Unresolved;
-''', [
-      error(WarningCode.UNDEFINED_HIDDEN_NAME, 24, 10),
-    ]);
+''',
+      [error(WarningCode.UNDEFINED_HIDDEN_NAME, 24, 10)],
+    );
 
     var node = findNode.singleExportDirective;
     assertResolvedNodeText(node, r'''
@@ -97,11 +98,12 @@ ExportDirective
   }
 
   test_inLibrary_combinators_show_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 export 'dart:math' show Unresolved;
-''', [
-      error(WarningCode.UNDEFINED_SHOWN_NAME, 24, 10),
-    ]);
+''',
+      [error(WarningCode.UNDEFINED_SHOWN_NAME, 24, 10)],
+    );
 
     var node = findNode.singleExportDirective;
     assertResolvedNodeText(node, r'''
@@ -367,11 +369,12 @@ ExportDirective
   }
 
   test_inLibrary_library_fileDoesNotExist() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 export 'a.dart';
-''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 8),
-    ]);
+''',
+      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 8)],
+    );
 
     var node = findNode.export('a.dart');
     assertResolvedNodeText(node, r'''
@@ -388,9 +391,7 @@ ExportDirective
 
   test_inLibrary_library_inSummary() async {
     librarySummaryFiles = [
-      await buildPackageFooSummary(files: {
-        'lib/foo.dart': 'class F {}',
-      }),
+      await buildPackageFooSummary(files: {'lib/foo.dart': 'class F {}'}),
     ];
     sdkSummaryFile = await writeSdkSummary();
 
@@ -426,11 +427,12 @@ export 'a.dart';
   }
 
   test_inLibrary_noRelativeUri() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 export ':net';
-''', [
-      error(CompileTimeErrorCode.INVALID_URI, 7, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_URI, 7, 6)],
+    );
 
     var node = findNode.export('export');
     assertResolvedNodeText(node, r'''
@@ -446,11 +448,12 @@ ExportDirective
   }
 
   test_inLibrary_noRelativeUriStr() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 export '${'foo'}.dart';
-''', [
-      error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 7, 15),
-    ]);
+''',
+      [error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 7, 15)],
+    );
 
     var node = findNode.export('export');
     assertResolvedNodeText(node, r'''
@@ -476,11 +479,12 @@ ExportDirective
   }
 
   test_inLibrary_noSource() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 export 'foo:bar';
-''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 9),
-    ]);
+''',
+      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 9)],
+    );
 
     var node = findNode.export('export');
     assertResolvedNodeText(node, r'''
@@ -500,11 +504,12 @@ ExportDirective
 part of my.lib;
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 export 'a.dart';
-''', [
-      error(CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY, 7, 8),
-    ]);
+''',
+      [error(CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY, 7, 8)],
+    );
 
     var node = findNode.export('a.dart');
     assertResolvedNodeText(node, r'''
@@ -524,11 +529,12 @@ ExportDirective
 part of 'test.dart';
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 export 'a.dart';
-''', [
-      error(CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY, 7, 8),
-    ]);
+''',
+      [error(CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY, 7, 8)],
+    );
 
     var node = findNode.export('a.dart');
     assertResolvedNodeText(node, r'''
@@ -545,18 +551,21 @@ ExportDirective
 
   test_inLibrary_notLibrary_partOfUri_inSummary() async {
     librarySummaryFiles = [
-      await buildPackageFooSummary(files: {
-        'lib/foo.dart': "part 'foo2.dart';",
-        'lib/foo2.dart': "part of 'foo.dart';",
-      }),
+      await buildPackageFooSummary(
+        files: {
+          'lib/foo.dart': "part 'foo2.dart';",
+          'lib/foo2.dart': "part of 'foo.dart';",
+        },
+      ),
     ];
     sdkSummaryFile = await writeSdkSummary();
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 export 'package:foo/foo2.dart';
-''', [
-      error(CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY, 7, 23),
-    ]);
+''',
+      [error(CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY, 7, 23)],
+    );
 
     var node = findNode.export('package:foo');
     assertResolvedNodeText(node, r'''
@@ -638,9 +647,7 @@ export ':net';
 ''');
 
     await resolveFile2(b);
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.INVALID_URI, 25, 6),
-    ]);
+    assertErrorsInResult([error(CompileTimeErrorCode.INVALID_URI, 25, 6)]);
 
     var node = findNode.export('export');
     assertResolvedNodeText(node, r'''

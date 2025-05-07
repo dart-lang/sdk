@@ -11,7 +11,7 @@ import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/lint/registry.dart';
-import 'package:analyzer_utilities/package_root.dart' as package_root;
+import 'package:analyzer_testing/package_root.dart' as package_root;
 import 'package:linter/src/rules.dart';
 import 'package:yaml/yaml.dart';
 
@@ -187,8 +187,8 @@ class ErrorData {
       entriesWithNoCode.isNotEmpty;
 }
 
-extension on ErrorCode {
-  /// Whether this [ErrorCode] is likely to have a fix associated with
+extension on DiagnosticCode {
+  /// Whether this [DiagnosticCode] is likely to have a fix associated with
   /// it.
   bool get hasFix {
     var self = this;

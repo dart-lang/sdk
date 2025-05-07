@@ -30,19 +30,14 @@ class ElementDisplayStringTest extends AbstractTypeSystemTest {
   }
 
   void test_extension_named() {
-    var element = extension(
-      name: 'StringExtension',
-      extendedType: stringNone,
-    );
+    var element = extension(name: 'StringExtension', extendedType: stringNone);
 
     var displayString = element.getDisplayString();
     expect(displayString, 'extension StringExtension on String');
   }
 
   void test_extension_unnamed() {
-    var element = extension(
-      extendedType: stringNone,
-    );
+    var element = extension(extendedType: stringNone);
 
     var displayString = element.getDisplayString();
     expect(displayString, 'extension on String');
@@ -70,7 +65,10 @@ class ElementDisplayStringTest extends AbstractTypeSystemTest {
       formalParameters: [
         requiredParameter(name: 'aaa', type: stringQuestion),
         positionalParameter(
-            name: 'bbb', type: stringQuestion, defaultValueCode: "'a'"),
+          name: 'bbb',
+          type: stringQuestion,
+          defaultValueCode: "'a'",
+        ),
         positionalParameter(name: 'ccc', type: stringQuestion),
       ],
     );
@@ -79,9 +77,7 @@ class ElementDisplayStringTest extends AbstractTypeSystemTest {
     expect(singleLine, '''
 String? longMethodName(String? aaa, [String? bbb = 'a', String? ccc])''');
 
-    var multiLine = methodA.getDisplayString(
-      multiline: true,
-    );
+    var multiLine = methodA.getDisplayString(multiline: true);
     expect(multiLine, '''
 String? longMethodName(
   String? aaa, [
@@ -99,26 +95,28 @@ String? longMethodName(
       formalParameters: [
         requiredParameter(name: 'aaa', type: stringQuestion),
         positionalParameter(
-            name: 'bbb',
-            type: functionTypeNone(
-              formalParameters: [
-                requiredParameter(name: 'xxx', type: stringQuestion),
-                requiredParameter(name: 'yyy', type: stringQuestion),
-                requiredParameter(name: 'zzz', type: stringQuestion),
-              ],
-              returnType: stringQuestion,
-            )),
+          name: 'bbb',
+          type: functionTypeNone(
+            formalParameters: [
+              requiredParameter(name: 'xxx', type: stringQuestion),
+              requiredParameter(name: 'yyy', type: stringQuestion),
+              requiredParameter(name: 'zzz', type: stringQuestion),
+            ],
+            returnType: stringQuestion,
+          ),
+        ),
         positionalParameter(name: 'ccc', type: stringQuestion),
       ],
     );
 
     var singleLine = methodA.getDisplayString();
-    expect(singleLine, '''
-String? longMethodName(String? aaa, [String? Function(String?, String?, String?) bbb, String? ccc])''');
-
-    var multiLine = methodA.getDisplayString(
-      multiline: true,
+    expect(
+      singleLine,
+      '''
+String? longMethodName(String? aaa, [String? Function(String?, String?, String?) bbb, String? ccc])''',
     );
+
+    var multiLine = methodA.getDisplayString(multiline: true);
     expect(multiLine, '''
 String? longMethodName(
   String? aaa, [
@@ -128,25 +126,22 @@ String? longMethodName(
   }
 
   void test_property_getter() {
-    var getterA =
-        GetterFragmentImpl.forVariable(TopLevelVariableElementImpl('a', 0))
-          ..returnType = stringNone;
+    var getterA = GetterFragmentImpl.forVariable(
+      TopLevelVariableFragmentImpl('a', 0),
+    )..returnType = stringNone;
 
     expect(getterA.getDisplayString(), 'String get a');
   }
 
   void test_property_setter() {
     var setterA =
-        SetterFragmentImpl.forVariable(TopLevelVariableElementImpl('a', 0))
+        SetterFragmentImpl.forVariable(TopLevelVariableFragmentImpl('a', 0))
           ..returnType = voidNone
           ..parameters = [
             requiredParameter(name: 'value', type: stringNone).asElement,
           ];
 
-    expect(
-      setterA.getDisplayString(),
-      'set a(String value)',
-    );
+    expect(setterA.getDisplayString(), 'set a(String value)');
   }
 
   void test_shortMethod() {
@@ -162,9 +157,7 @@ String? longMethodName(
     var singleLine = methodA.getDisplayString();
     expect(singleLine, 'String? m(String? a, [String? b])');
 
-    var multiLine = methodA.getDisplayString(
-      multiline: true,
-    );
+    var multiLine = methodA.getDisplayString(multiline: true);
     // The signature is short enough that it remains on one line even for
     // multiline: true.
     expect(multiLine, 'String? m(String? a, [String? b])');

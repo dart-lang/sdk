@@ -41,9 +41,7 @@ class ApplyConstantOffsets {
     var offsets = _offsets;
     var function = _function;
     if (offsets != null && function != null) {
-      var applier = _OffsetsApplier(
-        _SafeListIterator(offsets),
-      );
+      var applier = _OffsetsApplier(_SafeListIterator(offsets));
       function.call(applier);
       // Clear the references to possible closure data.
       // TODO(scheglov): We want to null the whole `linkedData` instead.
@@ -86,8 +84,7 @@ class InformativeDataApplier {
     _elementFactory.isApplyingInformativeData = false;
   }
 
-  void applyToUnit(
-      CompilationUnitElementImpl unitElement, Uint8List unitInfoBytes) {
+  void applyToUnit(LibraryFragmentImpl unitElement, Uint8List unitInfoBytes) {
     var unitReader = SummaryDataReader(unitInfoBytes);
     var unitInfo = _InfoUnit(_infoDeclarationStore, unitReader);
 
@@ -102,15 +99,14 @@ class InformativeDataApplier {
     _applyToImports(unitElement.libraryImports_unresolved, unitInfo);
     _applyToExports(unitElement.libraryExports_unresolved, unitInfo);
 
-    var applyOffsets = ApplyConstantOffsets(
-      unitInfo.libraryConstantOffsets,
-      (applier) {
-        applier.applyToMetadata(unitElement);
-        applier.applyToImports(unitElement.libraryImports);
-        applier.applyToExports(unitElement.libraryExports);
-        applier.applyToParts(unitElement.parts);
-      },
-    );
+    var applyOffsets = ApplyConstantOffsets(unitInfo.libraryConstantOffsets, (
+      applier,
+    ) {
+      applier.applyToMetadata(unitElement);
+      applier.applyToImports(unitElement.libraryImports);
+      applier.applyToExports(unitElement.libraryExports);
+      applier.applyToParts(unitElement.parts);
+    });
 
     _applyToAccessors(unitElement.accessors, unitInfo.accessors);
 
@@ -131,26 +127,44 @@ class InformativeDataApplier {
     );
 
     forCorrespondingPairs(
-        unitElement.enums, unitInfo.enums, _applyToEnumDeclaration);
-
-    forCorrespondingPairs(unitElement.extensions, unitInfo.extensions,
-        _applyToExtensionDeclaration);
-
-    forCorrespondingPairs(unitElement.extensionTypes, unitInfo.extensionTypes,
-        _applyToExtensionTypeDeclaration);
+      unitElement.enums,
+      unitInfo.enums,
+      _applyToEnumDeclaration,
+    );
 
     forCorrespondingPairs(
-        unitElement.functions, unitInfo.functions, _applyToFunctionDeclaration);
+      unitElement.extensions,
+      unitInfo.extensions,
+      _applyToExtensionDeclaration,
+    );
 
-    forCorrespondingPairs(unitElement.mixins, unitInfo.mixinDeclarations,
-        _applyToMixinDeclaration);
+    forCorrespondingPairs(
+      unitElement.extensionTypes,
+      unitInfo.extensionTypes,
+      _applyToExtensionTypeDeclaration,
+    );
 
-    forCorrespondingPairs(unitElement.topLevelVariables,
-        unitInfo.topLevelVariable, _applyToTopLevelVariable);
+    forCorrespondingPairs(
+      unitElement.functions,
+      unitInfo.functions,
+      _applyToFunctionDeclaration,
+    );
+
+    forCorrespondingPairs(
+      unitElement.mixins,
+      unitInfo.mixinDeclarations,
+      _applyToMixinDeclaration,
+    );
+
+    forCorrespondingPairs(
+      unitElement.topLevelVariables,
+      unitInfo.topLevelVariable,
+      _applyToTopLevelVariable,
+    );
 
     forCorrespondingPairs(
       unitElement.typeAliases
-          .cast<TypeAliasElementImpl>()
+          .cast<TypeAliasFragmentImpl>()
           .where((e) => e.isFunctionTypeAliasBased)
           .toList(),
       unitInfo.functionTypeAliases,
@@ -159,7 +173,7 @@ class InformativeDataApplier {
 
     forCorrespondingPairs(
       unitElement.typeAliases
-          .cast<TypeAliasElementImpl>()
+          .cast<TypeAliasFragmentImpl>()
           .where((e) => !e.isFunctionTypeAliasBased)
           .toList(),
       unitInfo.genericTypeAliases,
@@ -175,43 +189,33 @@ class InformativeDataApplier {
   }
 
   void _applyToAccessors(
-    List<PropertyAccessorElementImpl> elementList,
+    List<PropertyAccessorFragmentImpl> elementList,
     List<_InfoMethodDeclaration> infoList,
   ) {
-    forCorrespondingPairs(
-      elementList.notSynthetic,
-      infoList,
-      (element, info) {
-        element.setCodeRange(info.codeOffset, info.codeLength);
-        element.nameOffset = info.nameOffset;
-        element.nameOffset2 = info.nameOffset2;
-        element.documentationComment = info.documentationComment;
-        _applyToFormalParameters(
-          element.parameters_unresolved,
-          info.parameters,
-        );
+    forCorrespondingPairs(elementList.notSynthetic, infoList, (element, info) {
+      element.setCodeRange(info.codeOffset, info.codeLength);
+      element.nameOffset = info.nameOffset;
+      element.nameOffset2 = info.nameOffset2;
+      element.documentationComment = info.documentationComment;
+      _applyToFormalParameters(element.parameters_unresolved, info.parameters);
 
-        var applyOffsets = ApplyConstantOffsets(
-          info.constantOffsets,
-          (applier) {
-            applier.applyToMetadata(element);
-            applier.applyToTypeParameters(element.typeParameters);
-            applier.applyToFormalParameters(element.parameters);
-          },
-        );
+      var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
+        applier.applyToMetadata(element);
+        applier.applyToTypeParameters(element.typeParameters);
+        applier.applyToFormalParameters(element.parameters);
+      });
 
-        var linkedData = element.linkedData;
-        if (linkedData is PropertyAccessorElementLinkedData) {
-          linkedData.applyConstantOffsets = applyOffsets;
-        } else {
-          applyOffsets.perform();
-        }
-      },
-    );
+      var linkedData = element.linkedData;
+      if (linkedData is PropertyAccessorElementLinkedData) {
+        linkedData.applyConstantOffsets = applyOffsets;
+      } else {
+        applyOffsets.perform();
+      }
+    });
   }
 
   void _applyToClassDeclaration(
-    ClassElementImpl element,
+    ClassFragmentImpl element,
     _InfoClassDeclaration info,
   ) {
     element.setCodeRange(info.codeOffset, info.codeLength);
@@ -223,13 +227,10 @@ class InformativeDataApplier {
       info.typeParameters,
     );
 
-    var applyOffsets = ApplyConstantOffsets(
-      info.constantOffsets,
-      (applier) {
-        applier.applyToMetadata(element);
-        applier.applyToTypeParameters(element.typeParameters);
-      },
-    );
+    var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
+      applier.applyToMetadata(element);
+      applier.applyToTypeParameters(element.typeParameters);
+    });
 
     void applyToMembers() {
       _applyToConstructors(element.constructors, info.constructors);
@@ -249,7 +250,7 @@ class InformativeDataApplier {
   }
 
   void _applyToClassTypeAlias(
-    ClassElementImpl element,
+    ClassFragmentImpl element,
     _InfoClassTypeAlias info,
   ) {
     element.setCodeRange(info.codeOffset, info.codeLength);
@@ -261,13 +262,10 @@ class InformativeDataApplier {
       info.typeParameters,
     );
 
-    var applyOffsets = ApplyConstantOffsets(
-      info.constantOffsets,
-      (applier) {
-        applier.applyToMetadata(element);
-        applier.applyToTypeParameters(element.typeParameters);
-      },
-    );
+    var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
+      applier.applyToMetadata(element);
+      applier.applyToTypeParameters(element.typeParameters);
+    });
 
     var linkedData = element.linkedData;
     if (linkedData is ClassElementLinkedData) {
@@ -298,47 +296,37 @@ class InformativeDataApplier {
   }
 
   void _applyToConstructors(
-    List<ConstructorElementImpl> elementList,
+    List<ConstructorFragmentImpl> elementList,
     List<_InfoConstructorDeclaration> infoList,
   ) {
-    forCorrespondingPairs(
-      elementList,
-      infoList,
-      (element, info) {
-        element.setCodeRange(info.codeOffset, info.codeLength);
-        element.typeNameOffset = info.typeNameOffset;
-        element.periodOffset = info.periodOffset;
-        element.nameOffset = info.nameOffset;
-        element.nameEnd = info.nameEnd;
-        element.nameOffset2 = info.nameOffset2;
-        element.documentationComment = info.documentationComment;
+    forCorrespondingPairs(elementList, infoList, (element, info) {
+      element.setCodeRange(info.codeOffset, info.codeLength);
+      element.typeNameOffset = info.typeNameOffset;
+      element.periodOffset = info.periodOffset;
+      element.nameOffset = info.nameOffset;
+      element.nameEnd = info.nameEnd;
+      element.nameOffset2 = info.nameOffset2;
+      element.documentationComment = info.documentationComment;
 
-        _applyToFormalParameters(
-          element.parameters_unresolved,
-          info.parameters,
-        );
+      _applyToFormalParameters(element.parameters_unresolved, info.parameters);
 
-        var applyOffsets = ApplyConstantOffsets(
-          info.constantOffsets,
-          (applier) {
-            applier.applyToMetadata(element);
-            applier.applyToFormalParameters(element.parameters);
-            applier.applyToConstructorInitializers(element);
-          },
-        );
+      var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
+        applier.applyToMetadata(element);
+        applier.applyToFormalParameters(element.parameters);
+        applier.applyToConstructorInitializers(element);
+      });
 
-        var linkedData = element.linkedData;
-        if (linkedData is ConstructorElementLinkedData) {
-          linkedData.applyConstantOffsets = applyOffsets;
-        } else {
-          applyOffsets.perform();
-        }
-      },
-    );
+      var linkedData = element.linkedData;
+      if (linkedData is ConstructorElementLinkedData) {
+        linkedData.applyConstantOffsets = applyOffsets;
+      } else {
+        applyOffsets.perform();
+      }
+    });
   }
 
   void _applyToEnumDeclaration(
-    EnumElementImpl element,
+    EnumFragmentImpl element,
     _InfoClassDeclaration info,
   ) {
     element.setCodeRange(info.codeOffset, info.codeLength);
@@ -355,13 +343,10 @@ class InformativeDataApplier {
     _applyToAccessors(element.accessors, info.accessors);
     _applyToMethods(element.methods, info.methods);
 
-    var applyOffsets = ApplyConstantOffsets(
-      info.constantOffsets,
-      (applier) {
-        applier.applyToMetadata(element);
-        applier.applyToTypeParameters(element.typeParameters);
-      },
-    );
+    var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
+      applier.applyToMetadata(element);
+      applier.applyToTypeParameters(element.typeParameters);
+    });
 
     var linkedData = element.linkedData;
     if (linkedData is EnumElementLinkedData) {
@@ -371,22 +356,15 @@ class InformativeDataApplier {
     }
   }
 
-  void _applyToExports(
-    List<LibraryExportElementImpl> exports,
-    _InfoUnit info,
-  ) {
-    forCorrespondingPairs(
-      exports,
-      info.exports,
-      (element, info) {
-        element.nameOffset = info.nameOffset;
-        _applyToCombinators(element.combinators, info.combinators);
-      },
-    );
+  void _applyToExports(List<LibraryExportElementImpl> exports, _InfoUnit info) {
+    forCorrespondingPairs(exports, info.exports, (element, info) {
+      element.nameOffset = info.nameOffset;
+      _applyToCombinators(element.combinators, info.combinators);
+    });
   }
 
   void _applyToExtensionDeclaration(
-    ExtensionElementImpl element,
+    ExtensionFragmentImpl element,
     _InfoClassDeclaration info,
   ) {
     element.setCodeRange(info.codeOffset, info.codeLength);
@@ -401,13 +379,10 @@ class InformativeDataApplier {
     _applyToAccessors(element.accessors, info.accessors);
     _applyToMethods(element.methods, info.methods);
 
-    var applyOffsets = ApplyConstantOffsets(
-      info.constantOffsets,
-      (applier) {
-        applier.applyToMetadata(element);
-        applier.applyToTypeParameters(element.typeParameters);
-      },
-    );
+    var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
+      applier.applyToMetadata(element);
+      applier.applyToTypeParameters(element.typeParameters);
+    });
 
     var linkedData = element.linkedData;
     if (linkedData is ExtensionElementLinkedData) {
@@ -418,7 +393,7 @@ class InformativeDataApplier {
   }
 
   void _applyToExtensionTypeDeclaration(
-    ExtensionTypeElementImpl element,
+    ExtensionTypeFragmentImpl element,
     _InfoExtensionTypeDeclaration info,
   ) {
     element.setCodeRange(info.codeOffset, info.codeLength);
@@ -439,12 +414,11 @@ class InformativeDataApplier {
       infoRep.fieldCodeLength,
     );
 
-    var fieldApplyOffsets = ApplyConstantOffsets(
-      infoRep.fieldConstantOffsets,
-      (applier) {
-        applier.applyToMetadata(representationField);
-      },
-    );
+    var fieldApplyOffsets = ApplyConstantOffsets(infoRep.fieldConstantOffsets, (
+      applier,
+    ) {
+      applier.applyToMetadata(representationField);
+    });
 
     var fieldLinkedData = representationField.linkedData;
     if (fieldLinkedData is FieldElementLinkedData) {
@@ -482,13 +456,10 @@ class InformativeDataApplier {
     _applyToAccessors(element.accessors, info.accessors);
     _applyToMethods(element.methods, info.methods);
 
-    var applyOffsets = ApplyConstantOffsets(
-      info.constantOffsets,
-      (applier) {
-        applier.applyToMetadata(element);
-        applier.applyToTypeParameters(element.typeParameters);
-      },
-    );
+    var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
+      applier.applyToMetadata(element);
+      applier.applyToTypeParameters(element.typeParameters);
+    });
 
     var linkedData = element.linkedData;
     if (linkedData is ExtensionTypeElementLinkedData) {
@@ -499,51 +470,40 @@ class InformativeDataApplier {
   }
 
   void _applyToFields(
-    List<FieldElementImpl> elementList,
+    List<FieldFragmentImpl> elementList,
     List<_InfoFieldDeclaration> infoList,
   ) {
-    forCorrespondingPairs(
-      elementList.notSynthetic,
-      infoList,
-      (element, info) {
-        element.setCodeRange(info.codeOffset, info.codeLength);
-        element.nameOffset = info.nameOffset;
-        element.nameOffset2 = info.nameOffset2;
-        element.documentationComment = info.documentationComment;
+    forCorrespondingPairs(elementList.notSynthetic, infoList, (element, info) {
+      element.setCodeRange(info.codeOffset, info.codeLength);
+      element.nameOffset = info.nameOffset;
+      element.nameOffset2 = info.nameOffset2;
+      element.documentationComment = info.documentationComment;
 
-        var applyOffsets = ApplyConstantOffsets(
-          info.constantOffsets,
-          (applier) {
-            applier.applyToMetadata(element);
-            applier.applyToConstantInitializer(element);
-          },
-        );
+      var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
+        applier.applyToMetadata(element);
+        applier.applyToConstantInitializer(element);
+      });
 
-        var linkedData = element.linkedData;
-        if (linkedData is FieldElementLinkedData) {
-          linkedData.applyConstantOffsets = applyOffsets;
-        } else {
-          applyOffsets.perform();
-        }
-      },
-    );
+      var linkedData = element.linkedData;
+      if (linkedData is FieldElementLinkedData) {
+        linkedData.applyConstantOffsets = applyOffsets;
+      } else {
+        applyOffsets.perform();
+      }
+    });
   }
 
   void _applyToFormalParameters(
-    List<ParameterElementImpl> parameters,
+    List<FormalParameterFragmentImpl> parameters,
     List<_InfoFormalParameter> infoList,
   ) {
-    forCorrespondingPairs(
-      parameters,
-      infoList,
-      (element, info) {
-        element.setCodeRange(info.codeOffset, info.codeLength);
-        element.nameOffset = info.nameOffset;
-        element.nameOffset2 = info.nameOffset2;
-        _applyToTypeParameters(element.typeParameters, info.typeParameters);
-        _applyToFormalParameters(element.parameters, info.parameters);
-      },
-    );
+    forCorrespondingPairs(parameters, infoList, (element, info) {
+      element.setCodeRange(info.codeOffset, info.codeLength);
+      element.nameOffset = info.nameOffset;
+      element.nameOffset2 = info.nameOffset2;
+      _applyToTypeParameters(element.typeParameters, info.typeParameters);
+      _applyToFormalParameters(element.parameters, info.parameters);
+    });
   }
 
   void _applyToFunctionDeclaration(
@@ -558,19 +518,13 @@ class InformativeDataApplier {
       element.typeParameters_unresolved,
       info.typeParameters,
     );
-    _applyToFormalParameters(
-      element.parameters_unresolved,
-      info.parameters,
-    );
+    _applyToFormalParameters(element.parameters_unresolved, info.parameters);
 
-    var applyOffsets = ApplyConstantOffsets(
-      info.constantOffsets,
-      (applier) {
-        applier.applyToMetadata(element);
-        applier.applyToTypeParameters(element.typeParameters);
-        applier.applyToFormalParameters(element.parameters);
-      },
-    );
+    var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
+      applier.applyToMetadata(element);
+      applier.applyToTypeParameters(element.typeParameters);
+      applier.applyToFormalParameters(element.parameters);
+    });
 
     var linkedData = element.linkedData;
     if (linkedData is FunctionElementLinkedData) {
@@ -581,7 +535,7 @@ class InformativeDataApplier {
   }
 
   void _applyToFunctionTypeAlias(
-    TypeAliasElementImpl element,
+    TypeAliasFragmentImpl element,
     _InfoFunctionTypeAlias info,
   ) {
     element.setCodeRange(info.codeOffset, info.codeLength);
@@ -601,7 +555,7 @@ class InformativeDataApplier {
   }
 
   void _applyToGenericTypeAlias(
-    TypeAliasElementImpl element,
+    TypeAliasFragmentImpl element,
     _InfoGenericTypeAlias info,
   ) {
     element.setCodeRange(info.codeOffset, info.codeLength);
@@ -621,30 +575,16 @@ class InformativeDataApplier {
     );
   }
 
-  void _applyToImports(
-    List<LibraryImportElementImpl> imports,
-    _InfoUnit info,
-  ) {
-    forCorrespondingPairs(
-      imports,
-      info.imports,
-      (element, info) {
-        element.nameOffset = info.nameOffset;
+  void _applyToImports(List<LibraryImportElementImpl> imports, _InfoUnit info) {
+    forCorrespondingPairs(imports, info.imports, (element, info) {
+      element.nameOffset = info.nameOffset;
 
-        var prefixElement = element.prefix?.element;
-        if (prefixElement is PrefixElementImpl) {
-          if (prefixElement.nameOffset == -1) {
-            prefixElement.nameOffset = info.prefixOffset;
-          }
-        }
-
-        if (element.prefix2 case var prefixFragment?) {
-          prefixFragment.nameOffset2 = info.prefixOffset2;
-          prefixFragment.offset = info.prefixOffset;
-        }
-        _applyToCombinators(element.combinators, info.combinators);
-      },
-    );
+      if (element.prefix2 case var prefixFragment?) {
+        prefixFragment.nameOffset2 = info.prefixOffset2;
+        prefixFragment.offset = info.prefixOffset;
+      }
+      _applyToCombinators(element.combinators, info.combinators);
+    });
   }
 
   void _applyToLibrary(LibraryElementImpl element, _InfoUnit info) {
@@ -655,12 +595,11 @@ class InformativeDataApplier {
       element.documentationComment = info.docComment;
     }
 
-    var applyOffsets = ApplyConstantOffsets(
-      info.libraryConstantOffsets,
-      (applier) {
-        applier.applyToMetadata(element);
-      },
-    );
+    var applyOffsets = ApplyConstantOffsets(info.libraryConstantOffsets, (
+      applier,
+    ) {
+      applier.applyToMetadata(element);
+    });
 
     var linkedData = element.linkedData;
     if (linkedData is LibraryElementLinkedData) {
@@ -671,47 +610,37 @@ class InformativeDataApplier {
   }
 
   void _applyToMethods(
-    List<MethodElementImpl> elementList,
+    List<MethodFragmentImpl> elementList,
     List<_InfoMethodDeclaration> infoList,
   ) {
-    forCorrespondingPairs(
-      elementList,
-      infoList,
-      (element, info) {
-        element.setCodeRange(info.codeOffset, info.codeLength);
-        element.nameOffset = info.nameOffset;
-        element.nameOffset2 = info.nameOffset2;
-        element.documentationComment = info.documentationComment;
-        _applyToTypeParameters(
-          element.typeParameters_unresolved,
-          info.typeParameters,
-        );
-        _applyToFormalParameters(
-          element.parameters_unresolved,
-          info.parameters,
-        );
+    forCorrespondingPairs(elementList, infoList, (element, info) {
+      element.setCodeRange(info.codeOffset, info.codeLength);
+      element.nameOffset = info.nameOffset;
+      element.nameOffset2 = info.nameOffset2;
+      element.documentationComment = info.documentationComment;
+      _applyToTypeParameters(
+        element.typeParameters_unresolved,
+        info.typeParameters,
+      );
+      _applyToFormalParameters(element.parameters_unresolved, info.parameters);
 
-        var applyOffsets = ApplyConstantOffsets(
-          info.constantOffsets,
-          (applier) {
-            applier.applyToMetadata(element);
-            applier.applyToTypeParameters(element.typeParameters);
-            applier.applyToFormalParameters(element.parameters);
-          },
-        );
+      var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
+        applier.applyToMetadata(element);
+        applier.applyToTypeParameters(element.typeParameters);
+        applier.applyToFormalParameters(element.parameters);
+      });
 
-        var linkedData = element.linkedData;
-        if (linkedData is MethodElementLinkedData) {
-          linkedData.applyConstantOffsets = applyOffsets;
-        } else {
-          applyOffsets.perform();
-        }
-      },
-    );
+      var linkedData = element.linkedData;
+      if (linkedData is MethodElementLinkedData) {
+        linkedData.applyConstantOffsets = applyOffsets;
+      } else {
+        applyOffsets.perform();
+      }
+    });
   }
 
   void _applyToMixinDeclaration(
-    MixinElementImpl element,
+    MixinFragmentImpl element,
     _InfoClassDeclaration info,
   ) {
     element.setCodeRange(info.codeOffset, info.codeLength);
@@ -727,13 +656,10 @@ class InformativeDataApplier {
     _applyToAccessors(element.accessors, info.accessors);
     _applyToMethods(element.methods, info.methods);
 
-    var applyOffsets = ApplyConstantOffsets(
-      info.constantOffsets,
-      (applier) {
-        applier.applyToMetadata(element);
-        applier.applyToTypeParameters(element.typeParameters);
-      },
-    );
+    var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
+      applier.applyToMetadata(element);
+      applier.applyToTypeParameters(element.typeParameters);
+    });
 
     var linkedData = element.linkedData;
     if (linkedData is MixinElementLinkedData) {
@@ -744,7 +670,7 @@ class InformativeDataApplier {
   }
 
   void _applyToTopLevelVariable(
-    TopLevelVariableElementImpl element,
+    TopLevelVariableFragmentImpl element,
     _InfoTopLevelVariable info,
   ) {
     element.setCodeRange(info.codeOffset, info.codeLength);
@@ -752,13 +678,10 @@ class InformativeDataApplier {
     element.nameOffset2 = info.nameOffset2;
     element.documentationComment = info.documentationComment;
 
-    var applyOffsets = ApplyConstantOffsets(
-      info.constantOffsets,
-      (applier) {
-        applier.applyToMetadata(element);
-        applier.applyToConstantInitializer(element);
-      },
-    );
+    var applyOffsets = ApplyConstantOffsets(info.constantOffsets, (applier) {
+      applier.applyToMetadata(element);
+      applier.applyToConstantInitializer(element);
+    });
 
     var linkedData = element.linkedData;
     if (linkedData is TopLevelVariableElementLinkedData) {
@@ -769,56 +692,49 @@ class InformativeDataApplier {
   }
 
   void _applyToTypeParameters(
-    List<TypeParameterElementImpl> elementList,
+    List<TypeParameterFragmentImpl> elementList,
     List<_InfoTypeParameter> infoList,
   ) {
-    forCorrespondingPairs(
-      elementList,
-      infoList,
-      (element, info) {
-        element.setCodeRange(info.codeOffset, info.codeLength);
-        element.nameOffset = info.nameOffset;
-        element.nameOffset2 = info.nameOffset2;
-      },
-    );
+    forCorrespondingPairs(elementList, infoList, (element, info) {
+      element.setCodeRange(info.codeOffset, info.codeLength);
+      element.nameOffset = info.nameOffset;
+      element.nameOffset2 = info.nameOffset2;
+    });
   }
 
-  Uint8List? _getInfoUnitBytes(CompilationUnitElementImpl element) {
+  Uint8List? _getInfoUnitBytes(LibraryFragmentImpl element) {
     var uri = element.source.uri;
     return _unitsInformativeBytes2[uri];
   }
 
   void _setupApplyConstantOffsetsForTypeAlias(
-    TypeAliasElementImpl element,
+    TypeAliasFragmentImpl element,
     Uint32List constantOffsets, {
     List<_InfoFormalParameter>? aliasedFormalParameters,
     List<_InfoTypeParameter>? aliasedTypeParameters,
   }) {
-    var applyOffsets = ApplyConstantOffsets(
-      constantOffsets,
-      (applier) {
-        applier.applyToMetadata(element);
-        applier.applyToTypeParameters(element.typeParameters);
+    var applyOffsets = ApplyConstantOffsets(constantOffsets, (applier) {
+      applier.applyToMetadata(element);
+      applier.applyToTypeParameters(element.typeParameters);
 
-        var aliasedElement = element.aliasedElement;
-        if (aliasedElement is FunctionTypedElementImpl) {
-          applier.applyToTypeParameters(aliasedElement.typeParameters);
-          applier.applyToFormalParameters(aliasedElement.parameters);
-          if (aliasedTypeParameters != null) {
-            _applyToTypeParameters(
-              aliasedElement.typeParameters,
-              aliasedTypeParameters,
-            );
-          }
-          if (aliasedFormalParameters != null) {
-            _applyToFormalParameters(
-              aliasedElement.parameters,
-              aliasedFormalParameters,
-            );
-          }
+      var aliasedElement = element.aliasedElement;
+      if (aliasedElement is FunctionTypedFragmentImpl) {
+        applier.applyToTypeParameters(aliasedElement.typeParameters);
+        applier.applyToFormalParameters(aliasedElement.parameters);
+        if (aliasedTypeParameters != null) {
+          _applyToTypeParameters(
+            aliasedElement.typeParameters,
+            aliasedTypeParameters,
+          );
         }
-      },
-    );
+        if (aliasedFormalParameters != null) {
+          _applyToFormalParameters(
+            aliasedElement.parameters,
+            aliasedFormalParameters,
+          );
+        }
+      }
+    });
 
     var linkedData = element.linkedData;
     if (linkedData is TypeAliasElementLinkedData) {
@@ -843,16 +759,21 @@ class _InfoClassDeclaration {
   final Uint32List constantOffsets;
 
   factory _InfoClassDeclaration(
-      InfoDeclarationStore cache, SummaryDataReader reader,
-      {int nameOffsetDelta = 0}) {
+    InfoDeclarationStore cache,
+    SummaryDataReader reader, {
+    int nameOffsetDelta = 0,
+  }) {
     // TODO(scheglov): Shared below.
     // TODO(jensj): Possibly we could just save the bytes and the
     // offset and then only read it when/if needed.
     // See https://dart-review.googlesource.com/c/sdk/+/318940.
     var initialOffset = reader.offset;
     String cacheKey = cache.createKey(reader, initialOffset);
-    var cached =
-        cache.get<_InfoClassDeclaration>(reader, cacheKey, initialOffset);
+    var cached = cache.get<_InfoClassDeclaration>(
+      reader,
+      cacheKey,
+      initialOffset,
+    );
     if (cached != null) return cached;
 
     var result = _InfoClassDeclaration._(
@@ -861,21 +782,13 @@ class _InfoClassDeclaration {
       nameOffset: reader.readUInt30() - nameOffsetDelta,
       nameOffset2: reader.readOptionalUInt30(),
       documentationComment: reader.readStringUtf8().nullIfEmpty,
-      typeParameters: reader.readTypedList(
-        () => _InfoTypeParameter(reader),
-      ),
+      typeParameters: reader.readTypedList(() => _InfoTypeParameter(reader)),
       constructors: reader.readTypedList(
         () => _InfoConstructorDeclaration(reader),
       ),
-      fields: reader.readTypedList(
-        () => _InfoFieldDeclaration(reader),
-      ),
-      accessors: reader.readTypedList(
-        () => _InfoMethodDeclaration(reader),
-      ),
-      methods: reader.readTypedList(
-        () => _InfoMethodDeclaration(reader),
-      ),
+      fields: reader.readTypedList(() => _InfoFieldDeclaration(reader)),
+      accessors: reader.readTypedList(() => _InfoMethodDeclaration(reader)),
+      methods: reader.readTypedList(() => _InfoMethodDeclaration(reader)),
       constantOffsets: reader.readUInt30List(),
     );
 
@@ -914,9 +827,7 @@ class _InfoClassTypeAlias {
       nameOffset: reader.readUInt30(),
       nameOffset2: reader.readOptionalUInt30(),
       documentationComment: reader.readStringUtf8().nullIfEmpty,
-      typeParameters: reader.readTypedList(
-        () => _InfoTypeParameter(reader),
-      ),
+      typeParameters: reader.readTypedList(() => _InfoTypeParameter(reader)),
       constantOffsets: reader.readUInt30List(),
     );
   }
@@ -943,10 +854,7 @@ class _InfoCombinator {
     );
   }
 
-  _InfoCombinator._({
-    required this.offset,
-    required this.end,
-  });
+  _InfoCombinator._({required this.offset, required this.end});
 }
 
 class _InfoConstructorDeclaration {
@@ -971,9 +879,7 @@ class _InfoConstructorDeclaration {
       nameEnd: reader.readOptionalUInt30(),
       nameOffset2: reader.readOptionalUInt30(),
       documentationComment: reader.readStringUtf8().nullIfEmpty,
-      parameters: reader.readTypedList(
-        () => _InfoFormalParameter(reader),
-      ),
+      parameters: reader.readTypedList(() => _InfoFormalParameter(reader)),
       constantOffsets: reader.readUInt30List(),
     );
   }
@@ -999,16 +905,11 @@ class _InfoExport {
   factory _InfoExport(SummaryDataReader reader) {
     return _InfoExport._(
       nameOffset: reader.readUInt30(),
-      combinators: reader.readTypedList(
-        () => _InfoCombinator(reader),
-      ),
+      combinators: reader.readTypedList(() => _InfoCombinator(reader)),
     );
   }
 
-  _InfoExport._({
-    required this.nameOffset,
-    required this.combinators,
-  });
+  _InfoExport._({required this.nameOffset, required this.combinators});
 }
 
 class _InfoExtensionTypeDeclaration {
@@ -1032,22 +933,14 @@ class _InfoExtensionTypeDeclaration {
       nameOffset: reader.readUInt30(),
       nameOffset2: reader.readOptionalUInt30(),
       documentationComment: reader.readStringUtf8().nullIfEmpty,
-      typeParameters: reader.readTypedList(
-        () => _InfoTypeParameter(reader),
-      ),
+      typeParameters: reader.readTypedList(() => _InfoTypeParameter(reader)),
       representation: _InfoExtensionTypeRepresentation(reader),
       constructors: reader.readTypedList(
         () => _InfoConstructorDeclaration(reader),
       ),
-      fields: reader.readTypedList(
-        () => _InfoFieldDeclaration(reader),
-      ),
-      accessors: reader.readTypedList(
-        () => _InfoMethodDeclaration(reader),
-      ),
-      methods: reader.readTypedList(
-        () => _InfoMethodDeclaration(reader),
-      ),
+      fields: reader.readTypedList(() => _InfoFieldDeclaration(reader)),
+      accessors: reader.readTypedList(() => _InfoMethodDeclaration(reader)),
+      methods: reader.readTypedList(() => _InfoMethodDeclaration(reader)),
       constantOffsets: reader.readUInt30List(),
     );
   }
@@ -1158,12 +1051,8 @@ class _InfoFormalParameter {
       codeLength: reader.readUInt30(),
       nameOffset: reader.readUInt30() - 1,
       nameOffset2: reader.readOptionalUInt30(),
-      typeParameters: reader.readTypedList(
-        () => _InfoTypeParameter(reader),
-      ),
-      parameters: reader.readTypedList(
-        () => _InfoFormalParameter(reader),
-      ),
+      typeParameters: reader.readTypedList(() => _InfoTypeParameter(reader)),
+      parameters: reader.readTypedList(() => _InfoFormalParameter(reader)),
     );
   }
 
@@ -1194,12 +1083,8 @@ class _InfoFunctionDeclaration {
       nameOffset: reader.readUInt30(),
       nameOffset2: reader.readOptionalUInt30(),
       documentationComment: reader.readStringUtf8().nullIfEmpty,
-      typeParameters: reader.readTypedList(
-        () => _InfoTypeParameter(reader),
-      ),
-      parameters: reader.readTypedList(
-        () => _InfoFormalParameter(reader),
-      ),
+      typeParameters: reader.readTypedList(() => _InfoTypeParameter(reader)),
+      parameters: reader.readTypedList(() => _InfoFormalParameter(reader)),
       constantOffsets: reader.readUInt30List(),
     );
   }
@@ -1233,12 +1118,8 @@ class _InfoFunctionTypeAlias {
       nameOffset: reader.readUInt30(),
       nameOffset2: reader.readOptionalUInt30(),
       documentationComment: reader.readStringUtf8().nullIfEmpty,
-      typeParameters: reader.readTypedList(
-        () => _InfoTypeParameter(reader),
-      ),
-      parameters: reader.readTypedList(
-        () => _InfoFormalParameter(reader),
-      ),
+      typeParameters: reader.readTypedList(() => _InfoTypeParameter(reader)),
+      parameters: reader.readTypedList(() => _InfoFormalParameter(reader)),
       constantOffsets: reader.readUInt30List(),
     );
   }
@@ -1273,9 +1154,7 @@ class _InfoGenericTypeAlias {
       nameOffset: reader.readUInt30(),
       nameOffset2: reader.readOptionalUInt30(),
       documentationComment: reader.readStringUtf8().nullIfEmpty,
-      typeParameters: reader.readTypedList(
-        () => _InfoTypeParameter(reader),
-      ),
+      typeParameters: reader.readTypedList(() => _InfoTypeParameter(reader)),
       aliasedTypeParameters: reader.readTypedList(
         () => _InfoTypeParameter(reader),
       ),
@@ -1310,9 +1189,7 @@ class _InfoImport {
       nameOffset: reader.readUInt30(),
       prefixOffset: reader.readUInt30() - 1,
       prefixOffset2: reader.readOptionalUInt30(),
-      combinators: reader.readTypedList(
-        () => _InfoCombinator(reader),
-      ),
+      combinators: reader.readTypedList(() => _InfoCombinator(reader)),
     );
   }
 
@@ -1335,10 +1212,7 @@ class _InfoLibraryName {
     );
   }
 
-  _InfoLibraryName._({
-    required this.offset,
-    required this.length,
-  });
+  _InfoLibraryName._({required this.offset, required this.length});
 }
 
 class _InfoMethodDeclaration {
@@ -1358,12 +1232,8 @@ class _InfoMethodDeclaration {
       nameOffset: reader.readUInt30(),
       nameOffset2: reader.readOptionalUInt30(),
       documentationComment: reader.readStringUtf8().nullIfEmpty,
-      typeParameters: reader.readTypedList(
-        () => _InfoTypeParameter(reader),
-      ),
-      parameters: reader.readTypedList(
-        () => _InfoFormalParameter(reader),
-      ),
+      typeParameters: reader.readTypedList(() => _InfoTypeParameter(reader)),
+      parameters: reader.readTypedList(() => _InfoFormalParameter(reader)),
       constantOffsets: reader.readUInt30List(),
     );
   }
@@ -1384,14 +1254,10 @@ class _InfoPart {
   final int nameOffset;
 
   factory _InfoPart(SummaryDataReader reader) {
-    return _InfoPart._(
-      nameOffset: reader.readUInt30(),
-    );
+    return _InfoPart._(nameOffset: reader.readUInt30());
   }
 
-  _InfoPart._({
-    required this.nameOffset,
-  });
+  _InfoPart._({required this.nameOffset});
 }
 
 class _InformativeDataWriter {
@@ -1531,23 +1397,25 @@ class _InformativeDataWriter {
     );
 
     sink.writeList2<FunctionDeclaration>(
-        unit.declarations
-            .whereType<FunctionDeclaration>()
-            .where((e) => !(e.isGetter || e.isSetter))
-            .toList(), (node) {
-      sink.writeUInt30(node.offset);
-      sink.writeUInt30(node.length);
-      sink.writeUInt30(node.name.offset);
-      sink.writeOptionalUInt30(node.name.offsetIfNotEmpty);
-      _writeDocumentationComment(node);
-      _writeTypeParameters(node.functionExpression.typeParameters);
-      _writeFormalParameters(node.functionExpression.parameters);
-      _writeOffsets(
-        metadata: node.metadata,
-        typeParameters: node.functionExpression.typeParameters,
-        formalParameters: node.functionExpression.parameters,
-      );
-    });
+      unit.declarations
+          .whereType<FunctionDeclaration>()
+          .where((e) => !(e.isGetter || e.isSetter))
+          .toList(),
+      (node) {
+        sink.writeUInt30(node.offset);
+        sink.writeUInt30(node.length);
+        sink.writeUInt30(node.name.offset);
+        sink.writeOptionalUInt30(node.name.offsetIfNotEmpty);
+        _writeDocumentationComment(node);
+        _writeTypeParameters(node.functionExpression.typeParameters);
+        _writeFormalParameters(node.functionExpression.parameters);
+        _writeOffsets(
+          metadata: node.metadata,
+          typeParameters: node.functionExpression.typeParameters,
+          formalParameters: node.functionExpression.parameters,
+        );
+      },
+    );
 
     sink.writeList2<FunctionTypeAlias>(unit.declarations, (node) {
       sink.writeUInt30(node.offset);
@@ -1662,10 +1530,11 @@ class _InformativeDataWriter {
     List<EnumConstantDeclaration> constants,
     List<ClassMember> members,
   ) {
-    var fields = members
-        .whereType<FieldDeclaration>()
-        .expand((declaration) => declaration.fields.variables)
-        .toList();
+    var fields =
+        members
+            .whereType<FieldDeclaration>()
+            .expand((declaration) => declaration.fields.variables)
+            .toList();
 
     sink.writeUInt30(constants.length + fields.length);
 
@@ -1909,9 +1778,7 @@ class _InformativeDataWriter {
     sink.writeUInt30(node.fieldName.offset);
     sink.writeOptionalUInt30(node.fieldName.offsetIfNotEmpty);
 
-    _writeOffsets(
-      metadata: node.fieldMetadata,
-    );
+    _writeOffsets(metadata: node.fieldMetadata);
   }
 
   void _writeTopLevelVariable(VariableDeclaration node) {
@@ -2025,36 +1892,22 @@ class _InfoUnit {
       libraryName: _InfoLibraryName(reader),
       libraryConstantOffsets: reader.readUInt30List(),
       docComment: reader.readStringUtf8(),
-      imports: reader.readTypedList(
-        () => _InfoImport(reader),
-      ),
-      exports: reader.readTypedList(
-        () => _InfoExport(reader),
-      ),
-      parts: reader.readTypedList(
-        () => _InfoPart(reader),
-      ),
+      imports: reader.readTypedList(() => _InfoImport(reader)),
+      exports: reader.readTypedList(() => _InfoExport(reader)),
+      parts: reader.readTypedList(() => _InfoPart(reader)),
       classDeclarations: reader.readTypedList(
         () => _InfoClassDeclaration(cache, reader),
       ),
-      classTypeAliases: reader.readTypedList(
-        () => _InfoClassTypeAlias(reader),
-      ),
-      enums: reader.readTypedList(
-        () => _InfoClassDeclaration(cache, reader),
-      ),
+      classTypeAliases: reader.readTypedList(() => _InfoClassTypeAlias(reader)),
+      enums: reader.readTypedList(() => _InfoClassDeclaration(cache, reader)),
       extensions: reader.readTypedList(
         () => _InfoClassDeclaration(cache, reader, nameOffsetDelta: 1),
       ),
       extensionTypes: reader.readTypedList(
         () => _InfoExtensionTypeDeclaration(reader),
       ),
-      accessors: reader.readTypedList(
-        () => _InfoMethodDeclaration(reader),
-      ),
-      functions: reader.readTypedList(
-        () => _InfoFunctionDeclaration(reader),
-      ),
+      accessors: reader.readTypedList(() => _InfoMethodDeclaration(reader)),
+      functions: reader.readTypedList(() => _InfoFunctionDeclaration(reader)),
       functionTypeAliases: reader.readTypedList(
         () => _InfoFunctionTypeAlias(reader),
       ),
@@ -2094,11 +1947,16 @@ class _InfoUnit {
   });
 
   static Uint32List _readUint30ListPossiblyFromCache(
-      InfoDeclarationStore cache, SummaryDataReader reader) {
+    InfoDeclarationStore cache,
+    SummaryDataReader reader,
+  ) {
     var initialOffset = reader.offset;
     var cacheKey = cache.createKey(reader, initialOffset);
-    var cachedLineStarts =
-        cache.get<Uint32List>(reader, cacheKey, initialOffset);
+    var cachedLineStarts = cache.get<Uint32List>(
+      reader,
+      cacheKey,
+      initialOffset,
+    );
     if (cachedLineStarts != null) {
       return cachedLineStarts;
     } else {
@@ -2115,21 +1973,21 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
 
   _OffsetsApplier(this._iterator);
 
-  void applyToConstantInitializer(ElementImpl element) {
-    if (element is ConstFieldElementImpl && element.isEnumConstant) {
+  void applyToConstantInitializer(FragmentImpl element) {
+    if (element is ConstFieldFragmentImpl && element.isEnumConstant) {
       _applyToEnumConstantInitializer(element);
     } else if (element is ConstVariableElement) {
       element.constantInitializer?.accept(this);
     }
   }
 
-  void applyToConstructorInitializers(ConstructorElementImpl element) {
+  void applyToConstructorInitializers(ConstructorFragmentImpl element) {
     for (var initializer in element.constantInitializers) {
       initializer.accept(this);
     }
   }
 
-  void applyToEnumConstants(List<FieldElementImpl> constants) {
+  void applyToEnumConstants(List<FieldFragmentImpl> constants) {
     for (var constant in constants) {
       applyToMetadata(constant);
     }
@@ -2141,7 +1999,9 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
     }
   }
 
-  void applyToFormalParameters(List<ParameterElementImpl> formalParameters) {
+  void applyToFormalParameters(
+    List<FormalParameterFragmentImpl> formalParameters,
+  ) {
     for (var parameter in formalParameters) {
       applyToMetadata(parameter);
       applyToFormalParameters(parameter.parameters);
@@ -2155,7 +2015,7 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
     }
   }
 
-  void applyToMetadata(ElementImpl element) {
+  void applyToMetadata(FragmentImpl element) {
     for (var annotation in element.metadata) {
       var node = annotation.annotationAst;
       node.accept(this);
@@ -2174,7 +2034,7 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
     }
   }
 
-  void applyToTypeParameters(List<TypeParameterElementImpl> typeParameters) {
+  void applyToTypeParameters(List<TypeParameterFragmentImpl> typeParameters) {
     for (var typeParameter in typeParameters) {
       applyToMetadata(typeParameter);
     }
@@ -2206,7 +2066,7 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
 
     var fragment = node.declaredFragment;
     var identifier = node.name;
-    if (fragment is ParameterElementImpl && identifier != null) {
+    if (fragment is FormalParameterFragmentImpl && identifier != null) {
       fragment.nameOffset = identifier.offset;
       fragment.nameOffset2 = identifier.offsetIfNotEmpty;
     }
@@ -2221,7 +2081,7 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
     super.visitSimpleIdentifier(node);
   }
 
-  void _applyToEnumConstantInitializer(ConstFieldElementImpl element) {
+  void _applyToEnumConstantInitializer(ConstFieldFragmentImpl element) {
     var initializer = element.constantInitializer;
     if (initializer is InstanceCreationExpressionImpl) {
       initializer.constructorName.type.typeArguments?.accept(this);
@@ -2312,6 +2172,34 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
     node.type.accept(this);
     _tokenOrNull(node.period);
     node.name?.accept(this);
+  }
+
+  @override
+  void visitDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) {
+    _tokenOrNull(node.constKeyword);
+    _tokenOrNull(node.period);
+    node.constructorName.accept(this);
+    node.argumentList.accept(this);
+  }
+
+  /// When we read from bytes, [DotShorthandInvocation]s are not rewritten to
+  /// [DotShorthandConstructorInvocation]s when they're resolved to be
+  /// constructor invocations. However, since the tokens happen to be the same
+  /// between the two in this case, we have the same offsets.
+  @override
+  void visitDotShorthandInvocation(DotShorthandInvocation node) {
+    _tokenOrNull(node.period);
+    node.memberName.accept(this);
+    node.typeArguments?.accept(this);
+    node.argumentList.accept(this);
+  }
+
+  @override
+  void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
+    _tokenOrNull(node.period);
+    node.propertyName.accept(this);
   }
 
   @override
@@ -2504,7 +2392,8 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitRedirectingConstructorInvocation(
-      RedirectingConstructorInvocation node) {
+    RedirectingConstructorInvocation node,
+  ) {
     _tokenOrNull(node.thisKeyword);
     _tokenOrNull(node.period);
     super.visitRedirectingConstructorInvocation(node);
@@ -2630,7 +2519,7 @@ extension on String {
   }
 }
 
-extension _ListOfElement<T extends ElementImpl> on List<T> {
+extension _ListOfElement<T extends FragmentImpl> on List<T> {
   List<T> get notSynthetic {
     return where((e) => !e.isSynthetic).toList();
   }

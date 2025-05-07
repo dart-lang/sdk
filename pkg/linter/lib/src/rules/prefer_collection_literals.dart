@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 
@@ -40,7 +40,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     var constructorName = node.constructorName.name?.name;
 
-    if (node.constructorName.type.element2 is TypeAliasElement2) {
+    if (node.constructorName.type.element2 is TypeAliasElement) {
       // Allow the use of typedef constructors.
       return;
     }
@@ -53,7 +53,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
     if (node.isMap || node.isHashMap) {
       if (constructorName == null && node.argumentList.arguments.isEmpty) {
-        rule.reportLint(node);
+        rule.reportAtNode(node);
       }
       return;
     }
@@ -69,14 +69,14 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (constructorName == null) {
         // Allow `LinkedHashSet(equals: (a, b) => false, hashCode: (o) => 13)`.
         if (args.isEmpty) {
-          rule.reportLint(node);
+          rule.reportAtNode(node);
         }
       } else if (constructorName == 'from' || constructorName == 'of') {
         if (args.length != 1) {
           return;
         }
         if (args.first is ListLiteral) {
-          rule.reportLint(node);
+          rule.reportAtNode(node);
         }
       }
     }
@@ -89,7 +89,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
     if (node.target is ListLiteral) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 }

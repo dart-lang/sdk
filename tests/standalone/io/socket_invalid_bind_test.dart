@@ -16,31 +16,37 @@ import "package:expect/expect.dart";
 void main() {
   // Bind to a unknown DNS name.
   asyncStart();
-  ServerSocket.bind("ko.faar.__hest__", 0).then((_) {
-    Expect.fail("Failure expected");
-  }).catchError((error) {
-    Expect.isTrue(error is SocketException);
-    asyncEnd();
-  });
+  ServerSocket.bind("ko.faar.__hest__", 0)
+      .then((_) {
+        Expect.fail("Failure expected");
+      })
+      .catchError((error) {
+        Expect.isTrue(error is SocketException);
+        asyncEnd();
+      });
 
   // Bind to an unavailable IP-address.
   asyncStart();
-  ServerSocket.bind("8.8.8.8", 0).then((_) {
-    Expect.fail("Failure expected");
-  }).catchError((error) {
-    Expect.isTrue(error is SocketException);
-    asyncEnd();
-  });
+  ServerSocket.bind("8.8.8.8", 0)
+      .then((_) {
+        Expect.fail("Failure expected");
+      })
+      .catchError((error) {
+        Expect.isTrue(error is SocketException);
+        asyncEnd();
+      });
 
   // Bind to a port already in use.
   asyncStart();
   ServerSocket.bind("127.0.0.1", 0).then((s) {
-    ServerSocket.bind("127.0.0.1", s.port).then((t) {
-      Expect.fail("Multiple listens on same port");
-    }).catchError((error) {
-      Expect.isTrue(error is SocketException);
-      s.close();
-      asyncEnd();
-    });
+    ServerSocket.bind("127.0.0.1", s.port)
+        .then((t) {
+          Expect.fail("Multiple listens on same port");
+        })
+        .catchError((error) {
+          Expect.isTrue(error is SocketException);
+          s.close();
+          asyncEnd();
+        });
   });
 }

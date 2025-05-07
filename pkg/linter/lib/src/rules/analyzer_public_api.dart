@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/constant/value.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
@@ -118,18 +118,13 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// Elements in this set are part of the public APIs of their respective
   /// packages, so it is safe for a part of the analyzer public API to refer to
   /// them.
-  late Set<Element2> importedPublicElements;
+  late Set<Element> importedPublicElements;
 
   _Visitor(this.rule);
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    importedPublicElements = {
-      for (var directive in node.directives)
-        if (directive is ImportDirective &&
-            directive.libraryImport!.importedLibrary2!.uri.isPublic)
-          ...directive.libraryImport!.namespace.definedNames2.values,
-    };
+    importedPublicElements = _computeImportedPublicElements(node);
     node.declaredFragment!.children3.forEach(_checkTopLevelFragment);
   }
 
@@ -166,7 +161,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     if (badNames != null) {
-      rule.reportLint(
+      rule.reportAtNode(
         node,
         errorCode: AnalyzerPublicApi.exportsNonPublicName,
         arguments: [badNames.join(', ')],
@@ -183,13 +178,13 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
     if (!partElement.includedFragment!.source.uri.isInAnalyzerPublicLib) {
-      rule.reportLint(node, errorCode: AnalyzerPublicApi.badPartDirective);
+      rule.reportAtNode(node, errorCode: AnalyzerPublicApi.badPartDirective);
     }
   }
 
   void _checkMember(Fragment fragment) {
     if (fragment is ConstructorFragment &&
-        fragment.element.enclosingElement2 is EnumElement2) {
+        fragment.element.enclosingElement2 is EnumElement) {
       // Enum constructors aren't callable from outside of the enum, so they
       // aren't public API.
       return;
@@ -209,7 +204,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var name = fragment.name2;
     if (name != null && name.endsWith('Impl')) {
       // Nothing in the analyzer public API may have a name ending in `Impl`.
-      rule.reportLintForOffset(
+      rule.reportAtOffset(
         fragment.nameOffset2!,
         name.length,
         errorCode: AnalyzerPublicApi.implInPublicApi,
@@ -295,7 +290,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         break;
       }
     }
-    rule.reportLintForOffset(
+    rule.reportAtOffset(
       offset,
       length,
       errorCode: AnalyzerPublicApi.badType,
@@ -347,15 +342,36 @@ class _Visitor extends SimpleAstVisitor<void> {
         throw StateError('Unexpected type $runtimeType');
     }
   }
+
+  /// Called during [visitCompilationUnit] to compute the value of
+  /// [importedPublicElements].
+  static Set<Element> _computeImportedPublicElements(
+    CompilationUnit compilationUnit,
+  ) {
+    var elements = <Element>{};
+    for (var directive in compilationUnit.directives) {
+      if (directive is! ImportDirective) continue;
+      var libraryImport = directive.libraryImport!;
+      var importedLibrary = libraryImport.importedLibrary2;
+      if (importedLibrary == null) {
+        // Import was unresolved. Ignore.
+        continue;
+      }
+      if (importedLibrary.uri.isPublic) {
+        elements.addAll(libraryImport.namespace.definedNames2.values);
+      }
+    }
+    return elements;
+  }
 }
 
 extension on String {
   bool get isPublic => !startsWith('_');
 }
 
-extension on Element2 {
+extension on Element {
   bool get isInAnalyzerPublicApi {
-    if (this case PropertyAccessorElement2(
+    if (this case PropertyAccessorElement(
       isSynthetic: true,
       :var variable3?,
     ) when variable3.isInAnalyzerPublicApi) {
@@ -388,7 +404,7 @@ extension on Element2 {
         // in practice it doesn't matter (we don't expect to have multiple
         // declarations of this annotation that we need to distinguish), and the
         // advantage of not checking the URI is that unit testing is easier.
-        element3: InterfaceElement2(name3: 'AnalyzerPublicApi'),
+        element3: InterfaceElement(name3: 'AnalyzerPublicApi'),
       ),
     )) {
       return true;

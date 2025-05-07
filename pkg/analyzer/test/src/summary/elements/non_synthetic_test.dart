@@ -71,12 +71,14 @@ library
       getters
         synthetic get foo
           firstFragment: <testLibraryFragment>::@class::C::@getter::foo
+          returnType: int
       setters
         synthetic set foo
           firstFragment: <testLibraryFragment>::@class::C::@setter::foo
           formalParameters
             requiredPositional _foo
               type: int
+          returnType: void
 ''');
   }
 
@@ -126,6 +128,7 @@ library
       getters
         get foo
           firstFragment: <testLibraryFragment>::@class::C::@getter::foo
+          returnType: int
 ''');
   }
 
@@ -181,6 +184,7 @@ library
           formalParameters
             requiredPositional value
               type: int
+          returnType: void
 ''');
   }
 
@@ -300,10 +304,13 @@ library
       getters
         synthetic static get a
           firstFragment: <testLibraryFragment>::@enum::E::@getter::a
+          returnType: E
         synthetic static get b
           firstFragment: <testLibraryFragment>::@enum::E::@getter::b
+          returnType: E
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E>
 ''');
   }
 
@@ -356,12 +363,14 @@ library
       getters
         synthetic get foo
           firstFragment: <testLibraryFragment>::@mixin::M::@getter::foo
+          returnType: int
       setters
         synthetic set foo
           firstFragment: <testLibraryFragment>::@mixin::M::@setter::foo
           formalParameters
             requiredPositional _foo
               type: int
+          returnType: void
 ''');
   }
 
@@ -405,6 +414,7 @@ library
       getters
         get foo
           firstFragment: <testLibraryFragment>::@mixin::M::@getter::foo
+          returnType: int
 ''');
   }
 
@@ -454,6 +464,7 @@ library
           formalParameters
             requiredPositional value
               type: int
+          returnType: void
 ''');
   }
 
@@ -469,7 +480,7 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        synthetic foo
+        synthetic foo (offset=-1)
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibrary>::@topLevelVariable::foo
           getter2: <testLibraryFragment>::@getter::foo
@@ -486,6 +497,7 @@ library
   getters
     static get foo
       firstFragment: <testLibraryFragment>::@getter::foo
+      returnType: int
 ''');
   }
 
@@ -502,7 +514,7 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        synthetic foo
+        synthetic foo (offset=-1)
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibrary>::@topLevelVariable::foo
           getter2: <testLibraryFragment>::@getter::foo
@@ -528,12 +540,14 @@ library
   getters
     static get foo
       firstFragment: <testLibraryFragment>::@getter::foo
+      returnType: int
   setters
     static set foo
       firstFragment: <testLibraryFragment>::@setter::foo
       formalParameters
         requiredPositional value
           type: int
+      returnType: void
 ''');
   }
 
@@ -549,7 +563,7 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        synthetic foo
+        synthetic foo (offset=-1)
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibrary>::@topLevelVariable::foo
           setter2: <testLibraryFragment>::@setter::foo
@@ -572,6 +586,7 @@ library
       formalParameters
         requiredPositional value
           type: int
+      returnType: void
 ''');
   }
 
@@ -613,12 +628,14 @@ library
   getters
     synthetic static get foo
       firstFragment: <testLibraryFragment>::@getter::foo
+      returnType: int
   setters
     synthetic static set foo
       firstFragment: <testLibraryFragment>::@setter::foo
       formalParameters
         requiredPositional _foo
           type: int
+      returnType: void
 ''');
   }
 }

@@ -37,7 +37,9 @@ testTypeErrors() {
       fault();
     } catch (e) {
       Expect.isTrue(
-          e is TypeError, 'name: <<$e>> (${e.runtimeType}) is TypeError');
+        e is TypeError,
+        'name: <<$e>> (${e.runtimeType}) is TypeError',
+      );
       return;
     }
     Expect.fail('Expected assert to throw');

@@ -46,9 +46,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       var left = node.leftOperand;
       var right = node.rightOperand;
       if (right is BooleanLiteral && isBool(left.staticType)) {
-        rule.reportLint(right);
+        rule.reportAtNode(right);
       } else if (left is BooleanLiteral && isBool(right.staticType)) {
-        rule.reportLint(left);
+        rule.reportAtNode(left);
       }
     }
   }

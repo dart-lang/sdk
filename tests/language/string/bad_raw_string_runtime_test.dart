@@ -7,20 +7,14 @@
 
 main() {
   // Raw String may not contain newline (may not be multi-line).
-  String x = ''
-
-
-
-
+  String x =
+      ''
       // Test that a raw string containing just one character, a \n char, fails.
       // Enclose the test string in a bigger multiline string, except in case 03:
-
       """
 
     r'
 '
 
-    """
-
-      ;
+    """;
 }

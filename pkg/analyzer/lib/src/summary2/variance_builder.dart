@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -54,7 +54,7 @@ class VarianceBuilder {
     }
   }
 
-  Variance _compute(TypeParameterElement2 variable, DartType? type) {
+  Variance _compute(TypeParameterElement variable, DartType? type) {
     if (type is TypeParameterType) {
       if (type.element3 == variable) {
         return Variance.covariant;
@@ -68,14 +68,14 @@ class VarianceBuilder {
         var result = Variance.unrelated;
         if (arguments.isNotEmpty) {
           var typeParameters = element.typeParameters2;
-          for (var i = 0;
-              i < arguments.length && i < typeParameters.length;
-              i++) {
+          for (
+            var i = 0;
+            i < arguments.length && i < typeParameters.length;
+            i++
+          ) {
             var typeParameter = typeParameters[i];
             result = result.meet(
-              typeParameter.variance.combine(
-                _compute(variable, arguments[i]),
-              ),
+              typeParameter.variance.combine(_compute(variable, arguments[i])),
             );
           }
         }
@@ -87,15 +87,15 @@ class VarianceBuilder {
 
         if (arguments.isNotEmpty) {
           var typeParameters = element.typeParameters2;
-          for (var i = 0;
-              i < arguments.length && i < typeParameters.length;
-              i++) {
+          for (
+            var i = 0;
+            i < arguments.length && i < typeParameters.length;
+            i++
+          ) {
             var typeParameter = typeParameters[i];
             var typeParameterVariance = typeParameter.variance;
             result = result.meet(
-              typeParameterVariance.combine(
-                _compute(variable, arguments[i]),
-              ),
+              typeParameterVariance.combine(_compute(variable, arguments[i])),
             );
           }
         }
@@ -111,9 +111,7 @@ class VarianceBuilder {
     } else if (type is RecordTypeBuilder) {
       var result = Variance.unrelated;
       for (var field in type.node.fields) {
-        result = result.meet(
-          _compute(variable, field.type.typeOrThrow),
-        );
+        result = result.meet(_compute(variable, field.type.typeOrThrow));
       }
       return result;
     }
@@ -121,16 +119,14 @@ class VarianceBuilder {
   }
 
   Variance _computeFunctionType(
-    TypeParameterElement2 variable, {
+    TypeParameterElement variable, {
     required DartType? returnType,
-    required List<TypeParameterElement2>? typeParameters,
+    required List<TypeParameterElement>? typeParameters,
     required List<FormalParameterElement> formalParameters,
   }) {
     var result = Variance.unrelated;
 
-    result = result.meet(
-      _compute(variable, returnType),
-    );
+    result = result.meet(_compute(variable, returnType));
 
     // If [variable] is referenced in a bound at all, it makes the
     // variance of [variable] in the entire type invariant.
@@ -145,9 +141,7 @@ class VarianceBuilder {
 
     for (var typeParameter in formalParameters) {
       result = result.meet(
-        Variance.contravariant.combine(
-          _compute(variable, typeParameter.type),
-        ),
+        Variance.contravariant.combine(_compute(variable, typeParameter.type)),
       );
     }
 

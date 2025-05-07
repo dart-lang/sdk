@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
@@ -48,7 +48,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
   final Map<LibraryFragment, List<VariableDeclaration>> lateables =
       <LibraryFragment, List<VariableDeclaration>>{};
 
-  final Set<Element2> nullableAccess = <Element2>{};
+  final Set<Element> nullableAccess = <Element>{};
 
   final LintRule rule;
   final LinterContext context;
@@ -190,7 +190,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
   /// [PropertyAccess], and its [canonicalElement], represent a nullable access.
   void _visitIdentifierOrPropertyAccess(
     Expression expression,
-    Element2? canonicalElement,
+    Element? canonicalElement,
   ) {
     assert(expression is Identifier || expression is PropertyAccess);
     if (canonicalElement == null) return;

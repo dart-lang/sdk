@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/sdk/build_sdk_summary.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
@@ -25,10 +25,7 @@ class BuildSdkSummaryTest with ResourceProviderMixin {
   Folder get sdkRoot => getFolder('/sdk');
 
   test_embedderYamlPath() async {
-    createMockSdk(
-      resourceProvider: resourceProvider,
-      root: sdkRoot,
-    );
+    createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
 
     // The idea of the embedder is probably to replace the SDK.
     // But the current implementation only adds new libraries.
@@ -95,10 +92,7 @@ embedded_libs:
   }
 
   test_it() async {
-    createMockSdk(
-      resourceProvider: resourceProvider,
-      root: sdkRoot,
-    );
+    createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
 
     var sdkSummaryBytes = await buildSdkSummary(
       resourceProvider: resourceProvider,
@@ -140,7 +134,7 @@ embedded_libs:
 }
 
 extension on AnalysisSession {
-  Future<LibraryElement2> getLibrary(String uriStr) async {
+  Future<LibraryElement> getLibrary(String uriStr) async {
     var libraryResult = await getLibraryByUri(uriStr);
     libraryResult as LibraryElementResult;
     return libraryResult.element2;

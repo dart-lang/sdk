@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 
@@ -50,8 +50,8 @@ class _Visitor extends SimpleAstVisitor<void> {
             ifCondition.type.type == typeProvider.doubleType &&
             elseCondition.type.type == typeProvider.intType &&
             (ifExpression.element is FormalParameterElement ||
-                ifExpression.element is LocalVariableElement2)) {
-          rule.reportLint(elseCondition);
+                ifExpression.element is LocalVariableElement)) {
+          rule.reportAtNode(elseCondition);
         }
       }
     }

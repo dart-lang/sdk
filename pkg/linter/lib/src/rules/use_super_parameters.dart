@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
@@ -93,7 +93,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var parameter in parameters.parameters) {
       var parameterElement = parameter.declaredFragment?.element;
       if (parameterElement == null) continue;
-      if (parameterElement is FieldFormalParameterElement2) continue;
+      if (parameterElement is FieldFormalParameterElement) continue;
       if (parameterElement.isNamed &&
           !referencedParameters.contains(parameterElement)) {
         if (_checkNamedParameter(
@@ -128,7 +128,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// there are parameters that can't be converted since this will short-circuit
   /// the lint.
   List<String>? _checkForConvertiblePositionalParams(
-    ConstructorElement2 constructorElement,
+    ConstructorElement constructorElement,
     SuperConstructorInvocation superInvocation,
     FormalParameterList parameters,
     Set<FormalParameterElement> referencedParameters,
@@ -148,7 +148,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var convertibleConstructorParams = <String>[];
     var matchedConstructorParamIndex = 0;
 
-    var seenSuperParams = <Element2>{};
+    var seenSuperParams = <Element>{};
 
     // For each super arg, ensure there is a constructor param (in the right
     // order).
@@ -196,7 +196,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   bool _checkNamedParameter(
     FormalParameter parameter,
     FormalParameterElement parameterElement,
-    ConstructorElement2 superConstructor,
+    ConstructorElement superConstructor,
     SuperConstructorInvocation superInvocation,
   ) {
     var superParameter = _correspondingNamedParameter(
@@ -237,7 +237,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   FormalParameterElement? _correspondingNamedParameter(
-    ConstructorElement2 superConstructor,
+    ConstructorElement superConstructor,
     FormalParameterElement thisParameter,
   ) {
     for (var superParameter in superConstructor.formalParameters) {
@@ -254,14 +254,14 @@ class _Visitor extends SimpleAstVisitor<void> {
     var target = node.name ?? node.returnType;
     if (identifiers.length > 1) {
       var msg = identifiers.quotedAndCommaSeparatedWithAnd;
-      rule.reportLintForOffset(
+      rule.reportAtOffset(
         target.offset,
         target.length,
         errorCode: LinterLintCode.use_super_parameters_multiple,
         arguments: [msg],
       );
     } else {
-      rule.reportLintForOffset(
+      rule.reportAtOffset(
         target.offset,
         target.length,
         errorCode: LinterLintCode.use_super_parameters_single,

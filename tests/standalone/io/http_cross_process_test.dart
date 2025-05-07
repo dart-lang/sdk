@@ -35,13 +35,13 @@ Future makeServer() {
 
 Future runClientProcess(int port) {
   return Process.run(
-          Platform.executable,
-          []
-            ..addAll(Platform.executableArguments)
-            ..add(Platform.script.toFilePath())
-            ..add('--client')
-            ..add(port.toString()))
-      .then((ProcessResult result) {
+    Platform.executable,
+    []
+      ..addAll(Platform.executableArguments)
+      ..add(Platform.script.toFilePath())
+      ..add('--client')
+      ..add(port.toString()),
+  ).then((ProcessResult result) {
     if (result.exitCode != 0 || !result.stdout.contains('SUCCESS')) {
       print("Client failed, exit code ${result.exitCode}");
       print("  stdout:");

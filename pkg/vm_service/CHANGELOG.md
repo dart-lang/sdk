@@ -1,3 +1,9 @@
+## 15.0.1
+- Update to version `4.17` of the spec.
+- Add `Timer` stream.
+- Add `TimerSignificantlyOverdue` event kind.
+- Add `details` property to `Event`.
+
 ## 15.0.0
 - Update type of `CodeRef.function` from `FuncRef` to `dynamic` to allow for `NativeFunction`
   functions ([flutter/devtools #8567]).

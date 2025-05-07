@@ -168,7 +168,7 @@ void Options::PrintUsage() {
 "      --pause-isolates-on-exit\n"
 "      --pause-isolates-on-unhandled-exceptions\n"
 "      --warn-on-pause-with-no-debugger\n"
-"      --timeline-streams=\"Compiler, Dart, GC\"\n"
+"      --timeline-streams=\"Compiler, Dart, GC, Microtask\"\n"
 "  This set is subject to change.\n"
 "  Please see these options (--help --verbose) for further documentation.\n"
 "--write-service-info=<file_uri>\n"
@@ -210,9 +210,12 @@ void Options::PrintUsage() {
 "      --pause-isolates-on-exit\n"
 "      --pause-isolates-on-unhandled-exceptions\n"
 "      --warn-on-pause-with-no-debugger\n"
-"      --timeline-streams=\"Compiler, Dart, GC\"\n"
+"      --timeline-streams=\"Compiler, Dart, GC, Microtask\"\n"
 "  This set is subject to change.\n"
 "  Please see these options for further documentation.\n"
+"--profile-microtasks\n"
+"  Record information about each microtask. Information about completed\n"
+"  microtasks will be written to the \"Microtask\" timeline stream.\n"
 #endif  // !defined(PRODUCT)
 "--version\n"
 "  Print the VM version.\n"
@@ -456,7 +459,7 @@ bool Options::ProcessObserveOption(const char* arg,
   vm_options->AddArgument("--pause-isolates-on-unhandled-exceptions");
   vm_options->AddArgument("--profiler");
   vm_options->AddArgument("--warn-on-pause-with-no-debugger");
-  vm_options->AddArgument("--timeline-streams=\"Compiler,Dart,GC\"");
+  vm_options->AddArgument("--timeline-streams=\"Compiler,Dart,GC,Microtask\"");
 #if !defined(DART_PRECOMPILED_RUNTIME)
   dfe()->set_use_incremental_compiler(true);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

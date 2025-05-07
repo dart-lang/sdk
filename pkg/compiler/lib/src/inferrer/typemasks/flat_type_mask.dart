@@ -37,7 +37,7 @@ class FlatTypeMask extends TypeMask {
       _getPowerset(_Flags(a.bitset.union(b.bitset)));
 
   static Bitset _powersetOfFlagsIntersection(_Flags a, _Flags b) =>
-      _getPowerset(_Flags(a.bitset.intersection(b.bitset)));
+      _getPowerset(_Flags(_intersectPowersets(a.bitset, b.bitset)));
 
   static FlatTypeMaskKind _getKind(_Flags flags) =>
       FlatTypeMaskKind.values[flags.bitset.bits >> _powersetDomains.bitWidth];
@@ -92,6 +92,15 @@ class FlatTypeMask extends TypeMask {
     domain,
   );
 
+  factory FlatTypeMask._emptyOrSpecial(CommonMasks domain, Bitset powerset) {
+    assert(_isEmptyOrSpecialPowerset(powerset));
+    return FlatTypeMask._cached(
+      null,
+      _computeFlags(FlatTypeMaskKind.empty, powerset),
+      domain,
+    );
+  }
+
   factory FlatTypeMask.nonNullEmpty(
     CommonMasks domain, {
     bool hasLateSentinel = false,
@@ -100,11 +109,8 @@ class FlatTypeMask extends TypeMask {
         hasLateSentinel
             ? _specialValueDomain.fromValue(TypeMaskSpecialValue.lateSentinel)
             : Bitset.empty();
-    return FlatTypeMask._cached(
-      null,
-      _computeFlags(FlatTypeMaskKind.empty, powerset),
-      domain,
-    );
+
+    return FlatTypeMask._emptyOrSpecial(domain, powerset);
   }
 
   factory FlatTypeMask.empty(
@@ -115,13 +121,9 @@ class FlatTypeMask extends TypeMask {
         hasLateSentinel
             ? _specialValueDomain.allValues
             : _specialValueDomain.fromValue(TypeMaskSpecialValue.null_);
-    return FlatTypeMask._cached(
-      null,
-      _computeFlags(FlatTypeMaskKind.empty, powerset),
-      domain,
-    );
-  }
 
+    return FlatTypeMask._emptyOrSpecial(domain, powerset);
+  }
   factory FlatTypeMask.nonNullExact(
     ClassEntity base,
     CommonMasks domain, {
@@ -175,7 +177,16 @@ class FlatTypeMask extends TypeMask {
         ),
       );
     }
-    var powerset = _specialValueDomain.fromEnumSet(specialValues);
+
+    final probe = domain._powersetCache[base];
+    final powerset = switch (kind) {
+      FlatTypeMaskKind.empty =>
+        throw StateError('Unexpected empty kind with base $base'),
+      FlatTypeMaskKind.exact => probe.exact,
+      FlatTypeMaskKind.subclass => probe.subclass,
+      FlatTypeMaskKind.subtype => probe.subtype,
+    }.union(_specialValueDomain.fromEnumSet(specialValues));
+
     return FlatTypeMask._cached(base, _computeFlags(kind, powerset), domain);
   }
 
@@ -196,11 +207,13 @@ class FlatTypeMask extends TypeMask {
   /// Ensures that the generated mask is normalized, i.e., a call to
   /// [TypeMask.assertIsNormalized] with the factory's result returns `true`.
   factory FlatTypeMask.normalized(
-    ClassEntity? base,
+    ClassEntity base,
     FlatTypeMaskKind kind,
     Bitset powerset,
     CommonMasks domain,
   ) {
+    assert(kind != FlatTypeMaskKind.empty);
+    assert(!_isEmptyOrSpecialPowerset(powerset));
     if (base == domain.commonElements.nullClass) {
       return FlatTypeMask.empty(
         domain,
@@ -210,16 +223,16 @@ class FlatTypeMask extends TypeMask {
         ),
       );
     }
-    if (kind == FlatTypeMaskKind.empty || kind == FlatTypeMaskKind.exact) {
+    if (kind == FlatTypeMaskKind.exact) {
       return FlatTypeMask._cached(base, _computeFlags(kind, powerset), domain);
     }
     if (kind == FlatTypeMaskKind.subtype) {
-      if (!domain.closedWorld.classHierarchy.hasAnyStrictSubtype(base!) ||
+      if (!domain.closedWorld.classHierarchy.hasAnyStrictSubtype(base) ||
           domain.closedWorld.classHierarchy.hasOnlySubclasses(base)) {
         kind = FlatTypeMaskKind.subclass;
       }
     } else if (kind == FlatTypeMaskKind.subclass &&
-        !domain.closedWorld.classHierarchy.hasAnyStrictSubclass(base!)) {
+        !domain.closedWorld.classHierarchy.hasAnyStrictSubclass(base)) {
       kind = FlatTypeMaskKind.exact;
     }
     final flags = _computeFlags(kind, powerset);
@@ -518,7 +531,7 @@ class FlatTypeMask extends TypeMask {
     // If we weaken the constraint on this type, we have to make sure that
     // the result is normalized.
     return FlatTypeMask.normalized(
-      base,
+      base!,
       combinedKind,
       combinedPowerset,
       domain,
@@ -537,11 +550,16 @@ class FlatTypeMask extends TypeMask {
         ? this
         // If we weaken the constraint on this type, we have to make sure that
         // the result is normalized.
-        : FlatTypeMask.normalized(base, combinedKind, combinedPowerset, domain);
+        : FlatTypeMask.normalized(
+          base!,
+          combinedKind,
+          combinedPowerset,
+          domain,
+        );
   }
 
   @override
-  TypeMask intersection(TypeMask other, CommonMasks domain) {
+  TypeMask _nonEmptyIntersection(TypeMask other, CommonMasks domain) {
     return (domain._intersectionCache[this] ??= {})[other] ??= _intersection(
       other,
       domain,
@@ -551,8 +569,10 @@ class FlatTypeMask extends TypeMask {
   TypeMask _intersection(TypeMask other, CommonMasks domain) {
     if (other is! FlatTypeMask) return other.intersection(this, domain);
 
-    final otherBase = other.base;
     final powerset = _powersetOfFlagsIntersection(_flags, other._flags);
+    assert(!isEmptyOrSpecial);
+    assert(!other.isEmptyOrSpecial);
+
     final includeNull = _specialValueDomain.contains(
       powerset,
       TypeMaskSpecialValue.null_,
@@ -562,16 +582,10 @@ class FlatTypeMask extends TypeMask {
       TypeMaskSpecialValue.lateSentinel,
     );
 
-    if (isEmptyOrSpecial) {
-      return withPowerset(powerset, domain);
-    } else if (other.isEmptyOrSpecial) {
-      return other.withPowerset(powerset, domain);
-    }
-
     SubclassResult result = domain.closedWorld.classHierarchy.commonSubclasses(
       base!,
       _classQuery,
-      otherBase!,
+      other.base!,
       other._classQuery,
     );
 
@@ -637,20 +651,18 @@ class FlatTypeMask extends TypeMask {
   }
 
   @override
-  bool isDisjoint(TypeMask other, JClosedWorld closedWorld) {
-    if (other is! FlatTypeMask) return other.isDisjoint(this, closedWorld);
-    FlatTypeMask flatOther = other;
+  bool _isNonTriviallyDisjoint(TypeMask other, JClosedWorld closedWorld) {
+    if (other is! FlatTypeMask) {
+      return other._isNonTriviallyDisjoint(this, closedWorld);
+    }
 
-    if (isNullable && flatOther.isNullable) return false;
-    if (hasLateSentinel && flatOther.hasLateSentinel) return false;
-    if (isEmptyOrSpecial || flatOther.isEmptyOrSpecial) return true;
-    if (base == flatOther.base) return false;
-    if (isExact && flatOther.isExact) return true;
+    if (base == other.base) return false;
+    if (isExact && other.isExact) return true;
 
-    if (isExact) return !flatOther.contains(base!, closedWorld);
-    if (flatOther.isExact) return !contains(flatOther.base!, closedWorld);
+    if (isExact) return !other.contains(base!, closedWorld);
+    if (other.isExact) return !contains(other.base!, closedWorld);
     final thisBase = base!;
-    final otherBase = flatOther.base!;
+    final otherBase = other.base!;
 
     // Normalization guarantees that isExact === !isSubclass && !isSubtype.
     // Both are subclass or subtype masks, so if there is a subclass
@@ -664,9 +676,9 @@ class FlatTypeMask extends TypeMask {
 
     // Two different base classes have no common subclass unless one is a
     // subclass of the other (checked above).
-    if (isSubclass && flatOther.isSubclass) return true;
+    if (isSubclass && other.isSubclass) return true;
 
-    return _isDisjointHelper(this, flatOther, closedWorld);
+    return _isDisjointHelper(this, other, closedWorld);
   }
 
   static bool _isDisjointHelper(
@@ -690,59 +702,6 @@ class FlatTypeMask extends TypeMask {
       }
     }
     return true;
-  }
-
-  TypeMask intersectionSame(FlatTypeMask other, CommonMasks domain) {
-    assert(base == other.base);
-    // The two masks share the base type, so we must chose the most
-    // constraining kind (the lowest) of the two. The result will be normalized,
-    // as the two inputs are normalized, too.
-    final combined = _Flags(
-      (_flags.bitset.bits < other._flags.bitset.bits)
-          ? _flags.bitset.intersection(
-            other._flags.bitset.union(_powersetDomains.notMask),
-          )
-          : other._flags.bitset.intersection(
-            _flags.bitset.union(_powersetDomains.notMask),
-          ),
-    );
-
-    if (_flags == combined) {
-      return this;
-    } else if (other._flags == combined) {
-      return other;
-    } else {
-      return FlatTypeMask._cached(base, combined, domain);
-    }
-  }
-
-  TypeMask intersectionStrictSubclass(FlatTypeMask other, CommonMasks domain) {
-    assert(base != other.base);
-    assert(domain.closedWorld.classHierarchy.isSubclassOf(other.base!, base!));
-    // If this mask isn't at least a subclass mask, then the
-    // intersection with the other mask is empty.
-    if (isExact) return intersectionEmpty(other, domain);
-    // Only the other mask puts constraints on the intersection mask,
-    // so base the combined flags on the other mask. The result is guaranteed to
-    // be normalized, as the other type was normalized.
-    final combined = _Flags(
-      other._flags.bitset.intersection(
-        _flags.bitset.union(_powersetDomains.notMask),
-      ),
-    );
-    if (other._flags == combined) {
-      return other;
-    } else {
-      return FlatTypeMask._cached(other.base, combined, domain);
-    }
-  }
-
-  TypeMask intersectionEmpty(FlatTypeMask other, CommonMasks domain) {
-    bool isNullable = this.isNullable && other.isNullable;
-    bool hasLateSentinel = this.hasLateSentinel && other.hasLateSentinel;
-    return isNullable
-        ? TypeMask.empty(domain, hasLateSentinel: hasLateSentinel)
-        : TypeMask.nonNullEmpty(domain, hasLateSentinel: hasLateSentinel);
   }
 
   @override
@@ -912,4 +871,45 @@ class FlatTypeMask extends TypeMask {
     buffer.write(']');
     return buffer.toString();
   }
+}
+
+typedef _CachedPowersets = ({Bitset exact, Bitset subclass, Bitset subtype});
+
+class _PowersetCache {
+  final ClassHierarchy _classHierarchy;
+  final Set<ClassEntity> _interceptorCone;
+  final Map<ClassEntity, _CachedPowersets> _cache = {};
+
+  _PowersetCache(JClosedWorld closedWorld)
+    : _classHierarchy = closedWorld.classHierarchy,
+      _interceptorCone =
+          closedWorld.classHierarchy
+              .subclassesOf(closedWorld.commonElements.jsInterceptorClass)
+              .toSet();
+
+  _CachedPowersets operator [](ClassEntity cls) => _cache.putIfAbsent(cls, () {
+    var exactPowerset = Bitset.empty();
+    exactPowerset = _interceptorDomain.add(
+      exactPowerset,
+      _interceptorCone.contains(cls)
+          ? TypeMaskInterceptorProperty.interceptor
+          : TypeMaskInterceptorProperty.notInterceptor,
+    );
+
+    var subclassPowerset = exactPowerset;
+    for (final subclass in _classHierarchy.strictSubclassesOf(cls)) {
+      subclassPowerset = subclassPowerset.union(this[subclass].subclass);
+    }
+
+    var subtypePowerset = exactPowerset;
+    for (final subtype in _classHierarchy.strictSubtypesOf(cls)) {
+      subtypePowerset = subtypePowerset.union(this[subtype].subtype);
+    }
+
+    return (
+      exact: exactPowerset,
+      subclass: subclassPowerset,
+      subtype: subtypePowerset,
+    );
+  });
 }

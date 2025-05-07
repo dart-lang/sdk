@@ -7,13 +7,13 @@ class A1 extends core::Object {
   constructor •({required final core::Object? a}) → self::A1
     : self::A1::a = a, super core::Object::•()
     ;
-  static method _#new#tearOff({required final core::Object? a}) → self::A1
+  static synthetic method _#new#tearOff({required final core::Object? a}) → self::A1
     return new self::A1::•(a: a);
 }
 class B1 extends self::A1 {
   constructor •({final core::Object? a = #C1}) → self::B1
     : super self::A1::•(a: a) {}
-  static method _#new#tearOff({final core::Object? a = #C1}) → self::B1
+  static synthetic method _#new#tearOff({final core::Object? a = #C1}) → self::B1
     return new self::B1::•(a: a);
 }
 class A2 extends core::Object {
@@ -21,14 +21,14 @@ class A2 extends core::Object {
   constructor •(final core::Object? a) → self::A2
     : self::A2::a = a, super core::Object::•()
     ;
-  static method _#new#tearOff(final core::Object? a) → self::A2
+  static synthetic method _#new#tearOff(final core::Object? a) → self::A2
     return new self::A2::•(a);
 }
 class B2 extends self::A2 {
   constructor •([final core::Object? a = #C1]) → self::B2
     : super self::A2::•(a)
     ;
-  static method _#new#tearOff([final core::Object? a = #C1]) → self::B2
+  static synthetic method _#new#tearOff([final core::Object? a = #C1]) → self::B2
     return new self::B2::•(a);
 }
 static method main() → void {

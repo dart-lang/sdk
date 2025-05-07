@@ -25,21 +25,23 @@ var v = const <int>{if (1 < 0) a else b};
   }
 
   test_const_ifElement_thenElseFalse_intString() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const dynamic a = 0;
 const dynamic b = 'b';
 var v = const <int>{if (1 < 0) a else b};
-''', [
-      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 82, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 82, 1)],
+    );
   }
 
   test_const_ifElement_thenFalse_intString() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var v = const <int>{if (1 < 0) 'a'};
-''', [
-      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 31, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 31, 3)],
+    );
   }
 
   test_const_ifElement_thenFalse_intString_dynamic() async {
@@ -57,12 +59,13 @@ var v = const <int>{if (true) a};
   }
 
   test_const_ifElement_thenTrue_intString() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const dynamic a = 'a';
 var v = const <int>{if (true) a};
-''', [
-      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 53, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 53, 1)],
+    );
   }
 
   test_const_intInt_dynamic() async {
@@ -79,39 +82,53 @@ var v = const <int>{42};
   }
 
   test_const_intNull_dynamic() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const a = null;
 var v = const <int>{a};
-''', [
-      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY,
-          36, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY,
+          36,
+          1,
+        ),
+      ],
+    );
   }
 
   test_const_intNull_value() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var v = const <int>{null};
-''', [
-      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY,
-          20, 4),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY,
+          20,
+          4,
+        ),
+      ],
+    );
   }
 
   test_const_intString_dynamic() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 const dynamic x = 'abc';
 var v = const <int>{x};
-''', [
-      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 45, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 45, 1)],
+    );
   }
 
   test_const_intString_value() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var v = const <int>{'abc'};
-''', [
-      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 20, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 20, 5)],
+    );
   }
 
   test_const_spread_intInt() async {
@@ -150,11 +167,12 @@ var v = <int>{if (1 < 0) a else b};
   }
 
   test_nonConst_ifElement_thenFalse_intString() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var v = <int>[if (1 < 0) 'a'];
-''', [
-      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 25, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 25, 3)],
+    );
   }
 
   test_nonConst_ifElement_thenTrue_intDynamic() async {
@@ -185,44 +203,49 @@ var v = <int>{x};
   }
 
   test_notConst_intString_value() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var v = <int>{'abc'};
-''', [
-      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 14, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 14, 5)],
+    );
   }
 }
 
 @reflectiveTest
 class SetElementTypeNotAssignableWithStrictCastsTest
-    extends PubPackageResolutionTest with WithStrictCastsMixin {
+    extends PubPackageResolutionTest
+    with WithStrictCastsMixin {
   test_ifElement_falseBranch() async {
-    await assertErrorsWithStrictCasts('''
+    await assertErrorsWithStrictCasts(
+      '''
 void f(bool c, dynamic a) {
   <int>{if (c) 0 else a};
 }
-''', [
-      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 50, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 50, 1)],
+    );
   }
 
   test_ifElement_trueBranch() async {
-    await assertErrorsWithStrictCasts('''
+    await assertErrorsWithStrictCasts(
+      '''
 void f(bool c, dynamic a) {
   <int>{if (c) a};
 }
-''', [
-      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 43, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 43, 1)],
+    );
   }
 
   test_spread() async {
-    await assertErrorsWithStrictCasts('''
+    await assertErrorsWithStrictCasts(
+      '''
 void f(Iterable<dynamic> a) {
   <int>{...a};
 }
-''', [
-      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 41, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 41, 1)],
+    );
   }
 }

@@ -41,22 +41,36 @@ final class ExportIdMismatch extends ExportFailure {
 final class ExportLibraryMissing extends ExportFailure {
   final Uri uri;
 
-  ExportLibraryMissing({
-    required this.uri,
-  });
+  ExportLibraryMissing({required this.uri});
 }
 
-class InstanceMemberIdMismatch extends RequirementFailure {
+class InstanceMethodIdMismatch extends RequirementFailure {
   final Uri libraryUri;
   final LookupName interfaceName;
-  final LookupName memberName;
+  final LookupName methodName;
   final ManifestItemId? expectedId;
   final ManifestItemId? actualId;
 
-  InstanceMemberIdMismatch({
+  InstanceMethodIdMismatch({
     required this.libraryUri,
     required this.interfaceName,
-    required this.memberName,
+    required this.methodName,
+    required this.expectedId,
+    required this.actualId,
+  });
+}
+
+class InterfaceConstructorIdMismatch extends RequirementFailure {
+  final Uri libraryUri;
+  final LookupName interfaceName;
+  final LookupName constructorName;
+  final ManifestItemId? expectedId;
+  final ManifestItemId? actualId;
+
+  InterfaceConstructorIdMismatch({
+    required this.libraryUri,
+    required this.interfaceName,
+    required this.constructorName,
     required this.expectedId,
     required this.actualId,
   });
@@ -65,9 +79,7 @@ class InstanceMemberIdMismatch extends RequirementFailure {
 class LibraryMissing extends RequirementFailure {
   final Uri uri;
 
-  LibraryMissing({
-    required this.uri,
-  });
+  LibraryMissing({required this.uri});
 }
 
 sealed class RequirementFailure {}
@@ -76,10 +88,7 @@ sealed class TopLevelFailure extends RequirementFailure {
   final Uri libraryUri;
   final LookupName name;
 
-  TopLevelFailure({
-    required this.libraryUri,
-    required this.name,
-  });
+  TopLevelFailure({required this.libraryUri, required this.name});
 }
 
 class TopLevelIdMismatch extends TopLevelFailure {
@@ -94,9 +103,6 @@ class TopLevelIdMismatch extends TopLevelFailure {
   });
 }
 
-class TopLevelNotClass extends TopLevelFailure {
-  TopLevelNotClass({
-    required super.libraryUri,
-    required super.name,
-  });
+class TopLevelNotInterface extends TopLevelFailure {
+  TopLevelNotInterface({required super.libraryUri, required super.name});
 }

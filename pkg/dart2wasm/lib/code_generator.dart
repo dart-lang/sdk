@@ -1952,7 +1952,7 @@ abstract class AstCodeGenerator
     List<({Range range, Reference target})> targetRanges = targets.targetRanges;
     List<({Range range, Reference target})> staticDispatchRanges =
         targets.staticDispatchRanges;
-    if (!selector.isDynamicModuleOverrideable) {
+    if (!selector.isDynamicSubmoduleOverridable) {
       if (targetRanges.length == 1) {
         final target = translator.getFunctionEntry(targetRanges[0].target,
             uncheckedEntry: useUncheckedEntry);
@@ -1976,13 +1976,19 @@ abstract class AstCodeGenerator
       }
     }
 
+    final callPolymorphicDispatcher = staticDispatchRanges.isNotEmpty;
+
     // Receiver is already on stack.
     w.Local receiverVar = addLocal(signature.inputs.first);
     assert(!receiverVar.type.nullable);
     b.local_tee(receiverVar);
+    if (callPolymorphicDispatcher) {
+      b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+      b.local_get(receiverVar);
+    }
     pushArguments(signature, selector.paramInfo);
 
-    if (staticDispatchRanges.isNotEmpty) {
+    if (callPolymorphicDispatcher) {
       b.invoke(translator
           .getPolymorphicDispatchersForModule(b.module)
           .getPolymorphicDispatcher(selector,
@@ -2448,7 +2454,8 @@ abstract class AstCodeGenerator
         intrinsifier.generateFunctionCallIntrinsic(node);
     if (intrinsicResult != null) return intrinsicResult;
 
-    if (node.kind == FunctionAccessKind.Function) {
+    if (node.kind == FunctionAccessKind.Function ||
+        translator.dynamicModuleSupportEnabled) {
       // Type of function is `Function`, without the argument types.
       return visitDynamicInvocation(
           DynamicInvocation(DynamicAccessKind.Dynamic, node.receiver, node.name,

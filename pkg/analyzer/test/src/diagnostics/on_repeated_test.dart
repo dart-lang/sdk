@@ -16,12 +16,13 @@ main() {
 @reflectiveTest
 class OnRepeatedTest extends PubPackageResolutionTest {
   test_2times() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 mixin M on A, A {}
-''', [
-      error(CompileTimeErrorCode.ON_REPEATED, 25, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ON_REPEATED, 25, 1)],
+    );
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
@@ -47,12 +48,13 @@ augment mixin M on A {}
   }
 
   test_2times_viaTypeAlias() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 typedef B = A;
 mixin M on A, B {}
-''', [
-      error(CompileTimeErrorCode.ON_REPEATED, 40, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ON_REPEATED, 40, 1)],
+    );
   }
 }

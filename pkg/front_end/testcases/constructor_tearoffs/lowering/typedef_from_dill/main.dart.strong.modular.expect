@@ -68,13 +68,13 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
     throw "Expected ${expected}, actual ${actual}";
 }
-static method /* from org-dartlang-testcase:///main_lib.dart */ _#H#fact#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(self::_#H#fact#tearOff::Y% a, {core::int? b = #C9, core::int c = #C10}) → mai::A<self::_#H#fact#tearOff::Y%>
+static synthetic method /* from org-dartlang-testcase:///main_lib.dart */ _#H#fact#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(self::_#H#fact#tearOff::Y% a, {core::int? b = #C9, core::int c = #C10}) → mai::A<self::_#H#fact#tearOff::Y%>
   return mai::A::fact<self::_#H#fact#tearOff::Y%>(a, b: b, c: c);
-static method /* from org-dartlang-testcase:///main_lib.dart */ _#H#redirect#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → mai::A<self::_#H#redirect#tearOff::Y%>
+static synthetic method /* from org-dartlang-testcase:///main_lib.dart */ _#H#redirect#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → mai::A<self::_#H#redirect#tearOff::Y%>
   return mai::A::_#redirect#tearOff<self::_#H#redirect#tearOff::Y%>();
-static method /* from org-dartlang-testcase:///main_lib.dart */ _#H#new#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → mai::A<self::_#H#new#tearOff::Y%>
+static synthetic method /* from org-dartlang-testcase:///main_lib.dart */ _#H#new#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → mai::A<self::_#H#new#tearOff::Y%>
   return new mai::A::•<self::_#H#new#tearOff::Y%>();
-static method /* from org-dartlang-testcase:///main_lib.dart */ _#H#named#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(self::_#H#named#tearOff::Y% a, [core::int? b = #C9]) → mai::A<self::_#H#named#tearOff::Y%>
+static synthetic method /* from org-dartlang-testcase:///main_lib.dart */ _#H#named#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(self::_#H#named#tearOff::Y% a, [core::int? b = #C9]) → mai::A<self::_#H#named#tearOff::Y%>
   return new mai::A::named<self::_#H#named#tearOff::Y%>(a, b);
 
 constants  {

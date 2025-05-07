@@ -66,7 +66,7 @@ enum ExpressionVisitCodePath {
 
   /// The expression is the identifier in a "for each" loop, so it is not a true
   /// expression, and it is being visited directly using [Expression.accept].
-  forEachIdentifier
+  forEachIdentifier,
 }
 
 /// The [SharedInferenceLogWriter] interface, augmented with analyzer-specific
@@ -101,7 +101,9 @@ abstract interface class InferenceLogWriter
   /// bodies and initializers calls this method, making it easy to statically
   /// locate these code paths.
   void setExpressionVisitCodePath(
-      Expression node, ExpressionVisitCodePath source);
+    Expression node,
+    ExpressionVisitCodePath source,
+  );
 }
 
 /// The [SharedInferenceLogWriterImpl] implementation, augmented with
@@ -131,9 +133,10 @@ final class _InferenceLogWriterImpl extends SharedInferenceLogWriterImpl
     // the state is a "top" state, don't bother calling `checkCall`.
     if (state.kind != StateKind.top) {
       checkCall(
-          method: 'enterAnnotation',
-          arguments: [node],
-          expectedNode: traceableAncestor(node));
+        method: 'enterAnnotation',
+        arguments: [node],
+        expectedNode: traceableAncestor(node),
+      );
     }
     super.enterAnnotation(node);
   }
@@ -147,33 +150,39 @@ final class _InferenceLogWriterImpl extends SharedInferenceLogWriterImpl
   @override
   void enterElement(covariant CollectionElement node) {
     checkCall(
-        method: 'enterElement',
-        arguments: [node],
-        expectedNode: traceableAncestor(node));
+      method: 'enterElement',
+      arguments: [node],
+      expectedNode: traceableAncestor(node),
+    );
     super.enterElement(node);
   }
 
   @override
   void enterExpression(covariant Expression node, TypeImpl contextType) {
     assert(
-        !_inBodyOrInitializer || _expressionVisitCodePaths[node] != null,
-        'When in a body or initializer, setExpressionVisitSource should be '
-        'called prior to enterExpression. Not called for $node.');
+      !_inBodyOrInitializer || _expressionVisitCodePaths[node] != null,
+      'When in a body or initializer, setExpressionVisitSource should be '
+      'called prior to enterExpression. Not called for $node.',
+    );
     checkCall(
-        method: 'enterExpression',
-        arguments: [node, contextType],
-        expectedNode: traceableAncestor(node));
+      method: 'enterExpression',
+      arguments: [node, contextType],
+      expectedNode: traceableAncestor(node),
+    );
     super.enterExpression(node, contextType);
     _recordedExpressions[node] = true;
   }
 
   @override
   void enterExtensionOverride(
-      covariant ExtensionOverride node, TypeImpl contextType) {
+    covariant ExtensionOverride node,
+    TypeImpl contextType,
+  ) {
     checkCall(
-        method: 'enterExtensionOverride',
-        arguments: [node, contextType],
-        expectedNode: traceableAncestor(node));
+      method: 'enterExtensionOverride',
+      arguments: [node, contextType],
+      expectedNode: traceableAncestor(node),
+    );
     super.enterExtensionOverride(node, contextType);
     _recordedExpressions[node] = true;
   }
@@ -181,27 +190,30 @@ final class _InferenceLogWriterImpl extends SharedInferenceLogWriterImpl
   @override
   void enterLValue(covariant Expression node) {
     checkCall(
-        method: 'enterLValue',
-        arguments: [node],
-        expectedNode: traceableAncestor(node));
+      method: 'enterLValue',
+      arguments: [node],
+      expectedNode: traceableAncestor(node),
+    );
     super.enterLValue(node);
   }
 
   @override
   void enterPattern(covariant DartPattern node) {
     checkCall(
-        method: 'enterPattern',
-        arguments: [node],
-        expectedNode: traceableAncestor(node));
+      method: 'enterPattern',
+      arguments: [node],
+      expectedNode: traceableAncestor(node),
+    );
     super.enterPattern(node);
   }
 
   @override
   void enterStatement(covariant Statement node) {
     checkCall(
-        method: 'enterStatement',
-        arguments: [node],
-        expectedNode: traceableAncestor(node));
+      method: 'enterStatement',
+      arguments: [node],
+      expectedNode: traceableAncestor(node),
+    );
     super.enterStatement(node);
   }
 
@@ -213,9 +225,13 @@ final class _InferenceLogWriterImpl extends SharedInferenceLogWriterImpl
 
   @override
   void setExpressionVisitCodePath(
-      Expression node, ExpressionVisitCodePath source) {
-    assert(_expressionVisitCodePaths[node] == null,
-        'An expression visit source was already set for $node');
+    Expression node,
+    ExpressionVisitCodePath source,
+  ) {
+    assert(
+      _expressionVisitCodePaths[node] == null,
+      'An expression visit source was already set for $node',
+    );
     _expressionVisitCodePaths[node] = source;
   }
 
@@ -224,7 +240,7 @@ final class _InferenceLogWriterImpl extends SharedInferenceLogWriterImpl
   ///
   /// This is used to verify proper nesting of `enter...` method calls.
   AstNode? traceableAncestor(covariant AstNode node) {
-    for (var parent = node.parent;; parent = parent.parent) {
+    for (var parent = node.parent; ; parent = parent.parent) {
       switch (parent) {
         case null:
         case Annotation():

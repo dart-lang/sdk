@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
@@ -39,8 +39,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    if (node.thisKeyword != null) {
-      rule.reportLintForToken(node.thisKeyword);
+    var thisKeyword = node.thisKeyword;
+    if (thisKeyword != null) {
+      rule.reportAtToken(thisKeyword);
     }
   }
 
@@ -48,7 +49,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitThisExpression(ThisExpression node) {
     var parent = node.parent;
 
-    Element2? element;
+    Element? element;
     if (parent is PropertyAccess && !parent.isNullAware) {
       element = getWriteOrReadElement(parent.propertyName);
     } else if (parent is MethodInvocation && !parent.isNullAware) {
@@ -57,12 +58,13 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
+    element = element?.baseElement;
     if (_canReferenceElementWithoutThisPrefix(element, node)) {
-      rule.reportLintForToken(node.thisKeyword);
+      rule.reportAtToken(node.thisKeyword);
     }
   }
 
-  bool _canReferenceElementWithoutThisPrefix(Element2? element, AstNode node) {
+  bool _canReferenceElementWithoutThisPrefix(Element? element, AstNode node) {
     if (element == null) return false;
 
     var id = element.displayName;
@@ -91,7 +93,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     //  - the requested element must be inherited, or from an extension.
     if (result.isDifferentName) {
       var enclosing = resultElement?.enclosingElement2;
-      return enclosing is ClassElement2;
+      return enclosing is ClassElement;
     }
 
     // Should not happen.

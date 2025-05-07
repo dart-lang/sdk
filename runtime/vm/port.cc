@@ -203,7 +203,7 @@ Dart_Port PortMap::GetOriginId(Dart_Port id) {
     // Message handler is a native port instead of an isolate.
     return ILLEGAL_PORT;
   }
-  return isolate->origin_id();
+  return isolate->group()->id();
 }
 
 bool PortMap::IsOwnedByCurrentThread(Dart_Port id) {

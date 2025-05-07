@@ -60,7 +60,7 @@ class FixProcessorMapTest {
   }
 
   void _assertMap(
-    Map<ErrorCode, List<ProducerGenerator>> producerMap, [
+    Map<DiagnosticCode, List<ProducerGenerator>> producerMap, [
     List<String> codesAllowedToHaveMultipleBulkFixes = const [],
   ]) {
     var unexpectedBulkCodes = <String>[];

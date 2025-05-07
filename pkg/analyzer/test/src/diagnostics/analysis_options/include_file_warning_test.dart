@@ -20,18 +20,21 @@ class IncludeFileWarningTest extends AbstractAnalysisOptionsTest {
 analyzer:
   something: bad
 ''');
-    assertErrorsInCode('''
+    assertErrorsInCode(
+      '''
 include: a.yaml
-''', [
-      error(
-        AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING,
-        9,
-        6,
-        messageContains: [
-          'Warning in the included options file ${convertPath('/a.yaml')}',
-          ": The option 'something' isn't supported by 'analyzer'."
-        ],
-      )
-    ]);
+''',
+      [
+        error(
+          AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING,
+          9,
+          6,
+          messageContains: [
+            'Warning in the included options file ${convertPath('/a.yaml')}',
+            ": The option 'something' isn't supported by 'analyzer'.",
+          ],
+        ),
+      ],
+    );
   }
 }

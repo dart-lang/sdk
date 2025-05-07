@@ -15,13 +15,13 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart'
+import 'package:analyzer/dart/element/element.dart'
     show
-        Element2,
-        ExecutableElement2,
-        ExtensionElement2,
-        InterfaceElement2,
-        LibraryElement2,
+        Element,
+        ExecutableElement,
+        ExtensionElement,
+        InterfaceElement,
+        LibraryElement,
         FormalParameterElement,
         SetterElement;
 import 'package:analyzer/dart/element/type.dart';
@@ -264,7 +264,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   InheritanceManager3 inheritanceManager = InheritanceManager3();
 
   /// The library containing the compilation unit being visited.
-  late LibraryElement2 enclosingLibrary;
+  late LibraryElement enclosingLibrary;
 
   /// A flag indicating whether we are currently in a context in which type
   /// parameters are visible.
@@ -1131,7 +1131,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
     var enclosingElement = element.enclosingElement2;
-    if (!element.isStatic && enclosingElement is InterfaceElement2) {
+    if (!element.isStatic && enclosingElement is InterfaceElement) {
       var overriddenMembers = inheritanceManager.getOverridden4(
         enclosingElement,
         Name(fragment.libraryFragment.source.uri, element.name3!),
@@ -1628,12 +1628,12 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   /// 2: top-level decl
   /// 3: class member
   /// 4+: local function
-  int _depth(Element2 element) {
+  int _depth(Element element) {
     if (element.library2 != enclosingLibrary) {
       return 0;
     }
     var depth = 0;
-    Element2? currentElement = element;
+    Element? currentElement = element;
     while (currentElement != enclosingLibrary) {
       depth++;
       currentElement = currentElement?.enclosingElement2;
@@ -1656,8 +1656,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   /// Return the element associated with the left-most identifier that is a
   /// child of the [node].
-  Element2? _leftMostElement(AstNode node) =>
-      _leftMostIdentifier(node)?.element;
+  Element? _leftMostElement(AstNode node) => _leftMostIdentifier(node)?.element;
 
   /// Return the left-most child of the [node] if it is a simple identifier, or
   /// `null` if the left-most child is not a simple identifier. Comments and
@@ -1689,7 +1688,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     if (element == null) {
       return null;
     }
-    if (element is InterfaceElement2) {
+    if (element is InterfaceElement) {
       var parent = node.parent;
       if (parent is Annotation && parent.arguments != null) {
         element = parent.element2!;
@@ -1712,7 +1711,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   /// Return the number of functions between the [reference] and the [function]
   /// in which the referenced parameter is declared.
-  int _parameterReferenceDepth(AstNode? reference, Element2 function) {
+  int _parameterReferenceDepth(AstNode? reference, Element function) {
     var depth = 0;
     var node = reference;
     while (node != null) {
@@ -1801,27 +1800,27 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   /// Record the distance between the static type of the target (the
   /// [targetType]) and the [member] to which the reference was resolved.
-  void _recordMemberDepth(DartType? targetType, Element2? member) {
+  void _recordMemberDepth(DartType? targetType, Element? member) {
     if (member == null) {
       return;
     }
     if (targetType is InterfaceType) {
       var targetClass = targetType.element3;
-      var extension = member.thisOrAncestorOfType2<ExtensionElement2>();
+      var extension = member.thisOrAncestorOfType2<ExtensionElement>();
       if (extension != null) {
         _recordDistance('member (extension)', 0);
         return;
       }
       // TODO(brianwilkerson): It might be interesting to also know whether the
       //  [element] was found in a class, interface, or mixin.
-      var memberClass = member.thisOrAncestorOfType2<InterfaceElement2>();
+      var memberClass = member.thisOrAncestorOfType2<InterfaceElement>();
       if (memberClass != null) {
         /// Return the distance between the [targetClass] and the [memberClass]
         /// along the superclass chain. This includes all of the implicit
         /// superclasses caused by mixins.
         int getSuperclassDepth() {
           var depth = 0;
-          InterfaceElement2? currentClass = targetClass;
+          InterfaceElement? currentClass = targetClass;
           while (currentClass != null) {
             if (currentClass == memberClass) {
               return depth;
@@ -1842,7 +1841,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
         /// includes all of the implicit superclasses caused by mixins.
         int getTargetDepth() {
           var depth = 0;
-          InterfaceElement2? currentClass = targetClass;
+          InterfaceElement? currentClass = targetClass;
           while (currentClass != null) {
             depth += currentClass.mixins.length + 1;
             currentClass = currentClass.supertype?.element3;
@@ -1873,8 +1872,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }
 
   void _recordOverride(
-    ExecutableElement2 override,
-    ExecutableElement2 overridden,
+    ExecutableElement override,
+    ExecutableElement overridden,
   ) {
     var positionalInOverride = <FormalParameterElement>[];
     var namedInOverride = <String, FormalParameterElement>{};
@@ -2035,7 +2034,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       var firstTokenType = identifier.staticType;
       if (firstTokenType == null) {
         var element = identifier.element;
-        if (element is InterfaceElement2) {
+        if (element is InterfaceElement) {
           // This is effectively treating a reference to a class name as having
           // the same type as an instance of the class, which isn't valid, but
           // on the other hand, the spec doesn't define the static type of a
@@ -2112,8 +2111,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   /// Return the return type of the [element], or `null` if the element doesn't
   /// have a return type.
-  DartType? _returnType(Element2? element) {
-    if (element is ExecutableElement2) {
+  DartType? _returnType(Element? element) {
+    if (element is ExecutableElement) {
       return element.returnType;
     }
     return null;

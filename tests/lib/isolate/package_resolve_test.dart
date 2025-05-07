@@ -33,8 +33,12 @@ main([args, port]) async {
 Future runTest(String packageConfig) async {
   final data = Uri.dataFromString(packageConfig);
   final port = ReceivePort();
-  await Isolate.spawnUri(Platform.script, [], port.sendPort,
-      packageConfig: data);
+  await Isolate.spawnUri(
+    Platform.script,
+    [],
+    port.sendPort,
+    packageConfig: data,
+  );
   final msg = await port.first;
   if (msg is! List) {
     print(msg.runtimeType);

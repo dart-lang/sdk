@@ -3,11 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
-/// A resolver for [InstanceCreationExpression] nodes.
+/// A resolver for [InstanceCreationExpression] and
+/// [DotShorthandConstructorInvocation] nodes.
 ///
 /// This resolver is responsible for rewriting a given
 /// [InstanceCreationExpression] as a [MethodInvocation] if the parsed
@@ -19,8 +22,10 @@ class InstanceCreationExpressionResolver {
 
   InstanceCreationExpressionResolver(this._resolver);
 
-  void resolve(InstanceCreationExpressionImpl node,
-      {required TypeImpl contextType}) {
+  void resolve(
+    InstanceCreationExpressionImpl node, {
+    required TypeImpl contextType,
+  }) {
     // The parser can parse certain code as [InstanceCreationExpression] when it
     // might be an invocation of a method on a [FunctionReference] or
     // [ConstructorReference]. In such a case, it is this resolver's
@@ -40,8 +45,11 @@ class InstanceCreationExpressionResolver {
       if (typeNameTypeArguments != null) {
         // This could be a method call on a function reference or a constructor
         // reference.
-        _resolveWithTypeNameWithTypeArguments(node, typeNameTypeArguments,
-            contextType: contextType);
+        _resolveWithTypeNameWithTypeArguments(
+          node,
+          typeNameTypeArguments,
+          contextType: contextType,
+        );
         return;
       }
     }
@@ -49,8 +57,88 @@ class InstanceCreationExpressionResolver {
     _resolveInstanceCreationExpression(node, contextType: contextType);
   }
 
-  void _resolveInstanceCreationExpression(InstanceCreationExpressionImpl node,
-      {required TypeImpl contextType}) {
+  /// Resolves a [DotShorthandConstructorInvocation] node.
+  void resolveDotShorthand(
+    DotShorthandConstructorInvocationImpl node, {
+    required TypeImpl contextType,
+  }) {
+    TypeImpl dotShorthandContextType =
+        _resolver.getDotShorthandContext().unwrapTypeSchemaView();
+
+    // The static namespace denoted by `S` is also the namespace denoted by
+    // `FutureOr<S>`.
+    dotShorthandContextType = _resolver.typeSystem.futureOrBase(
+      dotShorthandContextType,
+    );
+
+    // TODO(kallentu): Support other context types
+    if (dotShorthandContextType is InterfaceTypeImpl) {
+      // This branch will be true if we're resolving an explicitly marked
+      // const constructor invocation. It's completely unresolved, unlike a
+      // rewritten [DotShorthandConstructorInvocation] that resulted from
+      // resolving a [DotShorthandInvocation].
+      if (node.element == null) {
+        var contextElement = dotShorthandContextType.element3;
+        if (contextElement.getNamedConstructor2(node.constructorName.name)
+            case ConstructorElementImpl2 element?
+            when element.isAccessibleIn2(_resolver.definingLibrary)) {
+          node.element = element;
+        } else {
+          _resolver.errorReporter.atNode(
+            node.constructorName,
+            CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR,
+            arguments: [contextType, node.constructorName.name],
+          );
+        }
+      }
+    } else {
+      _resolver.errorReporter.atNode(
+        node,
+        CompileTimeErrorCode.DOT_SHORTHAND_MISSING_CONTEXT,
+      );
+    }
+
+    _resolveDotShorthandConstructorInvocation(
+      node,
+      contextType: contextType,
+      dotShorthandContextType: dotShorthandContextType,
+    );
+  }
+
+  void _resolveDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocationImpl node, {
+    required TypeImpl contextType,
+    required TypeImpl dotShorthandContextType,
+  }) {
+    var whyNotPromotedArguments = <WhyNotPromotedGetter>[];
+    _resolver.elementResolver.visitDotShorthandConstructorInvocation(node);
+    var elementToInfer = _resolver.inferenceHelper.constructorElementToInfer(
+      typeElement: dotShorthandContextType.element3,
+      constructorName: node.constructorName,
+      definingLibrary: _resolver.definingLibrary,
+    );
+    var returnType = DotShorthandConstructorInvocationInferrer(
+      resolver: _resolver,
+      node: node,
+      argumentList: node.argumentList,
+      contextType: contextType,
+      whyNotPromotedArguments: whyNotPromotedArguments,
+    ).resolveInvocation(
+      // TODO(paulberry): eliminate this cast by changing the type of
+      // `ConstructorElementToInfer.asType`.
+      rawType: elementToInfer?.asType as FunctionTypeImpl?,
+    );
+    node.recordStaticType(returnType, resolver: _resolver);
+    _resolver.checkForArgumentTypesNotAssignableInList(
+      node.argumentList,
+      whyNotPromotedArguments,
+    );
+  }
+
+  void _resolveInstanceCreationExpression(
+    InstanceCreationExpressionImpl node, {
+    required TypeImpl contextType,
+  }) {
     var whyNotPromotedArguments = <WhyNotPromotedGetter>[];
     var constructorName = node.constructorName;
     constructorName.accept(_resolver);
@@ -58,22 +146,26 @@ class InstanceCreationExpressionResolver {
     constructorName = node.constructorName;
     _resolver.elementResolver.visitInstanceCreationExpression(node);
     var elementToInfer = _resolver.inferenceHelper.constructorElementToInfer(
-      constructorName: constructorName,
+      typeElement: constructorName.type.element2,
+      constructorName: node.constructorName.name,
       definingLibrary: _resolver.definingLibrary,
     );
     InstanceCreationInferrer(
-            resolver: _resolver,
-            node: node,
-            argumentList: node.argumentList,
-            contextType: contextType,
-            whyNotPromotedArguments: whyNotPromotedArguments)
-        .resolveInvocation(
-            // TODO(paulberry): eliminate this cast by changing the type of
-            // `ConstructorElementToInfer.asType`.
-            rawType: elementToInfer?.asType as FunctionTypeImpl?);
+      resolver: _resolver,
+      node: node,
+      argumentList: node.argumentList,
+      contextType: contextType,
+      whyNotPromotedArguments: whyNotPromotedArguments,
+    ).resolveInvocation(
+      // TODO(paulberry): eliminate this cast by changing the type of
+      // `ConstructorElementToInfer.asType`.
+      rawType: elementToInfer?.asType as FunctionTypeImpl?,
+    );
     node.recordStaticType(node.constructorName.type.type!, resolver: _resolver);
     _resolver.checkForArgumentTypesNotAssignableInList(
-        node.argumentList, whyNotPromotedArguments);
+      node.argumentList,
+      whyNotPromotedArguments,
+    );
   }
 
   /// Resolve [node] which has a [NamedType] with type arguments (given as
@@ -82,9 +174,10 @@ class InstanceCreationExpressionResolver {
   /// The instance creation expression may actually be a method call on a
   /// type-instantiated function reference or constructor reference.
   void _resolveWithTypeNameWithTypeArguments(
-      InstanceCreationExpressionImpl node,
-      TypeArgumentListImpl typeNameTypeArguments,
-      {required TypeImpl contextType}) {
+    InstanceCreationExpressionImpl node,
+    TypeArgumentListImpl typeNameTypeArguments, {
+    required TypeImpl contextType,
+  }) {
     // TODO(srawlins): Lookup the name and potentially rewrite `node` as a
     // [MethodInvocation].
     _resolveInstanceCreationExpression(node, contextType: contextType);

@@ -7,7 +7,7 @@ import 'dart:math' as math;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -70,7 +70,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       var parentElement = parentNode.declaredFragment?.element;
 
       // Note: there are no override semantics with extension methods.
-      if (parentElement is! InterfaceElement2) return;
+      if (parentElement is! InterfaceElement) return;
       if (parentElement.isPrivate) return;
 
       var parentMethod = inheritanceManager.getMember4(
@@ -107,7 +107,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (isWildcardIdentifier(paramLexeme)) continue;
 
       if (paramLexeme != parentParameterName) {
-        rule.reportLintForToken(
+        rule.reportAtToken(
           parameterName,
           arguments: [paramLexeme, parentParameterName],
         );

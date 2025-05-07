@@ -10,14 +10,14 @@ class C extends core::Object {
   constructor •(core::int? i) → self::C
     : self::C::_f2 = i, self::C::_f3 = i, self::C::_f4 = i, super core::Object::•()
     ;
-  static method _#new#tearOff(core::int? i) → self::C
+  static synthetic method _#new#tearOff(core::int? i) → self::C
     return new self::C::•(i);
 }
 class A extends core::Object {
   constructor •(core::int? i) → self::A
     : super core::Object::•()
     ;
-  static method _#new#tearOff(core::int? i) → self::A
+  static synthetic method _#new#tearOff(core::int? i) → self::A
     return new self::A::•(i);
 }
 abstract class M3 extends core::Object /*isMixinDeclaration*/  {
@@ -65,14 +65,14 @@ class B extends core::Object {
   constructor •(core::int? i) → self::B
     : super core::Object::•()
     ;
-  static method _#new#tearOff(core::int? i) → self::B
+  static synthetic method _#new#tearOff(core::int? i) → self::B
     return new self::B::•(i);
 }
 class E extends self::_E&B&M1 implements self::D {
   constructor •(core::int? i) → self::E
     : super self::_E&B&M1::•(i)
     ;
-  static method _#new#tearOff(core::int? i) → self::E
+  static synthetic method _#new#tearOff(core::int? i) → self::E
     return new self::E::•(i);
   @#C1
   method noSuchMethod(core::Invocation invocation) → dynamic
@@ -87,40 +87,16 @@ abstract class _E&B&M1 = self::B with self::M1 /*isAnonymousMixin*/  {
   synthetic constructor •(core::int? i) → self::_E&B&M1
     : super self::B::•(i)
     ;
-  mixin-super-stub get _#M1#_f2() → core::int?
-    return super.{self::M1::_#M1#_f2};
-  mixin-super-stub set _#M1#_f2(core::int? value) → void
-    return super.{self::M1::_#M1#_f2} = value;
-  mixin-super-stub get _f2() → core::int?
+  synthetic mixin-super-stub get _f2() → core::int?
     return super.{self::M1::_f2};
-  mixin-super-stub set _f2(core::int? _f2#param) → void
+  synthetic mixin-super-stub set _f2(core::int? _f2#param) → void
     return super.{self::M1::_f2} = _f2#param;
-  mixin-super-stub get _#M1#_f2#isSet() → core::bool
-    return super.{self::M1::_#M1#_f2#isSet};
-  mixin-super-stub set _#M1#_f2#isSet(core::bool value) → void
-    return super.{self::M1::_#M1#_f2#isSet} = value;
-  mixin-super-stub get _#M1#_f3() → core::int?
-    return super.{self::M1::_#M1#_f3};
-  mixin-super-stub set _#M1#_f3(core::int? value) → void
-    return super.{self::M1::_#M1#_f3} = value;
-  mixin-super-stub get _f3() → core::int?
+  synthetic mixin-super-stub get _f3() → core::int?
     return super.{self::M1::_f3};
-  mixin-super-stub set _f3(core::int? _f3#param) → void
+  synthetic mixin-super-stub set _f3(core::int? _f3#param) → void
     return super.{self::M1::_f3} = _f3#param;
-  mixin-super-stub get _#M1#_f3#isSet() → core::bool
-    return super.{self::M1::_#M1#_f3#isSet};
-  mixin-super-stub set _#M1#_f3#isSet(core::bool value) → void
-    return super.{self::M1::_#M1#_f3#isSet} = value;
-  mixin-super-stub get _#M1#_f4() → core::int?
-    return super.{self::M1::_#M1#_f4};
-  mixin-super-stub set _#M1#_f4(core::int? value) → void
-    return super.{self::M1::_#M1#_f4} = value;
-  mixin-super-stub get _f4() → core::int?
+  synthetic mixin-super-stub get _f4() → core::int?
     return super.{self::M1::_f4};
-  mixin-super-stub get _#M1#_f4#isSet() → core::bool
-    return super.{self::M1::_#M1#_f4#isSet};
-  mixin-super-stub set _#M1#_f4#isSet(core::bool value) → void
-    return super.{self::M1::_#M1#_f4#isSet} = value;
 }
 static method acceptsInt(core::int x) → void {}
 static method testConflictWithNoSuchMethodForwarderIfImplementedInMixin(self::C c) → void {

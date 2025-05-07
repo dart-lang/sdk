@@ -468,7 +468,7 @@ mixin _DeclarationBodyBuilderDeclarationContextMixin
   InterfaceType? get thisType => _declarationBuilder.thisType;
 
   @override
-  bool get isExtensionDeclaration => _declarationBuilder.isExtension;
+  bool get isExtensionDeclaration => _declarationBuilder is ExtensionBuilder;
 }
 
 class _SourceClassBodyBuilderDeclarationContext

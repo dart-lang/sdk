@@ -26,7 +26,7 @@ abstract class AbstractSourceCodeActionsTest extends AbstractCodeActionsTest {
   /// one must be provided), uses [startOfDocPos] to avoid every test needing
   /// to include a '^' marker.
   @override
-  Future<List<Either2<Command, CodeAction>>> getCodeActions(
+  Future<List<CodeAction>> getCodeActions(
     Uri fileUri, {
     Range? range,
     Position? position,
@@ -72,7 +72,11 @@ final b = <String>{};
     newFile(analysisOptionsPath, analysisOptionsContent);
     newFile(mainFilePath, content);
 
-    await verifyActionEdits(content, expectedContent, command: Commands.fixAll);
+    await verifyCodeActionLiteralEdits(
+      content,
+      expectedContent,
+      command: Commands.fixAll,
+    );
   }
 
   Future<void> test_multipleIterations_noOverlay() async {
@@ -97,7 +101,11 @@ void f() {
     newFile(analysisOptionsPath, analysisOptionsContent);
     newFile(mainFilePath, content);
 
-    await verifyActionEdits(content, expectedContent, command: Commands.fixAll);
+    await verifyCodeActionLiteralEdits(
+      content,
+      expectedContent,
+      command: Commands.fixAll,
+    );
   }
 
   Future<void> test_multipleIterations_overlay() async {
@@ -121,7 +129,11 @@ void f() {
     registerLintRules();
     newFile(analysisOptionsPath, analysisOptionsContent);
 
-    await verifyActionEdits(content, expectedContent, command: Commands.fixAll);
+    await verifyCodeActionLiteralEdits(
+      content,
+      expectedContent,
+      command: Commands.fixAll,
+    );
   }
 
   Future<void> test_multipleIterations_withClientModification() async {
@@ -139,7 +151,10 @@ void f() {
     registerLintRules();
     newFile(analysisOptionsPath, analysisOptionsContent);
 
-    var codeAction = await expectAction(content, command: Commands.fixAll);
+    var codeAction = await expectCodeActionLiteral(
+      content,
+      command: Commands.fixAll,
+    );
     var command = codeAction.command!;
 
     // Files must be open to apply edits.
@@ -214,7 +229,7 @@ final b = <String>{};
     newFile(containerFilePath, containerFileContent);
     newFile(partFilePath, content);
 
-    await verifyActionEdits(
+    await verifyCodeActionLiteralEdits(
       filePath: partFilePath,
       content,
       expectedContent,
@@ -232,7 +247,7 @@ class _MyClass {
 }
 ''';
 
-    var codeAction = await expectAction(
+    var codeAction = await expectCodeActionLiteral(
       content,
       command: Commands.fixAll,
       triggerKind: CodeActionTriggerKind.Automatic,
@@ -267,7 +282,11 @@ class _MyClass {
 }
 ''';
 
-    await verifyActionEdits(content, expectedContent, command: Commands.fixAll);
+    await verifyCodeActionLiteralEdits(
+      content,
+      expectedContent,
+      command: Commands.fixAll,
+    );
   }
 
   Future<void> test_unavailable_outsideAnalysisRoot() async {
@@ -287,7 +306,7 @@ import 'dart:async';
 int? a;
 ''';
 
-    var codeAction = await expectAction(
+    var codeAction = await expectCodeActionLiteral(
       content,
       command: Commands.fixAll,
       triggerKind: CodeActionTriggerKind.Automatic,
@@ -315,7 +334,11 @@ int? a;
 int? a;
 ''';
 
-    await verifyActionEdits(content, expectedContent, command: Commands.fixAll);
+    await verifyCodeActionLiteralEdits(
+      content,
+      expectedContent,
+      command: Commands.fixAll,
+    );
   }
 }
 
@@ -339,7 +362,7 @@ Completer foo;
 int minified(int x, int y) => min(x, y);
 ''';
 
-    await verifyActionEdits(
+    await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
       command: Commands.organizeImports,
@@ -364,7 +387,7 @@ int minified(int x, int y) => min(x, y);
 ''';
 
     setDocumentChangesSupport(false);
-    await verifyActionEdits(
+    await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
       command: Commands.organizeImports,
@@ -374,7 +397,7 @@ int minified(int x, int y) => min(x, y);
   Future<void> test_availableAsCodeActionLiteral() async {
     const content = '';
 
-    await expectAction(content, command: Commands.organizeImports);
+    await expectCodeActionLiteral(content, command: Commands.organizeImports);
   }
 
   Future<void> test_availableAsCommand() async {
@@ -385,15 +408,15 @@ int minified(int x, int y) => min(x, y);
     var actions = await getCodeActions(mainFileUri);
     var action = findCommand(actions, Commands.organizeImports)!;
     action.map(
-      (command) {},
       (codeActionLiteral) => throw 'Expected command, got codeActionLiteral',
+      (command) {},
     );
   }
 
   Future<void> test_fileHasErrors_failsSilentlyForAutomatic() async {
     var content = 'invalid dart code';
 
-    var codeAction = await expectAction(
+    var codeAction = await expectCodeActionLiteral(
       content,
       command: Commands.organizeImports,
       triggerKind: CodeActionTriggerKind.Automatic,
@@ -408,7 +431,7 @@ int minified(int x, int y) => min(x, y);
   Future<void> test_fileHasErrors_failsWithErrorForManual() async {
     var content = 'invalid dart code';
 
-    var codeAction = await expectAction(
+    var codeAction = await expectCodeActionLiteral(
       content,
       command: Commands.organizeImports,
     );
@@ -445,7 +468,7 @@ Completer foo;
 int minified(int x, int y) => min(x, y);
 ''';
 
-    var codeAction = await expectAction(
+    var codeAction = await expectCodeActionLiteral(
       content,
       command: Commands.organizeImports,
     );
@@ -485,7 +508,7 @@ String a;
 String b;
 ''';
 
-    await verifyActionEdits(
+    await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
       command: Commands.sortMembers,
@@ -503,7 +526,7 @@ String b;
 ''';
 
     setDocumentChangesSupport(false);
-    await verifyActionEdits(
+    await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
       command: Commands.sortMembers,
@@ -513,7 +536,7 @@ String b;
   Future<void> test_availableAsCodeActionLiteral() async {
     const content = '';
 
-    await expectAction(content, command: Commands.sortMembers);
+    await expectCodeActionLiteral(content, command: Commands.sortMembers);
   }
 
   Future<void> test_availableAsCommand() async {
@@ -524,8 +547,8 @@ String b;
     var actions = await getCodeActions(mainFileUri);
     var action = findCommand(actions, Commands.sortMembers)!;
     action.map(
-      (command) {},
       (codeActionLiteral) => throw 'Expected command, got codeActionLiteral',
+      (command) {},
     );
   }
 
@@ -535,7 +558,10 @@ String b;
 String a;
 ''';
 
-    var codeAction = await expectAction(content, command: Commands.sortMembers);
+    var codeAction = await expectCodeActionLiteral(
+      content,
+      command: Commands.sortMembers,
+    );
     var command = codeAction.command!;
 
     var commandResponse = handleExpectedRequest<
@@ -567,7 +593,7 @@ String a;
   Future<void> test_fileHasErrors_failsSilentlyForAutomatic() async {
     var content = 'invalid dart code';
 
-    var codeAction = await expectAction(
+    var codeAction = await expectCodeActionLiteral(
       content,
       command: Commands.sortMembers,
       triggerKind: CodeActionTriggerKind.Automatic,
@@ -582,7 +608,10 @@ String a;
   Future<void> test_fileHasErrors_failsWithErrorForManual() async {
     var content = 'invalid dart code';
 
-    var codeAction = await expectAction(content, command: Commands.sortMembers);
+    var codeAction = await expectCodeActionLiteral(
+      content,
+      command: Commands.sortMembers,
+    );
     var command = codeAction.command!;
 
     // Ensure the request returned an error (error responses are thrown by

@@ -26,12 +26,11 @@ class Utf8Encode extends BenchmarkBase {
 
   static String _makeName(String language, int size) {
     String name = 'Utf8Encode.$language.';
-    name +=
-        size >= 1000000
-            ? '${size ~/ 1000000}M'
-            : size >= 1000
-            ? '${size ~/ 1000}k'
-            : '$size';
+    name += size >= 1000000
+        ? '${size ~/ 1000000}M'
+        : size >= 1000
+        ? '${size ~/ 1000}k'
+        : '$size';
     return name;
   }
 

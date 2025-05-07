@@ -13,13 +13,13 @@ static extension-type-member method IntegerExt|constructor#(core::int integer) �
   lowered final self::IntegerExt% /* erasure=core::int, declared=! */ #this = integer;
   return #this;
 }
-static extension-type-member method IntegerExt|constructor#_#new#tearOff(core::int integer) → self::IntegerExt% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method IntegerExt|constructor#_#new#tearOff(core::int integer) → self::IntegerExt% /* erasure=core::int, declared=! */
   return self::IntegerExt|constructor#(integer);
 static extension-type-member method IntegerExt|constructor#regular(core::int integer) → self::IntegerExt% /* erasure=core::int, declared=! */ {
   lowered final self::IntegerExt% /* erasure=core::int, declared=! */ #this = integer;
   return #this;
 }
-static extension-type-member method IntegerExt|constructor#_#regular#tearOff(core::int integer) → self::IntegerExt% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method IntegerExt|constructor#_#regular#tearOff(core::int integer) → self::IntegerExt% /* erasure=core::int, declared=! */
   return self::IntegerExt|constructor#regular(integer);
 static method main() → void {
   self::IntegerExt% /* erasure=core::int, declared=! */ c = self::IntegerExt|constructor#regular(1);

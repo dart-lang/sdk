@@ -69,13 +69,14 @@ Future testNormalExit() async {
 }
 
 @pragma('vm:never-inline')
-Future<Finalizer?> testSendAndExitHelper(
-    {bool trySendFinalizer = false}) async {
+Future<Finalizer?> testSendAndExitHelper({
+  bool trySendFinalizer = false,
+}) async {
   final port = ReceivePort();
-  await Isolate.spawn(
-    runIsolateAttachFinalizer,
-    [port.sendPort, trySendFinalizer],
-  );
+  await Isolate.spawn(runIsolateAttachFinalizer, [
+    port.sendPort,
+    trySendFinalizer,
+  ]);
   final message = await port.first as List;
   print('Received message ($message).');
   final value = message[0] as Nonce;

@@ -148,8 +148,8 @@ abstract class Interface2 extends self::_Interface2&Super&Mixin {
 class ClassExtends extends self::_ClassExtends&Super&Mixin implements self::Interface1 {
   synthetic constructor •() → self::ClassExtends
     ;
-  abstract member-signature method mixedInMethod() → core::int; -> self::Interface1::mixedInMethod
-  abstract member-signature method extendedMethod() → core::int; -> self::Interface1::extendedMethod
+  abstract synthetic erroneous member-signature method mixedInMethod() → core::int; -> self::Interface1::mixedInMethod
+  abstract synthetic erroneous member-signature method extendedMethod() → core::int; -> self::Interface1::extendedMethod
 }
 class ClassExtendsWithNoSuchMethod extends self::_ClassExtendsWithNoSuchMethod&Super&Mixin implements self::Interface1 {
   synthetic constructor •() → self::ClassExtendsWithNoSuchMethod
@@ -157,8 +157,8 @@ class ClassExtendsWithNoSuchMethod extends self::_ClassExtendsWithNoSuchMethod&S
   @core::override
   method noSuchMethod(core::Invocation invocation) → dynamic
     ;
-  abstract member-signature method mixedInMethod() → core::int; -> self::Interface1::mixedInMethod
-  abstract member-signature method extendedMethod() → core::int; -> self::Interface1::extendedMethod
+  abstract synthetic erroneous member-signature method mixedInMethod() → core::int; -> self::Interface1::mixedInMethod
+  abstract synthetic erroneous member-signature method extendedMethod() → core::int; -> self::Interface1::extendedMethod
 }
 class ClassImplements extends core::Object implements self::Interface2 {
   synthetic constructor •() → self::ClassImplements
@@ -170,16 +170,16 @@ class ClassImplementsWithNoSuchMethod extends core::Object implements self::Inte
   @core::override
   method noSuchMethod(core::Invocation invocation) → dynamic
     ;
-  no-such-method-forwarder method extendedMethod() → core::int
+  synthetic no-such-method-forwarder method extendedMethod() → core::int
     return this.{self::ClassImplementsWithNoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#extendedMethod, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int;
-  no-such-method-forwarder method mixedInMethod() → core::int
+  synthetic no-such-method-forwarder method mixedInMethod() → core::int
     return this.{self::ClassImplementsWithNoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#mixedInMethod, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int;
 }
 class ClassDeclaresExtends extends self::_ClassDeclaresExtends&Super&Mixin {
   synthetic constructor •() → self::ClassDeclaresExtends
     ;
-  abstract method extendedMethod() → core::int;
-  abstract method mixedInMethod() → core::int;
+  abstract erroneous method extendedMethod() → core::int;
+  abstract erroneous method mixedInMethod() → core::int;
 }
 class ClassDeclaresExtendsWithNoSuchMethod extends self::_ClassDeclaresExtendsWithNoSuchMethod&Super&Mixin {
   synthetic constructor •() → self::ClassDeclaresExtendsWithNoSuchMethod
@@ -187,8 +187,8 @@ class ClassDeclaresExtendsWithNoSuchMethod extends self::_ClassDeclaresExtendsWi
   @core::override
   method noSuchMethod(core::Invocation invocation) → dynamic
     ;
-  abstract method extendedMethod() → core::int;
-  abstract method mixedInMethod() → core::int;
+  abstract erroneous method extendedMethod() → core::int;
+  abstract erroneous method mixedInMethod() → core::int;
 }
 class ClassDeclaresImplementsWithNoSuchMethod extends core::Object implements self::Super, self::Mixin {
   synthetic constructor •() → self::ClassDeclaresImplementsWithNoSuchMethod
@@ -205,35 +205,35 @@ abstract class _Interface2&Super&Mixin = self::Super with self::Mixin /*isAnonym
   synthetic constructor •() → self::_Interface2&Super&Mixin
     : super self::Super::•()
     ;
-  mixin-super-stub method mixedInMethod() → core::num
+  synthetic mixin-super-stub method mixedInMethod() → core::num
     return super.{self::Mixin::mixedInMethod}();
 }
 abstract class _ClassExtends&Super&Mixin = self::Super with self::Mixin /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_ClassExtends&Super&Mixin
     : super self::Super::•()
     ;
-  mixin-super-stub method mixedInMethod() → core::num
+  synthetic mixin-super-stub method mixedInMethod() → core::num
     return super.{self::Mixin::mixedInMethod}();
 }
 abstract class _ClassExtendsWithNoSuchMethod&Super&Mixin = self::Super with self::Mixin /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_ClassExtendsWithNoSuchMethod&Super&Mixin
     : super self::Super::•()
     ;
-  mixin-super-stub method mixedInMethod() → core::num
+  synthetic mixin-super-stub method mixedInMethod() → core::num
     return super.{self::Mixin::mixedInMethod}();
 }
 abstract class _ClassDeclaresExtends&Super&Mixin = self::Super with self::Mixin /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_ClassDeclaresExtends&Super&Mixin
     : super self::Super::•()
     ;
-  mixin-super-stub method mixedInMethod() → core::num
+  synthetic mixin-super-stub method mixedInMethod() → core::num
     return super.{self::Mixin::mixedInMethod}();
 }
 abstract class _ClassDeclaresExtendsWithNoSuchMethod&Super&Mixin = self::Super with self::Mixin /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_ClassDeclaresExtendsWithNoSuchMethod&Super&Mixin
     : super self::Super::•()
     ;
-  mixin-super-stub method mixedInMethod() → core::num
+  synthetic mixin-super-stub method mixedInMethod() → core::num
     return super.{self::Mixin::mixedInMethod}();
 }
 static method main() → dynamic

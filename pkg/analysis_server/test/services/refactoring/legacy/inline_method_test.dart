@@ -2200,6 +2200,12 @@ class _InlineMethodTest extends RefactoringTest {
   bool? deleteSource;
   bool? inlineAll;
 
+  @override
+  void setUp() {
+    useLineEndingsForPlatform = false;
+    super.setUp();
+  }
+
   Future<void> _assertConditionsError(String message) async {
     var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(

@@ -28,7 +28,8 @@ main() {
         var m = e.toString();
         return m.contains("is not a subtype of type 'int'") ||
             m.contains(
-                "Expected a value of type 'int', but got one of type 'String'");
+              "Expected a value of type 'int', but got one of type 'String'",
+            );
       }
       return false;
     });
@@ -37,7 +38,8 @@ main() {
         var m = e.toString();
         return m.contains("is not a subtype of type 'int?'") ||
             m.contains(
-                "Expected a value of type 'int?', but got one of type 'String'");
+              "Expected a value of type 'int?', but got one of type 'String'",
+            );
       }
       return false;
     });

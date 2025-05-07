@@ -76,20 +76,22 @@ class A<T extends Object> {
   }
 
   test_notDefined() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f() {
   try {
   } on T catch (e) {
     e;
   }
 }
-''', [
-      error(CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE, 21, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE, 21, 1)],
+    );
   }
 
   test_notType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 var T = 0;
 f() {
   try {
@@ -97,9 +99,9 @@ f() {
     e;
   }
 }
-''', [
-      error(CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE, 32, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE, 32, 1)],
+    );
   }
 
   test_noType() async {

@@ -33,9 +33,12 @@ class ListPatternResolver {
     }
 
     var elementType = typeArguments?.arguments.first.typeOrThrow;
-    var result = resolverVisitor.analyzeListPattern(context, node,
-        elementType: elementType?.wrapSharedTypeView(),
-        elements: node.elements);
+    var result = resolverVisitor.analyzeListPattern(
+      context,
+      node,
+      elementType: elementType?.wrapSharedTypeView(),
+      elements: node.elements,
+    );
     node.requiredType = result.requiredType.unwrapTypeView();
 
     resolverVisitor.checkPatternNeverMatchesValueType(

@@ -19,11 +19,13 @@ void testFromUri() {
     dir.createSync();
     Expect.isTrue(new Directory.fromUri(dirUri).existsSync());
     Expect.isTrue(
-        new Directory.fromUri(Uri.base.resolveUri(dirUri)).existsSync());
+      new Directory.fromUri(Uri.base.resolveUri(dirUri)).existsSync(),
+    );
     Directory.current = temp.path;
     Expect.isTrue(new Directory.fromUri(Uri.parse('from_uri')).existsSync());
     Expect.isTrue(
-        new Directory.fromUri(Uri.base.resolve('from_uri')).existsSync());
+      new Directory.fromUri(Uri.base.resolve('from_uri')).existsSync(),
+    );
     Directory.current = originalWorkingDirectory;
     dir.deleteSync();
     temp.deleteSync(recursive: true);
@@ -32,12 +34,15 @@ void testFromUri() {
 }
 
 void testFromUriUnsupported() {
-  Expect.throwsUnsupportedError(() =>
-      new Directory.fromUri(Uri.parse('http://localhost:8080/index.html')));
   Expect.throwsUnsupportedError(
-      () => new Directory.fromUri(Uri.parse('ftp://localhost/tmp/xxx')));
+    () => new Directory.fromUri(Uri.parse('http://localhost:8080/index.html')),
+  );
   Expect.throwsUnsupportedError(
-      () => new Directory.fromUri(Uri.parse('name#fragment')));
+    () => new Directory.fromUri(Uri.parse('ftp://localhost/tmp/xxx')),
+  );
+  Expect.throwsUnsupportedError(
+    () => new Directory.fromUri(Uri.parse('name#fragment')),
+  );
 }
 
 void main() {

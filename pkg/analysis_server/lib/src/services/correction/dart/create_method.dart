@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -66,7 +66,7 @@ class CreateMethod extends ResolvedCorrectionProducer {
 
     await builder.addDartFileEdit(file, (fileBuilder) {
       fileBuilder.insertIntoUnitMember(classDecl, (builder) {
-        ExecutableElement2? element;
+        ExecutableElement? element;
         if (missingEquals) {
           _memberName = '==';
           element = inheritanceManager.getInherited4(
@@ -109,8 +109,8 @@ class CreateMethod extends ResolvedCorrectionProducer {
           return;
         }
       }
-    } else if (target is Identifier && target.element is ExtensionElement2) {
-      targetFragment = (target.element as ExtensionElement2).firstFragment;
+    } else if (target is Identifier && target.element is ExtensionElement) {
+      targetFragment = (target.element as ExtensionElement).firstFragment;
       if (targetFragment is ExtensionFragment) {
         targetNode = await getExtensionDeclaration(targetFragment);
         if (targetNode == null) {
@@ -141,15 +141,18 @@ class CreateMethod extends ResolvedCorrectionProducer {
         return;
       }
       // Prepare target ClassDeclaration.
-      if (targetClassElement is MixinElement2) {
+      if (targetClassElement is MixinElement) {
         var fragment = targetClassElement.firstFragment;
         targetNode = await getMixinDeclaration(fragment);
-      } else if (targetClassElement is ClassElement2) {
+      } else if (targetClassElement is ClassElement) {
         var fragment = targetClassElement.firstFragment;
         targetNode = await getClassDeclaration(fragment);
-      } else if (targetClassElement is ExtensionTypeElement2) {
+      } else if (targetClassElement is ExtensionTypeElement) {
         var fragment = targetClassElement.firstFragment;
         targetNode = await getExtensionTypeDeclaration(fragment);
+      } else if (targetClassElement is EnumElement) {
+        var fragment = targetClassElement.firstFragment;
+        targetNode = await getEnumDeclaration(fragment);
       }
       if (targetNode == null) {
         return;
@@ -158,6 +161,7 @@ class CreateMethod extends ResolvedCorrectionProducer {
       if (target is Identifier) {
         staticModifier =
             target.element?.kind == ElementKind.CLASS ||
+            target.element?.kind == ElementKind.ENUM ||
             target.element?.kind == ElementKind.EXTENSION_TYPE ||
             target.element?.kind == ElementKind.MIXIN;
       }

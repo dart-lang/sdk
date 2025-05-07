@@ -9,6 +9,7 @@ import 'package:analysis_server/src/protocol_server.dart'
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart' as engine;
+import 'package:analyzer/diagnostic/diagnostic.dart' as engine;
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/source/line_info.dart' as engine;
@@ -112,7 +113,7 @@ class AnalysisErrorTest {
       offset: 10,
       length: 20,
       message: 'my message',
-      correction: 'my correction',
+      correctionMessage: 'my correction',
     );
     var error = newAnalysisError_fromEngine(result, engineError);
     expect(error.toJson(), {
@@ -138,7 +139,9 @@ class AnalysisErrorTest {
   void test_fromEngine_hasUrl() {
     engineError = MockAnalysisError(
       source: source,
-      errorCode: MockErrorCode(url: 'http://codes.dartlang.org/TEST_ERROR'),
+      errorCode: MockDiagnosticCode(
+        url: 'http://codes.dartlang.org/TEST_ERROR',
+      ),
       offset: 10,
       length: 20,
       message: 'my message',
@@ -226,16 +229,16 @@ class AnalysisErrorTest {
 @reflectiveTest
 class EnumTest {
   void test_AnalysisErrorSeverity() {
-    EnumTester<engine.ErrorSeverity, AnalysisErrorSeverity>().run(
-      (engine.ErrorSeverity engineErrorSeverity) =>
-          AnalysisErrorSeverity.values.byName(engineErrorSeverity.name),
-      exceptions: {engine.ErrorSeverity.NONE: null},
+    EnumTester<engine.DiagnosticSeverity, AnalysisErrorSeverity>().run(
+      (engineSeverity) =>
+          AnalysisErrorSeverity.values.byName(engineSeverity.name),
+      exceptions: {engine.DiagnosticSeverity.NONE: null},
     );
   }
 
   void test_AnalysisErrorType() {
-    EnumTester<engine.ErrorType, AnalysisErrorType>().run(
-      (engine.ErrorType engineErrorType) =>
+    EnumTester<engine.DiagnosticType, AnalysisErrorType>().run(
+      (engineErrorType) =>
           AnalysisErrorType.values.byName(engineErrorType.name),
     );
   }
@@ -323,13 +326,13 @@ class EnumTester<EngineEnum, ApiEnum> {
   }
 }
 
-class MockAnalysisError implements engine.AnalysisError {
+class MockAnalysisError implements engine.Diagnostic {
   final MockSource? _source;
-  final engine.ErrorCode? _errorCode;
+  final engine.DiagnosticCode? _diagnosticCode;
   final int? _offset;
   final int? _length;
   final String? _message;
-  final String? _correction;
+
   final DiagnosticMessage? _problemMessage;
   final String? _correctionMessage;
 
@@ -338,24 +341,22 @@ class MockAnalysisError implements engine.AnalysisError {
 
   MockAnalysisError({
     MockSource? source,
-    engine.ErrorCode? errorCode,
+    engine.DiagnosticCode? errorCode,
     int? offset,
     int? length,
     String? message,
-    String? correction,
     DiagnosticMessage? problemMessage,
     String? correctionMessage,
   }) : _source = source,
-       _errorCode = errorCode,
+       _diagnosticCode = errorCode,
        _offset = offset,
        _length = length,
        _message = message,
-       _correction = correction,
        _problemMessage = problemMessage,
        _correctionMessage = correctionMessage;
 
   @override
-  String? get correction => _correction;
+  String? get correction => null;
 
   @override
   String? get correctionMessage => _correctionMessage;
@@ -364,7 +365,7 @@ class MockAnalysisError implements engine.AnalysisError {
   Object? get data => throw UnimplementedError();
 
   @override
-  engine.ErrorCode get errorCode => _errorCode!;
+  engine.DiagnosticCode get errorCode => _diagnosticCode!;
 
   @override
   int get length => _length!;
@@ -385,12 +386,12 @@ class MockAnalysisError implements engine.AnalysisError {
   engine.Source get source => _source!;
 }
 
-class MockErrorCode implements engine.ErrorCode {
+class MockDiagnosticCode implements engine.DiagnosticCode {
   @override
-  engine.ErrorType type;
+  engine.DiagnosticType type;
 
   @override
-  engine.ErrorSeverity errorSeverity;
+  engine.DiagnosticSeverity errorSeverity;
 
   @override
   String name;
@@ -398,9 +399,9 @@ class MockErrorCode implements engine.ErrorCode {
   @override
   String? url;
 
-  MockErrorCode({
-    this.type = engine.ErrorType.COMPILE_TIME_ERROR,
-    this.errorSeverity = engine.ErrorSeverity.ERROR,
+  MockDiagnosticCode({
+    this.type = engine.DiagnosticType.COMPILE_TIME_ERROR,
+    this.errorSeverity = engine.DiagnosticSeverity.ERROR,
     this.name = 'TEST_ERROR',
     this.url,
   });
@@ -438,7 +439,7 @@ class _ResolvedUnitResultImplMock implements engine.ResolvedUnitResultImpl {
   final engine.LineInfo lineInfo;
 
   @override
-  final List<engine.AnalysisError> errors;
+  final List<engine.Diagnostic> errors;
 
   _ResolvedUnitResultImplMock({required this.lineInfo, required this.errors});
 

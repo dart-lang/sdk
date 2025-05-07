@@ -307,17 +307,15 @@ void f() {
   }
 
   Future<void> test_hierarchy() async {
-    useLineEndingsForPlatform = false;
-
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
 void f() {
-  Container(
+  Container( // 1
     decoration: BoxDecoration(),
-    child: Container(
+    child: Container( // 2
       decoration: const BoxDecoration(),
-      child: Container(
+      child: Container( // 3
         decoration: BoxDecoration(),
         child: Text(''),
       ),
@@ -331,11 +329,11 @@ void f() {
 import 'package:flutter/material.dart';
 
 void f() {
-  DecoratedBox(
+  DecoratedBox( // 1
     decoration: BoxDecoration(),
-    child: Container(
+    child: Container( // 2
       decoration: const BoxDecoration(),
-      child: Container(
+      child: Container( // 3
         decoration: BoxDecoration(),
         child: Text(''),
       ),
@@ -344,7 +342,8 @@ void f() {
 }
 ''',
       allowFixAllFixes: true,
-      errorFilter: (error) => error.offset == 54,
+      errorFilter:
+          (error) => error.offset == testCode.indexOf('Container( // 1'),
     );
 
     await assertHasFix(
@@ -352,11 +351,11 @@ void f() {
 import 'package:flutter/material.dart';
 
 void f() {
-  Container(
+  Container( // 1
     decoration: BoxDecoration(),
-    child: DecoratedBox(
+    child: DecoratedBox( // 2
       decoration: const BoxDecoration(),
-      child: Container(
+      child: Container( // 3
         decoration: BoxDecoration(),
         child: Text(''),
       ),
@@ -365,7 +364,8 @@ void f() {
 }
 ''',
       allowFixAllFixes: true,
-      errorFilter: (error) => error.offset == 109,
+      errorFilter:
+          (error) => error.offset == testCode.indexOf('Container( // 2'),
     );
 
     await assertHasFix(
@@ -373,11 +373,11 @@ void f() {
 import 'package:flutter/material.dart';
 
 void f() {
-  Container(
+  Container( // 1
     decoration: BoxDecoration(),
-    child: Container(
+    child: Container( // 2
       decoration: const BoxDecoration(),
-      child: const DecoratedBox(
+      child: const DecoratedBox( // 3
         decoration: BoxDecoration(),
         child: Text(''),
       ),
@@ -386,7 +386,8 @@ void f() {
 }
 ''',
       allowFixAllFixes: true,
-      errorFilter: (error) => error.offset == 174,
+      errorFilter:
+          (error) => error.offset == testCode.indexOf('Container( // 3'),
     );
   }
 

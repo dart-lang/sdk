@@ -41,9 +41,6 @@ main() {
   Function g = y; // Should pass checked mode test
   F f0 = y; // Should pass checked mode test
 
-
-
-
   Expect.equals(f(), 42);
   Expect.equals(g(100), 187);
 

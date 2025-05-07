@@ -16,34 +16,49 @@ main() {
 @reflectiveTest
 class ConcreteClassWithAbstractMemberTest extends PubPackageResolutionTest {
   test_abstract_field() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   abstract int? x;
 }
-''', [
-      error(CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER, 12, 16,
-          text: "'x' must have a method body because 'A' isn't abstract."),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
+          12,
+          16,
+          text: "'x' must have a method body because 'A' isn't abstract.",
+        ),
+      ],
+    );
   }
 
   test_abstract_field_final() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   abstract final int? x;
 }
-''', [
-      error(CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER, 12, 22,
-          text: "'x' must have a method body because 'A' isn't abstract."),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
+          12,
+          22,
+          text: "'x' must have a method body because 'A' isn't abstract.",
+        ),
+      ],
+    );
   }
 
   test_direct() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   m();
-}''', [
-      error(CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER, 12, 4),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER, 12, 4)],
+    );
   }
 
   test_external_field() async {
@@ -63,25 +78,33 @@ class A {
   }
 
   test_noSuchMethod_interface() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class I {
   noSuchMethod(v) => '';
 }
 class A implements I {
   m();
-}''', [
-      error(CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER, 62, 4),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER, 62, 4)],
+    );
   }
 
   test_setter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   set s(int i);
 }
-''', [
-      error(CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER, 12, 13,
-          text: "'s' must have a method body because 'A' isn't abstract."),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
+          12,
+          13,
+          text: "'s' must have a method body because 'A' isn't abstract.",
+        ),
+      ],
+    );
   }
 }

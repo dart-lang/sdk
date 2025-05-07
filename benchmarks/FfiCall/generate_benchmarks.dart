@@ -166,10 +166,9 @@ void generateBenchmarkDouble(StringBuffer buffer, List<String> types) {
     final String dartType = toIdentifier(nativeToDartType[type]!);
     for (int number in generateFor[type]!) {
       final String name = '${typeName}x${'$number'.padLeft(2, '0')}';
-      final String expected =
-          number == 1
-              ? 'N + N * 42.0' // Do work with single arg.
-              : 'N * $number * ($number + 1) / 2 '; // The rest sums arguments.
+      final String expected = number == 1
+          ? 'N + N * 42.0' // Do work with single arg.
+          : 'N * $number * ($number + 1) / 2 '; // The rest sums arguments.
       final String functionType = 'Function$number$dartType';
       final String functionNativeType = 'NativeFunction$number$typeName';
       final String functionNameC = 'Function$number$typeName';
@@ -242,11 +241,10 @@ void generateBenchmarkPointer(StringBuffer buffer, List<String> types) {
       final String pointers = pointerNames
           .map((n) => '$type $n = nullptr;')
           .join('\n');
-      final String setup =
-          List.generate(
-            number - 1,
-            (i) => 'p${i + 2} = p1.elementAt(${i + 1});',
-          ).join();
+      final String setup = List.generate(
+        number - 1,
+        (i) => 'p${i + 2} = p1 + ${i + 1};',
+      ).join();
       final String functionType = 'Function$number$dartTypeName';
       final String functionNativeType = 'NativeFunction$number$typeName';
       final String functionNameC = 'Function$number$typeName';

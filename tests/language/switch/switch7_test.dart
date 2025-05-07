@@ -12,9 +12,9 @@ main() {
       L:
       case 1: // Shadowing another label is OK.
         break L; // Illegal, can't reference labeled case from break.
-        //    ^
-        // [analyzer] COMPILE_TIME_ERROR.BREAK_LABEL_ON_SWITCH_MEMBER
-        // [cfe] Can't break to 'L'.
+      //      ^
+      // [analyzer] COMPILE_TIME_ERROR.BREAK_LABEL_ON_SWITCH_MEMBER
+      // [cfe] Can't break to 'L'.
     }
   }
 }

@@ -10,7 +10,6 @@ class Fisk {
 
   set fisk(x) {}
 
-
   get hest => null;
   set hest(x) {}
 
@@ -20,12 +19,7 @@ class Fisk {
   nullary() {}
 }
 
-class Hest extends Fisk {
-
-
-
-
-}
+class Hest extends Fisk {}
 
 main() {
   new Fisk();

@@ -21,15 +21,16 @@ class A {
   static int _foo = 0;
 }
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart';
 
 main() {
   A._foo = 0;
 }
-''', [
-      error(CompileTimeErrorCode.PRIVATE_SETTER, 31, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.PRIVATE_SETTER, 31, 4)],
+    );
 
     var assignment = findNode.assignment('_foo =');
     assertResolvedNodeText(assignment, r'''
@@ -81,15 +82,16 @@ class A {
   static int get _foo => 0;
 }
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart';
 
 main() {
   A._foo = 0;
 }
-''', [
-      error(CompileTimeErrorCode.PRIVATE_SETTER, 31, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.PRIVATE_SETTER, 31, 4)],
+    );
 
     var assignment = findNode.assignment('_foo =');
     assertResolvedNodeText(assignment, r'''
@@ -126,15 +128,16 @@ class A {
   static set _foo(int _) {}
 }
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart';
 
 main() {
   A._foo = 0;
 }
-''', [
-      error(CompileTimeErrorCode.PRIVATE_SETTER, 31, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.PRIVATE_SETTER, 31, 4)],
+    );
 
     var assignment = findNode.assignment('_foo =');
     assertResolvedNodeText(assignment, r'''

@@ -26,8 +26,15 @@ void testParseHttpDate() {
 }
 
 void testFormatParseHttpDate() {
-  test(int year, int month, int day, int hours, int minutes, int seconds,
-      String expectedFormatted) {
+  test(
+    int year,
+    int month,
+    int day,
+    int hours,
+    int minutes,
+    int seconds,
+    String expectedFormatted,
+  ) {
     DateTime date;
     String formatted;
     date = new DateTime.utc(year, month, day, hours, minutes, seconds, 0);

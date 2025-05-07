@@ -10,15 +10,20 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(
-        ArgumentTypeNotAssignableToErrorHandler_FutureCatchErrorTest);
+      ArgumentTypeNotAssignableToErrorHandler_FutureCatchErrorTest,
+    );
     defineReflectiveTests(
-        ArgumentTypeNotAssignableToErrorHandler_FutureThenTest);
+      ArgumentTypeNotAssignableToErrorHandler_FutureThenTest,
+    );
     defineReflectiveTests(
-        ArgumentTypeNotAssignableToErrorHandler_StreamHandleErrorTest);
+      ArgumentTypeNotAssignableToErrorHandler_StreamHandleErrorTest,
+    );
     defineReflectiveTests(
-        ArgumentTypeNotAssignableToErrorHandler_StreamListenTest);
+      ArgumentTypeNotAssignableToErrorHandler_StreamListenTest,
+    );
     defineReflectiveTests(
-        ArgumentTypeNotAssignableToErrorHandler_StreamSubscriptionOnErrorTest);
+      ArgumentTypeNotAssignableToErrorHandler_StreamSubscriptionOnErrorTest,
+    );
   });
 }
 
@@ -34,13 +39,14 @@ void f(Future<int> future, Future<int> Function(dynamic a) callback) {
   }
 
   void test_firstParameterIsNamed() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Future<int> future, Future<int> Function({Object a}) callback) {
   future.catchError(callback);
 }
-''', [
-      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 92, 8),
-    ]);
+''',
+      [error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 92, 8)],
+    );
   }
 
   void test_firstParameterIsOptional() async {
@@ -68,13 +74,20 @@ void f(Future<void> future) {
   }
 
   void test_functionExpression_firstParameterIsNamed() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Future<void> future) {
   future.catchError(({Object a = 1}) {});
 }
-''', [
-      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 50, 19),
-    ]);
+''',
+      [
+        error(
+          WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER,
+          50,
+          19,
+        ),
+      ],
+    );
   }
 
   void test_functionExpression_firstParameterIsNullableObject() async {
@@ -102,13 +115,14 @@ void f(Future<void> future) {
   }
 
   void test_functionExpression_noParameters() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Future<void> future) {
   future.catchError(() {});
 }
-''', [
-      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 50, 5),
-    ]);
+''',
+      [error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 50, 5)],
+    );
   }
 
   void test_functionExpression_secondParameterIsDynamic() async {
@@ -128,13 +142,20 @@ void f(Future<void> future) {
   }
 
   void test_functionExpression_secondParameterIsNamed() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Future<void> future) {
   future.catchError((Object a, {required StackTrace b}) {});
 }
-''', [
-      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 50, 38),
-    ]);
+''',
+      [
+        error(
+          WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER,
+          50,
+          38,
+        ),
+      ],
+    );
   }
 
   void test_functionExpression_secondParameterIsNullableStackTrace() async {
@@ -154,43 +175,65 @@ void f(Future<void> future) {
   }
 
   void test_functionExpression_tooManyParameters() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Future<void> future) {
   future.catchError((a, b, c) {});
 }
-''', [
-      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 50, 12),
-    ]);
+''',
+      [
+        error(
+          WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER,
+          50,
+          12,
+        ),
+      ],
+    );
   }
 
   void test_functionExpression_wrongFirstParameterType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Future<void> future) {
   future.catchError((String a) {});
 }
-''', [
-      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 50, 13),
-    ]);
+''',
+      [
+        error(
+          WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER,
+          50,
+          13,
+        ),
+      ],
+    );
   }
 
   void test_functionExpression_wrongSecondParameterType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Future<void> future) {
   future.catchError((Object a, String b) {});
 }
-''', [
-      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 50, 23),
-    ]);
+''',
+      [
+        error(
+          WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER,
+          50,
+          23,
+        ),
+      ],
+    );
   }
 
   void test_noParameters() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Future<int> future, Future<int> Function() callback) {
   future.catchError(callback);
 }
-''', [
-      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 82, 8),
-    ]);
+''',
+      [error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 82, 8)],
+    );
   }
 
   void test_okType() async {
@@ -210,43 +253,53 @@ void f(Future<int> future, Future<int> Function(Object a, dynamic b) callback) {
   }
 
   void test_secondParameterIsNamed() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Future<int> future, Future<int> Function(Object a, {StackTrace b}) callback) {
   future.catchError(callback);
 }
-''', [
-      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 106, 8),
-    ]);
+''',
+      [
+        error(
+          WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER,
+          106,
+          8,
+        ),
+      ],
+    );
   }
 
   void test_tooManyParameters() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Future<int> future, Future<int> Function(int, int, int) callback) {
   future.catchError(callback);
 }
-''', [
-      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 95, 8),
-    ]);
+''',
+      [error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 95, 8)],
+    );
   }
 
   void test_wrongFirstParameterType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Future<int> future, Future<int> Function(String) callback) {
   future.catchError(callback);
 }
-''', [
-      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 88, 8),
-    ]);
+''',
+      [error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 88, 8)],
+    );
   }
 
   void test_wrongSecondParameterType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Future<int> future, Future<int> Function(Object, String) callback) {
   future.catchError(callback);
 }
-''', [
-      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 96, 8),
-    ]);
+''',
+      [error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 96, 8)],
+    );
   }
 }
 
@@ -262,23 +315,37 @@ void f(Future<void> future, void Function(dynamic a) callback) {
   }
 
   void test_firstParameterIsNamed() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Future<void> future, Future<int> Function({Object a}) callback) {
   future.then((_) {}, onError: callback);
 }
-''', [
-      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 95, 17),
-    ]);
+''',
+      [
+        error(
+          WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER,
+          95,
+          17,
+        ),
+      ],
+    );
   }
 
   void test_functionExpression_firstParameterIsNamed() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Future<void> future) {
   future.then((_) {}, onError: ({Object a = 1}) {});
 }
-''', [
-      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 52, 28),
-    ]);
+''',
+      [
+        error(
+          WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER,
+          52,
+          28,
+        ),
+      ],
+    );
   }
 
   void test_functionExpression_firstParameterIsNullableObject() async {
@@ -290,23 +357,37 @@ void f(Future<void> future) {
   }
 
   void test_functionExpression_noParameters() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Future<void> future) {
   future.then((_) {}, onError: () {});
 }
-''', [
-      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 52, 14),
-    ]);
+''',
+      [
+        error(
+          WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER,
+          52,
+          14,
+        ),
+      ],
+    );
   }
 
   void test_functionExpression_secondParameterIsNamed() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Future<void> future) {
   future.then((_) {}, onError: (Object a, {StackTrace? b}) {});
 }
-''', [
-      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 52, 39),
-    ]);
+''',
+      [
+        error(
+          WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER,
+          52,
+          39,
+        ),
+      ],
+    );
   }
 
   void test_functionExpression_secondParameterIsNullableStackTrace() async {
@@ -318,13 +399,20 @@ void f(Future<void> future) {
   }
 
   void test_functionExpression_wrongFirstParameterType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Future<void> future) {
   future.then((_) {}, onError: (String a) {});
 }
-''', [
-      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 52, 22),
-    ]);
+''',
+      [
+        error(
+          WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER,
+          52,
+          22,
+        ),
+      ],
+    );
   }
 
   void test_functionType() async {
@@ -348,23 +436,31 @@ void f(Stream<void> stream, void Function(dynamic a) callback) {
   }
 
   void test_firstParameterIsNamed() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Stream<void> stream, Future<int> Function({Object a}) callback) {
   stream.handleError(callback);
 }
-''', [
-      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 94, 8),
-    ]);
+''',
+      [error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 94, 8)],
+    );
   }
 
   void test_functionExpression_firstParameterIsNamed() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Stream<void> stream) {
   stream.handleError(({Object a = 1}) {});
 }
-''', [
-      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 51, 19),
-    ]);
+''',
+      [
+        error(
+          WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER,
+          51,
+          19,
+        ),
+      ],
+    );
   }
 
   void test_functionExpression_firstParameterIsNullableObject() async {
@@ -376,23 +472,31 @@ void f(Stream<void> stream) {
   }
 
   void test_functionExpression_noParameters() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Stream<void> stream) {
   stream.handleError(() {});
 }
-''', [
-      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 51, 5),
-    ]);
+''',
+      [error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 51, 5)],
+    );
   }
 
   void test_functionExpression_secondParameterIsNamed() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Stream<void> stream) {
   stream.handleError((Object a, {StackTrace? b}) {});
 }
-''', [
-      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 51, 30),
-    ]);
+''',
+      [
+        error(
+          WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER,
+          51,
+          30,
+        ),
+      ],
+    );
   }
 
   void test_functionExpression_secondParameterIsNullableStackTrace() async {
@@ -404,13 +508,20 @@ void f(Stream<void> stream) {
   }
 
   void test_functionExpression_wrongFirstParameterType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Stream<void> stream) {
   stream.handleError((String a) {});
 }
-''', [
-      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 51, 13),
-    ]);
+''',
+      [
+        error(
+          WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER,
+          51,
+          13,
+        ),
+      ],
+    );
   }
 }
 
@@ -426,23 +537,37 @@ void f(Stream<void> stream, void Function(dynamic a) callback) {
   }
 
   void test_firstParameterIsNamed() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Stream<void> stream, Future<int> Function({Object a}) callback) {
   stream.listen((_) {}, onError: callback);
 }
-''', [
-      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 97, 17),
-    ]);
+''',
+      [
+        error(
+          WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER,
+          97,
+          17,
+        ),
+      ],
+    );
   }
 
   void test_functionExpression_firstParameterIsNamed() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Stream<void> stream) {
   stream.listen((_) {}, onError: ({Object a = 1}) {});
 }
-''', [
-      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 54, 28),
-    ]);
+''',
+      [
+        error(
+          WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER,
+          54,
+          28,
+        ),
+      ],
+    );
   }
 
   void test_functionExpression_firstParameterIsNullableObject() async {
@@ -454,23 +579,37 @@ void f(Stream<void> stream) {
   }
 
   void test_functionExpression_noParameters() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Stream<void> stream) {
   stream.listen((_) {}, onError: () {});
 }
-''', [
-      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 54, 14),
-    ]);
+''',
+      [
+        error(
+          WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER,
+          54,
+          14,
+        ),
+      ],
+    );
   }
 
   void test_functionExpression_secondParameterIsNamed() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Stream<void> stream) {
   stream.listen((_) {}, onError: (Object a, {StackTrace? b}) {});
 }
-''', [
-      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 54, 39),
-    ]);
+''',
+      [
+        error(
+          WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER,
+          54,
+          39,
+        ),
+      ],
+    );
   }
 
   void test_functionExpression_secondParameterIsNullableStackTrace() async {
@@ -482,13 +621,20 @@ void f(Stream<void> stream) {
   }
 
   void test_functionExpression_wrongFirstParameterType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Stream<void> stream) {
   stream.listen((_) {}, onError: (String a) {});
 }
-''', [
-      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 54, 22),
-    ]);
+''',
+      [
+        error(
+          WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER,
+          54,
+          22,
+        ),
+      ],
+    );
   }
 }
 
@@ -506,27 +652,41 @@ void f(
   }
 
   void test_firstParameterIsNamed() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'dart:async';
 void f(
     StreamSubscription<void> subscription,
     Future<int> Function({Object a}) callback) {
   subscription.onError(callback);
 }
-''', [
-      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 144, 8),
-    ]);
+''',
+      [
+        error(
+          WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER,
+          144,
+          8,
+        ),
+      ],
+    );
   }
 
   void test_functionExpression_firstParameterIsNamed() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'dart:async';
 void f(StreamSubscription<void> subscription) {
   subscription.onError(({Object a = 1}) {});
 }
-''', [
-      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 92, 19),
-    ]);
+''',
+      [
+        error(
+          WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER,
+          92,
+          19,
+        ),
+      ],
+    );
   }
 
   void test_functionExpression_firstParameterIsNullableObject() async {
@@ -539,25 +699,33 @@ void f(StreamSubscription<void> subscription) {
   }
 
   void test_functionExpression_noParameters() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'dart:async';
 void f(StreamSubscription<void> subscription) {
   subscription.onError(() {});
 }
-''', [
-      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 92, 5),
-    ]);
+''',
+      [error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 92, 5)],
+    );
   }
 
   void test_functionExpression_secondParameterIsNamed() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'dart:async';
 void f(StreamSubscription<void> subscription) {
   subscription.onError((Object a, {StackTrace? b}) {});
 }
-''', [
-      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 92, 30),
-    ]);
+''',
+      [
+        error(
+          WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER,
+          92,
+          30,
+        ),
+      ],
+    );
   }
 
   void test_functionExpression_secondParameterIsNullableStackTrace() async {
@@ -570,13 +738,20 @@ void f(StreamSubscription<void> subscription) {
   }
 
   void test_functionExpression_wrongFirstParameterType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'dart:async';
 void f(StreamSubscription<void> subscription) {
   subscription.onError((String a) {});
 }
-''', [
-      error(WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 92, 13),
-    ]);
+''',
+      [
+        error(
+          WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER,
+          92,
+          13,
+        ),
+      ],
+    );
   }
 }

@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
@@ -65,7 +65,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void _checkDirectoryMethods(MethodInvocation node, DartType? type) {
     if (type.extendsClass('Directory', 'dart.io')) {
       if (_dirMethodNames.contains(node.methodName.name)) {
-        rule.reportLint(node);
+        rule.reportAtNode(node);
       }
     }
   }
@@ -73,7 +73,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void _checkFileMethods(MethodInvocation node, DartType? type) {
     if (type.extendsClass('File', 'dart.io')) {
       if (_fileMethodNames.contains(node.methodName.name)) {
-        rule.reportLint(node);
+        rule.reportAtNode(node);
       }
     }
   }
@@ -82,9 +82,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     var target = node.target;
     if (target is Identifier) {
       var element = target.element;
-      if (element is ClassElement2 && element.name3 == 'FileSystemEntity') {
+      if (element is ClassElement && element.name3 == 'FileSystemEntity') {
         if (_fileSystemEntityMethodNames.contains(node.methodName.name)) {
-          rule.reportLint(node);
+          rule.reportAtNode(node);
         }
       }
     }

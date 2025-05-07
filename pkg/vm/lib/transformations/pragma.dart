@@ -31,12 +31,6 @@ const kDynModuleCanBeOverriddenImplicitlyPragmaName =
 const kDynModuleCallablePragmaName = "dyn-module:callable";
 const kDynModuleImplicitlyCallablePragmaName = "dyn-module:implicitly-callable";
 const kDynModuleEntryPointPragmaName = "dyn-module:entry-point";
-const kDynModuleLanguageImplExtendablePragmaName =
-    "dyn-module:language-impl:extendable";
-const kDynModuleLanguageImplCanBeOverriddenPragmaName =
-    "dyn-module:language-impl:can-be-overridden";
-const kDynModuleLanguageImplCallablePragmaName =
-    "dyn-module:language-impl:callable";
 
 abstract class ParsedPragma {}
 
@@ -89,18 +83,6 @@ class ParsedPlatformConstPragma implements ParsedPragma {
 
 class ParsedDynModuleEntryPointPragma implements ParsedPragma {
   const ParsedDynModuleEntryPointPragma();
-}
-
-class ParsedDynModuleLanguageImplExtendablePragma implements ParsedPragma {
-  const ParsedDynModuleLanguageImplExtendablePragma();
-}
-
-class ParsedDynModuleLanguageImplCanBeOverriddenPragma implements ParsedPragma {
-  const ParsedDynModuleLanguageImplCanBeOverriddenPragma();
-}
-
-class ParsedDynModuleLanguageImplCallablePragma implements ParsedPragma {
-  const ParsedDynModuleLanguageImplCallablePragma();
 }
 
 abstract class PragmaAnnotationParser {
@@ -240,12 +222,6 @@ class ConstantPragmaAnnotationParser implements PragmaAnnotationParser {
         return getEntryPointTypeFromOptions(options, pragmaName);
       case kDynModuleEntryPointPragmaName:
         return const ParsedDynModuleEntryPointPragma();
-      case kDynModuleLanguageImplExtendablePragmaName:
-        return const ParsedDynModuleLanguageImplExtendablePragma();
-      case kDynModuleLanguageImplCanBeOverriddenPragmaName:
-        return const ParsedDynModuleLanguageImplCanBeOverriddenPragma();
-      case kDynModuleLanguageImplCallablePragmaName:
-        return const ParsedDynModuleLanguageImplCallablePragma();
       default:
         return null;
     }

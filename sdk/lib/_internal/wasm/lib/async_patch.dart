@@ -94,12 +94,7 @@ class _AsyncCompleter<T> extends _Completer<T> {
 }
 
 @pragma("wasm:entry-point")
-void _awaitHelper(_AsyncSuspendState suspendState, Object? operand) {
-  if (operand is! Future) {
-    return scheduleMicrotask(
-      () => suspendState._resume.call(suspendState, operand, null, null),
-    );
-  }
+void _awaitHelper(_AsyncSuspendState suspendState, Future operand) {
   operand.then(
     (value) {
       suspendState._resume.call(suspendState, value, null, null);

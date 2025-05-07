@@ -2,7 +2,30 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import("../aot_snapshot.gni")
 import("../application_snapshot.gni")
+
+aot_snapshot("analysis_server_aot") {
+  main_dart = "../../pkg/analysis_server/bin/server.dart"
+  name = "analysis_server_aot"
+  output = "$root_gen_dir/analysis_server_aot.dart.snapshot"
+  args = [ "-Dbuilt_as_aot=true" ]
+}
+
+aot_snapshot("analysis_server_aot_product") {
+  main_dart = "../../pkg/analysis_server/bin/server.dart"
+  name = "analysis_server_aot_product"
+  output = "$root_gen_dir/analysis_server_aot_product.dart.snapshot"
+  args = [ "-Dbuilt_as_aot=true" ]
+
+  # dartaotruntime in the dart sdk has dart_product_config applied to it,
+  # so it is built in product mode in both release and
+  # product builds, and is only built in debug mode in debug
+  # builds. The following line ensures that the dartaotruntime
+  # and dartdevc_aot snapshot in an SDK build are
+  # always compatible with each other.
+  force_product_mode = !dart_debug
+}
 
 application_snapshot("analysis_server") {
   main_dart = "../../pkg/analysis_server/bin/server.dart"

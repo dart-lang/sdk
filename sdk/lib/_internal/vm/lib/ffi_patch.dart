@@ -25,31 +25,30 @@ const Map<Type, int> _knownSizes = {
 // Keep consistent with pkg/vm/lib/transformations/ffi/abi.dart.
 @pragma("vm:prefer-inline")
 @pragma("wasm:prefer-inline")
-int get _intPtrSize =>
-    (const [
-      4, // androidArm,
-      8, // androidArm64,
-      4, // androidIA32,
-      8, // androidX64,
-      8, // androidRiscv64,
-      8, // fuchsiaArm64,
-      8, // fuchsiaX64,
-      8, // fuchsiaRiscv64,
-      4, // iosArm,
-      8, // iosArm64,
-      8, // iosX64,
-      4, // linuxArm,
-      8, // linuxArm64,
-      4, // linuxIA32,
-      8, // linuxX64,
-      4, // linuxRiscv32,
-      8, // linuxRiscv64,
-      8, // macosArm64,
-      8, // macosX64,
-      8, // windowsArm64,
-      4, // windowsIA32,
-      8, // windowsX64,
-    ])[_abi()];
+int get _intPtrSize => (const [
+  4, // androidArm,
+  8, // androidArm64,
+  4, // androidIA32,
+  8, // androidX64,
+  8, // androidRiscv64,
+  8, // fuchsiaArm64,
+  8, // fuchsiaX64,
+  8, // fuchsiaRiscv64,
+  4, // iosArm,
+  8, // iosArm64,
+  8, // iosX64,
+  4, // linuxArm,
+  8, // linuxArm64,
+  4, // linuxIA32,
+  8, // linuxX64,
+  4, // linuxRiscv32,
+  8, // linuxRiscv64,
+  8, // macosArm64,
+  8, // macosX64,
+  8, // windowsArm64,
+  4, // windowsIA32,
+  8, // windowsX64,
+])[_abi()];
 
 @pragma("vm:prefer-inline")
 int get _smiMax {

@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
@@ -40,7 +40,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (expressionType is InterfaceType) {
       var interfaceElement = expressionType.element3;
       // Handled in analyzer.
-      if (interfaceElement is! ClassElement2) {
+      if (interfaceElement is! ClassElement) {
         return;
       }
       var enumDescription = interfaceElement.asEnumLikeClass();
@@ -61,12 +61,12 @@ class _Visitor extends SimpleAstVisitor<void> {
         }
         if (expression is Identifier) {
           var variable = expression.element.variableElement;
-          if (variable is VariableElement2) {
+          if (variable is VariableElement) {
             enumConstants.remove(variable.computeConstantValue());
           }
         } else if (expression is PropertyAccess) {
           var variable = expression.propertyName.element.variableElement;
-          if (variable is VariableElement2) {
+          if (variable is VariableElement) {
             enumConstants.remove(variable.computeConstantValue());
           }
         }
@@ -85,15 +85,15 @@ class _Visitor extends SimpleAstVisitor<void> {
           orElse: () => elements.first,
         );
         if (preferredElement.name3 case var name?) {
-          rule.reportLintForOffset(offset, end - offset, arguments: [name]);
+          rule.reportAtOffset(offset, end - offset, arguments: [name]);
         }
       }
     }
   }
 }
 
-extension on Element2? {
-  Element2? get variableElement {
+extension on Element? {
+  Element? get variableElement {
     var self = this;
     if (self is GetterElement) {
       var variable = self.variable3;

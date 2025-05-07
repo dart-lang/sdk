@@ -115,9 +115,7 @@ Future<int> generateWasm(WasmCompilerOptions options,
 
   final jsFile = path.setExtension(options.outputFile, '.mjs');
   final jsRuntime = result.jsRuntime;
-  if (jsRuntime != null) {
-    await File(jsFile).writeAsString(jsRuntime);
-  }
+  await File(jsFile).writeAsString(jsRuntime);
 
   final supportJsFile = path.setExtension(options.outputFile, '.support.js');
   await File(supportJsFile).writeAsString(result.supportJs);

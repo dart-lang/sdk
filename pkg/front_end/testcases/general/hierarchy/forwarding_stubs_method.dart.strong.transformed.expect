@@ -130,10 +130,10 @@ abstract class AbstractClass extends self::Super implements self::Interface1, se
   synthetic constructor •() → self::AbstractClass
     : super self::Super::•()
     ;
-  forwarding-stub method extendedConcreteImplementedCovariantMethod(covariant-by-declaration core::int i) → void
+  forwarding-stub synthetic method extendedConcreteImplementedCovariantMethod(covariant-by-declaration core::int i) → void
     return super.{self::Super::extendedConcreteImplementedCovariantMethod}(i);
-  abstract forwarding-stub method extendedAbstractImplementedCovariantMethod(covariant-by-declaration core::int i) → void;
-  abstract forwarding-stub method implementsMultipleCovariantMethod2(covariant-by-declaration core::int i) → void;
+  abstract forwarding-stub synthetic method extendedAbstractImplementedCovariantMethod(covariant-by-declaration core::int i) → void;
+  abstract forwarding-stub synthetic method implementsMultipleCovariantMethod2(covariant-by-declaration core::int i) → void;
 }
 class ConcreteSub extends self::AbstractClass {
   synthetic constructor •() → self::ConcreteSub
@@ -144,9 +144,9 @@ class ConcreteClass extends self::Super implements self::Interface1, self::Inter
   synthetic constructor •() → self::ConcreteClass
     : super self::Super::•()
     ;
-  forwarding-stub method extendedConcreteImplementedCovariantMethod(covariant-by-declaration core::int i) → void
+  forwarding-stub synthetic method extendedConcreteImplementedCovariantMethod(covariant-by-declaration core::int i) → void
     return super.{self::Super::extendedConcreteImplementedCovariantMethod}(i);
-  abstract forwarding-stub method extendedAbstractImplementedCovariantMethod(covariant-by-declaration core::int i) → void;
-  abstract forwarding-stub method implementsMultipleCovariantMethod2(covariant-by-declaration core::int i) → void;
+  abstract forwarding-stub synthetic method extendedAbstractImplementedCovariantMethod(covariant-by-declaration core::int i) → void;
+  abstract forwarding-stub synthetic method implementsMultipleCovariantMethod2(covariant-by-declaration core::int i) → void;
 }
 static method main() → dynamic {}

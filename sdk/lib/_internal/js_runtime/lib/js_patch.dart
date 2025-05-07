@@ -11,6 +11,9 @@ import 'dart:_interceptors' show DART_CLOSURE_PROPERTY_NAME;
 import 'dart:_internal' show patch;
 import 'dart:_js_helper'
     show
+        addSafeToStringHook,
+        safeDescribeJavaScriptObject,
+        SafeToStringHook,
         Primitives,
         getIsolateAffinityTag,
         isJSFunction,
@@ -54,6 +57,10 @@ class JsObject {
 
   // This should only be called from _wrapToDart
   JsObject._fromJs(this._jsObject) {
+    // Use of lazy-initialized variable in base constructor ensures that the
+    // initializer is called before an instance is available, and the
+    // initializer is executed at most once.
+    _installSafeToStringHook;
     assert(_jsObject != null);
   }
 
@@ -212,15 +219,6 @@ class JsObject {
   }
 
   @patch
-  String toString() {
-    try {
-      return JS('String', 'String(#)', _jsObject);
-    } catch (e) {
-      return super.toString();
-    }
-  }
-
-  @patch
   dynamic callMethod(Object method, [List? args]) {
     if (method is! String && method is! num) {
       throw ArgumentError("method is not a String or num");
@@ -236,7 +234,42 @@ class JsObject {
       ),
     );
   }
+
+  String _objectToString() => super.toString();
+
+  @patch
+  String toString() {
+    try {
+      return JS('String', 'String(#)', _jsObject);
+    } catch (e) {
+      return _objectToString();
+    }
+  }
+
+  @pragma('dart2js:never-inline')
+  String _safeToString() {
+    String attributesString = '';
+    String? attributes = _safeToStringAttributes();
+    if (attributes != null && attributes.length > 0) {
+      attributesString = ' ($attributes)';
+    }
+    final base = Primitives.objectToHumanReadableString(this);
+    return "$base$attributesString";
+  }
+
+  String? _safeToStringAttributes() => safeDescribeJavaScriptObject(_jsObject);
 }
+
+class _SafeToStringHook extends SafeToStringHook {
+  String? tryFormat(Object? o) {
+    if (o is JsObject) return o._safeToString();
+    return null;
+  }
+}
+
+// Reading this variable in the base class constructor causes the hook to be
+// registered.
+final bool _installSafeToStringHook = addSafeToStringHook(_SafeToStringHook());
 
 @patch
 class JsFunction extends JsObject {
@@ -258,6 +291,10 @@ class JsFunction extends JsObject {
       args == null ? null : List.from(args.map(_convertToJS)),
     ),
   );
+
+  @override
+  String? _safeToStringAttributes() =>
+      safeDescribeJavaScriptObject(_jsObject, asFunction: true);
 }
 
 @patch
@@ -336,10 +373,9 @@ class JsArray<E> /*extends JsObject with ListMixin<E>*/ {
 
   @patch
   void addAll(Iterable<E> iterable) {
-    var list =
-        (JS('bool', '# instanceof Array', iterable))
-            ? JS<List>('JSArray', '#', iterable)
-            : List.from(iterable);
+    var list = (JS('bool', '# instanceof Array', iterable))
+        ? JS<List>('JSArray', '#', iterable)
+        : List.from(iterable);
     callMethod('push', list);
   }
 
@@ -386,6 +422,10 @@ class JsArray<E> /*extends JsObject with ListMixin<E>*/ {
     // Note: arr.sort(null) is a type error in FF
     callMethod('sort', compare == null ? [] : [compare]);
   }
+
+  @override
+  String? _safeToStringAttributes() =>
+      safeDescribeJavaScriptObject(_jsObject, asArray: true);
 }
 
 // property added to a Dart object referencing its JS-side DartObject proxy
@@ -508,7 +548,7 @@ Object _wrapToDart(o) {
       (o) => JsFunction._fromJs(o),
     );
   }
-  if (JS('bool', '# instanceof Array', o)) {
+  if (JS('bool', 'Array.isArray(#)', o)) {
     return _getDartProxy(
       o,
       _DART_OBJECT_PROPERTY_NAME,

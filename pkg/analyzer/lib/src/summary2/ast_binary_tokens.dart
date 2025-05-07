@@ -28,8 +28,14 @@ class Tokens {
 
   static Token catch_() => TokenFactory.tokenFromKeyword(Keyword.CATCH);
 
-  static Token? choose(bool if1, Token then1, bool if2, Token then2,
-      [bool? if3, Token? then3]) {
+  static Token? choose(
+    bool if1,
+    Token then1,
+    bool if2,
+    Token then2, [
+    bool? if3,
+    Token? then3,
+  ]) {
     if (if1) return then1;
     if (if2) return then2;
     if (if3 == true) return then3!;
@@ -86,9 +92,7 @@ class Tokens {
   static Token for_() => TokenFactory.tokenFromKeyword(Keyword.FOR);
 
   static Token fromType(UnlinkedTokenType type) {
-    return TokenFactory.tokenFromType(
-      TokensContext.binaryToAstTokenType(type),
-    );
+    return TokenFactory.tokenFromType(TokensContext.binaryToAstTokenType(type));
   }
 
   static Token function() => TokenFactory.tokenFromKeyword(Keyword.FUNCTION);

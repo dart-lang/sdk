@@ -14,12 +14,15 @@ void main() {
     });
 
     HttpClient client = new HttpClient();
-    client.get("127.0.0.1", server.port, "/").then((HttpClientRequest request) {
-      return request.close();
-    }).then((HttpClientResponse response) {
-      Expect.equals("", response.reasonPhrase);
-      server.close();
-      client.close();
-    });
+    client
+        .get("127.0.0.1", server.port, "/")
+        .then((HttpClientRequest request) {
+          return request.close();
+        })
+        .then((HttpClientResponse response) {
+          Expect.equals("", response.reasonPhrase);
+          server.close();
+          client.close();
+        });
   });
 }

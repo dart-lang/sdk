@@ -7,7 +7,7 @@ import 'dart:math' as math;
 import 'package:analysis_server/src/services/completion/dart/candidate_suggestion.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_state.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 
@@ -29,7 +29,7 @@ class OverrideHelper {
     : inheritanceManager = state.request.inheritanceManager;
 
   void computeOverridesFor({
-    required InterfaceElement2 interfaceElement,
+    required InterfaceElement interfaceElement,
     required SourceRange replacementRange,
     required bool skipAt,
   }) {
@@ -73,7 +73,7 @@ class OverrideHelper {
   }
 
   /// Checks if the [element] has the `@nonVirtual` annotation.
-  bool _hasNonVirtualAnnotation(ExecutableElement2 element) {
+  bool _hasNonVirtualAnnotation(ExecutableElement element) {
     if (element is GetterElement && element.isSynthetic) {
       var variable = element.variable3;
       if (variable != null && variable.metadata2.hasNonVirtual) {

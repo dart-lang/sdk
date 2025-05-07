@@ -30,7 +30,7 @@ main() {
     'C',
     'D',
     'E',
-    'F'
+    'F',
   ];
   var symbols = <dynamic>[];
   for (var high in digits) {

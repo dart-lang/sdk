@@ -20,13 +20,45 @@ const list3 = <Object?>[null, nullConst, intConst, stringConst];
 
 const list4 = <Object?>[?null, ?nullConst, intConst, stringConst];
 
-const list5 = <Object?>[nullConst, intConst, stringConst, nullConst, intConst, stringConst];
+const list5 = <Object?>[
+  nullConst,
+  intConst,
+  stringConst,
+  nullConst,
+  intConst,
+  stringConst,
+];
 
-const list6 = <Object?>[?nullConst, intConst, stringConst, ?nullConst, intConst, stringConst];
+const list6 = <Object?>[
+  ?nullConst,
+  intConst,
+  stringConst,
+  ?nullConst,
+  intConst,
+  stringConst,
+];
 
-const list7 = <Object?>[null, nullConst, intConst, stringConst, null, nullConst, intConst, stringConst];
+const list7 = <Object?>[
+  null,
+  nullConst,
+  intConst,
+  stringConst,
+  null,
+  nullConst,
+  intConst,
+  stringConst,
+];
 
-const list8 = <Object?>[?null, ?nullConst, intConst, stringConst, ?null, ?nullConst, intConst, stringConst];
+const list8 = <Object?>[
+  ?null,
+  ?nullConst,
+  intConst,
+  stringConst,
+  ?null,
+  ?nullConst,
+  intConst,
+  stringConst,
+];
 
 const set1 = <Object?>{nullConst, intConst, stringConst};
 
@@ -42,15 +74,40 @@ const map2 = <Object?, Object?>{?nullConst: 1, intConst: 1, stringConst: 1};
 
 const map3 = <Object?, Object?>{?null: 1, intConst: 1, stringConst: 1};
 
-const map4 = <Object?, Object?>{?null: 1, ?nullConst: 1, intConst: 1, stringConst: 1};
+const map4 = <Object?, Object?>{
+  ?null: 1,
+  ?nullConst: 1,
+  intConst: 1,
+  stringConst: 1,
+};
 
-const map5 = <Object?, Object?>{null: 1, ?nullConst: 1, intConst: 1, stringConst: 1};
+const map5 = <Object?, Object?>{
+  null: 1,
+  ?nullConst: 1,
+  intConst: 1,
+  stringConst: 1,
+};
 
-const map6 = <Object?, Object?>{?null: 1, nullConst: 1, intConst: 1, stringConst: 1};
+const map6 = <Object?, Object?>{
+  ?null: 1,
+  nullConst: 1,
+  intConst: 1,
+  stringConst: 1,
+};
 
-const map7 = <Object?, Object?>{null: 1, nullConst: ?nullConst, intConst: 1, stringConst: 1};
+const map7 = <Object?, Object?>{
+  null: 1,
+  nullConst: ?nullConst,
+  intConst: 1,
+  stringConst: 1,
+};
 
-const map8 = <Object?, Object?>{null: ?null, nullConst: nullConst, intConst: 1, stringConst: 1};
+const map8 = <Object?, Object?>{
+  null: ?null,
+  nullConst: nullConst,
+  intConst: 1,
+  stringConst: 1,
+};
 
 const map9 = <Object?, Object?>{?null: null, nullConst: ?nullConst, null: null};
 
@@ -61,7 +118,16 @@ main() {
   Expect.identical(list4, const <Object?>[0, ""]);
   Expect.identical(list5, const <Object?>[null, 0, "", null, 0, ""]);
   Expect.identical(list6, const <Object?>[0, "", 0, ""]);
-  Expect.identical(list7, const <Object?>[null, null, 0, "", null, null, 0, ""]);
+  Expect.identical(list7, const <Object?>[
+    null,
+    null,
+    0,
+    "",
+    null,
+    null,
+    0,
+    "",
+  ]);
   Expect.identical(list8, const <Object?>[0, "", 0, ""]);
 
   Expect.identical(set1, const <Object?>{null, 0, ""});

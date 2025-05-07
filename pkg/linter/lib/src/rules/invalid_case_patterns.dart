@@ -49,38 +49,38 @@ class _Visitor extends SimpleAstVisitor<void> {
     var expression = node.expression.unParenthesized;
     if (expression is SetOrMapLiteral) {
       if (expression.constKeyword == null) {
-        rule.reportLint(expression);
+        rule.reportAtNode(expression);
       }
     } else if (expression is ListLiteral) {
       if (expression.constKeyword == null) {
-        rule.reportLint(expression);
+        rule.reportAtNode(expression);
       }
     } else if (expression is MethodInvocation) {
       if (expression.methodName.isDartCoreIdentifier(named: 'identical')) {
-        rule.reportLint(expression);
+        rule.reportAtNode(expression);
       }
     } else if (expression is PrefixExpression) {
       if (expression.operand is! IntegerLiteral) {
-        rule.reportLint(expression);
+        rule.reportAtNode(expression);
       }
     } else if (expression is BinaryExpression) {
-      rule.reportLint(expression);
+      rule.reportAtNode(expression);
     } else if (expression is ConditionalExpression) {
-      rule.reportLint(expression);
+      rule.reportAtNode(expression);
     } else if (expression is PropertyAccess) {
       if (expression.propertyName.isDartCoreIdentifier(named: 'length')) {
-        rule.reportLint(expression);
+        rule.reportAtNode(expression);
       }
     } else if (expression is IsExpression) {
-      rule.reportLint(expression);
+      rule.reportAtNode(expression);
     } else if (expression is InstanceCreationExpression) {
       if (expression.isConst && expression.keyword?.type != Keyword.CONST) {
-        rule.reportLint(expression);
+        rule.reportAtNode(expression);
       }
     } else if (expression is SimpleIdentifier) {
       var token = expression.token;
       if (token is StringToken && token.lexeme == '_') {
-        rule.reportLint(expression);
+        rule.reportAtNode(expression);
       }
     }
   }

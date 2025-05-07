@@ -37,7 +37,7 @@ abstract interface class ConditionVariable {
   factory ConditionVariable._() => _ConditionVariableImpl();
 }
 
-@pragma('vm:entry-point')
+@pragma("vm:entry-point")
 base class _ConditionVariableImpl extends NativeFieldWrapperClass1
     implements ConditionVariable {
   _ConditionVariableImpl() {

@@ -50,13 +50,13 @@ class _Visitor extends SimpleAstVisitor<void> {
         isNullableBool(type) &&
         right is BooleanLiteral &&
         right.value) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
     if (node.operator.type == TokenType.BANG_EQ &&
         isNullableBool(type) &&
         right is BooleanLiteral &&
         !right.value) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 }

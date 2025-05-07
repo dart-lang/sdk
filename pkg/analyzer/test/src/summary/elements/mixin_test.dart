@@ -165,11 +165,13 @@ library
       fields
         f
           firstFragment: <testLibraryFragment>::@mixin::M::@field::f
+          hasEnclosingTypeParameterReference: true
           type: T
           getter: <testLibraryFragment>::@mixin::M::@getter::f#element
           setter: <testLibraryFragment>::@mixin::M::@setter::f#element
         synthetic g
           firstFragment: <testLibraryFragment>::@mixin::M::@field::g
+          hasEnclosingTypeParameterReference: true
           type: U
           getter: <testLibraryFragment>::@mixin::M::@getter::g#element
         synthetic s
@@ -179,25 +181,33 @@ library
       getters
         synthetic get f
           firstFragment: <testLibraryFragment>::@mixin::M::@getter::f
+          hasEnclosingTypeParameterReference: true
+          returnType: T
         get g
           firstFragment: <testLibraryFragment>::@mixin::M::@getter::g
+          hasEnclosingTypeParameterReference: true
+          returnType: U
       setters
         synthetic set f
           firstFragment: <testLibraryFragment>::@mixin::M::@setter::f
+          hasEnclosingTypeParameterReference: true
           formalParameters
             requiredPositional _f
               type: T
+          returnType: void
         set s
           firstFragment: <testLibraryFragment>::@mixin::M::@setter::s
           formalParameters
             requiredPositional v
               type: int
+          returnType: void
       methods
         m
           firstFragment: <testLibraryFragment>::@mixin::M::@method::m
           formalParameters
             requiredPositional v
               type: double
+          returnType: int
 ''');
   }
 
@@ -262,6 +272,7 @@ library
       getters
         synthetic get x
           firstFragment: <testLibraryFragment>::@mixin::M::@getter::x
+          returnType: int
 ''');
   }
 
@@ -318,6 +329,7 @@ library
       getters
         get foo
           firstFragment: <testLibraryFragment>::@mixin::M::@getter::foo
+          returnType: int
 ''');
   }
 
@@ -362,6 +374,7 @@ library
       getters
         get foo
           firstFragment: <testLibraryFragment>::@mixin::M::@getter::foo
+          returnType: int
 ''');
   }
 
@@ -406,6 +419,7 @@ library
       getters
         get foo
           firstFragment: <testLibraryFragment>::@mixin::M::@getter::foo
+          returnType: int
 ''');
   }
 
@@ -1221,6 +1235,7 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::B::@getter::it
+          returnType: int
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
@@ -1264,6 +1279,7 @@ library
       methods
         foo
           firstFragment: <testLibraryFragment>::@mixin::M::@method::foo
+          returnType: void
 ''');
   }
 
@@ -1313,6 +1329,92 @@ library
       methods
         A
           firstFragment: <testLibraryFragment>::@mixin::B::@method::A
+          returnType: void
+''');
+  }
+
+  test_mixin_method_ofGeneric_refEnclosingTypeParameter_false() async {
+    var library = await buildLibrary('''
+mixin M<T> {
+  void foo() {}
+}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      mixins
+        mixin M @6
+          reference: <testLibraryFragment>::@mixin::M
+          element: <testLibrary>::@mixin::M
+          typeParameters
+            T @8
+              element: T@8
+          methods
+            foo @20
+              reference: <testLibraryFragment>::@mixin::M::@method::foo
+              element: <testLibraryFragment>::@mixin::M::@method::foo#element
+  mixins
+    mixin M
+      reference: <testLibrary>::@mixin::M
+      firstFragment: <testLibraryFragment>::@mixin::M
+      typeParameters
+        T
+      superclassConstraints
+        Object
+      methods
+        foo
+          firstFragment: <testLibraryFragment>::@mixin::M::@method::foo
+          returnType: void
+''');
+  }
+
+  test_mixin_method_ofGeneric_refEnclosingTypeParameter_true() async {
+    var library = await buildLibrary('''
+mixin M<T> {
+  void foo(T _) {}
+}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      mixins
+        mixin M @6
+          reference: <testLibraryFragment>::@mixin::M
+          element: <testLibrary>::@mixin::M
+          typeParameters
+            T @8
+              element: T@8
+          methods
+            foo @20
+              reference: <testLibraryFragment>::@mixin::M::@method::foo
+              element: <testLibraryFragment>::@mixin::M::@method::foo#element
+              formalParameters
+                _ @26
+                  element: <testLibraryFragment>::@mixin::M::@method::foo::@parameter::_#element
+  mixins
+    mixin M
+      reference: <testLibrary>::@mixin::M
+      firstFragment: <testLibraryFragment>::@mixin::M
+      typeParameters
+        T
+      superclassConstraints
+        Object
+      methods
+        foo
+          firstFragment: <testLibraryFragment>::@mixin::M::@method::foo
+          hasEnclosingTypeParameterReference: true
+          formalParameters
+            requiredPositional _
+              type: T
+          returnType: void
 ''');
   }
 
@@ -1327,7 +1429,7 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       mixins
-        mixin <null-name>
+        mixin <null-name> (offset=6)
           reference: <testLibraryFragment>::@mixin::0
           element: <testLibrary>::@mixin::0
   mixins
@@ -1386,6 +1488,7 @@ library
           formalParameters
             requiredPositional _
               type: int
+          returnType: void
 ''');
   }
 
@@ -1436,6 +1539,7 @@ library
           formalParameters
             requiredPositional _
               type: int
+          returnType: void
 ''');
   }
 
@@ -1499,6 +1603,7 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::B::@getter::it
+          returnType: int
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M

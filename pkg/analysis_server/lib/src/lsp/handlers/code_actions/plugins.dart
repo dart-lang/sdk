@@ -14,7 +14,7 @@ import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 import 'package:collection/collection.dart';
 
-/// Produces [CodeAction]s from Plugin fixes and assists.
+/// Produces [CodeActionLiteral]s from Plugin fixes and assists.
 class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
   final AnalysisDriver? driver;
 
@@ -71,12 +71,12 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
   }
 
   @override
-  Future<List<Either2<CodeAction, Command>>> getRefactorActions(
+  Future<List<CodeAction>> getRefactorActions(
     OperationPerformance? performance,
   ) async => [];
 
   @override
-  Future<List<Either2<CodeAction, Command>>> getSourceActions() async => [];
+  Future<List<CodeAction>> getSourceActions() async => [];
 
   CodeActionWithPriority _convertAssist(plugin.PrioritizedSourceChange assist) {
     return (

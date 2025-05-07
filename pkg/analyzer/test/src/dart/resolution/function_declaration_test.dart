@@ -17,15 +17,16 @@ main() {
 @reflectiveTest
 class FunctionDeclarationResolutionTest extends PubPackageResolutionTest {
   test_asyncGenerator_blockBody_return() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'dart:async';
 
 Stream<int> f() async* {
   return 0;
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 49, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 49, 6)],
+    );
 
     var node = findNode.singleFunctionDeclaration;
     assertResolvedNodeText(node, r'''
@@ -69,13 +70,14 @@ FunctionDeclaration
   }
 
   test_asyncGenerator_expressionBody() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'dart:async';
 
 Stream<int> f() async* => 0;
-''', [
-      error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 45, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 45, 2)],
+    );
 
     var node = findNode.singleFunctionDeclaration;
     assertResolvedNodeText(node, r'''
@@ -157,11 +159,12 @@ SimpleIdentifier
   }
 
   test_getter_formalParameters() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 int get foo(double a) => 0;
-''', [
-      error(ParserErrorCode.GETTER_WITH_PARAMETERS, 11, 1),
-    ]);
+''',
+      [error(ParserErrorCode.GETTER_WITH_PARAMETERS, 11, 1)],
+    );
 
     var node = findNode.singleFunctionDeclaration;
     assertResolvedNodeText(node, r'''
@@ -199,13 +202,14 @@ FunctionDeclaration
   }
 
   test_syncGenerator_blockBody_return() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 Iterable<int> f() sync* {
   return 0;
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 28, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 28, 6)],
+    );
 
     var node = findNode.singleFunctionDeclaration;
     assertResolvedNodeText(node, r'''
@@ -249,11 +253,12 @@ FunctionDeclaration
   }
 
   test_syncGenerator_expressionBody() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 Iterable<int> f() sync* => 0;
-''', [
-      error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 24, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 24, 2)],
+    );
 
     var node = findNode.singleFunctionDeclaration;
     assertResolvedNodeText(node, r'''
@@ -292,11 +297,12 @@ FunctionDeclaration
   }
 
   test_wildCardFunction() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 _() {}
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 0, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 0, 1)],
+    );
 
     var node = findNode.singleFunctionDeclaration;
     assertResolvedNodeText(node, r'''
@@ -319,14 +325,15 @@ FunctionDeclaration
   }
 
   test_wildCardFunction_preWildCards() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 // @dart = 3.4
 // (pre wildcard-variables)
 
 _() {}
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 44, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_ELEMENT, 44, 1)],
+    );
 
     var node = findNode.singleFunctionDeclaration;
     assertResolvedNodeText(node, r'''
@@ -352,12 +359,15 @@ FunctionDeclaration
     // Corresponding language test:
     // language/wildcard_variables/multiple/local_declaration_type_parameter_error_test
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f<_ extends void Function<_>(_, _), _>() {}
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 34, 1),
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 37, 1),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.UNDEFINED_CLASS, 34, 1),
+        error(CompileTimeErrorCode.UNDEFINED_CLASS, 37, 1),
+      ],
+    );
 
     var node = findNode.typeParameter('<_>');
     assertResolvedNodeText(node, r'''

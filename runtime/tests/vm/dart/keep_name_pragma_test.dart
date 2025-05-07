@@ -11,13 +11,16 @@ import 'package:expect/expect.dart';
 import 'package:native_stack_traces/native_stack_traces.dart';
 import 'package:path/path.dart' as path;
 
-final dwarfPath =
-    path.join(Platform.environment['TEST_COMPILATION_DIR']!, 'debug.so');
-final usesObfuscation =
-    const String.fromEnvironment("test_runner.configuration")
-        .contains('obfuscate');
-final usesDwarf =
-    const String.fromEnvironment("test_runner.configuration").contains('dwarf');
+final dwarfPath = path.join(
+  Platform.environment['TEST_COMPILATION_DIR']!,
+  'debug.so',
+);
+final usesObfuscation = const String.fromEnvironment(
+  "test_runner.configuration",
+).contains('obfuscate');
+final usesDwarf = const String.fromEnvironment(
+  "test_runner.configuration",
+).contains('dwarf');
 
 Future<void> main(List<String> args) async {
   if (Platform.isAndroid) return;
@@ -95,9 +98,9 @@ Future<List<String>> run(int n) async {
     List<String> lines = s.toString().split('\n');
     if (usesDwarf) {
       final dwarf = Dwarf.fromFile(dwarfPath)!;
-      lines = await Stream<String>.fromIterable(lines)
-          .transform(DwarfStackTraceDecoder(dwarf))
-          .toList();
+      lines = await Stream<String>.fromIterable(
+        lines,
+      ).transform(DwarfStackTraceDecoder(dwarf)).toList();
     }
     final start = lines.indexWhere((line) => line.startsWith('#0'));
     lines = lines.skip(start).take(n).toList();

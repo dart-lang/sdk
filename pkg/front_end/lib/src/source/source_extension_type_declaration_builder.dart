@@ -76,7 +76,7 @@ class SourceExtensionTypeDeclarationBuilder
 
   final ExtensionTypeFragment _introductory;
 
-  FieldFragment? _representationFieldFragment;
+  PrimaryConstructorFieldFragment? _representationFieldFragment;
 
   final IndexedContainer? indexedContainer;
 
@@ -92,7 +92,7 @@ class SourceExtensionTypeDeclarationBuilder
       required int endOffset,
       required ExtensionTypeFragment fragment,
       required this.indexedContainer,
-      required FieldFragment? representationFieldFragment})
+      required PrimaryConstructorFieldFragment? representationFieldFragment})
       : parent = enclosingLibraryBuilder,
         fileOffset = nameOffset,
         _modifiers = fragment.modifiers,
@@ -147,14 +147,7 @@ class SourceExtensionTypeDeclarationBuilder
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get isConst => _modifiers.isConst;
-
-  @override
-  // Coverage-ignore(suite): Not run.
   bool get isStatic => _modifiers.isStatic;
-
-  @override
-  bool get isAugment => _modifiers.isAugment;
 
   SourcePropertyBuilder? get representationFieldBuilder =>
       _representationFieldFragment?.builder;
@@ -710,18 +703,19 @@ class SourceExtensionTypeDeclarationBuilder
 
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
+    BodyBuilderContext bodyBuilderContext = createBodyBuilderContext();
     MetadataBuilder.buildAnnotations(
-        extensionTypeDeclaration,
-        _introductory.metadata,
-        createBodyBuilderContext(),
-        libraryBuilder,
-        _introductory.fileUri,
-        _introductory.enclosingScope);
+        annotatable: extensionTypeDeclaration,
+        annotatableFileUri: extensionTypeDeclaration.fileUri,
+        metadata: _introductory.metadata,
+        bodyBuilderContext: bodyBuilderContext,
+        libraryBuilder: libraryBuilder,
+        scope: _introductory.enclosingScope);
 
     if (_introductory.typeParameters != null) {
       for (int i = 0; i < _introductory.typeParameters!.length; i++) {
         _introductory.typeParameters![i].builder.buildOutlineExpressions(
-            libraryBuilder, createBodyBuilderContext(), classHierarchy);
+            libraryBuilder, bodyBuilderContext, classHierarchy);
       }
     }
 

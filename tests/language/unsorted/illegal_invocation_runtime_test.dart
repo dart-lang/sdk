@@ -9,10 +9,7 @@
 // Test for issue 1393.  Invoking a library prefix name caused an internal error
 // in dartc.
 
-
-
 main() {
   // probably what the user meant was foo.foo(), but the qualifier refers
   // to the library prefix, not the method defined within the library.
-
 }

@@ -25,8 +25,9 @@ class GCCompactor : public ValueObject,
                     public ObjectPointerVisitor {
  public:
   GCCompactor(Thread* thread, Heap* heap)
-      : HandleVisitor(thread),
+      : HandleVisitor(),
         ObjectPointerVisitor(thread->isolate_group()),
+        thread_(thread),
         heap_(heap) {}
   ~GCCompactor() { free(image_page_ranges_); }
 
@@ -53,7 +54,8 @@ class GCCompactor : public ValueObject,
   bool CanVisitSuspendStatePointers(SuspendStatePtr suspend_state) override;
   void VisitHandle(uword addr) override;
 
-  Heap* heap_;
+  Thread* const thread_;
+  Heap* const heap_;
 
   struct ImagePageRange {
     uword start;

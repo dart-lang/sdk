@@ -126,6 +126,8 @@ library
   fragments
     <testLibraryFragment>
       element: <testLibrary>
+      libraryExports
+        package:test/a.dart
 ''');
   }
 
@@ -138,6 +140,10 @@ library
   fragments
     <testLibraryFragment>
       element: <testLibrary>
+      libraryExports
+        package:test/a.dart
+          combinators
+            hide: main
 ''');
   }
 
@@ -149,9 +155,13 @@ library
   reference: <testLibrary>
   name: my.lib
   fragments
-    <testLibraryFragment>
+    <testLibraryFragment> (offset=8)
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      parts
+        part_0
+          uri: package:test/a.dart
+          unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       enclosingFragment: <testLibraryFragment>
@@ -798,8 +808,9 @@ library
   test_function_typed_parameter_implicit() async {
     var library = await buildLibrary('f(g()) => null;');
     expect(
-        library.topLevelFunctions.first.formalParameters.first.hasImplicitType,
-        isFalse);
+      library.topLevelFunctions.first.formalParameters.first.hasImplicitType,
+      isFalse,
+    );
   }
 
   test_function_typeParameters_hasBound() async {
@@ -934,8 +945,9 @@ library
   }
 
   test_main_class_alias() async {
-    var library =
-        await buildLibrary('class main = C with D; class C {} class D {}');
+    var library = await buildLibrary(
+      'class main = C with D; class C {} class D {}',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1001,8 +1013,10 @@ library
   }
 
   test_main_class_alias_via_export() async {
-    newFile('$testPackageLibPath/a.dart',
-        'class main = C with D; class C {} class D {}');
+    newFile(
+      '$testPackageLibPath/a.dart',
+      'class main = C with D; class C {} class D {}',
+    );
     var library = await buildLibrary('export "a.dart";');
     checkElementText(library, r'''
 library
@@ -1010,6 +1024,8 @@ library
   fragments
     <testLibraryFragment>
       element: <testLibrary>
+      libraryExports
+        package:test/a.dart
 ''');
   }
 
@@ -1022,6 +1038,8 @@ library
   fragments
     <testLibraryFragment>
       element: <testLibrary>
+      libraryExports
+        package:test/a.dart
 ''');
   }
 
@@ -1034,7 +1052,7 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        synthetic main
+        synthetic main (offset=-1)
           reference: <testLibraryFragment>::@topLevelVariable::main
           element: <testLibrary>::@topLevelVariable::main
           getter2: <testLibraryFragment>::@getter::main
@@ -1051,6 +1069,7 @@ library
   getters
     static get main
       firstFragment: <testLibraryFragment>::@getter::main
+      returnType: dynamic
 ''');
   }
 
@@ -1063,6 +1082,8 @@ library
   fragments
     <testLibraryFragment>
       element: <testLibrary>
+      libraryExports
+        package:test/a.dart
 ''');
   }
 
@@ -1094,6 +1115,8 @@ library
   fragments
     <testLibraryFragment>
       element: <testLibrary>
+      libraryExports
+        package:test/a.dart
 ''');
   }
 
@@ -1132,12 +1155,14 @@ library
   getters
     synthetic static get main
       firstFragment: <testLibraryFragment>::@getter::main
+      returnType: dynamic
   setters
     synthetic static set main
       firstFragment: <testLibraryFragment>::@setter::main
       formalParameters
         requiredPositional _main
           type: dynamic
+      returnType: void
 ''');
   }
 
@@ -1150,6 +1175,8 @@ library
   fragments
     <testLibraryFragment>
       element: <testLibrary>
+      libraryExports
+        package:test/a.dart
 ''');
   }
 
@@ -1665,7 +1692,7 @@ library
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
-        synthetic foo
+        synthetic foo (offset=-1)
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibrary>::@topLevelVariable::foo
           getter2: <testLibraryFragment>::@getter::foo
@@ -1752,7 +1779,7 @@ library
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
-        synthetic foo
+        synthetic foo (offset=-1)
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibrary>::@topLevelVariable::foo
           setter2: <testLibraryFragment>::@setter::foo
@@ -2119,7 +2146,7 @@ library
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
-        synthetic foo
+        synthetic foo (offset=-1)
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibrary>::@topLevelVariable::foo
           getter2: <testLibraryFragment>::@getter::foo
@@ -2278,7 +2305,7 @@ library
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
-        synthetic foo
+        synthetic foo (offset=-1)
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibrary>::@topLevelVariable::foo
           setter2: <testLibraryFragment>::@setter::foo
@@ -2609,7 +2636,7 @@ library
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
-        synthetic foo
+        synthetic foo (offset=-1)
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibrary>::@topLevelVariable::foo
           getter2: <testLibraryFragment>::@getter::foo
@@ -2787,7 +2814,7 @@ library
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
-        synthetic foo
+        synthetic foo (offset=-1)
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibrary>::@topLevelVariable::foo
           setter2: <testLibraryFragment>::@setter::foo

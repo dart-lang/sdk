@@ -9,7 +9,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart' as protocol;
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/search/element_references.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 /// The handler for the `search.findElementReferences` request.
 class SearchFindElementReferencesHandler extends LegacyHandler {
@@ -32,10 +32,10 @@ class SearchFindElementReferencesHandler extends LegacyHandler {
     var file = params.file;
     // prepare element
     var element = await server.getElementAtOffset(file, params.offset);
-    if (element is FieldFormalParameterElement2) {
+    if (element is FieldFormalParameterElement) {
       element = element.field2;
     }
-    if (element is PropertyAccessorElement2) {
+    if (element is PropertyAccessorElement) {
       element = element.variable3;
     }
     // respond

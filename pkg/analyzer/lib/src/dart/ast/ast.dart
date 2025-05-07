@@ -15,14 +15,12 @@ import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/to_source_visitor.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
@@ -31,7 +29,6 @@ import 'package:analyzer/src/fasta/token_utils.dart' as util show findPrevious;
 import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
@@ -64,9 +61,7 @@ final class AdjacentStringsImpl extends StringLiteralImpl
   ///
   /// To be syntactically valid, the list of [strings] must contain at least two
   /// elements.
-  AdjacentStringsImpl({
-    required List<StringLiteralImpl> strings,
-  }) {
+  AdjacentStringsImpl({required List<StringLiteralImpl> strings}) {
     _strings._initialize(this, strings);
   }
 
@@ -201,17 +196,12 @@ abstract final class Annotation implements AstNode {
   /// isn't the invocation of a named constructor.
   SimpleIdentifier? get constructorName;
 
-  /// The element associated with this annotation, or `null` if the AST
-  /// structure hasn't been resolved or if this annotation couldn't be resolved.
-  @Deprecated('Use element2 instead')
-  Element? get element;
-
   /// The element associated with this annotation.
   ///
   /// Returns `null` if the AST structure hasn't been resolved or if this
   /// annotation couldn't be resolved.
   @experimental
-  Element2? get element2;
+  Element? get element2;
 
   /// The element annotation representing this annotation in the element model,
   /// or `null` if the AST hasn't been resolved.
@@ -255,7 +245,7 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
 
   ArgumentListImpl? _arguments;
 
-  Element2? _element2;
+  Element? _element2;
 
   @override
   ElementAnnotationImpl? elementAnnotation;
@@ -277,10 +267,10 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
     required this.period,
     required SimpleIdentifierImpl? constructorName,
     required ArgumentListImpl? arguments,
-  })  : _name = name,
-        _typeArguments = typeArguments,
-        _constructorName = constructorName,
-        _arguments = arguments {
+  }) : _name = name,
+       _typeArguments = typeArguments,
+       _constructorName = constructorName,
+       _arguments = arguments {
     _becomeParentOf(_name);
     _becomeParentOf(_typeArguments);
     _becomeParentOf(_constructorName);
@@ -304,14 +294,8 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
     _constructorName = _becomeParentOf(name);
   }
 
-  @Deprecated('Use element2 instead')
   @override
-  Element? get element {
-    return element2?.asElement;
-  }
-
-  @override
-  Element2? get element2 {
+  Element? get element2 {
     if (_element2 case var element?) {
       return element;
     } else if (_constructorName == null) {
@@ -320,7 +304,7 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
     return null;
   }
 
-  set element2(Element2? value) {
+  set element2(Element? value) {
     _element2 = value;
   }
 
@@ -418,7 +402,7 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   /// The list must be the same length as the number of arguments, but can
   /// contain `null` entries if a given argument doesn't correspond to a formal
   /// parameter.
-  List<ParameterElementMixin?>? _correspondingStaticParameters;
+  List<FormalParameterElementMixin?>? _correspondingStaticParameters;
 
   /// Initializes a newly created list of arguments.
   ArgumentListImpl({
@@ -435,25 +419,18 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   @override
   Token get beginToken => leftParenthesis;
 
-  List<ParameterElementMixin?>? get correspondingStaticParameters =>
+  List<FormalParameterElementMixin?>? get correspondingStaticParameters2 =>
       _correspondingStaticParameters;
 
-  set correspondingStaticParameters(List<ParameterElementMixin?>? parameters) {
+  set correspondingStaticParameters2(
+    List<FormalParameterElementMixin?>? parameters,
+  ) {
     if (parameters != null && parameters.length != _arguments.length) {
       throw ArgumentError(
-          "Expected ${_arguments.length} parameters, not ${parameters.length}");
+        "Expected ${_arguments.length} parameters, not ${parameters.length}",
+      );
     }
     _correspondingStaticParameters = parameters;
-  }
-
-  List<FormalParameterElementMixin?>? get correspondingStaticParameters2 =>
-      _correspondingStaticParameters
-          ?.map((parameter) => parameter?.asElement2)
-          .toList();
-
-  set correspondingStaticParameters2(
-      List<FormalParameterElementMixin?>? value) {
-    _correspondingStaticParameters = value?.map((e) => e?.asElement).toList();
   }
 
   @override
@@ -461,10 +438,11 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
 
   @override
   // TODO(paulberry): Add commas.
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('leftParenthesis', leftParenthesis)
-    ..addNodeList('arguments', arguments)
-    ..addToken('rightParenthesis', rightParenthesis);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('leftParenthesis', leftParenthesis)
+        ..addNodeList('arguments', arguments)
+        ..addToken('rightParenthesis', rightParenthesis);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitArgumentList(this);
@@ -482,7 +460,9 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   /// - the function being invoked is known based on static type information
   /// - the expression corresponds to one of the parameters of the function
   ///   being invoked
-  ParameterElementMixin? _getStaticParameterElementFor(Expression expression) {
+  FormalParameterElementMixin? _getStaticParameterElementFor(
+    Expression expression,
+  ) {
     if (_correspondingStaticParameters == null ||
         _correspondingStaticParameters!.length != _arguments.length) {
       // Either the AST structure hasn't been resolved, the invocation of which
@@ -528,8 +508,8 @@ final class AsExpressionImpl extends ExpressionImpl implements AsExpression {
     required ExpressionImpl expression,
     required this.asOperator,
     required TypeAnnotationImpl type,
-  })  : _expression = expression,
-        _type = type {
+  }) : _expression = expression,
+       _type = type {
     _becomeParentOf(_expression);
     _becomeParentOf(_type);
   }
@@ -558,10 +538,11 @@ final class AsExpressionImpl extends ExpressionImpl implements AsExpression {
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNode('expression', expression)
-    ..addToken('asOperator', asOperator)
-    ..addNode('type', type);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addNode('expression', expression)
+        ..addToken('asOperator', asOperator)
+        ..addNode('type', type);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitAsExpression(this);
@@ -612,8 +593,8 @@ final class AssertInitializerImpl extends ConstructorInitializerImpl
     required this.comma,
     required ExpressionImpl? message,
     required this.rightParenthesis,
-  })  : _condition = condition,
-        _message = message {
+  }) : _condition = condition,
+       _message = message {
     _becomeParentOf(_condition);
     _becomeParentOf(_message);
   }
@@ -639,13 +620,14 @@ final class AssertInitializerImpl extends ConstructorInitializerImpl
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('assertKeyword', assertKeyword)
-    ..addToken('leftParenthesis', leftParenthesis)
-    ..addNode('condition', condition)
-    ..addToken('comma', comma)
-    ..addNode('message', message)
-    ..addToken('rightParenthesis', rightParenthesis);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('assertKeyword', assertKeyword)
+        ..addToken('leftParenthesis', leftParenthesis)
+        ..addNode('condition', condition)
+        ..addToken('comma', comma)
+        ..addNode('message', message)
+        ..addToken('rightParenthesis', rightParenthesis);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitAssertInitializer(this);
@@ -721,8 +703,8 @@ final class AssertStatementImpl extends StatementImpl
     required ExpressionImpl? message,
     required this.rightParenthesis,
     required this.semicolon,
-  })  : _condition = condition,
-        _message = message {
+  }) : _condition = condition,
+       _message = message {
     _becomeParentOf(_condition);
     _becomeParentOf(_message);
   }
@@ -748,14 +730,15 @@ final class AssertStatementImpl extends StatementImpl
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('assertKeyword', assertKeyword)
-    ..addToken('leftParenthesis', leftParenthesis)
-    ..addNode('condition', condition)
-    ..addToken('comma', comma)
-    ..addNode('message', message)
-    ..addToken('rightParenthesis', rightParenthesis)
-    ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('assertKeyword', assertKeyword)
+        ..addToken('leftParenthesis', leftParenthesis)
+        ..addNode('condition', condition)
+        ..addToken('comma', comma)
+        ..addNode('message', message)
+        ..addToken('rightParenthesis', rightParenthesis)
+        ..addToken('semicolon', semicolon);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitAssertStatement(this);
@@ -772,42 +755,26 @@ final class AssertStatementImpl extends StatementImpl
 ///    variablePattern ::= identifier
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class AssignedVariablePattern implements VariablePattern {
-  /// The element referenced by this pattern, or `null` if either [name] doesn't
-  /// resolve to an element or the AST structure hasn't been resolved.
-  ///
-  /// In valid code this is either a [LocalVariableElement] or a
-  /// [ParameterElement].
-  @Deprecated('Use element2 instead')
-  Element? get element;
-
   /// The element referenced by this pattern.
   ///
   /// Returns `null` if either [name] doesn't resolve to an element or the AST
   /// structure hasn't been resolved.
   ///
-  /// In valid code this is either a [LocalVariableElement2] or a
+  /// In valid code this is either a [LocalVariableElement] or a
   /// [FormalParameterElement].
   @experimental
-  Element2? get element2;
+  Element? get element2;
 }
 
 final class AssignedVariablePatternImpl extends VariablePatternImpl
     implements AssignedVariablePattern {
   @override
-  Element2? element2;
+  Element? element2;
 
-  AssignedVariablePatternImpl({
-    required super.name,
-  });
+  AssignedVariablePatternImpl({required super.name});
 
   @override
   Token get beginToken => name;
-
-  @Deprecated('Use element2 instead')
-  @override
-  Element? get element {
-    return element2.asElement;
-  }
 
   @override
   Token get endToken => name;
@@ -880,29 +847,21 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   ExpressionImpl _rightHandSide;
 
   @override
-  MethodElementOrMember? staticElement;
+  MethodElement2OrMember? element;
 
   /// Initializes a newly created assignment expression.
   AssignmentExpressionImpl({
     required ExpressionImpl leftHandSide,
     required this.operator,
     required ExpressionImpl rightHandSide,
-  })  : _leftHandSide = leftHandSide,
-        _rightHandSide = rightHandSide {
+  }) : _leftHandSide = leftHandSide,
+       _rightHandSide = rightHandSide {
     _becomeParentOf(_leftHandSide);
     _becomeParentOf(_rightHandSide);
   }
 
   @override
   Token get beginToken => _leftHandSide.beginToken;
-
-  @experimental
-  @override
-  MethodElement2OrMember? get element => staticElement?.asElement2;
-
-  set element(MethodElement2OrMember? element) {
-    staticElement = element?.asElement;
-  }
 
   @override
   Token get endToken => _rightHandSide.endToken;
@@ -925,10 +884,11 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNode('leftHandSide', leftHandSide)
-    ..addToken('operator', operator)
-    ..addNode('rightHandSide', rightHandSide);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addNode('leftHandSide', leftHandSide)
+        ..addToken('operator', operator)
+        ..addNode('rightHandSide', rightHandSide);
 
   @override
   AstNode? get _nullShortingExtensionCandidate => parent;
@@ -937,14 +897,14 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   /// right operand is bound, or `null` if the AST structure is not resolved or
   /// the function being invoked is not known based on static type information.
   FormalParameterElementMixin? get _staticParameterElementForRightHandSide {
-    Element2? executableElement;
+    Element? executableElement;
     if (operator.type != TokenType.EQ) {
       executableElement = element;
     } else {
       executableElement = writeElement2;
     }
 
-    if (executableElement is ExecutableElement2) {
+    if (executableElement is ExecutableElement) {
       var formalParameters = executableElement.formalParameters;
       if (formalParameters.isEmpty) {
         return null;
@@ -1093,17 +1053,13 @@ sealed class AstNodeImpl implements AstNode {
       _childEntities.syntacticEntities;
 
   @override
-  int get end => offset + length;
+  int get end => endToken.end;
 
   @override
   bool get isSynthetic => false;
 
   @override
-  int get length {
-    var beginToken = this.beginToken;
-    var endToken = this.endToken;
-    return endToken.offset + endToken.length - beginToken.offset;
-  }
+  int get length => end - offset;
 
   /// The properties (tokens and nodes) of this node, with names, in the order
   /// in which these entities should normally appear, not necessarily in the
@@ -1111,10 +1067,7 @@ sealed class AstNodeImpl implements AstNode {
   Iterable<ChildEntity> get namedChildEntities => _childEntities.entities;
 
   @override
-  int get offset {
-    var beginToken = this.beginToken;
-    return beginToken.offset;
-  }
+  int get offset => beginToken.offset;
 
   @override
   AstNode? get parent => _parent;
@@ -1275,6 +1228,10 @@ abstract class AstVisitor<R> {
   R? visitDefaultFormalParameter(DefaultFormalParameter node);
 
   R? visitDoStatement(DoStatement node);
+
+  R? visitDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  );
 
   R? visitDotShorthandInvocation(DotShorthandInvocation node);
 
@@ -1443,7 +1400,8 @@ abstract class AstVisitor<R> {
   R? visitPatternVariableDeclaration(PatternVariableDeclaration node);
 
   R? visitPatternVariableDeclarationStatement(
-      PatternVariableDeclarationStatement node);
+    PatternVariableDeclarationStatement node,
+  );
 
   R? visitPostfixExpression(PostfixExpression node);
 
@@ -1464,10 +1422,12 @@ abstract class AstVisitor<R> {
   R? visitRecordTypeAnnotationNamedFields(RecordTypeAnnotationNamedFields node);
 
   R? visitRecordTypeAnnotationPositionalField(
-      RecordTypeAnnotationPositionalField node);
+    RecordTypeAnnotationPositionalField node,
+  );
 
   R? visitRedirectingConstructorInvocation(
-      RedirectingConstructorInvocation node);
+    RedirectingConstructorInvocation node,
+  );
 
   R? visitRelationalPattern(RelationalPattern node);
 
@@ -1589,10 +1549,6 @@ abstract final class AugmentedExpression implements Expression {
   /// The 'augmented' keyword.
   Token get augmentedKeyword;
 
-  /// The referenced augmented element: getter, setter, variable.
-  @Deprecated('Use fragment instead')
-  Element? get element;
-
   /// The referenced augmented fragment: getter, setter, variable.
   @experimental
   Fragment? get fragment;
@@ -1606,16 +1562,10 @@ final class AugmentedExpressionImpl extends ExpressionImpl
   @override
   Fragment? fragment;
 
-  AugmentedExpressionImpl({
-    required this.augmentedKeyword,
-  });
+  AugmentedExpressionImpl({required this.augmentedKeyword});
 
   @override
   Token get beginToken => augmentedKeyword;
-
-  @Deprecated('Use fragment instead')
-  @override
-  Element? get element => fragment as Element?;
 
   @override
   Token get endToken => augmentedKeyword;
@@ -1657,10 +1607,6 @@ abstract final class AugmentedInvocation implements Expression {
   Token get augmentedKeyword;
 
   /// The referenced augmented element: function, constructor, or method.
-  @Deprecated('Use fragment instead')
-  ExecutableElement? get element;
-
-  /// The referenced augmented element: function, constructor, or method.
   ///
   /// Returns `null` if the AST structure hasn't been resolved or if this
   /// fragment is the first fragment in the chain.
@@ -1699,10 +1645,6 @@ final class AugmentedInvocationImpl extends ExpressionImpl
   @override
   Token get beginToken => augmentedKeyword;
 
-  @Deprecated('Use fragment instead')
-  @override
-  ExecutableElement? get element => fragment as ExecutableElement?;
-
   @override
   Token get endToken => arguments.endToken;
 
@@ -1710,10 +1652,11 @@ final class AugmentedInvocationImpl extends ExpressionImpl
   Precedence get precedence => Precedence.postfix;
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('augmentedKeyword', augmentedKeyword)
-    ..addNode('typeArguments', typeArguments)
-    ..addNode('arguments', arguments);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('augmentedKeyword', augmentedKeyword)
+        ..addNode('typeArguments', typeArguments)
+        ..addNode('arguments', arguments);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) {
@@ -1779,9 +1722,10 @@ final class AwaitExpressionImpl extends ExpressionImpl
   Precedence get precedence => Precedence.prefix;
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('awaitKeyword', awaitKeyword)
-    ..addNode('expression', expression);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('awaitKeyword', awaitKeyword)
+        ..addNode('expression', expression);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitAwaitExpression(this);
@@ -1828,7 +1772,7 @@ final class BinaryExpressionImpl extends ExpressionImpl
   ExpressionImpl _rightOperand;
 
   @override
-  MethodElement2? element;
+  MethodElement? element;
 
   @override
   FunctionTypeImpl? staticInvokeType;
@@ -1838,8 +1782,8 @@ final class BinaryExpressionImpl extends ExpressionImpl
     required ExpressionImpl leftOperand,
     required this.operator,
     required ExpressionImpl rightOperand,
-  })  : _leftOperand = leftOperand,
-        _rightOperand = rightOperand {
+  }) : _leftOperand = leftOperand,
+       _rightOperand = rightOperand {
     _becomeParentOf(leftOperand);
     _becomeParentOf(rightOperand);
   }
@@ -1867,15 +1811,12 @@ final class BinaryExpressionImpl extends ExpressionImpl
     _rightOperand = _becomeParentOf(expression);
   }
 
-  @Deprecated('Use element instead')
   @override
-  MethodElement? get staticElement => element?.asElement;
-
-  @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNode('leftOperand', leftOperand)
-    ..addToken('operator', operator)
-    ..addNode('rightOperand', rightOperand);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addNode('leftOperand', leftOperand)
+        ..addToken('operator', operator)
+        ..addNode('rightOperand', rightOperand);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitBinaryExpression(this);
@@ -1971,10 +1912,11 @@ final class BlockFunctionBodyImpl extends FunctionBodyImpl
   bool get isSynchronous => keyword?.lexeme != Keyword.ASYNC.lexeme;
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('keyword', keyword)
-    ..addToken('star', star)
-    ..addNode('block', block);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('keyword', keyword)
+        ..addToken('star', star)
+        ..addNode('block', block);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitBlockFunctionBody(this);
@@ -2019,10 +1961,11 @@ final class BlockImpl extends StatementImpl
   NodeListImpl<StatementImpl> get statements => _statements;
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('leftBracket', leftBracket)
-    ..addNodeList('statements', statements)
-    ..addToken('rightBracket', rightBracket);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('leftBracket', leftBracket)
+        ..addNodeList('statements', statements)
+        ..addToken('rightBracket', rightBracket);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitBlock(this);
@@ -2054,10 +1997,7 @@ final class BooleanLiteralImpl extends LiteralImpl implements BooleanLiteral {
   final bool value;
 
   /// Initializes a newly created boolean literal.
-  BooleanLiteralImpl({
-    required this.literal,
-    required this.value,
-  });
+  BooleanLiteralImpl({required this.literal, required this.value});
 
   @override
   Token get beginToken => literal;
@@ -2153,10 +2093,11 @@ final class BreakStatementImpl extends StatementImpl implements BreakStatement {
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('breakKeyword', breakKeyword)
-    ..addNode('label', label)
-    ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('breakKeyword', breakKeyword)
+        ..addNode('label', label)
+        ..addToken('semicolon', semicolon);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitBreakStatement(this);
@@ -2239,9 +2180,10 @@ final class CascadeExpressionImpl extends ExpressionImpl
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNode('target', target)
-    ..addNodeList('cascadeSections', cascadeSections);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addNode('target', target)
+        ..addNodeList('cascadeSections', cascadeSections);
 
   @override
   AstNode? get _nullShortingExtensionCandidate => null;
@@ -2281,17 +2223,16 @@ abstract final class CaseClause implements AstNode {
   GuardedPattern get guardedPattern;
 }
 
-final class CaseClauseImpl extends AstNodeImpl implements CaseClause {
+final class CaseClauseImpl extends AstNodeImpl
+    with AstNodeWithNameScopeMixin
+    implements CaseClause {
   @override
   final Token caseKeyword;
 
   @override
   final GuardedPatternImpl guardedPattern;
 
-  CaseClauseImpl({
-    required this.caseKeyword,
-    required this.guardedPattern,
-  }) {
+  CaseClauseImpl({required this.caseKeyword, required this.guardedPattern}) {
     _becomeParentOf(guardedPattern);
   }
 
@@ -2302,9 +2243,10 @@ final class CaseClauseImpl extends AstNodeImpl implements CaseClause {
   Token get endToken => guardedPattern.endToken;
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('caseKeyword', caseKeyword)
-    ..addNode('guardedPattern', guardedPattern);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addToken('caseKeyword', caseKeyword)
+        ..addNode('guardedPattern', guardedPattern);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitCaseClause(this);
@@ -2367,10 +2309,11 @@ final class CastPatternImpl extends DartPatternImpl implements CastPattern {
   VariablePatternImpl? get variablePattern => pattern.variablePattern;
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addNode('pattern', pattern)
-    ..addToken('asToken', asToken)
-    ..addNode('type', type);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addNode('pattern', pattern)
+        ..addToken('asToken', asToken)
+        ..addNode('type', type);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitCastPattern(this);
@@ -2499,11 +2442,11 @@ final class CatchClauseImpl extends AstNodeImpl implements CatchClause {
     required CatchClauseParameterImpl? stackTraceParameter,
     required this.rightParenthesis,
     required BlockImpl body,
-  })  : assert(onKeyword != null || catchKeyword != null),
-        _exceptionType = exceptionType,
-        _exceptionParameter = exceptionParameter,
-        _stackTraceParameter = stackTraceParameter,
-        _body = body {
+  }) : assert(onKeyword != null || catchKeyword != null),
+       _exceptionType = exceptionType,
+       _exceptionParameter = exceptionParameter,
+       _stackTraceParameter = stackTraceParameter,
+       _body = body {
     _becomeParentOf(_exceptionType);
     _becomeParentOf(_exceptionParameter);
     _becomeParentOf(_stackTraceParameter);
@@ -2556,16 +2499,17 @@ final class CatchClauseImpl extends AstNodeImpl implements CatchClause {
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('onKeyword', onKeyword)
-    ..addNode('exceptionType', exceptionType)
-    ..addToken('catchKeyword', catchKeyword)
-    ..addToken('leftParenthesis', leftParenthesis)
-    ..addNode('exceptionParameter', exceptionParameter)
-    ..addToken('comma', comma)
-    ..addNode('stackTraceParameter', stackTraceParameter)
-    ..addToken('rightParenthesis', rightParenthesis)
-    ..addNode('body', body);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('onKeyword', onKeyword)
+        ..addNode('exceptionType', exceptionType)
+        ..addToken('catchKeyword', catchKeyword)
+        ..addToken('leftParenthesis', leftParenthesis)
+        ..addNode('exceptionParameter', exceptionParameter)
+        ..addToken('comma', comma)
+        ..addNode('stackTraceParameter', stackTraceParameter)
+        ..addToken('rightParenthesis', rightParenthesis)
+        ..addNode('body', body);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitCatchClause(this);
@@ -2582,15 +2526,11 @@ final class CatchClauseImpl extends AstNodeImpl implements CatchClause {
 /// An 'exception' or 'stackTrace' parameter in [CatchClause].
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class CatchClauseParameter extends AstNode {
-  /// The declared element, or `null` if the AST hasn't been resolved.
-  @Deprecated('Use declaredElement2 instead')
-  LocalVariableElement? get declaredElement;
-
   /// The declared element.
   ///
   /// Returns `null` if the AST hasn't been resolved.
   @experimental
-  LocalVariableElement2? get declaredElement2;
+  LocalVariableElement? get declaredElement2;
 
   /// The declared fragment.
   ///
@@ -2608,20 +2548,12 @@ final class CatchClauseParameterImpl extends AstNodeImpl
   final Token name;
 
   @override
-  LocalVariableElementImpl? declaredFragment;
+  LocalVariableFragmentImpl? declaredFragment;
 
-  CatchClauseParameterImpl({
-    required this.name,
-  });
+  CatchClauseParameterImpl({required this.name});
 
   @override
   Token get beginToken => name;
-
-  @Deprecated('Use fragment instead')
-  @override
-  LocalVariableElementImpl? get declaredElement {
-    return declaredFragment;
-  }
 
   @override
   LocalVariableElementImpl2? get declaredElement2 {
@@ -2687,30 +2619,22 @@ class ChildEntities {
 
   void addNode(String name, AstNode? value) {
     if (value != null) {
-      entities.add(
-        ChildEntity(name, value),
-      );
+      entities.add(ChildEntity(name, value));
     }
   }
 
   void addNodeList(String name, List<AstNode> value) {
-    entities.add(
-      ChildEntity(name, value),
-    );
+    entities.add(ChildEntity(name, value));
   }
 
   void addToken(String name, Token? value) {
     if (value != null) {
-      entities.add(
-        ChildEntity(name, value),
-      );
+      entities.add(ChildEntity(name, value));
     }
   }
 
   void addTokenList(String name, List<Token> value) {
-    entities.add(
-      ChildEntity(name, value),
-    );
+    entities.add(ChildEntity(name, value));
   }
 }
 
@@ -2746,10 +2670,6 @@ abstract final class ClassDeclaration implements NamedCompilationUnitMember {
 
   /// The token representing the `class` keyword.
   Token get classKeyword;
-
-  @Deprecated('Use declaredFragment instead')
-  @override
-  ClassElement? get declaredElement;
 
   @experimental
   @override
@@ -2856,7 +2776,7 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   final Token rightBracket;
 
   @override
-  ClassElementImpl? declaredFragment;
+  ClassFragmentImpl? declaredFragment;
 
   ClassDeclarationImpl({
     required super.comment,
@@ -2888,11 +2808,6 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     this.members._initialize(this, members);
   }
 
-  @Deprecated('Use declaredFragment instead')
-  @experimental
-  @override
-  ClassElementImpl? get declaredElement => declaredFragment;
-
   @override
   Token get endToken => rightBracket;
 
@@ -2910,24 +2825,25 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   }
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('abstractKeyword', abstractKeyword)
-    ..addToken('macroKeyword', macroKeyword)
-    ..addToken('sealedKeyword', sealedKeyword)
-    ..addToken('baseKeyword', baseKeyword)
-    ..addToken('interfaceKeyword', interfaceKeyword)
-    ..addToken('finalKeyword', finalKeyword)
-    ..addToken('augmentKeyword', augmentKeyword)
-    ..addToken('mixinKeyword', mixinKeyword)
-    ..addToken('classKeyword', classKeyword)
-    ..addToken('name', name)
-    ..addNode('typeParameters', typeParameters)
-    ..addNode('extendsClause', extendsClause)
-    ..addNode('withClause', withClause)
-    ..addNode('implementsClause', implementsClause)
-    ..addToken('leftBracket', leftBracket)
-    ..addNodeList('members', members)
-    ..addToken('rightBracket', rightBracket);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addToken('abstractKeyword', abstractKeyword)
+        ..addToken('macroKeyword', macroKeyword)
+        ..addToken('sealedKeyword', sealedKeyword)
+        ..addToken('baseKeyword', baseKeyword)
+        ..addToken('interfaceKeyword', interfaceKeyword)
+        ..addToken('finalKeyword', finalKeyword)
+        ..addToken('augmentKeyword', augmentKeyword)
+        ..addToken('mixinKeyword', mixinKeyword)
+        ..addToken('classKeyword', classKeyword)
+        ..addToken('name', name)
+        ..addNode('typeParameters', typeParameters)
+        ..addNode('extendsClause', extendsClause)
+        ..addNode('withClause', withClause)
+        ..addNode('implementsClause', implementsClause)
+        ..addToken('leftBracket', leftBracket)
+        ..addNodeList('members', members)
+        ..addToken('rightBracket', rightBracket);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitClassDeclaration(this);
@@ -2954,10 +2870,7 @@ sealed class ClassMemberImpl extends DeclarationImpl implements ClassMember {
   ///
   /// Either or both of the [comment] and [metadata] can be `null` if the member
   /// doesn't have the corresponding attribute.
-  ClassMemberImpl({
-    required super.comment,
-    required super.metadata,
-  });
+  ClassMemberImpl({required super.comment, required super.metadata});
 }
 
 /// A class type alias.
@@ -2980,10 +2893,6 @@ abstract final class ClassTypeAlias implements TypeAlias {
 
   /// The `base` keyword, or `null` if the keyword was absent.
   Token? get baseKeyword;
-
-  @Deprecated('Use declaredFragment instead')
-  @override
-  ClassElement? get declaredElement;
 
   @experimental
   @override
@@ -3050,7 +2959,7 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   ImplementsClauseImpl? _implementsClause;
 
   @override
-  ClassElementImpl? declaredFragment;
+  ClassFragmentImpl? declaredFragment;
 
   /// Initializes a newly created class type alias.
   ///
@@ -3082,19 +2991,15 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
     required WithClauseImpl withClause,
     required ImplementsClauseImpl? implementsClause,
     required super.semicolon,
-  })  : _typeParameters = typeParameters,
-        _superclass = superclass,
-        _withClause = withClause,
-        _implementsClause = implementsClause {
+  }) : _typeParameters = typeParameters,
+       _superclass = superclass,
+       _withClause = withClause,
+       _implementsClause = implementsClause {
     _becomeParentOf(_typeParameters);
     _becomeParentOf(_superclass);
     _becomeParentOf(_withClause);
     _becomeParentOf(_implementsClause);
   }
-
-  @Deprecated('Use declaredFragment instead')
-  @override
-  ClassElementImpl? get declaredElement => declaredFragment;
 
   @override
   Token get firstTokenAfterCommentAndMetadata {
@@ -3137,22 +3042,23 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   }
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('typedefKeyword', typedefKeyword)
-    ..addToken('name', name)
-    ..addNode('typeParameters', typeParameters)
-    ..addToken('equals', equals)
-    ..addToken('abstractKeyword', abstractKeyword)
-    ..addToken('sealedKeyword', sealedKeyword)
-    ..addToken('baseKeyword', baseKeyword)
-    ..addToken('interfaceKeyword', interfaceKeyword)
-    ..addToken('finalKeyword', finalKeyword)
-    ..addToken('augmentKeyword', augmentKeyword)
-    ..addToken('mixinKeyword', mixinKeyword)
-    ..addNode('superclass', superclass)
-    ..addNode('withClause', withClause)
-    ..addNode('implementsClause', implementsClause)
-    ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addToken('typedefKeyword', typedefKeyword)
+        ..addToken('name', name)
+        ..addNode('typeParameters', typeParameters)
+        ..addToken('equals', equals)
+        ..addToken('abstractKeyword', abstractKeyword)
+        ..addToken('sealedKeyword', sealedKeyword)
+        ..addToken('baseKeyword', baseKeyword)
+        ..addToken('interfaceKeyword', interfaceKeyword)
+        ..addToken('finalKeyword', finalKeyword)
+        ..addToken('augmentKeyword', augmentKeyword)
+        ..addToken('mixinKeyword', mixinKeyword)
+        ..addNode('superclass', superclass)
+        ..addNode('withClause', withClause)
+        ..addNode('implementsClause', implementsClause)
+        ..addToken('semicolon', semicolon);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitClassTypeAlias(this);
@@ -3175,7 +3081,9 @@ sealed class CollectionElementImpl extends AstNodeImpl
   /// Dispatches this collection element to the [resolver], with the given
   /// [context] information.
   void resolveElement(
-      ResolverVisitor resolver, CollectionLiteralContext? context);
+    ResolverVisitor resolver,
+    CollectionLiteralContext? context,
+  );
 }
 
 /// A combinator associated with an import or export directive.
@@ -3195,9 +3103,7 @@ sealed class CombinatorImpl extends AstNodeImpl implements Combinator {
   final Token keyword;
 
   /// Initializes a newly created combinator.
-  CombinatorImpl({
-    required this.keyword,
-  });
+  CombinatorImpl({required this.keyword});
 
   @override
   Token get beginToken => keyword;
@@ -3293,9 +3199,10 @@ final class CommentImpl extends AstNodeImpl
   NodeListImpl<CommentReferenceImpl> get references => _references;
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNodeList('references', references)
-    ..addTokenList('tokens', tokens);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addNodeList('references', references)
+        ..addTokenList('tokens', tokens);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitComment(this);
@@ -3374,9 +3281,10 @@ final class CommentReferenceImpl extends AstNodeImpl
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('newKeyword', newKeyword)
-    ..addNode('expression', expression);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('newKeyword', newKeyword)
+        ..addNode('expression', expression);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitCommentReference(this);
@@ -3417,11 +3325,6 @@ abstract final class CompilationUnit implements AstNode {
 
   /// The declarations contained in this compilation unit.
   NodeList<CompilationUnitMember> get declarations;
-
-  /// The element associated with this compilation unit, or `null` if the AST
-  /// structure hasn't been resolved.
-  @Deprecated('Use declaredFragment instead')
-  CompilationUnitElement? get declaredElement;
 
   /// The fragment associated with this compilation unit.
   ///
@@ -3482,7 +3385,7 @@ final class CompilationUnitImpl extends AstNodeImpl
   final Token endToken;
 
   @override
-  CompilationUnitElementImpl? declaredFragment;
+  LibraryFragmentImpl? declaredFragment;
 
   @override
   final LineInfo lineInfo;
@@ -3530,12 +3433,6 @@ final class CompilationUnitImpl extends AstNodeImpl
   @override
   NodeListImpl<CompilationUnitMemberImpl> get declarations => _declarations;
 
-  @Deprecated('Use declaredFragment instead')
-  @override
-  CompilationUnitElementImpl? get declaredElement {
-    return declaredFragment;
-  }
-
   @override
   NodeListImpl<DirectiveImpl> get directives => _directives;
 
@@ -3574,10 +3471,8 @@ final class CompilationUnitImpl extends AstNodeImpl
 
   @override
   List<AstNode> get sortedDirectivesAndDeclarations {
-    return <AstNode>[
-      ..._directives,
-      ..._declarations,
-    ]..sort(AstNode.LEXICAL_ORDER);
+    return <AstNode>[..._directives, ..._declarations]
+      ..sort(AstNode.LEXICAL_ORDER);
   }
 
   @override
@@ -3638,10 +3533,7 @@ sealed class CompilationUnitMemberImpl extends DeclarationImpl
   ///
   /// Either or both of the [comment] and [metadata] can be `null` if the member
   /// doesn't have the corresponding attribute.
-  CompilationUnitMemberImpl({
-    required super.comment,
-    required super.metadata,
-  });
+  CompilationUnitMemberImpl({required super.comment, required super.metadata});
 }
 
 /// A potentially compound assignment.
@@ -3654,32 +3546,19 @@ sealed class CompilationUnitMemberImpl extends DeclarationImpl
 /// [PostfixExpression] when the operator is an increment operator.
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class CompoundAssignmentExpression implements Expression {
-  /// The element that is used to read the value, or `null` if this node isn't a
-  /// compound assignment, if the AST structure hasn't been resolved, or if the
-  /// target couldn't be resolved.
-  ///
-  /// In valid code this element can be a [LocalVariableElement], a
-  /// [ParameterElement], or a [PropertyAccessorElement] getter.
-  ///
-  /// In invalid code this element is `null`. For example, in `int += 2`, for
-  /// recovery purposes, [writeElement] is filled, and can be used for
-  /// navigation.
-  @Deprecated('Use readElement2 instead')
-  Element? get readElement;
-
   /// The element that is used to read the value.
   ///
   /// Returns `null` if this node isn't a compound assignment, if the AST
   /// structure hasn't been resolved, or if the target couldn't be resolved.
   ///
-  /// In valid code this element can be a [LocalVariableElement2], a
+  /// In valid code this element can be a [LocalVariableElement], a
   /// [FormalParameterElement], or a [GetterElement].
   ///
   /// In invalid code this element is `null`. For example, in `int += 2`. In
   /// such cases, for recovery purposes, [writeElement2] is filled, and can be
   /// used for navigation.
   @experimental
-  Element2? get readElement2;
+  Element? get readElement2;
 
   /// The type of the value read with the [readElement2], or `null` if this node
   /// isn't a compound assignment.
@@ -3688,28 +3567,12 @@ abstract final class CompoundAssignmentExpression implements Expression {
   /// hasn't been resolved, or if the target couldn't be resolved.
   DartType? get readType;
 
-  /// The element that is used to write the result, or `null` if the AST
-  /// structure hasn't been resolved, or if the target couldn't be resolved.
-  ///
-  /// In valid code this is a [LocalVariableElement], [ParameterElement], or a
-  /// [PropertyAccessorElement] setter.
-  ///
-  /// In invalid code, for recovery, we might use other elements, for example a
-  /// [PropertyAccessorElement] getter `myGetter = 0` even though the getter
-  /// can't be used to write a value. We do this to help the user to navigate
-  /// to the getter, and maybe add the corresponding setter.
-  ///
-  /// If this node is a compound assignment, e. g. `x += 2`, both [readElement]
-  /// and [writeElement] could be non-`null`.
-  @Deprecated('Use writeElement2 instead')
-  Element? get writeElement;
-
   /// The element that is used to write the result.
   ///
   /// Returns `null` if the AST structure hasn't been resolved, or if the target
   /// couldn't be resolved.
   ///
-  /// In valid code this is a [LocalVariableElement2], [FormalParameterElement],
+  /// In valid code this is a [LocalVariableElement], [FormalParameterElement],
   /// or a [SetterElement].
   ///
   /// In invalid code, for recovery, we might use other elements, for example a
@@ -3720,7 +3583,7 @@ abstract final class CompoundAssignmentExpression implements Expression {
   /// If this node is a compound assignment, such as `x += y`, both
   /// [readElement2] and [writeElement2] could be non-`null`.
   @experimental
-  Element2? get writeElement2;
+  Element? get writeElement2;
 
   /// The type of the target of the assignment.
   ///
@@ -3733,26 +3596,16 @@ abstract final class CompoundAssignmentExpression implements Expression {
 base mixin CompoundAssignmentExpressionImpl
     implements CompoundAssignmentExpression {
   @override
-  Element2? readElement2;
+  Element? readElement2;
 
   @override
-  Element2? writeElement2;
+  Element? writeElement2;
 
   @override
   TypeImpl? readType;
 
   @override
   TypeImpl? writeType;
-
-  @Deprecated('Use readElement2 instead')
-  @override
-  Element? get readElement {
-    return readElement2?.asElement;
-  }
-
-  @Deprecated('Use readElement2 instead')
-  @override
-  Element? get writeElement => writeElement2.asElement;
 }
 
 /// A conditional expression.
@@ -3798,9 +3651,9 @@ final class ConditionalExpressionImpl extends ExpressionImpl
     required ExpressionImpl thenExpression,
     required this.colon,
     required ExpressionImpl elseExpression,
-  })  : _condition = condition,
-        _thenExpression = thenExpression,
-        _elseExpression = elseExpression {
+  }) : _condition = condition,
+       _thenExpression = thenExpression,
+       _elseExpression = elseExpression {
     _becomeParentOf(_condition);
     _becomeParentOf(_thenExpression);
     _becomeParentOf(_elseExpression);
@@ -3837,12 +3690,13 @@ final class ConditionalExpressionImpl extends ExpressionImpl
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNode('condition', condition)
-    ..addToken('question', question)
-    ..addNode('thenExpression', thenExpression)
-    ..addToken('colon', colon)
-    ..addNode('elseExpression', elseExpression);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addNode('condition', condition)
+        ..addToken('question', question)
+        ..addNode('thenExpression', thenExpression)
+        ..addToken('colon', colon)
+        ..addNode('elseExpression', elseExpression);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
@@ -3932,9 +3786,9 @@ final class ConfigurationImpl extends AstNodeImpl implements Configuration {
     required StringLiteralImpl? value,
     required this.rightParenthesis,
     required StringLiteralImpl uri,
-  })  : _name = name,
-        _value = value,
-        _uri = uri {
+  }) : _name = name,
+       _value = value,
+       _uri = uri {
     _becomeParentOf(_name);
     _becomeParentOf(_value);
     _becomeParentOf(_uri);
@@ -3968,14 +3822,15 @@ final class ConfigurationImpl extends AstNodeImpl implements Configuration {
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('ifKeyword', ifKeyword)
-    ..addToken('leftParenthesis', leftParenthesis)
-    ..addNode('name', name)
-    ..addToken('equalToken', equalToken)
-    ..addNode('value', value)
-    ..addToken('rightParenthesis', rightParenthesis)
-    ..addNode('uri', uri);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('ifKeyword', ifKeyword)
+        ..addToken('leftParenthesis', leftParenthesis)
+        ..addNode('name', name)
+        ..addToken('equalToken', equalToken)
+        ..addNode('value', value)
+        ..addToken('rightParenthesis', rightParenthesis)
+        ..addNode('uri', uri);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitConfiguration(this);
@@ -4062,9 +3917,10 @@ final class ConstantPatternImpl extends DartPatternImpl
   PatternPrecedence get precedence => PatternPrecedence.primary;
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('const', constKeyword)
-    ..addNode('expression', expression);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addToken('const', constKeyword)
+        ..addNode('expression', expression);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitConstantPattern(this);
@@ -4082,8 +3938,11 @@ final class ConstantPatternImpl extends DartPatternImpl
     SharedMatchContext context,
   ) {
     inferenceLogWriter?.enterPattern(this);
-    var analysisResult =
-        resolverVisitor.analyzeConstantPattern(context, this, expression);
+    var analysisResult = resolverVisitor.analyzeConstantPattern(
+      context,
+      this,
+      expression,
+    );
     expression = resolverVisitor.popRewrite()!;
     inferenceLogWriter?.exitPattern(this);
     return analysisResult;
@@ -4106,7 +3965,7 @@ final class ConstantPatternImpl extends DartPatternImpl
 ///        'external'? constructorName formalParameterList initializerList?
 ///      | 'external'? 'factory' factoryName formalParameterList
 ///        initializerList?
-///      | 'external'? 'const'  constructorName formalParameterList
+///      | 'external'? 'const' constructorName formalParameterList
 ///        initializerList?
 ///
 ///    constructorName ::=
@@ -4128,10 +3987,6 @@ abstract final class ConstructorDeclaration implements ClassMember {
   /// The token for the `const` keyword, or `null` if the constructor isn't a
   /// const constructor.
   Token? get constKeyword;
-
-  @Deprecated('Use declaredFragment instead')
-  @override
-  ConstructorElement? get declaredElement;
 
   @experimental
   @override
@@ -4163,10 +4018,6 @@ abstract final class ConstructorDeclaration implements ClassMember {
   ConstructorName? get redirectedConstructor;
 
   /// The type of object being created.
-  ///
-  /// This can be different than the type in which the constructor is being
-  /// declared if the constructor is the implementation of a factory
-  /// constructor.
   Identifier get returnType;
 
   /// The token for the separator (colon or equals) before the initializer list
@@ -4210,7 +4061,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   FunctionBodyImpl _body;
 
   @override
-  ConstructorElementImpl? declaredFragment;
+  ConstructorFragmentImpl? declaredFragment;
 
   /// Initializes a newly created constructor declaration.
   ///
@@ -4252,10 +4103,10 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     required List<ConstructorInitializerImpl>? initializers,
     required ConstructorNameImpl? redirectedConstructor,
     required FunctionBodyImpl body,
-  })  : _returnType = returnType,
-        _parameters = parameters,
-        _redirectedConstructor = redirectedConstructor,
-        _body = body {
+  }) : _returnType = returnType,
+       _parameters = parameters,
+       _redirectedConstructor = redirectedConstructor,
+       _body = body {
     _becomeParentOf(_returnType);
     _becomeParentOf(_parameters);
     _initializers._initialize(this, initializers);
@@ -4270,10 +4121,6 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     _body = _becomeParentOf(functionBody);
   }
 
-  @Deprecated('Use declaredFragment instead')
-  @override
-  ConstructorElementImpl? get declaredElement => declaredFragment;
-
   @override
   Token get endToken {
     return _body.endToken;
@@ -4282,7 +4129,11 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   @override
   Token get firstTokenAfterCommentAndMetadata {
     return Token.lexicallyFirst(
-            externalKeyword, constKeyword, factoryKeyword, augmentKeyword) ??
+          externalKeyword,
+          constKeyword,
+          factoryKeyword,
+          augmentKeyword,
+        ) ??
         _returnType.beginToken;
   }
 
@@ -4312,8 +4163,9 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   ConstructorNameImpl? get redirectedConstructor => _redirectedConstructor;
 
   set redirectedConstructor(ConstructorNameImpl? redirectedConstructor) {
-    _redirectedConstructor =
-        _becomeParentOf(redirectedConstructor as ConstructorNameImpl);
+    _redirectedConstructor = _becomeParentOf(
+      redirectedConstructor as ConstructorNameImpl,
+    );
   }
 
   @override
@@ -4324,19 +4176,20 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   }
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('augmentKeyword', augmentKeyword)
-    ..addToken('externalKeyword', externalKeyword)
-    ..addToken('constKeyword', constKeyword)
-    ..addToken('factoryKeyword', factoryKeyword)
-    ..addNode('returnType', returnType)
-    ..addToken('period', period)
-    ..addToken('name', name)
-    ..addNode('parameters', parameters)
-    ..addToken('separator', separator)
-    ..addNodeList('initializers', initializers)
-    ..addNode('redirectedConstructor', redirectedConstructor)
-    ..addNode('body', body);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addToken('augmentKeyword', augmentKeyword)
+        ..addToken('externalKeyword', externalKeyword)
+        ..addToken('constKeyword', constKeyword)
+        ..addToken('factoryKeyword', factoryKeyword)
+        ..addNode('returnType', returnType)
+        ..addToken('period', period)
+        ..addToken('name', name)
+        ..addNode('parameters', parameters)
+        ..addToken('separator', separator)
+        ..addNodeList('initializers', initializers)
+        ..addNode('redirectedConstructor', redirectedConstructor)
+        ..addNode('body', body);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
@@ -4403,8 +4256,8 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
     required SimpleIdentifierImpl fieldName,
     required this.equals,
     required ExpressionImpl expression,
-  })  : _fieldName = fieldName,
-        _expression = expression {
+  }) : _fieldName = fieldName,
+       _expression = expression {
     _becomeParentOf(_fieldName);
     _becomeParentOf(_expression);
   }
@@ -4435,12 +4288,13 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('thisKeyword', thisKeyword)
-    ..addToken('period', period)
-    ..addNode('fieldName', fieldName)
-    ..addToken('equals', equals)
-    ..addNode('expression', expression);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('thisKeyword', thisKeyword)
+        ..addToken('period', period)
+        ..addNode('fieldName', fieldName)
+        ..addToken('equals', equals)
+        ..addNode('expression', expression);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
@@ -4503,8 +4357,8 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
     required NamedTypeImpl type,
     required this.period,
     required SimpleIdentifierImpl? name,
-  })  : _type = type,
-        _name = name {
+  }) : _type = type,
+       _name = name {
     _becomeParentOf(_type);
     _becomeParentOf(_name);
   }
@@ -4527,10 +4381,6 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
     _name = _becomeParentOf(name);
   }
 
-  @Deprecated('Use element instead')
-  @override
-  ConstructorElementMixin? get staticElement => element?.asElement;
-
   @override
   NamedTypeImpl get type => _type;
 
@@ -4539,10 +4389,11 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNode('type', type)
-    ..addToken('period', period)
-    ..addNode('name', name);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addNode('type', type)
+        ..addToken('period', period)
+        ..addNode('name', name);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitConstructorName(this);
@@ -4572,9 +4423,8 @@ final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
     implements ConstructorReference {
   ConstructorNameImpl _constructorName;
 
-  ConstructorReferenceImpl({
-    required ConstructorNameImpl constructorName,
-  }) : _constructorName = constructorName {
+  ConstructorReferenceImpl({required ConstructorNameImpl constructorName})
+    : _constructorName = constructorName {
     _becomeParentOf(_constructorName);
   }
 
@@ -4622,13 +4472,7 @@ abstract final class ConstructorReferenceNode implements AstNode {
   /// Returns `null` if the AST structure hasn't been resolved or if the
   /// constructor couldn't be resolved.
   @experimental
-  ConstructorElement2? get element;
-
-  /// The element associated with the referenced constructor based on static
-  /// type information, or `null` if the AST structure hasn't been resolved or
-  /// if the constructor couldn't be resolved.
-  @Deprecated('Use element instead')
-  ConstructorElement? get staticElement;
+  ConstructorElement? get element;
 }
 
 /// The name of a constructor being invoked.
@@ -4652,10 +4496,7 @@ final class ConstructorSelectorImpl extends AstNodeImpl
   @override
   final SimpleIdentifierImpl name;
 
-  ConstructorSelectorImpl({
-    required this.period,
-    required this.name,
-  }) {
+  ConstructorSelectorImpl({required this.period, required this.name}) {
     _becomeParentOf(name);
   }
 
@@ -4666,9 +4507,10 @@ final class ConstructorSelectorImpl extends AstNodeImpl
   Token get endToken => name.token;
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('period', period)
-    ..addNode('name', name);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('period', period)
+        ..addNode('name', name);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) {
@@ -4745,10 +4587,11 @@ final class ContinueStatementImpl extends StatementImpl
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('continueKeyword', continueKeyword)
-    ..addNode('label', label)
-    ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('continueKeyword', continueKeyword)
+        ..addNode('label', label)
+        ..addToken('semicolon', semicolon);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitContinueStatement(this);
@@ -4807,7 +4650,7 @@ sealed class DartPatternImpl extends AstNodeImpl
   /// - Assignment context: [PatternAssignmentImpl]
   /// - Matching context: [GuardedPatternImpl]
   AstNodeImpl? get patternContext {
-    for (DartPatternImpl current = this;;) {
+    for (DartPatternImpl current = this; ;) {
       var parent = current.parent;
       if (parent is MapPatternEntry) {
         parent = parent.parent;
@@ -4857,12 +4700,6 @@ sealed class DartPatternImpl extends AstNodeImpl
 /// Each declared name is visible within a name scope.
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class Declaration implements AnnotatedNode {
-  /// The element associated with this declaration, or `null` if either this
-  /// node corresponds to a list of declarations or if the AST structure hasn't
-  /// been resolved.
-  @Deprecated('Use declaredFragment instead')
-  Element? get declaredElement;
-
   /// The fragment declared by this declaration.
   ///
   /// Returns `null` if the AST structure hasn't been resolved.
@@ -4875,10 +4712,7 @@ sealed class DeclarationImpl extends AnnotatedNodeImpl implements Declaration {
   ///
   /// Either or both of the [comment] and [metadata] can be `null` if the
   /// declaration doesn't have the corresponding attribute.
-  DeclarationImpl({
-    required super.comment,
-    required super.metadata,
-  });
+  DeclarationImpl({required super.comment, required super.metadata});
 }
 
 /// The declaration of a single identifier.
@@ -4887,16 +4721,12 @@ sealed class DeclarationImpl extends AnnotatedNodeImpl implements Declaration {
 ///        [Annotation] finalConstVarOrType [SimpleIdentifier]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class DeclaredIdentifier implements Declaration {
-  @Deprecated('Use declaredFragment instead')
-  @override
-  LocalVariableElement? get declaredElement;
-
   /// The element associated with this declaration.
   ///
   /// Returns `null` if either this node corresponds to a list of declarations
   /// or if the AST structure hasn't been resolved.
   @experimental
-  LocalVariableElement2? get declaredElement2;
+  LocalVariableElement? get declaredElement2;
 
   @override
   LocalVariableFragment? get declaredFragment;
@@ -4933,7 +4763,7 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
   final Token name;
 
   @override
-  LocalVariableElementImpl? declaredFragment;
+  LocalVariableFragmentImpl? declaredFragment;
 
   /// Initializes a newly created formal parameter.
   ///
@@ -4952,10 +4782,6 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
   }) : _type = type {
     _becomeParentOf(_type);
   }
-
-  @Deprecated('Use declaredFragment instead')
-  @override
-  LocalVariableElementImpl? get declaredElement => declaredFragment;
 
   @experimental
   @override
@@ -4985,10 +4811,11 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
   }
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('keyword', keyword)
-    ..addNode('type', type)
-    ..addToken('name', name);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addToken('keyword', keyword)
+        ..addNode('type', type)
+        ..addToken('name', name);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitDeclaredIdentifier(this);
@@ -5006,16 +4833,11 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
 ///        ( 'var' | 'final' | 'final'? [TypeAnnotation])? [Identifier]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class DeclaredVariablePattern implements VariablePattern {
-  /// The element associated with this declaration, or `null` if the AST
-  /// structure hasn't been resolved.
-  @Deprecated('Use declaredFragment instead')
-  BindPatternVariableElement? get declaredElement;
-
   /// The element declared by this declaration.
   ///
   /// Returns `null` if the AST structure hasn't been resolved.
   @experimental
-  BindPatternVariableElement2? get declaredElement2;
+  BindPatternVariableElement? get declaredElement2;
 
   /// The fragment declared by this declaration.
   ///
@@ -5033,7 +4855,7 @@ sealed class DeclaredVariablePattern implements VariablePattern {
 final class DeclaredVariablePatternImpl extends VariablePatternImpl
     implements DeclaredVariablePattern {
   @override
-  BindPatternVariableElementImpl? declaredFragment;
+  BindPatternVariableFragmentImpl? declaredFragment;
 
   @override
   final Token? keyword;
@@ -5051,12 +4873,6 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
 
   @override
   Token get beginToken => keyword ?? type?.beginToken ?? name;
-
-  @Deprecated('Use declaredFragment instead')
-  @override
-  BindPatternVariableElementImpl? get declaredElement {
-    return declaredFragment;
-  }
 
   @experimental
   @override
@@ -5080,10 +4896,11 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
   PatternPrecedence get precedence => PatternPrecedence.primary;
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('keyword', keyword)
-    ..addNode('type', type)
-    ..addToken('name', name);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('keyword', keyword)
+        ..addNode('type', type)
+        ..addToken('name', name);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
@@ -5093,7 +4910,8 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
   TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
     return resolverVisitor
         .analyzeDeclaredVariablePatternSchema(
-            type?.typeOrThrow.wrapSharedTypeView())
+          type?.typeOrThrow.wrapSharedTypeView(),
+        )
         .unwrapTypeSchemaView();
   }
 
@@ -5104,11 +4922,12 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
   ) {
     inferenceLogWriter?.enterPattern(this);
     var result = resolverVisitor.analyzeDeclaredVariablePattern(
-        context,
-        this,
-        declaredElement2!,
-        declaredFragment!.name,
-        type?.typeOrThrow.wrapSharedTypeView());
+      context,
+      this,
+      declaredElement2!,
+      declaredFragment!.name,
+      type?.typeOrThrow.wrapSharedTypeView(),
+    );
     declaredElement2!.type = result.staticType.unwrapTypeView();
 
     resolverVisitor.checkPatternNeverMatchesValueType(
@@ -5173,8 +4992,8 @@ final class DefaultFormalParameterImpl extends FormalParameterImpl
     required this.kind,
     required this.separator,
     required ExpressionImpl? defaultValue,
-  })  : _parameter = parameter,
-        _defaultValue = defaultValue {
+  }) : _parameter = parameter,
+       _defaultValue = defaultValue {
     _becomeParentOf(_parameter);
     _becomeParentOf(_defaultValue);
   }
@@ -5185,13 +5004,10 @@ final class DefaultFormalParameterImpl extends FormalParameterImpl
   @override
   Token? get covariantKeyword => null;
 
-  @Deprecated('Use declaredFragment instead')
-  @override
-  ParameterElementImpl? get declaredElement => _parameter.declaredElement;
-
   @experimental
   @override
-  ParameterElementImpl? get declaredFragment => _parameter.declaredFragment;
+  FormalParameterFragmentImpl? get declaredFragment =>
+      _parameter.declaredFragment;
 
   @override
   ExpressionImpl? get defaultValue => _defaultValue;
@@ -5234,10 +5050,11 @@ final class DefaultFormalParameterImpl extends FormalParameterImpl
   Token? get requiredKeyword => null;
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNode('parameter', parameter)
-    ..addToken('separator', separator)
-    ..addNode('defaultValue', defaultValue);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addNode('parameter', parameter)
+        ..addToken('separator', separator)
+        ..addNode('defaultValue', defaultValue);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
@@ -5259,31 +5076,16 @@ final class DefaultFormalParameterImpl extends FormalParameterImpl
 ///      | [PartDirective]
 ///      | [PartOfDirective]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-sealed class Directive implements AnnotatedNode {
-  /// The element associated with this directive, or `null` if the AST structure
-  /// hasn't been resolved or if this directive couldn't be resolved.
-  @Deprecated('Use directive specific getters')
-  Element? get element;
-}
+sealed class Directive implements AnnotatedNode {}
 
 sealed class DirectiveImpl extends AnnotatedNodeImpl implements Directive {
-  ElementImpl? _element;
+  FragmentImpl? element;
 
   /// Initializes a newly create directive.
   ///
   /// Either or both of the [comment] and [metadata] can be `null` if the
   /// directive doesn't have the corresponding attribute.
-  DirectiveImpl({
-    required super.comment,
-    required super.metadata,
-  });
-
-  @override
-  ElementImpl? get element => _element;
-
-  set element(ElementImpl? element) {
-    _element = element;
-  }
+  DirectiveImpl({required super.comment, required super.metadata});
 }
 
 /// A do statement.
@@ -5343,8 +5145,8 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
     required ExpressionImpl condition,
     required this.rightParenthesis,
     required this.semicolon,
-  })  : _body = body,
-        _condition = condition {
+  }) : _body = body,
+       _condition = condition {
     _becomeParentOf(_body);
     _becomeParentOf(_condition);
   }
@@ -5370,14 +5172,15 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
   Token get endToken => semicolon;
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('doKeyword', doKeyword)
-    ..addNode('body', body)
-    ..addToken('whileKeyword', whileKeyword)
-    ..addToken('leftParenthesis', leftParenthesis)
-    ..addNode('condition', condition)
-    ..addToken('rightParenthesis', rightParenthesis)
-    ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('doKeyword', doKeyword)
+        ..addNode('body', body)
+        ..addToken('whileKeyword', whileKeyword)
+        ..addToken('leftParenthesis', leftParenthesis)
+        ..addNode('condition', condition)
+        ..addToken('rightParenthesis', rightParenthesis)
+        ..addToken('semicolon', semicolon);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitDoStatement(this);
@@ -5386,6 +5189,115 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
   void visitChildren(AstVisitor visitor) {
     _body.accept(visitor);
     _condition.accept(visitor);
+  }
+}
+
+/// A node that represents a dot shorthand constructor invocation.
+///
+/// For example, `.fromCharCode(42)`.
+///
+///    dotShorthandHead ::=
+///        '.' [SimpleIdentifier] [TypeArgumentList]? [ArgumentList]
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class DotShorthandConstructorInvocation
+    extends InvocationExpression
+    implements ConstructorReferenceNode {
+  /// The `const` keyword, or `null` if the expression isn't preceded by the
+  /// keyword `const`.
+  Token? get constKeyword;
+
+  /// The name of the constructor invocation.
+  SimpleIdentifier get constructorName;
+
+  /// Whether this dot shorthand constructor invocation will be evaluated at
+  /// compile-time, either because the keyword `const` was explicitly provided
+  /// or because no keyword was provided and this expression is in a constant
+  /// context.
+  bool get isConst;
+
+  /// The token representing the period.
+  Token get period;
+}
+
+final class DotShorthandConstructorInvocationImpl
+    extends InvocationExpressionImpl
+    with DotShorthandMixin
+    implements
+        DotShorthandConstructorInvocation,
+        RewrittenMethodInvocationImpl {
+  @override
+  final Token period;
+
+  @override
+  Token? constKeyword;
+
+  SimpleIdentifierImpl _constructorName;
+
+  @override
+  ConstructorElementImpl2? element;
+
+  /// Initializes a newly created dot shorthand constructor invocation.
+  DotShorthandConstructorInvocationImpl({
+    required this.constKeyword,
+    required this.period,
+    required SimpleIdentifierImpl constructorName,
+    required super.typeArguments,
+    required super.argumentList,
+  }) : _constructorName = constructorName {
+    _becomeParentOf(_constructorName);
+  }
+
+  @override
+  Token get beginToken => constKeyword ?? period;
+
+  @override
+  SimpleIdentifierImpl get constructorName => _constructorName;
+
+  set constructorName(SimpleIdentifierImpl identifier) {
+    _constructorName = _becomeParentOf(identifier);
+  }
+
+  @override
+  Token get endToken => argumentList.endToken;
+
+  @override
+  ExpressionImpl get function => constructorName;
+
+  @override
+  bool get isConst {
+    return constKeyword?.keyword == Keyword.CONST || inConstantContext;
+  }
+
+  @override
+  Precedence get precedence => Precedence.postfix;
+
+  @override
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('const', constKeyword)
+        ..addToken('period', period)
+        ..addNode('constructorName', constructorName)
+        ..addNode('typeArguments', typeArguments)
+        ..addNode('argumentList', argumentList);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitDotShorthandConstructorInvocation(this);
+
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    resolver.visitDotShorthandConstructorInvocation(
+      this,
+      contextType: contextType,
+    );
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    constructorName.accept(visitor);
+    typeArguments?.accept(visitor);
+    argumentList.accept(visitor);
   }
 }
 
@@ -5407,6 +5319,7 @@ abstract final class DotShorthandInvocation extends InvocationExpression {
 }
 
 final class DotShorthandInvocationImpl extends InvocationExpressionImpl
+    with DotShorthandMixin
     implements DotShorthandInvocation {
   @override
   final Token period;
@@ -5443,11 +5356,12 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
   Precedence get precedence => Precedence.postfix;
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('period', period)
-    ..addNode('memberName', memberName)
-    ..addNode('typeArguments', typeArguments)
-    ..addNode('argumentList', argumentList);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('period', period)
+        ..addNode('memberName', memberName)
+        ..addNode('typeArguments', typeArguments)
+        ..addNode('argumentList', argumentList);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
@@ -5464,6 +5378,13 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
     typeArguments?.accept(visitor);
     argumentList.accept(visitor);
   }
+}
+
+base mixin DotShorthandMixin on ExpressionImpl {
+  /// Whether the AST node is a dot shorthand and has a dot shorthand head
+  /// ([DotShorthandInvocation] or [DotShorthandPropertyAccess]) as its
+  /// inner-most target.
+  bool isDotShorthand = false;
 }
 
 /// A node that represents a dot shorthand property access of a field or a
@@ -5483,6 +5404,7 @@ abstract final class DotShorthandPropertyAccess extends Expression {
 }
 
 final class DotShorthandPropertyAccessImpl extends ExpressionImpl
+    with DotShorthandMixin
     implements DotShorthandPropertyAccess {
   @override
   final Token period;
@@ -5514,9 +5436,10 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('period', period)
-    ..addNode('propertyName', propertyName);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('period', period)
+        ..addNode('propertyName', propertyName);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
@@ -5549,9 +5472,7 @@ final class DottedNameImpl extends AstNodeImpl implements DottedName {
   /// Initializes a newly created dotted name.
   ///
   /// The list of [components] must contain at least one element.
-  DottedNameImpl({
-    required List<SimpleIdentifierImpl> components,
-  }) {
+  DottedNameImpl({required List<SimpleIdentifierImpl> components}) {
     _components._initialize(this, components);
   }
 
@@ -5603,10 +5524,7 @@ final class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
   double value;
 
   /// Initializes a newly created floating point literal.
-  DoubleLiteralImpl({
-    required this.literal,
-    required this.value,
-  });
+  DoubleLiteralImpl({required this.literal, required this.value});
 
   @override
   Token get beginToken => literal;
@@ -5651,9 +5569,7 @@ final class EmptyFunctionBodyImpl extends FunctionBodyImpl
   final Token semicolon;
 
   /// Initializes a newly created function body.
-  EmptyFunctionBodyImpl({
-    required this.semicolon,
-  });
+  EmptyFunctionBodyImpl({required this.semicolon});
 
   @override
   Token get beginToken => semicolon;
@@ -5693,9 +5609,7 @@ final class EmptyStatementImpl extends StatementImpl implements EmptyStatement {
   final Token semicolon;
 
   /// Initializes a newly created empty statement.
-  EmptyStatementImpl({
-    required this.semicolon,
-  });
+  EmptyStatementImpl({required this.semicolon});
 
   @override
   Token get beginToken => semicolon;
@@ -5767,10 +5681,11 @@ final class EnumConstantArgumentsImpl extends AstNodeImpl
   Token get endToken => argumentList.endToken;
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNode('typeArguments', typeArguments)
-    ..addNode('constructorSelector', constructorSelector)
-    ..addNode('argumentList', argumentList);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addNode('typeArguments', typeArguments)
+        ..addNode('constructorSelector', constructorSelector)
+        ..addNode('argumentList', argumentList);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) {
@@ -5797,22 +5712,12 @@ abstract final class EnumConstantDeclaration implements Declaration {
   @experimental
   Token? get augmentKeyword;
 
-  /// The constructor that is invoked by this enum constant, or `null` if the
-  /// AST structure hasn't been resolved, or if the constructor couldn't be
-  /// resolved.
-  @Deprecated('Use constructorElement2 instead')
-  ConstructorElement? get constructorElement;
-
   /// The constructor that's invoked by this enum constant.
   ///
   /// Returns `null` if the AST structure hasn't been resolved, or if the
   /// constructor couldn't be resolved.
   @experimental
-  ConstructorElement2? get constructorElement2;
-
-  @Deprecated('Use constructorElement2 instead')
-  @override
-  FieldElement? get declaredElement;
+  ConstructorElement? get constructorElement2;
 
   @experimental
   @override
@@ -5831,7 +5736,7 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
   final Token name;
 
   @override
-  FieldElementImpl? declaredFragment;
+  FieldFragmentImpl? declaredFragment;
 
   @override
   final EnumConstantArgumentsImpl? arguments;
@@ -5853,15 +5758,6 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
     _becomeParentOf(arguments);
   }
 
-  @Deprecated('Use constructorElement2 instead')
-  @override
-  ConstructorElementMixin? get constructorElement =>
-      constructorElement2?.asElement;
-
-  @Deprecated('Use constructorElement2 instead')
-  @override
-  FieldElementImpl? get declaredElement => declaredFragment;
-
   @override
   Token get endToken => arguments?.endToken ?? name;
 
@@ -5869,10 +5765,11 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
   Token get firstTokenAfterCommentAndMetadata => augmentKeyword ?? name;
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('augmentKeyword', augmentKeyword)
-    ..addToken('name', name)
-    ..addNode('arguments', arguments);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addToken('augmentKeyword', augmentKeyword)
+        ..addToken('name', name)
+        ..addNode('arguments', arguments);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
@@ -5899,10 +5796,6 @@ abstract final class EnumDeclaration implements NamedCompilationUnitMember {
 
   /// The enumeration constants being declared.
   NodeList<EnumConstantDeclaration> get constants;
-
-  @Deprecated('Use declaredFragment instead')
-  @override
-  EnumElement? get declaredElement;
 
   @experimental
   @override
@@ -5965,7 +5858,7 @@ final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   final Token rightBracket;
 
   @override
-  EnumElementImpl? declaredFragment;
+  EnumFragmentImpl? declaredFragment;
 
   /// Initializes a newly created enumeration declaration.
   ///
@@ -5987,9 +5880,9 @@ final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
     required this.semicolon,
     required List<ClassMemberImpl> members,
     required this.rightBracket,
-  })  : _typeParameters = typeParameters,
-        _withClause = withClause,
-        _implementsClause = implementsClause {
+  }) : _typeParameters = typeParameters,
+       _withClause = withClause,
+       _implementsClause = implementsClause {
     _becomeParentOf(_typeParameters);
     _becomeParentOf(_withClause);
     _becomeParentOf(_implementsClause);
@@ -5999,10 +5892,6 @@ final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   @override
   NodeListImpl<EnumConstantDeclarationImpl> get constants => _constants;
-
-  @Deprecated('Use declaredFragment instead')
-  @override
-  EnumElementImpl? get declaredElement => declaredFragment;
 
   @override
   Token get endToken => rightBracket;
@@ -6036,18 +5925,19 @@ final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   @override
   // TODO(brianwilkerson): Add commas?
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('augmentKeyword', augmentKeyword)
-    ..addToken('enumKeyword', enumKeyword)
-    ..addToken('name', name)
-    ..addNode('typeParameters', typeParameters)
-    ..addNode('withClause', withClause)
-    ..addNode('implementsClause', implementsClause)
-    ..addToken('leftBracket', leftBracket)
-    ..addNodeList('constants', constants)
-    ..addToken('semicolon', semicolon)
-    ..addNodeList('members', members)
-    ..addToken('rightBracket', rightBracket);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addToken('augmentKeyword', augmentKeyword)
+        ..addToken('enumKeyword', enumKeyword)
+        ..addToken('name', name)
+        ..addNode('typeParameters', typeParameters)
+        ..addNode('withClause', withClause)
+        ..addNode('implementsClause', implementsClause)
+        ..addToken('leftBracket', leftBracket)
+        ..addNodeList('constants', constants)
+        ..addToken('semicolon', semicolon)
+        ..addNodeList('members', members)
+        ..addToken('rightBracket', rightBracket);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitEnumDeclaration(this);
@@ -6069,12 +5959,6 @@ final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
 ///        [Annotation] 'export' [StringLiteral] [Combinator]* ';'
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ExportDirective implements NamespaceDirective {
-  /// The element associated with this directive, or `null` if the AST structure
-  /// hasn't been resolved.
-  @Deprecated('Use libraryExport instead')
-  @override
-  LibraryExportElement? get element;
-
   /// The token representing the `export` keyword.
   Token get exportKeyword;
 
@@ -6106,28 +5990,23 @@ final class ExportDirectiveImpl extends NamespaceDirectiveImpl
     required super.semicolon,
   });
 
-  @Deprecated('Use libraryExport instead')
-  @override
-  LibraryExportElementImpl? get element {
-    return super.element as LibraryExportElementImpl?;
-  }
-
   @override
   Token get firstTokenAfterCommentAndMetadata => exportKeyword;
 
   @experimental
   @override
   LibraryExportElementImpl? get libraryExport {
-    return _element as LibraryExportElementImpl?;
+    return element as LibraryExportElementImpl?;
   }
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('exportKeyword', exportKeyword)
-    ..addNode('uri', uri)
-    ..addNodeList('combinators', combinators)
-    ..addNodeList('configurations', configurations)
-    ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addToken('exportKeyword', exportKeyword)
+        ..addNode('uri', uri)
+        ..addNodeList('combinators', combinators)
+        ..addNodeList('configurations', configurations)
+        ..addToken('semicolon', semicolon);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitExportDirective(this);
@@ -6196,17 +6075,6 @@ abstract final class Expression implements CollectionElement {
   /// `(a * b) + c` because the precedence of `*` is greater than the precedence
   /// of `+`.
   Precedence get precedence;
-
-  /// The parameter element representing the parameter to which the value of
-  /// this expression is bound, or `null` if any of these conditions are not
-  /// `true`
-  /// - this expression is an argument to an invocation
-  /// - the AST structure is resolved
-  /// - the function being invoked is known based on static type information
-  /// - this expression corresponds to one of the parameters of the function
-  ///   being invoked
-  @Deprecated('Use correspondingParameter instead')
-  ParameterElement? get staticParameterElement;
 
   /// The static type of this expression, or `null` if the AST structure hasn't
   /// been resolved.
@@ -6312,12 +6180,13 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
   bool get isSynchronous => keyword?.lexeme != Keyword.ASYNC.lexeme;
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('keyword', keyword)
-    ..addToken('star', star)
-    ..addToken('functionDefinition', functionDefinition)
-    ..addNode('expression', expression)
-    ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('keyword', keyword)
+        ..addToken('star', star)
+        ..addToken('functionDefinition', functionDefinition)
+        ..addNode('expression', expression)
+        ..addToken('semicolon', semicolon);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
@@ -6340,11 +6209,36 @@ sealed class ExpressionImpl extends AstNodeImpl
   @experimental
   @override
   FormalParameterElementMixin? get correspondingParameter {
-    return switch (staticParameterElement) {
-      ParameterElementImpl(:var element) => element,
-      ParameterMember member => member,
-      _ => null,
-    };
+    var parent = this.parent;
+    if (parent is ArgumentListImpl) {
+      return parent._getStaticParameterElementFor(this);
+    } else if (parent is IndexExpressionImpl) {
+      if (identical(parent.index, this)) {
+        return parent._staticParameterElementForIndex;
+      }
+    } else if (parent is BinaryExpressionImpl) {
+      // TODO(scheglov): https://github.com/dart-lang/sdk/issues/49102
+      if (identical(parent.rightOperand, this)) {
+        var parameters = parent.staticInvokeType?.formalParameters;
+        if (parameters != null && parameters.isNotEmpty) {
+          return parameters[0];
+        }
+        return null;
+      }
+    } else if (parent is AssignmentExpressionImpl) {
+      if (identical(parent.rightHandSide, this)) {
+        return parent._staticParameterElementForRightHandSide;
+      }
+    } else if (parent is PrefixExpressionImpl) {
+      // TODO(scheglov): This doesn't look right, there's no element for
+      // the operand, for `a++` we invoke `a = a + 1`, so the parameter
+      // is for `1`, not for `a`.
+      return parent._staticParameterElementForOperand2;
+    } else if (parent is PostfixExpressionImpl) {
+      // TODO(scheglov): The same as above.
+      return parent._staticParameterElementForOperand2;
+    }
+    return null;
   }
 
   @override
@@ -6354,40 +6248,6 @@ sealed class ExpressionImpl extends AstNodeImpl
 
   @override
   bool get isAssignable => false;
-
-  @override
-  ParameterElementMixin? get staticParameterElement {
-    var parent = this.parent;
-    if (parent is ArgumentListImpl) {
-      return parent._getStaticParameterElementFor(this);
-    } else if (parent is IndexExpressionImpl) {
-      if (identical(parent.index, this)) {
-        return parent._staticParameterElementForIndex?.asElement;
-      }
-    } else if (parent is BinaryExpressionImpl) {
-      // TODO(scheglov): https://github.com/dart-lang/sdk/issues/49102
-      if (identical(parent.rightOperand, this)) {
-        var parameters = parent.staticInvokeType?.parameters;
-        if (parameters != null && parameters.isNotEmpty) {
-          return parameters[0];
-        }
-        return null;
-      }
-    } else if (parent is AssignmentExpressionImpl) {
-      if (identical(parent.rightHandSide, this)) {
-        return parent._staticParameterElementForRightHandSide?.asElement;
-      }
-    } else if (parent is PrefixExpressionImpl) {
-      // TODO(scheglov): This doesn't look right, there's no element for
-      // the operand, for `a++` we invoke `a = a + 1`, so the parameter
-      // is for `1`, not for `a`.
-      return parent._staticParameterElementForOperand2?.asElement;
-    } else if (parent is PostfixExpressionImpl) {
-      // TODO(scheglov): The same as above.
-      return parent._staticParameterElementForOperand2?.asElement;
-    }
-    return null;
-  }
 
   @override
   TypeImpl? get staticType => _staticType;
@@ -6400,9 +6260,7 @@ sealed class ExpressionImpl extends AstNodeImpl
   /// if the constness is implicit.
   ///
   /// Returns `null` if node is not in the constant context.
-  (AstNode, Token?)? constantContext({
-    required bool includeSelf,
-  }) {
+  (AstNode, Token?)? constantContext({required bool includeSelf}) {
     AstNode? current = this;
     if (!includeSelf) {
       current = current.parent;
@@ -6475,11 +6333,15 @@ sealed class ExpressionImpl extends AstNodeImpl
 
   @override
   void resolveElement(
-      ResolverVisitor resolver, CollectionLiteralContext? context) {
+    ResolverVisitor resolver,
+    CollectionLiteralContext? context,
+  ) {
     resolver.analyzeExpression(
-        this,
-        SharedTypeSchemaView(
-            context?.elementType ?? UnknownInferredType.instance));
+      this,
+      SharedTypeSchemaView(
+        context?.elementType ?? UnknownInferredType.instance,
+      ),
+    );
   }
 
   /// Dispatches this expression to the [resolver], with the given [contextType]
@@ -6556,9 +6418,10 @@ final class ExpressionStatementImpl extends StatementImpl
       _expression.isSynthetic && (semicolon == null || semicolon!.isSynthetic);
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNode('expression', expression)
-    ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addNode('expression', expression)
+        ..addToken('semicolon', semicolon);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitExpressionStatement(this);
@@ -6610,9 +6473,10 @@ final class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('extendsKeyword', extendsKeyword)
-    ..addNode('superclass', superclass);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('extendsKeyword', extendsKeyword)
+        ..addNode('superclass', superclass);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitExtendsClause(this);
@@ -6634,10 +6498,6 @@ abstract final class ExtensionDeclaration implements CompilationUnitMember {
   /// The `augment` keyword, or `null` if the keyword was absent.
   @experimental
   Token? get augmentKeyword;
-
-  @Deprecated('Use declaredFragment instead')
-  @override
-  ExtensionElement? get declaredElement;
 
   @experimental
   @override
@@ -6698,7 +6558,7 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   final Token rightBracket;
 
   @override
-  ExtensionElementImpl? declaredFragment;
+  ExtensionFragmentImpl? declaredFragment;
 
   ExtensionDeclarationImpl({
     required super.comment,
@@ -6718,10 +6578,6 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
     _members._initialize(this, members);
   }
 
-  @Deprecated('Use declaredFragment instead')
-  @override
-  ExtensionElementImpl? get declaredElement => declaredFragment;
-
   @override
   Token get endToken => rightBracket;
 
@@ -6740,15 +6596,16 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('augmentKeyword', augmentKeyword)
-    ..addToken('extensionKeyword', extensionKeyword)
-    ..addToken('name', name)
-    ..addNode('typeParameters', typeParameters)
-    ..addNode('onClause', onClause)
-    ..addToken('leftBracket', leftBracket)
-    ..addNodeList('members', members)
-    ..addToken('rightBracket', rightBracket);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addToken('augmentKeyword', augmentKeyword)
+        ..addToken('extensionKeyword', extensionKeyword)
+        ..addToken('name', name)
+        ..addNode('typeParameters', typeParameters)
+        ..addNode('onClause', onClause)
+        ..addToken('leftBracket', leftBracket)
+        ..addNodeList('members', members)
+        ..addToken('rightBracket', rightBracket);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
@@ -6783,10 +6640,7 @@ final class ExtensionOnClauseImpl extends AstNodeImpl
   @override
   final TypeAnnotationImpl extendedType;
 
-  ExtensionOnClauseImpl({
-    required this.onKeyword,
-    required this.extendedType,
-  }) {
+  ExtensionOnClauseImpl({required this.onKeyword, required this.extendedType}) {
     _becomeParentOf(extendedType);
   }
 
@@ -6797,9 +6651,10 @@ final class ExtensionOnClauseImpl extends AstNodeImpl
   Token get endToken => extendedType.endToken;
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('onKeyword', onKeyword)
-    ..addNode('extendedType', extendedType);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('onKeyword', onKeyword)
+        ..addNode('extendedType', extendedType);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) {
@@ -6825,13 +6680,9 @@ abstract final class ExtensionOverride implements Expression {
   /// being extended.
   ArgumentList get argumentList;
 
-  /// The forced extension element.
-  @Deprecated('Use element2 instead')
-  ExtensionElement get element;
-
   /// The extension that resolution will use to resolve member references.
   @experimental
-  ExtensionElement2 get element2;
+  ExtensionElement get element2;
 
   /// The actual type extended by this override, produced by applying
   /// [typeArgumentTypes] to the generic type extended by the extension, or
@@ -6886,8 +6737,8 @@ final class ExtensionOverrideImpl extends ExpressionImpl
     required TypeArgumentListImpl? typeArguments,
     required ArgumentListImpl argumentList,
     required this.element2,
-  })  : _typeArguments = typeArguments,
-        _argumentList = argumentList {
+  }) : _typeArguments = typeArguments,
+       _argumentList = argumentList {
     _becomeParentOf(importPrefix);
     _becomeParentOf(_typeArguments);
     _becomeParentOf(_argumentList);
@@ -6902,10 +6753,6 @@ final class ExtensionOverrideImpl extends ExpressionImpl
 
   @override
   Token get beginToken => importPrefix?.name ?? name;
-
-  @Deprecated('Use element2 instead')
-  @override
-  ExtensionElementImpl get element => element2.firstFragment;
 
   @override
   Token get endToken => _argumentList.endToken;
@@ -6928,11 +6775,12 @@ final class ExtensionOverrideImpl extends ExpressionImpl
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNode('importPrefix', importPrefix)
-    ..addToken('name', name)
-    ..addNode('typeArguments', typeArguments)
-    ..addNode('argumentList', argumentList);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addNode('importPrefix', importPrefix)
+        ..addToken('name', name)
+        ..addNode('typeArguments', typeArguments)
+        ..addNode('argumentList', argumentList);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) {
@@ -6970,10 +6818,6 @@ abstract final class ExtensionTypeDeclaration
 
   /// The `const` keyword.
   Token? get constKeyword;
-
-  @Deprecated('Use declaredFragment instead')
-  @override
-  ExtensionTypeElement? get declaredElement;
 
   @experimental
   @override
@@ -7038,7 +6882,7 @@ final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
   final Token rightBracket;
 
   @override
-  ExtensionTypeElementImpl? declaredFragment;
+  ExtensionTypeFragmentImpl? declaredFragment;
 
   ExtensionTypeDeclarationImpl({
     required super.comment,
@@ -7061,10 +6905,6 @@ final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
     this.members._initialize(this, members);
   }
 
-  @Deprecated('Use declaredFragment instead')
-  @override
-  ExtensionTypeElementImpl? get declaredElement => declaredFragment;
-
   @override
   Token get endToken => rightBracket;
 
@@ -7073,18 +6913,19 @@ final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
       augmentKeyword ?? extensionKeyword;
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('augmentKeyword', augmentKeyword)
-    ..addToken('extensionKeyword', extensionKeyword)
-    ..addToken('typeKeyword', typeKeyword)
-    ..addToken('constKeyword', constKeyword)
-    ..addToken('name', name)
-    ..addNode('typeParameters', typeParameters)
-    ..addNode('representation', representation)
-    ..addNode('implementsClause', implementsClause)
-    ..addToken('leftBracket', leftBracket)
-    ..addNodeList('members', members)
-    ..addToken('rightBracket', rightBracket);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addToken('augmentKeyword', augmentKeyword)
+        ..addToken('extensionKeyword', extensionKeyword)
+        ..addToken('typeKeyword', typeKeyword)
+        ..addToken('constKeyword', constKeyword)
+        ..addToken('name', name)
+        ..addNode('typeParameters', typeParameters)
+        ..addNode('representation', representation)
+        ..addNode('implementsClause', implementsClause)
+        ..addToken('leftBracket', leftBracket)
+        ..addNodeList('members', members)
+        ..addToken('rightBracket', rightBracket);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) {
@@ -7190,10 +7031,6 @@ final class FieldDeclarationImpl extends ClassMemberImpl
     _becomeParentOf(_fieldList);
   }
 
-  @Deprecated('Use declaredFragment instead')
-  @override
-  Element? get declaredElement => null;
-
   @override
   Fragment? get declaredFragment => null;
 
@@ -7209,8 +7046,13 @@ final class FieldDeclarationImpl extends ClassMemberImpl
 
   @override
   Token get firstTokenAfterCommentAndMetadata {
-    return Token.lexicallyFirst(abstractKeyword, augmentKeyword,
-            externalKeyword, covariantKeyword, staticKeyword) ??
+    return Token.lexicallyFirst(
+          abstractKeyword,
+          augmentKeyword,
+          externalKeyword,
+          covariantKeyword,
+          staticKeyword,
+        ) ??
         _fieldList.beginToken;
   }
 
@@ -7218,14 +7060,15 @@ final class FieldDeclarationImpl extends ClassMemberImpl
   bool get isStatic => staticKeyword != null;
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('abstractKeyword', abstractKeyword)
-    ..addToken('augmentKeyword', augmentKeyword)
-    ..addToken('covariantKeyword', covariantKeyword)
-    ..addToken('externalKeyword', externalKeyword)
-    ..addToken('staticKeyword', staticKeyword)
-    ..addNode('fields', fields)
-    ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addToken('abstractKeyword', abstractKeyword)
+        ..addToken('augmentKeyword', augmentKeyword)
+        ..addToken('covariantKeyword', covariantKeyword)
+        ..addToken('externalKeyword', externalKeyword)
+        ..addToken('staticKeyword', staticKeyword)
+        ..addNode('fields', fields)
+        ..addToken('semicolon', semicolon);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitFieldDeclaration(this);
@@ -7335,17 +7178,17 @@ final class FieldFormalParameterImpl extends NormalFormalParameterImpl
     required TypeParameterListImpl? typeParameters,
     required FormalParameterListImpl? parameters,
     required this.question,
-  })  : _type = type,
-        _typeParameters = typeParameters,
-        _parameters = parameters {
+  }) : _type = type,
+       _typeParameters = typeParameters,
+       _parameters = parameters {
     _becomeParentOf(_type);
     _becomeParentOf(_typeParameters);
     _becomeParentOf(_parameters);
   }
 
   @override
-  FieldFormalParameterElementImpl? get declaredFragment {
-    return super.declaredFragment as FieldFormalParameterElementImpl?;
+  FieldFormalParameterFragmentImpl? get declaredFragment {
+    return super.declaredFragment as FieldFormalParameterFragmentImpl?;
   }
 
   @override
@@ -7395,14 +7238,15 @@ final class FieldFormalParameterImpl extends NormalFormalParameterImpl
   }
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('keyword', keyword)
-    ..addNode('type', type)
-    ..addToken('thisKeyword', thisKeyword)
-    ..addToken('period', period)
-    ..addToken('name', name)
-    ..addNode('typeParameters', typeParameters)
-    ..addNode('parameters', parameters);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addToken('keyword', keyword)
+        ..addNode('type', type)
+        ..addToken('thisKeyword', thisKeyword)
+        ..addToken('period', period)
+        ..addToken('name', name)
+        ..addNode('typeParameters', typeParameters)
+        ..addNode('parameters', parameters);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
@@ -7435,10 +7279,8 @@ sealed class ForEachPartsImpl extends ForLoopPartsImpl implements ForEachParts {
 
   /// Initializes a newly created for-each statement whose loop control variable
   /// is declared internally (in the for-loop part).
-  ForEachPartsImpl({
-    required this.inKeyword,
-    required ExpressionImpl iterable,
-  }) : _iterable = iterable {
+  ForEachPartsImpl({required this.inKeyword, required ExpressionImpl iterable})
+    : _iterable = iterable {
     _becomeParentOf(_iterable);
   }
 
@@ -7456,9 +7298,10 @@ sealed class ForEachPartsImpl extends ForLoopPartsImpl implements ForEachParts {
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('inKeyword', inKeyword)
-    ..addNode('iterable', iterable);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('inKeyword', inKeyword)
+        ..addNode('iterable', iterable);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -7502,9 +7345,10 @@ final class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNode('loopVariable', loopVariable)
-    ..addAll(super._childEntities);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addNode('loopVariable', loopVariable)
+        ..addAll(super._childEntities);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
@@ -7553,9 +7397,10 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNode('identifier', identifier)
-    ..addAll(super._childEntities);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addNode('identifier', identifier)
+        ..addAll(super._childEntities);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
@@ -7595,7 +7440,7 @@ final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
   final DartPatternImpl pattern;
 
   /// Variables declared in [pattern].
-  late final List<BindPatternVariableElementImpl> variables;
+  late final List<BindPatternVariableFragmentImpl> variables;
 
   ForEachPartsWithPatternImpl({
     required List<AnnotationImpl>? metadata,
@@ -7629,11 +7474,12 @@ final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
   NodeListImpl<AnnotationImpl> get metadata => _metadata;
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNodeList('metadata', metadata)
-    ..addToken('keyword', keyword)
-    ..addNode('pattern', pattern)
-    ..addAll(super._childEntities);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addNodeList('metadata', metadata)
+        ..addToken('keyword', keyword)
+        ..addNode('pattern', pattern)
+        ..addAll(super._childEntities);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
@@ -7649,30 +7495,14 @@ final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
 
 /// The basic structure of a for element.
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class ForElement implements CollectionElement {
-  /// The token representing the `await` keyword, or `null` if there was no
-  /// `await` keyword.
-  Token? get awaitKeyword;
-
-  /// The body of the loop.
-  CollectionElement get body;
-
-  /// The token representing the `for` keyword.
-  Token get forKeyword;
-
-  /// The parts of the for element that control the iteration.
-  ForLoopParts get forLoopParts;
-
-  /// The left parenthesis.
-  Token get leftParenthesis;
-
-  /// The right parenthesis.
-  Token get rightParenthesis;
-}
+abstract final class ForElement
+    implements CollectionElement, ForLoop<CollectionElement> {}
 
 final class ForElementImpl extends CollectionElementImpl
     with AstNodeWithNameScopeMixin
-    implements ForElement {
+    implements
+        ForElement,
+        ForLoopImpl<CollectionElement, CollectionElementImpl> {
   @override
   final Token? awaitKeyword;
 
@@ -7697,8 +7527,8 @@ final class ForElementImpl extends CollectionElementImpl
     required ForLoopPartsImpl forLoopParts,
     required this.rightParenthesis,
     required CollectionElementImpl body,
-  })  : _forLoopParts = forLoopParts,
-        _body = body {
+  }) : _forLoopParts = forLoopParts,
+       _body = body {
     _becomeParentOf(_forLoopParts);
     _becomeParentOf(_body);
   }
@@ -7724,20 +7554,23 @@ final class ForElementImpl extends CollectionElementImpl
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('awaitKeyword', awaitKeyword)
-    ..addToken('forKeyword', forKeyword)
-    ..addToken('leftParenthesis', leftParenthesis)
-    ..addNode('forLoopParts', forLoopParts)
-    ..addToken('rightParenthesis', rightParenthesis)
-    ..addNode('body', body);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('awaitKeyword', awaitKeyword)
+        ..addToken('forKeyword', forKeyword)
+        ..addToken('leftParenthesis', leftParenthesis)
+        ..addNode('forLoopParts', forLoopParts)
+        ..addToken('rightParenthesis', rightParenthesis)
+        ..addNode('body', body);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitForElement(this);
 
   @override
   void resolveElement(
-      ResolverVisitor resolver, CollectionLiteralContext? context) {
+    ResolverVisitor resolver,
+    CollectionLiteralContext? context,
+  ) {
     resolver.visitForElement(this, context: context);
     resolver.pushRewrite(null);
   }
@@ -7747,6 +7580,35 @@ final class ForElementImpl extends CollectionElementImpl
     _forLoopParts.accept(visitor);
     _body.accept(visitor);
   }
+}
+
+/// A for or for-each statement or collection element.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+sealed class ForLoop<Body extends AstNode> implements AstNode {
+  /// The token representing the `await` keyword, or `null` if there's no
+  /// `await` keyword.
+  Token? get awaitKeyword;
+
+  /// The body of the loop.
+  Body get body;
+
+  /// The token representing the `for` keyword.
+  Token get forKeyword;
+
+  /// The parts of the for element that control the iteration.
+  ForLoopParts get forLoopParts;
+
+  /// The left parenthesis.
+  Token get leftParenthesis;
+
+  /// The right parenthesis.
+  Token get rightParenthesis;
+}
+
+sealed class ForLoopImpl<Body extends AstNode, BodyImpl extends Body>
+    implements AstNodeImpl, ForLoop<Body> {
+  @override
+  BodyImpl get body;
 }
 
 /// The parts of a for or for-each loop that control the iteration.
@@ -7760,9 +7622,15 @@ final class ForElementImpl extends CollectionElementImpl
 ///   expressionList ::=
 ///       [Expression] (',' [Expression])*
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-sealed class ForLoopParts implements AstNode {}
+sealed class ForLoopParts implements AstNode {
+  @override
+  ForLoop get parent;
+}
 
-sealed class ForLoopPartsImpl extends AstNodeImpl implements ForLoopParts {}
+sealed class ForLoopPartsImpl extends AstNodeImpl implements ForLoopParts {
+  @override
+  ForLoopImpl get parent => super.parent as ForLoopImpl;
+}
 
 /// A node representing a parameter to a function.
 ///
@@ -7773,11 +7641,6 @@ sealed class ForLoopPartsImpl extends AstNodeImpl implements ForLoopParts {}
 sealed class FormalParameter implements AstNode {
   /// The `covariant` keyword, or `null` if the keyword isn't used.
   Token? get covariantKeyword;
-
-  /// The element representing this parameter, or `null` if this parameter
-  /// hasn't been resolved.
-  @Deprecated('Use declaredFragment instead')
-  ParameterElement? get declaredElement;
 
   ///The fragment declared by this parameter.
   ///
@@ -7851,11 +7714,7 @@ sealed class FormalParameterImpl extends AstNodeImpl
     implements FormalParameter {
   @experimental
   @override
-  ParameterElementImpl? declaredFragment;
-
-  @Deprecated('Use declaredFragment instead')
-  @override
-  ParameterElementImpl? get declaredElement => declaredFragment;
+  FormalParameterFragmentImpl? declaredFragment;
 
   @override
   bool get isNamed => kind.isNamed;
@@ -7924,13 +7783,6 @@ abstract final class FormalParameterList implements AstNode {
   /// The left parenthesis.
   Token get leftParenthesis;
 
-  /// A list containing the elements representing the parameters in this list.
-  ///
-  /// The list contains `null`s if the parameters in this list haven't been
-  /// resolved.
-  @Deprecated('Use parameterFragments instead')
-  List<ParameterElement?> get parameterElements;
-
   /// A list containing the fragments representing the parameters in this list.
   ///
   /// The list contains `null`s if the parameters in this list haven't been
@@ -7987,20 +7839,11 @@ final class FormalParameterListImpl extends AstNodeImpl
   @override
   Token get endToken => rightParenthesis;
 
-  @override
-  List<ParameterElementImpl?> get parameterElements {
-    int count = _parameters.length;
-    var types = <ParameterElementImpl?>[];
-    for (int i = 0; i < count; i++) {
-      types.add(_parameters[i].declaredFragment);
-    }
-    return types;
-  }
-
   @experimental
   @override
-  List<FormalParameterFragment?> get parameterFragments =>
-      parameterElements.cast<FormalParameterFragment?>();
+  List<FormalParameterFragmentImpl?> get parameterFragments {
+    return _parameters.map((node) => node.declaredFragment).toList();
+  }
 
   @override
   NodeListImpl<FormalParameterImpl> get parameters => _parameters;
@@ -8096,11 +7939,12 @@ sealed class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
   NodeListImpl<ExpressionImpl> get updaters => _updaters;
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('leftSeparator', leftSeparator)
-    ..addNode('condition', condition)
-    ..addToken('rightSeparator', rightSeparator)
-    ..addNodeList('updaters', updaters);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('leftSeparator', leftSeparator)
+        ..addNode('condition', condition)
+        ..addToken('rightSeparator', rightSeparator)
+        ..addNodeList('updaters', updaters);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -8145,14 +7989,16 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
   VariableDeclarationListImpl get variables => _variableList;
 
   set variables(VariableDeclarationListImpl? variableList) {
-    _variableList =
-        _becomeParentOf(variableList as VariableDeclarationListImpl);
+    _variableList = _becomeParentOf(
+      variableList as VariableDeclarationListImpl,
+    );
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNode('variables', variables)
-    ..addAll(super._childEntities);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addNode('variables', variables)
+        ..addAll(super._childEntities);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
@@ -8209,9 +8055,10 @@ final class ForPartsWithExpressionImpl extends ForPartsImpl
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNode('initialization', initialization)
-    ..addAll(super._childEntities);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addNode('initialization', initialization)
+        ..addAll(super._childEntities);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
@@ -8254,9 +8101,10 @@ final class ForPartsWithPatternImpl extends ForPartsImpl
   Token get beginToken => variables.beginToken;
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNode('variables', variables)
-    ..addAll(super._childEntities);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addNode('variables', variables)
+        ..addAll(super._childEntities);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitForPartsWithPattern(this);
@@ -8279,30 +8127,11 @@ final class ForPartsWithPatternImpl extends ForPartsImpl
 ///     | [DeclaredIdentifier] 'in' [Expression]
 ///     | [SimpleIdentifier] 'in' [Expression]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class ForStatement implements Statement {
-  /// The token representing the `await` keyword, or `null` if there's no
-  /// `await` keyword.
-  Token? get awaitKeyword;
-
-  /// The body of the loop.
-  Statement get body;
-
-  /// The token representing the `for` keyword.
-  Token get forKeyword;
-
-  /// The parts of the for element that control the iteration.
-  ForLoopParts get forLoopParts;
-
-  /// The left parenthesis.
-  Token get leftParenthesis;
-
-  /// The right parenthesis.
-  Token get rightParenthesis;
-}
+abstract final class ForStatement implements Statement, ForLoop<Statement> {}
 
 final class ForStatementImpl extends StatementImpl
     with AstNodeWithNameScopeMixin
-    implements ForStatement {
+    implements ForStatement, ForLoopImpl<Statement, StatementImpl> {
   @override
   final Token? awaitKeyword;
 
@@ -8327,8 +8156,8 @@ final class ForStatementImpl extends StatementImpl
     required ForLoopPartsImpl forLoopParts,
     required this.rightParenthesis,
     required StatementImpl body,
-  })  : _forLoopParts = forLoopParts,
-        _body = body {
+  }) : _forLoopParts = forLoopParts,
+       _body = body {
     _becomeParentOf(_forLoopParts);
     _becomeParentOf(_body);
   }
@@ -8354,13 +8183,14 @@ final class ForStatementImpl extends StatementImpl
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('awaitKeyword', awaitKeyword)
-    ..addToken('forKeyword', forKeyword)
-    ..addToken('leftParenthesis', leftParenthesis)
-    ..addNode('forLoopParts', forLoopParts)
-    ..addToken('rightParenthesis', rightParenthesis)
-    ..addNode('body', body);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('awaitKeyword', awaitKeyword)
+        ..addToken('forKeyword', forKeyword)
+        ..addToken('leftParenthesis', leftParenthesis)
+        ..addNode('forLoopParts', forLoopParts)
+        ..addToken('rightParenthesis', rightParenthesis)
+        ..addNode('body', body);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitForStatement(this);
@@ -8407,20 +8237,8 @@ sealed class FunctionBody implements AstNode {
   /// level function or method containing this [FunctionBody], return `false`.
   ///
   /// Throws an exception if resolution hasn't been performed.
-  @Deprecated('Use isPotentiallyMutatedInScope2 instead')
-  bool isPotentiallyMutatedInScope(VariableElement variable);
-
-  /// If [variable] is a local variable or parameter declared anywhere within
-  /// the top level function or method containing this [FunctionBody], return a
-  /// boolean indicating whether [variable] is potentially mutated within the
-  /// scope of its declaration.
-  ///
-  /// If [variable] isn't a local variable or parameter declared within the top
-  /// level function or method containing this [FunctionBody], return `false`.
-  ///
-  /// Throws an exception if resolution hasn't been performed.
   @experimental
-  bool isPotentiallyMutatedInScope2(VariableElement2 variable);
+  bool isPotentiallyMutatedInScope2(VariableElement variable);
 }
 
 sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
@@ -8448,15 +8266,8 @@ sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
   @override
   Token? get star => null;
 
-  @Deprecated('Use isPotentiallyMutatedInScope2 instead')
   @override
-  bool isPotentiallyMutatedInScope(VariableElement variable) {
-    var v2 = (variable as VariableElementImpl).element;
-    return isPotentiallyMutatedInScope2(v2);
-  }
-
-  @override
-  bool isPotentiallyMutatedInScope2(VariableElement2 variable) {
+  bool isPotentiallyMutatedInScope2(VariableElement variable) {
     if (localVariableInfo == null) {
       throw StateError('Resolution has not been performed');
     }
@@ -8490,14 +8301,6 @@ abstract final class FunctionDeclaration implements NamedCompilationUnitMember {
   /// The `augment` keyword, or `null` if there is no `augment` keyword.
   @experimental
   Token? get augmentKeyword;
-
-  /// The element defined by this declaration.
-  ///
-  /// Returns `null` if the AST structure hasn't been resolved or if this node
-  /// represents a top-level function.
-  @Deprecated('Use declaredFragment instead')
-  @override
-  ExecutableElement? get declaredElement;
 
   /// The fragment declared by this declaration.
   ///
@@ -8545,7 +8348,7 @@ final class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
   FunctionExpressionImpl _functionExpression;
 
   @override
-  ExecutableElementImpl? declaredFragment;
+  ExecutableFragmentImpl? declaredFragment;
 
   /// Initializes a newly created function declaration.
   ///
@@ -8568,16 +8371,10 @@ final class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
     required this.propertyKeyword,
     required super.name,
     required FunctionExpressionImpl functionExpression,
-  })  : _returnType = returnType,
-        _functionExpression = functionExpression {
+  }) : _returnType = returnType,
+       _functionExpression = functionExpression {
     _becomeParentOf(_returnType);
     _becomeParentOf(_functionExpression);
-  }
-
-  @Deprecated('Use declaredFragment instead')
-  @override
-  ExecutableElementImpl? get declaredElement {
-    return declaredFragment;
   }
 
   @override
@@ -8613,13 +8410,14 @@ final class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
   }
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('augmentKeyword', augmentKeyword)
-    ..addToken('externalKeyword', externalKeyword)
-    ..addNode('returnType', returnType)
-    ..addToken('propertyKeyword', propertyKeyword)
-    ..addToken('name', name)
-    ..addNode('functionExpression', functionExpression);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addToken('augmentKeyword', augmentKeyword)
+        ..addToken('externalKeyword', externalKeyword)
+        ..addNode('returnType', returnType)
+        ..addToken('propertyKeyword', propertyKeyword)
+        ..addToken('name', name)
+        ..addNode('functionExpression', functionExpression);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitFunctionDeclaration(this);
@@ -8686,11 +8484,6 @@ abstract final class FunctionExpression implements Expression {
   /// The body of the function.
   FunctionBody get body;
 
-  /// The element associated with the function, or `null` if the AST structure
-  /// hasn't been resolved.
-  @Deprecated('Use declaredFragment instead')
-  ExecutableElement? get declaredElement;
-
   /// The fragment declared by this function expression.
   ///
   /// Returns `null` if the AST structure hasn't been resolved.
@@ -8724,16 +8517,16 @@ final class FunctionExpressionImpl extends ExpressionImpl
   bool wasFunctionTypeSupplied = false;
 
   @override
-  ExecutableElementImpl? declaredFragment;
+  ExecutableFragmentImpl? declaredFragment;
 
   /// Initializes a newly created function declaration.
   FunctionExpressionImpl({
     required TypeParameterListImpl? typeParameters,
     required FormalParameterListImpl? parameters,
     required FunctionBodyImpl body,
-  })  : _typeParameters = typeParameters,
-        _parameters = parameters,
-        _body = body {
+  }) : _typeParameters = typeParameters,
+       _parameters = parameters,
+       _body = body {
     _becomeParentOf(_typeParameters);
     _becomeParentOf(_parameters);
     _becomeParentOf(_body);
@@ -8755,10 +8548,6 @@ final class FunctionExpressionImpl extends ExpressionImpl
   set body(FunctionBodyImpl functionBody) {
     _body = _becomeParentOf(functionBody);
   }
-
-  @Deprecated('Use declaredFragment instead')
-  @override
-  ExecutableElementImpl? get declaredElement => declaredFragment;
 
   @override
   Token get endToken {
@@ -8783,10 +8572,11 @@ final class FunctionExpressionImpl extends ExpressionImpl
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNode('typeParameters', typeParameters)
-    ..addNode('parameters', parameters)
-    ..addNode('body', body);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addNode('typeParameters', typeParameters)
+        ..addNode('parameters', parameters)
+        ..addNode('body', body);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitFunctionExpression(this);
@@ -8821,26 +8611,20 @@ abstract final class FunctionExpressionInvocation
   /// Returns `null` if the AST structure hasn't been resolved or the function
   /// couldn't be resolved.
   @experimental
-  ExecutableElement2? get element;
+  ExecutableElement? get element;
 
   /// The expression producing the function being invoked.
   @override
   Expression get function;
-
-  /// The element associated with the function being invoked based on static
-  /// type information, or `null` if the AST structure hasn't been resolved or
-  /// the function couldn't be resolved.
-  @Deprecated('Use element instead')
-  ExecutableElement? get staticElement;
 }
 
 final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
     with NullShortableExpressionImpl
-    implements FunctionExpressionInvocation {
+    implements FunctionExpressionInvocation, RewrittenMethodInvocationImpl {
   ExpressionImpl _function;
 
   @override
-  ExecutableElement2? element;
+  ExecutableElement? element;
 
   /// Initializes a newly created function expression invocation.
   FunctionExpressionInvocationImpl({
@@ -8867,17 +8651,12 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   @override
   Precedence get precedence => Precedence.postfix;
 
-  @Deprecated('Use element instead')
   @override
-  ExecutableElement? get staticElement {
-    return element?.asElement;
-  }
-
-  @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNode('function', function)
-    ..addNode('typeArguments', typeArguments)
-    ..addNode('argumentList', argumentList);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addNode('function', function)
+        ..addNode('typeArguments', typeArguments)
+        ..addNode('argumentList', argumentList);
 
   @override
   AstNode? get _nullShortingExtensionCandidate => parent;
@@ -8914,9 +8693,10 @@ abstract final class FunctionReference
   ///
   /// In error-free code, this is either a [SimpleIdentifier] (indicating a
   /// function that is in scope), a [PrefixedIdentifier] (indicating a either
-  /// function imported via prefix or a static method in a class), or a
+  /// function imported via prefix or a static method in a class), a
   /// [PropertyAccess] (indicating a static method in a class imported via
-  /// prefix). In code with errors, this could be other kinds of expressions.
+  /// prefix), or a [DotShorthandPropertyAccess] (indicating a static method in
+  /// a class). In code with errors, this could be other kinds of expressions.
   /// For example, `(...)<int>` parses as a [FunctionReference] whose referent
   /// is a [ParenthesizedExpression].
   Expression get function;
@@ -8934,6 +8714,7 @@ abstract final class FunctionReference
 }
 
 final class FunctionReferenceImpl extends CommentReferableExpressionImpl
+    with DotShorthandMixin
     implements FunctionReference {
   ExpressionImpl _function;
 
@@ -8945,8 +8726,8 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
   FunctionReferenceImpl({
     required ExpressionImpl function,
     required TypeArgumentListImpl? typeArguments,
-  })  : _function = function,
-        _typeArguments = typeArguments {
+  }) : _function = function,
+       _typeArguments = typeArguments {
     _becomeParentOf(_function);
     _becomeParentOf(_typeArguments);
   }
@@ -8976,9 +8757,10 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNode('function', function)
-    ..addNode('typeArguments', typeArguments);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addNode('function', function)
+        ..addNode('typeArguments', typeArguments);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitFunctionReference(this);
@@ -9005,10 +8787,6 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
 ///        [TypeAnnotation]? [SimpleIdentifier]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class FunctionTypeAlias implements TypeAlias {
-  @Deprecated('Use declaredFragment instead')
-  @override
-  TypeAliasElement? get declaredElement;
-
   @experimental
   @override
   TypeAliasFragment? get declaredFragment;
@@ -9034,7 +8812,7 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
   FormalParameterListImpl _parameters;
 
   @override
-  TypeAliasElementImpl? declaredFragment;
+  TypeAliasFragmentImpl? declaredFragment;
 
   /// Initializes a newly created function type alias.
   ///
@@ -9054,17 +8832,13 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
     required TypeParameterListImpl? typeParameters,
     required FormalParameterListImpl parameters,
     required super.semicolon,
-  })  : _returnType = returnType,
-        _typeParameters = typeParameters,
-        _parameters = parameters {
+  }) : _returnType = returnType,
+       _typeParameters = typeParameters,
+       _parameters = parameters {
     _becomeParentOf(_returnType);
     _becomeParentOf(_typeParameters);
     _becomeParentOf(_parameters);
   }
-
-  @Deprecated('Use declaredFragment instead')
-  @override
-  TypeAliasElementImpl? get declaredElement => declaredFragment;
 
   @override
   FormalParameterListImpl get parameters => _parameters;
@@ -9088,14 +8862,15 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
   }
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('augmentKeyword', augmentKeyword)
-    ..addToken('typedefKeyword', typedefKeyword)
-    ..addNode('returnType', returnType)
-    ..addToken('name', name)
-    ..addNode('typeParameters', typeParameters)
-    ..addNode('parameters', parameters)
-    ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addToken('augmentKeyword', augmentKeyword)
+        ..addToken('typedefKeyword', typedefKeyword)
+        ..addNode('returnType', returnType)
+        ..addToken('name', name)
+        ..addNode('typeParameters', typeParameters)
+        ..addNode('parameters', parameters)
+        ..addToken('semicolon', semicolon);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitFunctionTypeAlias(this);
@@ -9165,9 +8940,9 @@ final class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
     required TypeParameterListImpl? typeParameters,
     required FormalParameterListImpl parameters,
     required this.question,
-  })  : _returnType = returnType,
-        _typeParameters = typeParameters,
-        _parameters = parameters {
+  }) : _returnType = returnType,
+       _typeParameters = typeParameters,
+       _parameters = parameters {
     _becomeParentOf(_returnType);
     _becomeParentOf(_typeParameters);
     _becomeParentOf(_parameters);
@@ -9214,10 +8989,11 @@ final class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
   }
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addNode('returnType', returnType)
-    ..addToken('name', name)
-    ..addNode('parameters', parameters);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addNode('returnType', returnType)
+        ..addToken('name', name)
+        ..addNode('parameters', parameters);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
@@ -9303,7 +9079,7 @@ final class GenericFunctionTypeImpl extends TypeAnnotationImpl
   /// The element associated with the function type, or `null` if the AST
   /// structure hasn't been resolved.
   @override
-  GenericFunctionTypeElementImpl? declaredFragment;
+  GenericFunctionTypeFragmentImpl? declaredFragment;
 
   /// Initializes a newly created generic function type.
   GenericFunctionTypeImpl({
@@ -9312,9 +9088,9 @@ final class GenericFunctionTypeImpl extends TypeAnnotationImpl
     required TypeParameterListImpl? typeParameters,
     required FormalParameterListImpl parameters,
     required this.question,
-  })  : _returnType = returnType,
-        _typeParameters = typeParameters,
-        _parameters = parameters {
+  }) : _returnType = returnType,
+       _typeParameters = typeParameters,
+       _parameters = parameters {
     _becomeParentOf(_returnType);
     _becomeParentOf(_typeParameters);
     _becomeParentOf(_parameters);
@@ -9348,12 +9124,13 @@ final class GenericFunctionTypeImpl extends TypeAnnotationImpl
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNode('returnType', returnType)
-    ..addToken('functionKeyword', functionKeyword)
-    ..addNode('typeParameters', typeParameters)
-    ..addNode('parameters', parameters)
-    ..addToken('question', question);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addNode('returnType', returnType)
+        ..addToken('functionKeyword', functionKeyword)
+        ..addNode('typeParameters', typeParameters)
+        ..addNode('parameters', parameters)
+        ..addToken('question', question);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) {
@@ -9402,7 +9179,7 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
   final Token equals;
 
   @override
-  TypeAliasElementImpl? declaredFragment;
+  TypeAliasFragmentImpl? declaredFragment;
 
   /// Initializes a newly created generic type alias.
   ///
@@ -9420,15 +9197,11 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
     required this.equals,
     required TypeAnnotationImpl type,
     required super.semicolon,
-  })  : _typeParameters = typeParameters,
-        _type = type {
+  }) : _typeParameters = typeParameters,
+       _type = type {
     _becomeParentOf(_typeParameters);
     _becomeParentOf(_type);
   }
-
-  @Deprecated('Use declaredFragment instead')
-  @override
-  TypeAliasElementImpl? get declaredElement => declaredFragment;
 
   @override
   GenericFunctionType? get functionType {
@@ -9455,13 +9228,14 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
   }
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('augmentKeyword', augmentKeyword)
-    ..addToken('typedefKeyword', typedefKeyword)
-    ..addToken('name', name)
-    ..addNode('typeParameters', typeParameters)
-    ..addToken('equals', equals)
-    ..addNode('type', type);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addToken('augmentKeyword', augmentKeyword)
+        ..addToken('typedefKeyword', typedefKeyword)
+        ..addToken('name', name)
+        ..addNode('typeParameters', typeParameters)
+        ..addToken('equals', equals)
+        ..addNode('type', type);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) {
@@ -9500,10 +9274,7 @@ final class GuardedPatternImpl extends AstNodeImpl implements GuardedPattern {
   @override
   final WhenClauseImpl? whenClause;
 
-  GuardedPatternImpl({
-    required this.pattern,
-    required this.whenClause,
-  }) {
+  GuardedPatternImpl({required this.pattern, required this.whenClause}) {
     _becomeParentOf(pattern);
     _becomeParentOf(whenClause);
   }
@@ -9515,9 +9286,10 @@ final class GuardedPatternImpl extends AstNodeImpl implements GuardedPattern {
   Token get endToken => whenClause?.endToken ?? pattern.endToken;
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addNode('pattern', pattern)
-    ..addNode('whenClause', whenClause);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addNode('pattern', pattern)
+        ..addNode('whenClause', whenClause);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitGuardedPattern(this);
@@ -9559,9 +9331,10 @@ final class HideCombinatorImpl extends CombinatorImpl
   NodeListImpl<SimpleIdentifierImpl> get hiddenNames => _hiddenNames;
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('keyword', keyword)
-    ..addNodeList('hiddenNames', hiddenNames);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('keyword', keyword)
+        ..addNodeList('hiddenNames', hiddenNames);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitHideCombinator(this);
@@ -9586,17 +9359,10 @@ sealed class Identifier implements Expression, CommentReferableExpression {
   /// identifier couldn't be resolved. One example of the latter case is an
   /// identifier that isn't defined within the scope in which it appears.
   @experimental
-  Element2? get element;
+  Element? get element;
 
   /// The lexical representation of the identifier.
   String get name;
-
-  /// The element associated with this identifier based on static type
-  /// information, or `null` if the AST structure hasn't been resolved or if
-  /// this identifier couldn't be resolved. One example of the latter case is an
-  /// identifier that isn't defined within the scope in which it appears.
-  @Deprecated('Use element instead')
-  Element? get staticElement;
 
   /// Returns `true` if the given [name] is visible only within the library in
   /// which it's declared.
@@ -9607,12 +9373,6 @@ sealed class IdentifierImpl extends CommentReferableExpressionImpl
     implements Identifier {
   @override
   bool get isAssignable => true;
-
-  @Deprecated('Use element instead')
-  @override
-  Element? get staticElement {
-    return element?.asElement;
-  }
 }
 
 /// The basic structure of an if element.
@@ -9680,9 +9440,9 @@ final class IfElementImpl extends CollectionElementImpl
     required CollectionElementImpl thenElement,
     required this.elseKeyword,
     required CollectionElementImpl? elseElement,
-  })  : _expression = expression,
-        _thenElement = thenElement,
-        _elseElement = elseElement {
+  }) : _expression = expression,
+       _thenElement = thenElement,
+       _elseElement = elseElement {
     _becomeParentOf(_expression);
     _becomeParentOf(caseClause);
     _becomeParentOf(_thenElement);
@@ -9723,22 +9483,25 @@ final class IfElementImpl extends CollectionElementImpl
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('ifKeyword', ifKeyword)
-    ..addToken('leftParenthesis', leftParenthesis)
-    ..addNode('expression', expression)
-    ..addNode('caseClause', caseClause)
-    ..addToken('rightParenthesis', rightParenthesis)
-    ..addNode('thenElement', thenElement)
-    ..addToken('elseKeyword', elseKeyword)
-    ..addNode('elseElement', elseElement);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('ifKeyword', ifKeyword)
+        ..addToken('leftParenthesis', leftParenthesis)
+        ..addNode('expression', expression)
+        ..addNode('caseClause', caseClause)
+        ..addToken('rightParenthesis', rightParenthesis)
+        ..addNode('thenElement', thenElement)
+        ..addToken('elseKeyword', elseKeyword)
+        ..addNode('elseElement', elseElement);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitIfElement(this);
 
   @override
   void resolveElement(
-      ResolverVisitor resolver, CollectionLiteralContext? context) {
+    ResolverVisitor resolver,
+    CollectionLiteralContext? context,
+  ) {
     resolver.visitIfElement(this, context: context);
     resolver.pushRewrite(null);
   }
@@ -9842,9 +9605,9 @@ final class IfStatementImpl extends StatementImpl
     required StatementImpl thenStatement,
     required this.elseKeyword,
     required StatementImpl? elseStatement,
-  })  : _expression = expression,
-        _thenStatement = thenStatement,
-        _elseStatement = elseStatement {
+  }) : _expression = expression,
+       _thenStatement = thenStatement,
+       _elseStatement = elseStatement {
     _becomeParentOf(_expression);
     _becomeParentOf(caseClause);
     _becomeParentOf(_thenStatement);
@@ -9890,15 +9653,16 @@ final class IfStatementImpl extends StatementImpl
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('ifKeyword', ifKeyword)
-    ..addToken('leftParenthesis', leftParenthesis)
-    ..addNode('expression', expression)
-    ..addNode('caseClause', caseClause)
-    ..addToken('rightParenthesis', rightParenthesis)
-    ..addNode('thenStatement', thenStatement)
-    ..addToken('elseKeyword', elseKeyword)
-    ..addNode('elseStatement', elseStatement);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('ifKeyword', ifKeyword)
+        ..addToken('leftParenthesis', leftParenthesis)
+        ..addNode('expression', expression)
+        ..addNode('caseClause', caseClause)
+        ..addToken('rightParenthesis', rightParenthesis)
+        ..addNode('thenStatement', thenStatement)
+        ..addToken('elseKeyword', elseKeyword)
+        ..addNode('elseStatement', elseStatement);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitIfStatement(this);
@@ -9951,9 +9715,10 @@ final class ImplementsClauseImpl extends AstNodeImpl
 
   @override
   // TODO(paulberry): add commas.
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('implementsKeyword', implementsKeyword)
-    ..addNodeList('interfaces', interfaces);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('implementsKeyword', implementsKeyword)
+        ..addNodeList('interfaces', interfaces);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitImplementsClause(this);
@@ -9974,12 +9739,6 @@ abstract final class ImplicitCallReference
     implements MethodReferenceExpression {
   /// The expression from which a `call` method is being referenced.
   Expression get expression;
-
-  /// The element associated with the implicit `call` reference based on the
-  /// static types.
-  @Deprecated('Use element instead')
-  @override
-  MethodElement get staticElement;
 
   /// The type arguments being applied to the tear-off, or `null` if there are
   /// no type arguments.
@@ -10002,15 +9761,15 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
   List<DartType> typeArgumentTypes;
 
   @override
-  MethodElement2 element;
+  MethodElement element;
 
   ImplicitCallReferenceImpl({
     required ExpressionImpl expression,
     required this.element,
     required TypeArgumentListImpl? typeArguments,
     required this.typeArgumentTypes,
-  })  : _expression = expression,
-        _typeArguments = typeArguments {
+  }) : _expression = expression,
+       _typeArguments = typeArguments {
     _becomeParentOf(_expression);
     _becomeParentOf(_typeArguments);
   }
@@ -10032,10 +9791,6 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
   Precedence get precedence =>
       typeArguments == null ? expression.precedence : Precedence.postfix;
 
-  @Deprecated('Use element instead')
-  @override
-  MethodElement get staticElement => element.asElement;
-
   @override
   TypeArgumentListImpl? get typeArguments => _typeArguments;
 
@@ -10044,9 +9799,10 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNode('expression', expression)
-    ..addNode('typeArguments', typeArguments);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addNode('expression', expression)
+        ..addNode('typeArguments', typeArguments);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) {
@@ -10081,12 +9837,6 @@ abstract final class ImportDirective implements NamespaceDirective {
   /// The token representing the `deferred` keyword, or `null` if the imported
   /// URI isn't deferred.
   Token? get deferredKeyword;
-
-  /// The element associated with this directive, or `null` if the AST structure
-  /// hasn't been resolved.
-  @Deprecated('Use libraryImport instead')
-  @override
-  LibraryImportElement? get element;
 
   /// The token representing the `import` keyword.
   Token get importKeyword;
@@ -10141,18 +9891,13 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
     _becomeParentOf(_prefix);
   }
 
-  @Deprecated('Use element instead')
-  @override
-  LibraryImportElementImpl? get element =>
-      super.element as LibraryImportElementImpl?;
-
   @override
   Token get firstTokenAfterCommentAndMetadata => importKeyword;
 
   @experimental
   @override
   LibraryImportElementImpl? get libraryImport {
-    return _element as LibraryImportElementImpl?;
+    return element as LibraryImportElementImpl?;
   }
 
   @override
@@ -10163,15 +9908,16 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
   }
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('importKeyword', importKeyword)
-    ..addNode('uri', uri)
-    ..addToken('deferredKeyword', deferredKeyword)
-    ..addToken('asKeyword', asKeyword)
-    ..addNode('prefix', prefix)
-    ..addNodeList('combinators', combinators)
-    ..addNodeList('configurations', configurations)
-    ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addToken('importKeyword', importKeyword)
+        ..addNode('uri', uri)
+        ..addToken('deferredKeyword', deferredKeyword)
+        ..addToken('asKeyword', asKeyword)
+        ..addNode('prefix', prefix)
+        ..addNodeList('combinators', combinators)
+        ..addNodeList('configurations', configurations)
+        ..addToken('semicolon', semicolon);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitImportDirective(this);
@@ -10247,14 +9993,8 @@ abstract final class ImportPrefixReference implements AstNode {
   /// The element to which [name] is resolved.
   ///
   /// Usually a [PrefixElement], but can be anything in invalid code.
-  @Deprecated('Use element2 instead')
-  Element? get element;
-
-  /// The element to which [name] is resolved.
-  ///
-  /// Usually a [PrefixElement2], but can be anything in invalid code.
   @experimental
-  Element2? get element2;
+  Element? get element2;
 
   /// The name of the referenced import prefix.
   Token get name;
@@ -10272,29 +10012,21 @@ final class ImportPrefixReferenceImpl extends AstNodeImpl
   final Token period;
 
   @override
-  Element2? element2;
+  Element? element2;
 
-  ImportPrefixReferenceImpl({
-    required this.name,
-    required this.period,
-  });
+  ImportPrefixReferenceImpl({required this.name, required this.period});
 
   @override
   Token get beginToken => name;
-
-  @Deprecated('Use element2 instead')
-  @override
-  Element? get element {
-    return element2?.asElement;
-  }
 
   @override
   Token get endToken => period;
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('name', name)
-    ..addToken('period', period);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('name', name)
+        ..addToken('period', period);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) {
@@ -10375,7 +10107,7 @@ abstract final class IndexExpression
 }
 
 final class IndexExpressionImpl extends ExpressionImpl
-    with NullShortableExpressionImpl
+    with NullShortableExpressionImpl, DotShorthandMixin
     implements IndexExpression {
   @override
   Token? period;
@@ -10397,7 +10129,7 @@ final class IndexExpressionImpl extends ExpressionImpl
   /// target, or `null` if the AST structure hasn't been resolved or if the
   /// operator couldn't be resolved.
   @override
-  MethodElement2? element;
+  MethodElement? element;
 
   /// Initializes a newly created index expression that is a child of a cascade
   /// expression.
@@ -10419,8 +10151,8 @@ final class IndexExpressionImpl extends ExpressionImpl
     required this.leftBracket,
     required ExpressionImpl index,
     required this.rightBracket,
-  })  : _target = target,
-        _index = index {
+  }) : _target = target,
+       _index = index {
     _becomeParentOf(_target);
     _becomeParentOf(_index);
   }
@@ -10471,10 +10203,6 @@ final class IndexExpressionImpl extends ExpressionImpl
     return _target!;
   }
 
-  @Deprecated('Use element instance')
-  @override
-  MethodElement? get staticElement => element?.asElement;
-
   @override
   ExpressionImpl? get target => _target;
 
@@ -10487,7 +10215,7 @@ final class IndexExpressionImpl extends ExpressionImpl
   /// We expect that [isCascaded] is `true`.
   CascadeExpressionImpl get _ancestorCascade {
     assert(isCascaded);
-    for (var ancestor = parent!;; ancestor = ancestor.parent!) {
+    for (var ancestor = parent!; ; ancestor = ancestor.parent!) {
       if (ancestor is CascadeExpressionImpl) {
         return ancestor;
       }
@@ -10495,12 +10223,13 @@ final class IndexExpressionImpl extends ExpressionImpl
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNode('target', target)
-    ..addToken('period', period)
-    ..addToken('leftBracket', leftBracket)
-    ..addNode('index', index)
-    ..addToken('rightBracket', rightBracket);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addNode('target', target)
+        ..addToken('period', period)
+        ..addToken('leftBracket', leftBracket)
+        ..addNode('index', index)
+        ..addToken('rightBracket', rightBracket);
 
   @override
   AstNode get _nullShortingExtensionCandidate => parent!;
@@ -10510,7 +10239,7 @@ final class IndexExpressionImpl extends ExpressionImpl
   /// or the function being invoked is not known based on static type
   /// information.
   FormalParameterElementMixin? get _staticParameterElementForIndex {
-    Element2? element = this.element;
+    Element? element = this.element;
 
     var parent = this.parent;
     if (parent is CompoundAssignmentExpression) {
@@ -10587,7 +10316,7 @@ abstract final class InstanceCreationExpression implements Expression {
   /// The name of the constructor to be invoked.
   ConstructorName get constructorName;
 
-  /// Whether this creation expression is used to invoke a constant constructor,
+  /// Whether this creation expression will be evaluated at compile-time,
   /// either because the keyword `const` was explicitly provided or because no
   /// keyword was provided and this expression is in a constant context.
   bool get isConst;
@@ -10624,9 +10353,9 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
     required ConstructorNameImpl constructorName,
     required ArgumentListImpl argumentList,
     required TypeArgumentListImpl? typeArguments,
-  })  : _constructorName = constructorName,
-        _argumentList = argumentList,
-        _typeArguments = typeArguments {
+  }) : _constructorName = constructorName,
+       _argumentList = argumentList,
+       _typeArguments = typeArguments {
     _becomeParentOf(_constructorName);
     _becomeParentOf(_argumentList);
     _becomeParentOf(_typeArguments);
@@ -10680,11 +10409,12 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('keyword', keyword)
-    ..addNode('constructorName', constructorName)
-    ..addNode('typeArguments', typeArguments)
-    ..addNode('argumentList', argumentList);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('keyword', keyword)
+        ..addNode('constructorName', constructorName)
+        ..addNode('typeArguments', typeArguments)
+        ..addNode('argumentList', argumentList);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
@@ -10733,10 +10463,7 @@ final class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
   int? value = 0;
 
   /// Initializes a newly created integer literal.
-  IntegerLiteralImpl({
-    required this.literal,
-    required this.value,
-  });
+  IntegerLiteralImpl({required this.literal, required this.value});
 
   @override
   Token get beginToken => literal;
@@ -10895,10 +10622,11 @@ final class InterpolationExpressionImpl extends InterpolationElementImpl
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('leftBracket', leftBracket)
-    ..addNode('expression', expression)
-    ..addToken('rightBracket', rightBracket);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('leftBracket', leftBracket)
+        ..addNode('expression', expression)
+        ..addToken('rightBracket', rightBracket);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
@@ -10939,10 +10667,7 @@ final class InterpolationStringImpl extends InterpolationElementImpl
 
   /// Initializes a newly created string of characters that are part of a string
   /// interpolation.
-  InterpolationStringImpl({
-    required this.contents,
-    required this.value,
-  });
+  InterpolationStringImpl({required this.contents, required this.value});
 
   @override
   Token get beginToken => contents;
@@ -10965,8 +10690,11 @@ final class InterpolationStringImpl extends InterpolationElementImpl
 
   StringLexemeHelper get _lexemeHelper {
     String lexeme = contents.lexeme;
-    return StringLexemeHelper(lexeme, identical(this, parent.elements.first),
-        identical(this, parent.elements.last));
+    return StringLexemeHelper(
+      lexeme,
+      identical(this, parent.elements.first),
+      identical(this, parent.elements.last),
+    );
   }
 
   @override
@@ -10978,8 +10706,8 @@ final class InterpolationStringImpl extends InterpolationElementImpl
 
 /// The invocation of a function or method.
 ///
-/// This will either be a [FunctionExpressionInvocation], [MethodInvocation],
-/// or a [DotShorthandInvocation].
+/// This will either be a [FunctionExpressionInvocation], a [MethodInvocation],
+/// a [DotShorthandConstructorInvocation], or a [DotShorthandInvocation].
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class InvocationExpression implements Expression {
   /// The list of arguments to the method.
@@ -11035,8 +10763,8 @@ sealed class InvocationExpressionImpl extends ExpressionImpl
   InvocationExpressionImpl({
     required TypeArgumentListImpl? typeArguments,
     required ArgumentListImpl argumentList,
-  })  : _typeArguments = typeArguments,
-        _argumentList = argumentList {
+  }) : _typeArguments = typeArguments,
+       _argumentList = argumentList {
     _becomeParentOf(_typeArguments);
     _becomeParentOf(_argumentList);
   }
@@ -11094,8 +10822,8 @@ final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
     required this.isOperator,
     required this.notOperator,
     required TypeAnnotationImpl type,
-  })  : _expression = expression,
-        _type = type {
+  }) : _expression = expression,
+       _type = type {
     _becomeParentOf(_expression);
     _becomeParentOf(_type);
   }
@@ -11124,11 +10852,12 @@ final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNode('expression', expression)
-    ..addToken('isOperator', isOperator)
-    ..addToken('notOperator', notOperator)
-    ..addNode('type', type);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addNode('expression', expression)
+        ..addToken('isOperator', isOperator)
+        ..addToken('notOperator', notOperator)
+        ..addNode('type', type);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitIsExpression(this);
@@ -11216,9 +10945,10 @@ final class LabeledStatementImpl extends StatementImpl
   StatementImpl get unlabeled => _statement.unlabeled;
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNodeList('labels', labels)
-    ..addNode('statement', statement);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addNodeList('labels', labels)
+        ..addNode('statement', statement);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitLabeledStatement(this);
@@ -11237,10 +10967,8 @@ final class LabelImpl extends AstNodeImpl implements Label {
   final Token colon;
 
   /// Initializes a newly created label.
-  LabelImpl({
-    required SimpleIdentifierImpl label,
-    required this.colon,
-  }) : _label = label {
+  LabelImpl({required SimpleIdentifierImpl label, required this.colon})
+    : _label = label {
     _becomeParentOf(_label);
   }
 
@@ -11248,7 +10976,7 @@ final class LabelImpl extends AstNodeImpl implements Label {
   Token get beginToken => _label.beginToken;
 
   @override
-  LabelElementImpl? get declaredFragment =>
+  LabelFragmentImpl? get declaredFragment =>
       (label.element as LabelElementImpl2?)?.firstFragment;
 
   @override
@@ -11262,9 +10990,10 @@ final class LabelImpl extends AstNodeImpl implements Label {
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNode('label', label)
-    ..addToken('colon', colon);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addNode('label', label)
+        ..addToken('colon', colon);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitLabel(this);
@@ -11281,16 +11010,12 @@ final class LabelImpl extends AstNodeImpl implements Label {
 ///        [Annotation] 'library' [LibraryIdentifier]? ';'
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class LibraryDirective implements Directive {
-  @Deprecated('Use element2 instead')
-  @override
-  LibraryElement? get element;
-
   /// The element associated with this directive.
   ///
   /// Returns `null` if the AST structure hasn't been resolved or if this
   /// directive couldn't be resolved.
   @experimental
-  LibraryElement2? get element2;
+  LibraryElement? get element2;
 
   /// The token representing the `library` keyword.
   Token get libraryKeyword;
@@ -11326,15 +11051,9 @@ final class LibraryDirectiveImpl extends DirectiveImpl
     _becomeParentOf(_name);
   }
 
-  @Deprecated('Use element2 instead')
-  @override
-  LibraryElementImpl? get element {
-    return element2;
-  }
-
   @experimental
   @override
-  LibraryElementImpl? get element2 => _element as LibraryElementImpl?;
+  LibraryElementImpl? get element2 => element as LibraryElementImpl?;
 
   @override
   Token get endToken => semicolon;
@@ -11350,10 +11069,11 @@ final class LibraryDirectiveImpl extends DirectiveImpl
   LibraryIdentifierImpl? get name2 => _name;
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('libraryKeyword', libraryKeyword)
-    ..addNode('name', name2)
-    ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addToken('libraryKeyword', libraryKeyword)
+        ..addNode('name', name2)
+        ..addToken('semicolon', semicolon);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitLibraryDirective(this);
@@ -11380,9 +11100,7 @@ final class LibraryIdentifierImpl extends IdentifierImpl
   final NodeListImpl<SimpleIdentifierImpl> _components = NodeListImpl._();
 
   /// Initializes a newly created prefixed identifier.
-  LibraryIdentifierImpl({
-    required List<SimpleIdentifierImpl> components,
-  }) {
+  LibraryIdentifierImpl({required List<SimpleIdentifierImpl> components}) {
     _components._initialize(this, components);
   }
 
@@ -11393,7 +11111,7 @@ final class LibraryIdentifierImpl extends IdentifierImpl
   NodeListImpl<SimpleIdentifierImpl> get components => _components;
 
   @override
-  Element2? get element => null;
+  Element? get element => null;
 
   @override
   Token get endToken => _components.endToken!;
@@ -11502,10 +11220,11 @@ final class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
 
   @override
   // TODO(paulberry): add commas.
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('leftBracket', leftBracket)
-    ..addNodeList('elements', elements)
-    ..addToken('rightBracket', rightBracket);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addToken('leftBracket', leftBracket)
+        ..addNodeList('elements', elements)
+        ..addToken('rightBracket', rightBracket);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitListLiteral(this);
@@ -11591,11 +11310,12 @@ final class ListPatternImpl extends DartPatternImpl implements ListPattern {
   PatternPrecedence get precedence => PatternPrecedence.primary;
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addNode('typeArguments', typeArguments)
-    ..addToken('leftBracket', leftBracket)
-    ..addNodeList('elements', elements)
-    ..addToken('rightBracket', rightBracket);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addNode('typeArguments', typeArguments)
+        ..addToken('leftBracket', leftBracket)
+        ..addNodeList('elements', elements)
+        ..addToken('rightBracket', rightBracket);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitListPattern(this);
@@ -11617,8 +11337,10 @@ final class ListPatternImpl extends DartPatternImpl implements ListPattern {
     SharedMatchContext context,
   ) {
     inferenceLogWriter?.enterPattern(this);
-    var analysisResult = resolverVisitor.listPatternResolver
-        .resolve(node: this, context: context);
+    var analysisResult = resolverVisitor.listPatternResolver.resolve(
+      node: this,
+      context: context,
+    );
     inferenceLogWriter?.exitPattern(this);
     return analysisResult;
   }
@@ -11656,7 +11378,7 @@ sealed class LiteralImpl extends ExpressionImpl implements Literal {
 class LocalVariableInfo {
   /// The set of local variables and parameters that are potentially mutated
   /// within the scope of their declarations.
-  final Set<VariableElement2> potentiallyMutatedInScope = {};
+  final Set<VariableElement> potentiallyMutatedInScope = {};
 }
 
 /// A logical-and pattern.
@@ -11705,10 +11427,11 @@ final class LogicalAndPatternImpl extends DartPatternImpl
   PatternPrecedence get precedence => PatternPrecedence.logicalAnd;
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addNode('leftOperand', leftOperand)
-    ..addToken('operator', operator)
-    ..addNode('rightOperand', rightOperand);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addNode('leftOperand', leftOperand)
+        ..addToken('operator', operator)
+        ..addNode('rightOperand', rightOperand);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitLogicalAndPattern(this);
@@ -11727,7 +11450,11 @@ final class LogicalAndPatternImpl extends DartPatternImpl
   ) {
     inferenceLogWriter?.enterPattern(this);
     var analysisResult = resolverVisitor.analyzeLogicalAndPattern(
-        context, this, leftOperand, rightOperand);
+      context,
+      this,
+      leftOperand,
+      rightOperand,
+    );
     inferenceLogWriter?.exitPattern(this);
     return analysisResult;
   }
@@ -11785,10 +11512,11 @@ final class LogicalOrPatternImpl extends DartPatternImpl
   PatternPrecedence get precedence => PatternPrecedence.logicalOr;
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addNode('leftOperand', leftOperand)
-    ..addToken('operator', operator)
-    ..addNode('rightOperand', rightOperand);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addNode('leftOperand', leftOperand)
+        ..addToken('operator', operator)
+        ..addNode('rightOperand', rightOperand);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitLogicalOrPattern(this);
@@ -11807,7 +11535,11 @@ final class LogicalOrPatternImpl extends DartPatternImpl
   ) {
     inferenceLogWriter?.enterPattern(this);
     var analysisResult = resolverVisitor.analyzeLogicalOrPattern(
-        context, this, leftOperand, rightOperand);
+      context,
+      this,
+      leftOperand,
+      rightOperand,
+    );
     resolverVisitor.nullSafetyDeadCodeVerifier.flowEnd(rightOperand);
     inferenceLogWriter?.exitPattern(this);
     return analysisResult;
@@ -11866,8 +11598,8 @@ final class MapLiteralEntryImpl extends CollectionElementImpl
     required this.separator,
     required this.valueQuestion,
     required ExpressionImpl value,
-  })  : _key = key,
-        _value = value {
+  }) : _key = key,
+       _value = value {
     _becomeParentOf(_key);
     _becomeParentOf(_value);
   }
@@ -11893,19 +11625,22 @@ final class MapLiteralEntryImpl extends CollectionElementImpl
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('keyQuestion', keyQuestion)
-    ..addNode('key', key)
-    ..addToken('separator', separator)
-    ..addToken('valueQuestion', valueQuestion)
-    ..addNode('value', value);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('keyQuestion', keyQuestion)
+        ..addNode('key', key)
+        ..addToken('separator', separator)
+        ..addToken('valueQuestion', valueQuestion)
+        ..addNode('value', value);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitMapLiteralEntry(this);
 
   @override
   void resolveElement(
-      ResolverVisitor resolver, CollectionLiteralContext? context) {
+    ResolverVisitor resolver,
+    CollectionLiteralContext? context,
+  ) {
     resolver.visitMapLiteralEntry(this, context: context);
     resolver.pushRewrite(null);
   }
@@ -11996,10 +11731,11 @@ final class MapPatternEntryImpl extends AstNodeImpl
   }
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addNode('key', key)
-    ..addToken('separator', separator)
-    ..addNode('value', value);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addNode('key', key)
+        ..addToken('separator', separator)
+        ..addNode('value', value);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitMapPatternEntry(this);
@@ -12049,11 +11785,12 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
   PatternPrecedence get precedence => PatternPrecedence.primary;
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addNode('typeArguments', typeArguments)
-    ..addToken('leftBracket', leftBracket)
-    ..addNodeList('elements', elements)
-    ..addToken('rightBracket', rightBracket);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addNode('typeArguments', typeArguments)
+        ..addToken('leftBracket', leftBracket)
+        ..addNodeList('elements', elements)
+        ..addToken('rightBracket', rightBracket);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitMapPattern(this);
@@ -12114,10 +11851,6 @@ abstract final class MethodDeclaration implements ClassMember {
 
   /// The body of the method.
   FunctionBody get body;
-
-  @Deprecated('Use declaredFragment instead')
-  @override
-  ExecutableElement? get declaredElement;
 
   @experimental
   @override
@@ -12204,7 +11937,7 @@ final class MethodDeclarationImpl extends ClassMemberImpl
   final FunctionBodyImpl body;
 
   @override
-  ExecutableElementImpl? declaredFragment;
+  ExecutableFragmentImpl? declaredFragment;
 
   MethodDeclarationImpl({
     required super.comment,
@@ -12225,10 +11958,6 @@ final class MethodDeclarationImpl extends ClassMemberImpl
     _becomeParentOf(parameters);
     _becomeParentOf(body);
   }
-
-  @Deprecated('Use declaredFragment instead')
-  @override
-  ExecutableElementImpl? get declaredElement => declaredFragment;
 
   @override
   Token get endToken => body.endToken;
@@ -12262,17 +11991,18 @@ final class MethodDeclarationImpl extends ClassMemberImpl
   bool get isStatic => modifierKeyword?.keyword == Keyword.STATIC;
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('augmentKeyword', augmentKeyword)
-    ..addToken('externalKeyword', externalKeyword)
-    ..addToken('modifierKeyword', modifierKeyword)
-    ..addNode('returnType', returnType)
-    ..addToken('propertyKeyword', propertyKeyword)
-    ..addToken('operatorKeyword', operatorKeyword)
-    ..addToken('name', name)
-    ..addNode('typeParameters', typeParameters)
-    ..addNode('parameters', parameters)
-    ..addNode('body', body);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addToken('augmentKeyword', augmentKeyword)
+        ..addToken('externalKeyword', externalKeyword)
+        ..addToken('modifierKeyword', modifierKeyword)
+        ..addNode('returnType', returnType)
+        ..addToken('propertyKeyword', propertyKeyword)
+        ..addToken('operatorKeyword', operatorKeyword)
+        ..addToken('name', name)
+        ..addNode('typeParameters', typeParameters)
+        ..addNode('parameters', parameters)
+        ..addNode('body', body);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitMethodDeclaration(this);
@@ -12337,7 +12067,7 @@ abstract final class MethodInvocation
 }
 
 final class MethodInvocationImpl extends InvocationExpressionImpl
-    with NullShortableExpressionImpl
+    with NullShortableExpressionImpl, DotShorthandMixin
     implements MethodInvocation {
   ExpressionImpl? _target;
 
@@ -12359,8 +12089,8 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
     required SimpleIdentifierImpl methodName,
     required super.typeArguments,
     required super.argumentList,
-  })  : _target = target,
-        _methodName = methodName {
+  }) : _target = target,
+       _methodName = methodName {
     _becomeParentOf(_target);
     _becomeParentOf(_methodName);
   }
@@ -12406,11 +12136,11 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
 
   /// The invoke type of the [methodName].
   ///
-  /// If the target element is a [MethodElement2], this is the same as the
+  /// If the target element is a [MethodElement], this is the same as the
   /// [staticInvokeType].
   ///
   /// If the target element is a getter, presumably returning an
-  /// [ExecutableElement2] so that it can be invoked in this [MethodInvocation],
+  /// [ExecutableElement] so that it can be invoked in this [MethodInvocation],
   /// then this type is the type of the getter, and the [staticInvokeType] is
   /// the invoked type of the returned element.
   DartType? get methodNameType => _methodNameType ?? staticInvokeType;
@@ -12442,7 +12172,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   /// We expect that [isCascaded] is `true`.
   CascadeExpressionImpl get _ancestorCascade {
     assert(isCascaded);
-    for (var ancestor = parent!;; ancestor = ancestor.parent!) {
+    for (var ancestor = parent!; ; ancestor = ancestor.parent!) {
       if (ancestor is CascadeExpressionImpl) {
         return ancestor;
       }
@@ -12450,12 +12180,13 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNode('target', target)
-    ..addToken('operator', operator)
-    ..addNode('methodName', methodName)
-    ..addNode('typeArguments', typeArguments)
-    ..addNode('argumentList', argumentList);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addNode('target', target)
+        ..addToken('operator', operator)
+        ..addNode('methodName', methodName)
+        ..addNode('typeArguments', typeArguments)
+        ..addNode('argumentList', argumentList);
 
   @override
   AstNode? get _nullShortingExtensionCandidate => parent;
@@ -12491,15 +12222,7 @@ abstract final class MethodReferenceExpression implements Expression {
   /// this is a non-compound assignment expression, or when the method referred
   /// to couldn't be resolved.
   @experimental
-  MethodElement2? get element;
-
-  /// The element associated with the expression based on the static types, or
-  /// `null` if the AST structure hasn't been resolved, or there's no meaningful
-  /// static element to return. The latter case can occur, for example, when
-  /// this is a non-compound assignment expression, or when the method referred
-  /// to couldn't be resolved.
-  @Deprecated('Use element instead')
-  MethodElement? get staticElement;
+  MethodElement? get element;
 }
 
 /// The declaration of a mixin.
@@ -12514,10 +12237,6 @@ abstract final class MixinDeclaration implements NamedCompilationUnitMember {
 
   /// The `base` keyword, or `null` if the keyword was absent.
   Token? get baseKeyword;
-
-  @Deprecated('Use declaredFragment instead')
-  @override
-  MixinElement? get declaredElement;
 
   @experimental
   @override
@@ -12579,7 +12298,7 @@ final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
   final Token rightBracket;
 
   @override
-  MixinElementImpl? declaredFragment;
+  MixinFragmentImpl? declaredFragment;
 
   MixinDeclarationImpl({
     required super.comment,
@@ -12601,10 +12320,6 @@ final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
     this.members._initialize(this, members);
   }
 
-  @Deprecated('Use declaredFragment instead')
-  @override
-  MixinElementImpl? get declaredElement => declaredFragment;
-
   @override
   Token get endToken => rightBracket;
 
@@ -12614,17 +12329,18 @@ final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
   }
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('augmentKeyword', augmentKeyword)
-    ..addToken('baseKeyword', baseKeyword)
-    ..addToken('mixinKeyword', mixinKeyword)
-    ..addToken('name', name)
-    ..addNode('typeParameters', typeParameters)
-    ..addNode('onClause', onClause)
-    ..addNode('implementsClause', implementsClause)
-    ..addToken('leftBracket', leftBracket)
-    ..addNodeList('members', members)
-    ..addToken('rightBracket', rightBracket);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addToken('augmentKeyword', augmentKeyword)
+        ..addToken('baseKeyword', baseKeyword)
+        ..addToken('mixinKeyword', mixinKeyword)
+        ..addToken('name', name)
+        ..addNode('typeParameters', typeParameters)
+        ..addNode('onClause', onClause)
+        ..addNode('implementsClause', implementsClause)
+        ..addToken('leftBracket', leftBracket)
+        ..addNodeList('members', members)
+        ..addToken('rightBracket', rightBracket);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitMixinDeclaration(this);
@@ -12677,9 +12393,10 @@ final class MixinOnClauseImpl extends AstNodeImpl implements MixinOnClause {
 
   @override
   // TODO(paulberry): add commas.
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('onKeyword', onKeyword)
-    ..addNodeList('superclassConstraints', superclassConstraints);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('onKeyword', onKeyword)
+        ..addNodeList('superclassConstraints', superclassConstraints);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitMixinOnClause(this);
@@ -12722,12 +12439,6 @@ sealed class NamedCompilationUnitMemberImpl extends CompilationUnitMemberImpl
 ///        [Label] [Expression]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class NamedExpression implements Expression {
-  /// The element representing the parameter being named by this expression, or
-  /// `null` if the AST structure hasn't been resolved or if there's no
-  /// parameter with the same name as this expression.
-  @Deprecated('Use element2 instead')
-  ParameterElement? get element;
-
   /// The element representing the parameter being named by this expression.
   ///
   /// Returns `null` if the AST structure hasn't been resolved or if there's no
@@ -12752,20 +12463,14 @@ final class NamedExpressionImpl extends ExpressionImpl
   NamedExpressionImpl({
     required LabelImpl name,
     required ExpressionImpl expression,
-  })  : _name = name,
-        _expression = expression {
+  }) : _name = name,
+       _expression = expression {
     _becomeParentOf(_name);
     _becomeParentOf(_expression);
   }
 
   @override
   Token get beginToken => _name.beginToken;
-
-  @Deprecated('Use element2 instead')
-  @override
-  ParameterElementMixin? get element {
-    return element2?.asElement;
-  }
 
   @experimental
   @override
@@ -12794,9 +12499,10 @@ final class NamedExpressionImpl extends ExpressionImpl
   Precedence get precedence => Precedence.none;
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNode('name', name)
-    ..addNode('expression', expression);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addNode('name', name)
+        ..addNode('expression', expression);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNamedExpression(this);
@@ -12819,21 +12525,15 @@ final class NamedExpressionImpl extends ExpressionImpl
 ///        [ImportPrefixReference]? name typeArguments?
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class NamedType implements TypeAnnotation {
-  /// The element of [name2] considering [importPrefix] for example a
-  /// [ClassElement2], or [TypeAliasElement2], or `null` if [name2] can't be
-  /// resolved, or there's no element for the type name, such as for `void`.
-  @Deprecated('Use element2 instead')
-  Element? get element;
-
   /// The element of [name2] considering [importPrefix].
   ///
-  /// This could be a [ClassElement2], [TypeAliasElement2], or other type defining
+  /// This could be a [ClassElement], [TypeAliasElement], or other type defining
   /// element.
   ///
   /// Returns `null` if [name2] can't be resolved, or there's no element for the
   /// type name, such as for `void`.
   @experimental
-  Element2? get element2;
+  Element? get element2;
 
   /// The optional import prefix before [name2].
   ImportPrefixReference? get importPrefix;
@@ -12867,7 +12567,7 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
 
   @experimental
   @override
-  Element2? element2;
+  Element? element2;
 
   @override
   TypeArgumentListImpl? typeArguments;
@@ -12894,12 +12594,6 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   @override
   Token get beginToken => importPrefix?.beginToken ?? name2;
 
-  @Deprecated('Use element2 instead')
-  @override
-  Element? get element {
-    return element2.asElement;
-  }
-
   @override
   Token get endToken => question ?? typeArguments?.endToken ?? name2;
 
@@ -12916,9 +12610,10 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   @override
   bool get isDeferred {
     var importPrefixElement = importPrefix?.element2;
-    if (importPrefixElement is PrefixElement2) {
-      return importPrefixElement.fragments
-          .any((fragment) => fragment.isDeferred);
+    if (importPrefixElement is PrefixElement) {
+      return importPrefixElement.fragments.any(
+        (fragment) => fragment.isDeferred,
+      );
     }
     return false;
   }
@@ -12927,11 +12622,12 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   bool get isSynthetic => name2.isSynthetic && typeArguments == null;
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNode('importPrefix', importPrefix)
-    ..addToken('name', name2)
-    ..addNode('typeArguments', typeArguments)
-    ..addToken('question', question);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addNode('importPrefix', importPrefix)
+        ..addToken('name', name2)
+        ..addNode('typeArguments', typeArguments)
+        ..addToken('question', question);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNamedType(this);
@@ -13019,10 +12715,7 @@ final class NativeClauseImpl extends AstNodeImpl implements NativeClause {
   final StringLiteralImpl? name;
 
   /// Initializes a newly created native clause.
-  NativeClauseImpl({
-    required this.nativeKeyword,
-    required this.name,
-  }) {
+  NativeClauseImpl({required this.nativeKeyword, required this.name}) {
     _becomeParentOf(name);
   }
 
@@ -13035,9 +12728,10 @@ final class NativeClauseImpl extends AstNodeImpl implements NativeClause {
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('nativeKeyword', nativeKeyword)
-    ..addNode('name', name);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('nativeKeyword', nativeKeyword)
+        ..addNode('name', name);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNativeClause(this);
@@ -13100,10 +12794,11 @@ final class NativeFunctionBodyImpl extends FunctionBodyImpl
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('nativeKeyword', nativeKeyword)
-    ..addNode('stringLiteral', stringLiteral)
-    ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('nativeKeyword', nativeKeyword)
+        ..addNode('stringLiteral', stringLiteral)
+        ..addToken('semicolon', semicolon);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNativeFunctionBody(this);
@@ -13365,10 +13060,7 @@ final class NullAssertPatternImpl extends DartPatternImpl
   @override
   final Token operator;
 
-  NullAssertPatternImpl({
-    required this.pattern,
-    required this.operator,
-  }) {
+  NullAssertPatternImpl({required this.pattern, required this.operator}) {
     _becomeParentOf(pattern);
   }
 
@@ -13385,9 +13077,10 @@ final class NullAssertPatternImpl extends DartPatternImpl
   VariablePatternImpl? get variablePattern => pattern.variablePattern;
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addNode('pattern', pattern)
-    ..addToken('operator', operator);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addNode('pattern', pattern)
+        ..addToken('operator', operator);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNullAssertPattern(this);
@@ -13395,10 +13088,7 @@ final class NullAssertPatternImpl extends DartPatternImpl
   @override
   TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
     return resolverVisitor
-        .analyzeNullCheckOrAssertPatternSchema(
-          pattern,
-          isAssert: true,
-        )
+        .analyzeNullCheckOrAssertPatternSchema(pattern, isAssert: true)
         .unwrapTypeSchemaView();
   }
 
@@ -13409,8 +13099,11 @@ final class NullAssertPatternImpl extends DartPatternImpl
   ) {
     inferenceLogWriter?.enterPattern(this);
     var analysisResult = resolverVisitor.analyzeNullCheckOrAssertPattern(
-        context, this, pattern,
-        isAssert: true);
+      context,
+      this,
+      pattern,
+      isAssert: true,
+    );
     inferenceLogWriter?.exitPattern(this);
     return analysisResult;
   }
@@ -13441,10 +13134,8 @@ final class NullAwareElementImpl extends CollectionElementImpl
   ExpressionImpl _value;
 
   /// Initializes a newly created null-aware element.
-  NullAwareElementImpl({
-    required this.question,
-    required ExpressionImpl value,
-  }) : _value = value {
+  NullAwareElementImpl({required this.question, required ExpressionImpl value})
+    : _value = value {
     _becomeParentOf(_value);
   }
 
@@ -13462,16 +13153,19 @@ final class NullAwareElementImpl extends CollectionElementImpl
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('question', question)
-    ..addNode('value', value);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('question', question)
+        ..addNode('value', value);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNullAwareElement(this);
 
   @override
   void resolveElement(
-      ResolverVisitor resolver, CollectionLiteralContext? context) {
+    ResolverVisitor resolver,
+    CollectionLiteralContext? context,
+  ) {
     resolver.visitNullAwareElement(this, context: context);
     resolver.pushRewrite(null);
   }
@@ -13503,10 +13197,7 @@ final class NullCheckPatternImpl extends DartPatternImpl
   @override
   final Token operator;
 
-  NullCheckPatternImpl({
-    required this.pattern,
-    required this.operator,
-  }) {
+  NullCheckPatternImpl({required this.pattern, required this.operator}) {
     _becomeParentOf(pattern);
   }
 
@@ -13523,9 +13214,10 @@ final class NullCheckPatternImpl extends DartPatternImpl
   VariablePatternImpl? get variablePattern => pattern.variablePattern;
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addNode('pattern', pattern)
-    ..addToken('operator', operator);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addNode('pattern', pattern)
+        ..addToken('operator', operator);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNullCheckPattern(this);
@@ -13533,10 +13225,7 @@ final class NullCheckPatternImpl extends DartPatternImpl
   @override
   TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
     return resolverVisitor
-        .analyzeNullCheckOrAssertPatternSchema(
-          pattern,
-          isAssert: false,
-        )
+        .analyzeNullCheckOrAssertPatternSchema(pattern, isAssert: false)
         .unwrapTypeSchemaView();
   }
 
@@ -13547,8 +13236,11 @@ final class NullCheckPatternImpl extends DartPatternImpl
   ) {
     inferenceLogWriter?.enterPattern(this);
     var analysisResult = resolverVisitor.analyzeNullCheckOrAssertPattern(
-        context, this, pattern,
-        isAssert: false);
+      context,
+      this,
+      pattern,
+      isAssert: false,
+    );
     inferenceLogWriter?.exitPattern(this);
     return analysisResult;
   }
@@ -13574,9 +13266,7 @@ final class NullLiteralImpl extends LiteralImpl implements NullLiteral {
   final Token literal;
 
   /// Initializes a newly created null literal.
-  NullLiteralImpl({
-    required this.literal,
-  });
+  NullLiteralImpl({required this.literal});
 
   @override
   Token get beginToken => literal;
@@ -13704,11 +13394,12 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
   PatternPrecedence get precedence => PatternPrecedence.primary;
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addNode('type', type)
-    ..addToken('leftParenthesis', leftParenthesis)
-    ..addNodeList('fields', fields)
-    ..addToken('rightParenthesis', rightParenthesis);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addNode('type', type)
+        ..addToken('leftParenthesis', leftParenthesis)
+        ..addNodeList('fields', fields)
+        ..addToken('rightParenthesis', rightParenthesis);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitObjectPattern(this);
@@ -13816,10 +13507,11 @@ final class ParenthesizedExpressionImpl extends ExpressionImpl
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('leftParenthesis', leftParenthesis)
-    ..addNode('expression', expression)
-    ..addToken('rightParenthesis', rightParenthesis);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('leftParenthesis', leftParenthesis)
+        ..addNode('expression', expression)
+        ..addToken('rightParenthesis', rightParenthesis);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
@@ -13893,10 +13585,11 @@ final class ParenthesizedPatternImpl extends DartPatternImpl
   VariablePatternImpl? get variablePattern => pattern.variablePattern;
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('leftParenthesis', leftParenthesis)
-    ..addNode('pattern', pattern)
-    ..addToken('rightParenthesis', rightParenthesis);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addToken('leftParenthesis', leftParenthesis)
+        ..addNode('pattern', pattern)
+        ..addToken('rightParenthesis', rightParenthesis);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
@@ -13934,10 +13627,6 @@ final class ParenthesizedPatternImpl extends DartPatternImpl
 abstract final class PartDirective implements UriBasedDirective {
   /// The configurations that control which file is actually included.
   NodeList<Configuration> get configurations;
-
-  @Deprecated('Use partInclude instead')
-  @override
-  PartElement? get element;
 
   /// Information about this part directive.
   ///
@@ -13978,12 +13667,6 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
     this.configurations._initialize(this, configurations);
   }
 
-  @Deprecated('Use partInclude instead')
-  @override
-  PartElementImpl? get element {
-    return super.element as PartElementImpl?;
-  }
-
   @override
   Token get endToken => semicolon;
 
@@ -13992,14 +13675,15 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
 
   @experimental
   @override
-  PartElementImpl? get partInclude => _element as PartElementImpl?;
+  PartElementImpl? get partInclude => element as PartElementImpl?;
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('partKeyword', partKeyword)
-    ..addNode('uri', uri)
-    ..addNodeList('configurations', configurations)
-    ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addToken('partKeyword', partKeyword)
+        ..addNode('uri', uri)
+        ..addNodeList('configurations', configurations)
+        ..addToken('semicolon', semicolon);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPartDirective(this);
@@ -14063,8 +13747,8 @@ final class PartOfDirectiveImpl extends DirectiveImpl
     required StringLiteralImpl? uri,
     required LibraryIdentifierImpl? libraryName,
     required this.semicolon,
-  })  : _uri = uri,
-        _libraryName = libraryName {
+  }) : _uri = uri,
+       _libraryName = libraryName {
     _becomeParentOf(_uri);
     _becomeParentOf(_libraryName);
   }
@@ -14090,12 +13774,13 @@ final class PartOfDirectiveImpl extends DirectiveImpl
   }
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('partKeyword', partKeyword)
-    ..addToken('ofKeyword', ofKeyword)
-    ..addNode('uri', uri)
-    ..addNode('libraryName', libraryName)
-    ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addToken('partKeyword', partKeyword)
+        ..addToken('ofKeyword', ofKeyword)
+        ..addNode('uri', uri)
+        ..addNode('libraryName', libraryName)
+        ..addToken('semicolon', semicolon);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPartOfDirective(this);
@@ -14166,10 +13851,11 @@ final class PatternAssignmentImpl extends ExpressionImpl
   Precedence get precedence => Precedence.assignment;
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addNode('pattern', pattern)
-    ..addToken('equals', equals)
-    ..addNode('expression', expression);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addNode('pattern', pattern)
+        ..addToken('equals', equals)
+        ..addNode('expression', expression);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPatternAssignment(this);
@@ -14199,12 +13885,6 @@ abstract final class PatternField implements AstNode {
   /// implied by the variable pattern inside [pattern].
   String? get effectiveName;
 
-  /// The element referenced by [effectiveName], or `null` if not resolved yet,
-  /// non-`null` inside valid [ObjectPattern]s, always `null` inside
-  /// [RecordPattern]s.
-  @Deprecated('Use element2 instead')
-  Element? get element;
-
   /// The element referenced by [effectiveName].
   ///
   /// Returns `null` if the AST structure is not resolved yet.
@@ -14212,7 +13892,7 @@ abstract final class PatternField implements AstNode {
   /// Returns non-`null` inside valid [ObjectPattern]s; always returns `null`
   /// inside [RecordPattern]s.
   @experimental
-  Element2? get element2;
+  Element? get element2;
 
   /// The name of the field, or `null` if the field is a positional field.
   PatternFieldName? get name;
@@ -14223,7 +13903,7 @@ abstract final class PatternField implements AstNode {
 
 final class PatternFieldImpl extends AstNodeImpl implements PatternField {
   @override
-  Element2? element2;
+  Element? element2;
 
   @override
   final PatternFieldNameImpl? name;
@@ -14249,19 +13929,14 @@ final class PatternFieldImpl extends AstNodeImpl implements PatternField {
     return null;
   }
 
-  @Deprecated('Use element2 instead')
-  @override
-  Element? get element {
-    return element2?.asElement;
-  }
-
   @override
   Token get endToken => pattern.endToken;
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addNode('name', name)
-    ..addNode('pattern', pattern);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addNode('name', name)
+        ..addNode('pattern', pattern);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPatternField(this);
@@ -14303,9 +13978,10 @@ final class PatternFieldNameImpl extends AstNodeImpl
   Token get endToken => colon;
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('name', name)
-    ..addToken('colon', colon);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addToken('name', name)
+        ..addToken('colon', colon);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPatternFieldName(this);
@@ -14389,11 +14065,12 @@ final class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
   Token get firstTokenAfterCommentAndMetadata => keyword;
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('keyword', keyword)
-    ..addNode('pattern', pattern)
-    ..addToken('equals', equals)
-    ..addNode('expression', expression);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addToken('keyword', keyword)
+        ..addNode('pattern', pattern)
+        ..addToken('equals', equals)
+        ..addNode('expression', expression);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
@@ -14442,9 +14119,10 @@ final class PatternVariableDeclarationStatementImpl extends StatementImpl
   Token get endToken => semicolon;
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addNode('declaration', declaration)
-    ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addNode('declaration', declaration)
+        ..addToken('semicolon', semicolon);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
@@ -14471,20 +14149,13 @@ abstract final class PostfixExpression
   /// operand, or `null` if the AST structure hasn't been resolved, if the
   /// operator isn't user definable, or if the operator couldn't be resolved.
   @override
-  MethodElement2? get element;
+  MethodElement? get element;
 
   /// The expression computing the operand for the operator.
   Expression get operand;
 
   /// The postfix operator being applied to the operand.
   Token get operator;
-
-  /// The element associated with the operator based on the static type of the
-  /// operand, or `null` if the AST structure hasn't been resolved, if the
-  /// operator isn't user definable, or if the operator couldn't be resolved.
-  @Deprecated('Use element instead')
-  @override
-  MethodElement? get staticElement;
 }
 
 final class PostfixExpressionImpl extends ExpressionImpl
@@ -14496,7 +14167,7 @@ final class PostfixExpressionImpl extends ExpressionImpl
   final Token operator;
 
   @override
-  MethodElement2? element;
+  MethodElement? element;
 
   /// Initializes a newly created postfix expression.
   PostfixExpressionImpl({
@@ -14522,14 +14193,11 @@ final class PostfixExpressionImpl extends ExpressionImpl
   @override
   Precedence get precedence => Precedence.postfix;
 
-  @Deprecated('Use element2 instead')
   @override
-  MethodElement? get staticElement => element?.asElement;
-
-  @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNode('operand', operand)
-    ..addToken('operator', operator);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addNode('operand', operand)
+        ..addToken('operator', operator);
 
   @override
   AstNode? get _nullShortingExtensionCandidate => parent;
@@ -14607,8 +14275,8 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
     required SimpleIdentifierImpl prefix,
     required this.period,
     required SimpleIdentifierImpl identifier,
-  })  : _prefix = prefix,
-        _identifier = identifier {
+  }) : _prefix = prefix,
+       _identifier = identifier {
     _becomeParentOf(_prefix);
     _becomeParentOf(_identifier);
   }
@@ -14617,7 +14285,7 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
   Token get beginToken => _prefix.beginToken;
 
   @override
-  Element2? get element {
+  Element? get element {
     return _identifier.element;
   }
 
@@ -14634,7 +14302,7 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
   @override
   bool get isDeferred {
     var element = _prefix.element;
-    if (element is PrefixElement2) {
+    if (element is PrefixElement) {
       return element.fragments.any((fragment) => fragment.isDeferred);
     }
     return false;
@@ -14654,10 +14322,11 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNode('prefix', prefix)
-    ..addToken('period', period)
-    ..addNode('identifier', identifier);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addNode('prefix', prefix)
+        ..addToken('period', period)
+        ..addNode('identifier', identifier);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPrefixedIdentifier(this);
@@ -14689,20 +14358,13 @@ abstract final class PrefixExpression
   /// operand, or `null` if the AST structure hasn't been resolved, if the
   /// operator isn't user definable, or if the operator couldn't be resolved.
   @override
-  MethodElement2? get element;
+  MethodElement? get element;
 
   /// The expression computing the operand for the operator.
   Expression get operand;
 
   /// The prefix operator being applied to the operand.
   Token get operator;
-
-  /// The element associated with the operator based on the static type of the
-  /// operand, or `null` if the AST structure hasn't been resolved, if the
-  /// operator isn't user definable, or if the operator couldn't be resolved.
-  @Deprecated('Use element instead')
-  @override
-  MethodElement? get staticElement;
 }
 
 final class PrefixExpressionImpl extends ExpressionImpl
@@ -14714,7 +14376,7 @@ final class PrefixExpressionImpl extends ExpressionImpl
   ExpressionImpl _operand;
 
   @override
-  MethodElement2? element;
+  MethodElement? element;
 
   /// Initializes a newly created prefix expression.
   PrefixExpressionImpl({
@@ -14740,14 +14402,11 @@ final class PrefixExpressionImpl extends ExpressionImpl
   @override
   Precedence get precedence => Precedence.prefix;
 
-  @Deprecated('Use element instead')
   @override
-  MethodElement? get staticElement => element?.asElement;
-
-  @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('operator', operator)
-    ..addNode('operand', operand);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('operator', operator)
+        ..addNode('operand', operand);
 
   @override
   AstNode? get _nullShortingExtensionCandidate => parent;
@@ -14828,7 +14487,7 @@ abstract final class PropertyAccess
 }
 
 final class PropertyAccessImpl extends CommentReferableExpressionImpl
-    with NullShortableExpressionImpl
+    with NullShortableExpressionImpl, DotShorthandMixin
     implements PropertyAccess {
   ExpressionImpl? _target;
 
@@ -14842,8 +14501,8 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
     required ExpressionImpl? target,
     required this.operator,
     required SimpleIdentifierImpl propertyName,
-  })  : _target = target,
-        _propertyName = propertyName {
+  }) : _target = target,
+       _propertyName = propertyName {
     _becomeParentOf(_target);
     _becomeParentOf(_propertyName);
   }
@@ -14906,7 +14565,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
   /// This method assumes that [isCascaded] is `true`.
   CascadeExpressionImpl get _ancestorCascade {
     assert(isCascaded);
-    for (var ancestor = parent!;; ancestor = ancestor.parent!) {
+    for (var ancestor = parent!; ; ancestor = ancestor.parent!) {
       if (ancestor is CascadeExpressionImpl) {
         return ancestor;
       }
@@ -14914,10 +14573,11 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNode('target', target)
-    ..addToken('operator', operator)
-    ..addNode('propertyName', propertyName);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addNode('target', target)
+        ..addToken('operator', operator)
+        ..addNode('propertyName', propertyName);
 
   @override
   AstNode? get _nullShortingExtensionCandidate => parent;
@@ -15005,11 +14665,12 @@ final class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
 
   @override
   // TODO(paulberry): add commas.
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('constKeyword', constKeyword)
-    ..addToken('leftParenthesis', leftParenthesis)
-    ..addNodeList('fields', fields)
-    ..addToken('rightParenthesis', rightParenthesis);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addToken('constKeyword', constKeyword)
+        ..addToken('leftParenthesis', leftParenthesis)
+        ..addNodeList('fields', fields)
+        ..addToken('rightParenthesis', rightParenthesis);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitRecordLiteral(this);
@@ -15073,10 +14734,11 @@ final class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
   PatternPrecedence get precedence => PatternPrecedence.primary;
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('leftParenthesis', leftParenthesis)
-    ..addNodeList('fields', fields)
-    ..addToken('rightParenthesis', rightParenthesis);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addToken('leftParenthesis', leftParenthesis)
+        ..addNodeList('fields', fields)
+        ..addToken('rightParenthesis', rightParenthesis);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitRecordPattern(this);
@@ -15194,10 +14856,11 @@ sealed class RecordTypeAnnotationFieldImpl extends AstNodeImpl
   Token get endToken => name ?? type.endToken;
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addNodeList('metadata', metadata)
-    ..addNode('type', type)
-    ..addToken('name', name);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addNodeList('metadata', metadata)
+        ..addNode('type', type)
+        ..addToken('name', name);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -15245,12 +14908,13 @@ final class RecordTypeAnnotationImpl extends TypeAnnotationImpl
   Token get endToken => question ?? rightParenthesis;
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('leftParenthesis', leftParenthesis)
-    ..addNodeList('positionalFields', positionalFields)
-    ..addNode('namedFields', namedFields)
-    ..addToken('rightParenthesis', rightParenthesis)
-    ..addToken('question', question);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addToken('leftParenthesis', leftParenthesis)
+        ..addNodeList('positionalFields', positionalFields)
+        ..addNode('namedFields', namedFields)
+        ..addToken('rightParenthesis', rightParenthesis)
+        ..addToken('question', question);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) {
@@ -15330,10 +14994,11 @@ final class RecordTypeAnnotationNamedFieldsImpl extends AstNodeImpl
   Token get endToken => rightBracket;
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('leftBracket', leftBracket)
-    ..addNodeList('fields', fields)
-    ..addToken('rightBracket', rightBracket);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addToken('leftBracket', leftBracket)
+        ..addNodeList('fields', fields)
+        ..addToken('rightBracket', rightBracket);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) {
@@ -15406,7 +15071,7 @@ final class RedirectingConstructorInvocationImpl
   ArgumentListImpl _argumentList;
 
   @override
-  ConstructorElementImpl? staticElement;
+  ConstructorElementImpl2? element;
 
   /// Initializes a newly created redirecting invocation to invoke the
   /// constructor with the given name with the given arguments.
@@ -15418,8 +15083,8 @@ final class RedirectingConstructorInvocationImpl
     required this.period,
     required SimpleIdentifierImpl? constructorName,
     required ArgumentListImpl argumentList,
-  })  : _constructorName = constructorName,
-        _argumentList = argumentList {
+  }) : _constructorName = constructorName,
+       _argumentList = argumentList {
     _becomeParentOf(_constructorName);
     _becomeParentOf(_argumentList);
   }
@@ -15441,23 +15106,16 @@ final class RedirectingConstructorInvocationImpl
     _constructorName = _becomeParentOf(identifier);
   }
 
-  @experimental
-  @override
-  ConstructorElementImpl2? get element => staticElement?.asElement2;
-
-  set element(ConstructorElementImpl2? value) {
-    staticElement = value?.asElement;
-  }
-
   @override
   Token get endToken => _argumentList.endToken;
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('thisKeyword', thisKeyword)
-    ..addToken('period', period)
-    ..addNode('constructorName', constructorName)
-    ..addNode('argumentList', argumentList);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('thisKeyword', thisKeyword)
+        ..addToken('period', period)
+        ..addNode('constructorName', constructorName)
+        ..addNode('argumentList', argumentList);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
@@ -15477,15 +15135,11 @@ final class RedirectingConstructorInvocationImpl
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class RelationalPattern implements DartPattern {
   /// The element of the [operator] for the matched type.
-  @Deprecated('Use element2 instead')
-  MethodElement? get element;
-
-  /// The element of the [operator] for the matched type.
   ///
   /// Returns `null` if the AST structure hasn't been resolved or if the
   /// operator couldn't be resolved.
   @experimental
-  MethodElement2? get element2;
+  MethodElement? get element2;
 
   /// The expression used to compute the operand.
   Expression get operand;
@@ -15502,7 +15156,7 @@ final class RelationalPatternImpl extends DartPatternImpl
   final Token operator;
 
   @override
-  MethodElement2? element2;
+  MethodElement? element2;
 
   RelationalPatternImpl({
     required this.operator,
@@ -15513,12 +15167,6 @@ final class RelationalPatternImpl extends DartPatternImpl
 
   @override
   Token get beginToken => operator;
-
-  @Deprecated('Use element2 instead')
-  @override
-  MethodElement? get element {
-    return element2?.asElement;
-  }
 
   @override
   Token get endToken => operand.endToken;
@@ -15534,9 +15182,10 @@ final class RelationalPatternImpl extends DartPatternImpl
   PatternPrecedence get precedence => PatternPrecedence.relational;
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('operator', operator)
-    ..addNode('operand', operand);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addToken('operator', operator)
+        ..addNode('operand', operand);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitRelationalPattern(this);
@@ -15554,8 +15203,11 @@ final class RelationalPatternImpl extends DartPatternImpl
     SharedMatchContext context,
   ) {
     inferenceLogWriter?.enterPattern(this);
-    var analysisResult =
-        resolverVisitor.analyzeRelationalPattern(context, this, operand);
+    var analysisResult = resolverVisitor.analyzeRelationalPattern(
+      context,
+      this,
+      operand,
+    );
     resolverVisitor.popRewrite();
     inferenceLogWriter?.exitPattern(this);
     return analysisResult;
@@ -15586,10 +15238,7 @@ final class RepresentationConstructorNameImpl extends AstNodeImpl
   @override
   final Token name;
 
-  RepresentationConstructorNameImpl({
-    required this.period,
-    required this.name,
-  });
+  RepresentationConstructorNameImpl({required this.period, required this.name});
 
   @override
   Token get beginToken => period;
@@ -15598,9 +15247,10 @@ final class RepresentationConstructorNameImpl extends AstNodeImpl
   Token get endToken => name;
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('period', period)
-    ..addToken('name', name);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addToken('period', period)
+        ..addToken('name', name);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) {
@@ -15620,20 +15270,12 @@ final class RepresentationConstructorNameImpl extends AstNodeImpl
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class RepresentationDeclaration implements AstNode {
-  /// The element of the primary constructor.
-  @Deprecated('Use constructorFragment instead')
-  ConstructorElement? get constructorElement;
-
   /// The fragment of the primary constructor contained in this declaration.
   @experimental
   ConstructorFragment? get constructorFragment;
 
   /// The optional name of the primary constructor.
   RepresentationConstructorName? get constructorName;
-
-  /// The element for [fieldName] with [fieldType].
-  @Deprecated('Use fieldFragment instead')
-  FieldElement? get fieldElement;
 
   /// The fragment for [fieldName] with [fieldType] contained in this
   /// declaration.
@@ -15662,7 +15304,7 @@ final class RepresentationDeclarationImpl extends AstNodeImpl
   final RepresentationConstructorNameImpl? constructorName;
 
   @override
-  ConstructorElementImpl? constructorFragment;
+  ConstructorFragmentImpl? constructorFragment;
 
   @override
   final Token leftParenthesis;
@@ -15677,7 +15319,7 @@ final class RepresentationDeclarationImpl extends AstNodeImpl
   final Token fieldName;
 
   @override
-  FieldElementImpl? fieldFragment;
+  FieldFragmentImpl? fieldFragment;
 
   @override
   final Token rightParenthesis;
@@ -15698,25 +15340,18 @@ final class RepresentationDeclarationImpl extends AstNodeImpl
   @override
   Token get beginToken => constructorName?.beginToken ?? leftParenthesis;
 
-  @Deprecated('Use constructorFragment instead')
-  @override
-  ConstructorElementImpl? get constructorElement => constructorFragment;
-
   @override
   Token get endToken => rightParenthesis;
 
-  @Deprecated('Use fieldFragment instead')
   @override
-  FieldElementImpl? get fieldElement => fieldFragment;
-
-  @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addNode('constructorName', constructorName)
-    ..addToken('leftParenthesis', leftParenthesis)
-    ..addNodeList('fieldMetadata', fieldMetadata)
-    ..addNode('fieldType', fieldType)
-    ..addToken('fieldName', fieldName)
-    ..addToken('rightParenthesis', rightParenthesis);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addNode('constructorName', constructorName)
+        ..addToken('leftParenthesis', leftParenthesis)
+        ..addNodeList('fieldMetadata', fieldMetadata)
+        ..addNode('fieldType', fieldType)
+        ..addToken('fieldName', fieldName)
+        ..addToken('rightParenthesis', rightParenthesis);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) {
@@ -15755,10 +15390,7 @@ final class RestPatternElementImpl extends AstNodeImpl
   @override
   final DartPatternImpl? pattern;
 
-  RestPatternElementImpl({
-    required this.operator,
-    required this.pattern,
-  }) {
+  RestPatternElementImpl({required this.operator, required this.pattern}) {
     _becomeParentOf(pattern);
   }
 
@@ -15769,9 +15401,10 @@ final class RestPatternElementImpl extends AstNodeImpl
   Token get endToken => pattern?.endToken ?? operator;
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('operator', operator)
-    ..addNode('pattern', pattern);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('operator', operator)
+        ..addNode('pattern', pattern);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) {
@@ -15800,9 +15433,7 @@ final class RethrowExpressionImpl extends ExpressionImpl
   final Token rethrowKeyword;
 
   /// Initializes a newly created rethrow expression.
-  RethrowExpressionImpl({
-    required this.rethrowKeyword,
-  });
+  RethrowExpressionImpl({required this.rethrowKeyword});
 
   @override
   Token get beginToken => rethrowKeyword;
@@ -15883,10 +15514,11 @@ final class ReturnStatementImpl extends StatementImpl
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('returnKeyword', returnKeyword)
-    ..addNode('expression', expression)
-    ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('returnKeyword', returnKeyword)
+        ..addNode('expression', expression)
+        ..addToken('semicolon', semicolon);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitReturnStatement(this);
@@ -15896,6 +15528,12 @@ final class ReturnStatementImpl extends StatementImpl
     _expression?.accept(visitor);
   }
 }
+
+/// A resolved dot shorthand invocation.
+///
+/// Either a [FunctionExpressionInvocationImpl], a static method invocation, or
+/// a [DotShorthandConstructorInvocationImpl], a constructor invocation.
+sealed class RewrittenMethodInvocationImpl implements ExpressionImpl {}
 
 /// A script tag that can optionally occur at the beginning of a compilation
 /// unit.
@@ -15913,9 +15551,7 @@ final class ScriptTagImpl extends AstNodeImpl implements ScriptTag {
   final Token scriptTag;
 
   /// Initializes a newly created script tag.
-  ScriptTagImpl({
-    required this.scriptTag,
-  });
+  ScriptTagImpl({required this.scriptTag});
 
   @override
   Token get beginToken => scriptTag;
@@ -16057,23 +15693,28 @@ final class SetOrMapLiteralImpl extends TypedLiteralImpl
 
   @override
   // TODO(paulberry): add commas.
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('leftBracket', leftBracket)
-    ..addNodeList('elements', elements)
-    ..addToken('rightBracket', rightBracket);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addToken('leftBracket', leftBracket)
+        ..addNodeList('elements', elements)
+        ..addToken('rightBracket', rightBracket);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSetOrMapLiteral(this);
 
   void becomeMap() {
-    assert(_resolvedKind == _SetOrMapKind.unresolved ||
-        _resolvedKind == _SetOrMapKind.map);
+    assert(
+      _resolvedKind == _SetOrMapKind.unresolved ||
+          _resolvedKind == _SetOrMapKind.map,
+    );
     _resolvedKind = _SetOrMapKind.map;
   }
 
   void becomeSet() {
-    assert(_resolvedKind == _SetOrMapKind.unresolved ||
-        _resolvedKind == _SetOrMapKind.set);
+    assert(
+      _resolvedKind == _SetOrMapKind.unresolved ||
+          _resolvedKind == _SetOrMapKind.set,
+    );
     _resolvedKind = _SetOrMapKind.set;
   }
 
@@ -16125,9 +15766,10 @@ final class ShowCombinatorImpl extends CombinatorImpl
 
   @override
   // TODO(paulberry): add commas.
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('keyword', keyword)
-    ..addNodeList('shownNames', shownNames);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('keyword', keyword)
+        ..addNodeList('shownNames', shownNames);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitShowCombinator(this);
@@ -16209,10 +15851,11 @@ final class SimpleFormalParameterImpl extends NormalFormalParameterImpl
   }
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('keyword', keyword)
-    ..addNode('type', type)
-    ..addToken('name', name);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addToken('keyword', keyword)
+        ..addNode('type', type)
+        ..addToken('name', name);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
@@ -16280,7 +15923,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   /// information, or `null` if the AST structure hasn't been resolved or if
   /// this identifier couldn't be resolved.
   @override
-  Element2? element;
+  Element? element;
 
   @override
   List<TypeImpl>? tearOffTypeArgumentTypes;
@@ -16338,34 +15981,6 @@ final class SimpleIdentifierImpl extends IdentifierImpl
 
   @override
   Precedence get precedence => Precedence.primary;
-
-  /// The element being referenced by this identifier, or `null` if this
-  /// identifier is used to either read or write a value, the AST structure
-  /// hasn't been resolved, or if this identifier couldn't be resolved.
-  ///
-  /// This element is set when this identifier is used not as an expression,
-  /// but just to reference some element.
-  ///
-  /// Examples are the name of the type in a [NamedType], the name of the method
-  /// in a [MethodInvocation], the name of the constructor in a
-  /// [ConstructorName], the name of the property in a [PropertyAccess], the
-  /// prefix and the identifier in a [PrefixedIdentifier] (which then can be
-  /// used to read or write a value).
-  ///
-  /// In invalid code, for recovery, any element could be used. For example, in
-  /// `set mySetter(_) {} mySetter topVar;` a setter is used as a type name. We
-  /// do this to help the user to navigate to this element, and maybe change its
-  /// name, add a new declaration, etc.
-  ///
-  /// If either [readElement] or [writeElement] aren't `null`, the
-  /// [referenceElement] is `null`, because the identifier is being used to
-  /// read or write a value.
-  ///
-  /// All three of [readElement], [writeElement], and [referenceElement] can be
-  /// `null` when the AST structure hasn't been resolved, or this identifier
-  /// couldn't be resolved.
-  @Deprecated('Use more specific elements of nodes')
-  Element? get referenceElement => null;
 
   @override
   ChildEntities get _childEntities => ChildEntities()..addToken('token', token);
@@ -16510,10 +16125,7 @@ final class SimpleStringLiteralImpl extends SingleStringLiteralImpl
   String value;
 
   /// Initializes a newly created simple string literal.
-  SimpleStringLiteralImpl({
-    required this.literal,
-    required this.value,
-  });
+  SimpleStringLiteralImpl({required this.literal, required this.value});
 
   @override
   Token get beginToken => literal;
@@ -16645,9 +16257,10 @@ final class SpreadElementImpl extends AstNodeImpl
       spreadOperator.type == TokenType.PERIOD_PERIOD_PERIOD_QUESTION;
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('spreadOperator', spreadOperator)
-    ..addNode('expression', expression);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('spreadOperator', spreadOperator)
+        ..addNode('expression', expression);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) {
@@ -16656,7 +16269,9 @@ final class SpreadElementImpl extends AstNodeImpl
 
   @override
   void resolveElement(
-      ResolverVisitor resolver, CollectionLiteralContext? context) {
+    ResolverVisitor resolver,
+    CollectionLiteralContext? context,
+  ) {
     resolver.visitSpreadElement(this, context: context);
     resolver.pushRewrite(null);
   }
@@ -16727,9 +16342,7 @@ final class StringInterpolationImpl extends SingleStringLiteralImpl
   final NodeListImpl<InterpolationElementImpl> _elements = NodeListImpl._();
 
   /// Initializes a newly created string interpolation expression.
-  StringInterpolationImpl({
-    required List<InterpolationElementImpl> elements,
-  }) {
+  StringInterpolationImpl({required List<InterpolationElementImpl> elements}) {
     // TODO(scheglov): Replace asserts with appropriately typed parameters.
     assert(elements.length > 2, 'Expected at last three elements.');
     assert(
@@ -16985,8 +16598,8 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
     required this.period,
     required SimpleIdentifierImpl? constructorName,
     required ArgumentListImpl argumentList,
-  })  : _constructorName = constructorName,
-        _argumentList = argumentList {
+  }) : _constructorName = constructorName,
+       _argumentList = argumentList {
     _becomeParentOf(_constructorName);
     _becomeParentOf(_argumentList);
   }
@@ -17011,16 +16624,13 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
   @override
   Token get endToken => _argumentList.endToken;
 
-  @Deprecated('Use element instead')
   @override
-  ConstructorElementMixin? get staticElement => element?.asElement;
-
-  @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('superKeyword', superKeyword)
-    ..addToken('period', period)
-    ..addNode('constructorName', constructorName)
-    ..addNode('argumentList', argumentList);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('superKeyword', superKeyword)
+        ..addToken('period', period)
+        ..addNode('constructorName', constructorName)
+        ..addNode('argumentList', argumentList);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
@@ -17049,9 +16659,7 @@ final class SuperExpressionImpl extends ExpressionImpl
   final Token superKeyword;
 
   /// Initializes a newly created super expression.
-  SuperExpressionImpl({
-    required this.superKeyword,
-  });
+  SuperExpressionImpl({required this.superKeyword});
 
   @override
   Token get beginToken => superKeyword;
@@ -17172,9 +16780,9 @@ final class SuperFormalParameterImpl extends NormalFormalParameterImpl
     required TypeParameterListImpl? typeParameters,
     required FormalParameterListImpl? parameters,
     required this.question,
-  })  : _type = type,
-        _typeParameters = typeParameters,
-        _parameters = parameters {
+  }) : _type = type,
+       _typeParameters = typeParameters,
+       _parameters = parameters {
     _becomeParentOf(_type);
     _becomeParentOf(_typeParameters);
     _becomeParentOf(_parameters);
@@ -17227,14 +16835,15 @@ final class SuperFormalParameterImpl extends NormalFormalParameterImpl
   }
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('keyword', keyword)
-    ..addNode('type', type)
-    ..addToken('superKeyword', superKeyword)
-    ..addToken('period', period)
-    ..addToken('name', name)
-    ..addNode('typeParameters', typeParameters)
-    ..addNode('parameters', parameters);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addToken('keyword', keyword)
+        ..addNode('type', type)
+        ..addToken('superKeyword', superKeyword)
+        ..addToken('period', period)
+        ..addToken('name', name)
+        ..addNode('typeParameters', typeParameters)
+        ..addNode('parameters', parameters);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
@@ -17283,12 +16892,13 @@ final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNodeList('labels', labels)
-    ..addToken('keyword', keyword)
-    ..addNode('expression', expression)
-    ..addToken('colon', colon)
-    ..addNodeList('statements', statements);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addNodeList('labels', labels)
+        ..addToken('keyword', keyword)
+        ..addNode('expression', expression)
+        ..addToken('colon', colon)
+        ..addNodeList('statements', statements);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSwitchCase(this);
@@ -17321,11 +16931,12 @@ final class SwitchDefaultImpl extends SwitchMemberImpl
   });
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNodeList('labels', labels)
-    ..addToken('keyword', keyword)
-    ..addToken('colon', colon)
-    ..addNodeList('statements', statements);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addNodeList('labels', labels)
+        ..addToken('keyword', keyword)
+        ..addToken('colon', colon)
+        ..addNodeList('statements', statements);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSwitchDefault(this);
@@ -17417,10 +17028,11 @@ final class SwitchExpressionCaseImpl extends AstNodeImpl
   }
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addNode('guardedPattern', guardedPattern)
-    ..addToken('arrow', arrow)
-    ..addNode('expression', expression);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addNode('guardedPattern', guardedPattern)
+        ..addToken('arrow', arrow)
+        ..addNode('expression', expression);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
@@ -17485,14 +17097,15 @@ final class SwitchExpressionImpl extends ExpressionImpl
   Precedence get precedence => Precedence.primary;
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('switchKeyword', switchKeyword)
-    ..addToken('leftParenthesis', leftParenthesis)
-    ..addNode('expression', expression)
-    ..addToken('rightParenthesis', rightParenthesis)
-    ..addToken('leftBracket', leftBracket)
-    ..addNodeList('cases', cases)
-    ..addToken('rightBracket', rightBracket);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addToken('switchKeyword', switchKeyword)
+        ..addToken('leftParenthesis', leftParenthesis)
+        ..addNode('expression', expression)
+        ..addToken('rightParenthesis', rightParenthesis)
+        ..addToken('leftBracket', leftBracket)
+        ..addNodeList('cases', cases)
+        ..addToken('rightBracket', rightBracket);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSwitchExpression(this);
@@ -17615,12 +17228,13 @@ final class SwitchPatternCaseImpl extends SwitchMemberImpl
   }
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addNodeList('labels', labels)
-    ..addToken('keyword', keyword)
-    ..addNode('guardedPattern', guardedPattern)
-    ..addToken('colon', colon)
-    ..addNodeList('statements', statements);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addNodeList('labels', labels)
+        ..addToken('keyword', keyword)
+        ..addNode('guardedPattern', guardedPattern)
+        ..addToken('colon', colon)
+        ..addNodeList('statements', statements);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSwitchPatternCase(this);
@@ -17732,14 +17346,15 @@ final class SwitchStatementImpl extends StatementImpl
   NodeListImpl<SwitchMemberImpl> get members => _members;
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('switchKeyword', switchKeyword)
-    ..addToken('leftParenthesis', leftParenthesis)
-    ..addNode('expression', expression)
-    ..addToken('rightParenthesis', rightParenthesis)
-    ..addToken('leftBracket', leftBracket)
-    ..addNodeList('members', members)
-    ..addToken('rightBracket', rightBracket);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('switchKeyword', switchKeyword)
+        ..addToken('leftParenthesis', leftParenthesis)
+        ..addNode('expression', expression)
+        ..addToken('rightParenthesis', rightParenthesis)
+        ..addToken('leftBracket', leftBracket)
+        ..addNodeList('members', members)
+        ..addToken('rightBracket', rightBracket);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSwitchStatement(this);
@@ -17758,17 +17373,13 @@ final class SwitchStatementImpl extends StatementImpl
       groupMembers.add(member);
       groupHasLabels |= member.labels.isNotEmpty;
       if (member.statements.isNotEmpty) {
-        groups.add(
-          SwitchStatementCaseGroup(groupMembers, groupHasLabels),
-        );
+        groups.add(SwitchStatementCaseGroup(groupMembers, groupHasLabels));
         groupMembers = [];
         groupHasLabels = false;
       }
     }
     if (groupMembers.isNotEmpty) {
-      groups.add(
-        SwitchStatementCaseGroup(groupMembers, groupHasLabels),
-      );
+      groups.add(SwitchStatementCaseGroup(groupMembers, groupHasLabels));
     }
     return groups;
   }
@@ -17795,10 +17406,7 @@ final class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
   final List<Token> components;
 
   /// Initializes a newly created symbol literal.
-  SymbolLiteralImpl({
-    required this.poundSign,
-    required this.components,
-  });
+  SymbolLiteralImpl({required this.poundSign, required this.components});
 
   @override
   Token get beginToken => poundSign;
@@ -17808,9 +17416,10 @@ final class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
 
   @override
   // TODO(paulberry): add "." tokens.
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('poundSign', poundSign)
-    ..addTokenList('components', components);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('poundSign', poundSign)
+        ..addTokenList('components', components);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSymbolLiteral(this);
@@ -17858,9 +17467,7 @@ final class ThisExpressionImpl extends ExpressionImpl
   final Token thisKeyword;
 
   /// Initializes a newly created this expression.
-  ThisExpressionImpl({
-    required this.thisKeyword,
-  });
+  ThisExpressionImpl({required this.thisKeyword});
 
   @override
   Token get beginToken => thisKeyword;
@@ -17936,9 +17543,10 @@ final class ThrowExpressionImpl extends ExpressionImpl
   Precedence get precedence => Precedence.assignment;
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('throwKeyword', throwKeyword)
-    ..addNode('expression', expression);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('throwKeyword', throwKeyword)
+        ..addNode('expression', expression);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitThrowExpression(this);
@@ -18011,10 +17619,6 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
     _becomeParentOf(_variableList);
   }
 
-  @Deprecated('Use declaredFragment instead')
-  @override
-  Element? get declaredElement => null;
-
   @override
   Fragment? get declaredFragment => null;
 
@@ -18033,11 +17637,12 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('augmentKeyword', augmentKeyword)
-    ..addToken('externalKeyword', externalKeyword)
-    ..addNode('variables', variables)
-    ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addToken('augmentKeyword', augmentKeyword)
+        ..addToken('externalKeyword', externalKeyword)
+        ..addNode('variables', variables)
+        ..addToken('semicolon', semicolon);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
@@ -18100,8 +17705,8 @@ final class TryStatementImpl extends StatementImpl implements TryStatement {
     required List<CatchClauseImpl> catchClauses,
     required this.finallyKeyword,
     required BlockImpl? finallyBlock,
-  })  : _body = body,
-        _finallyBlock = finallyBlock {
+  }) : _body = body,
+       _finallyBlock = finallyBlock {
     _becomeParentOf(_body);
     _catchClauses._initialize(this, catchClauses);
     _becomeParentOf(_finallyBlock);
@@ -18140,12 +17745,13 @@ final class TryStatementImpl extends StatementImpl implements TryStatement {
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('tryKeyword', tryKeyword)
-    ..addNode('body', body)
-    ..addNodeList('catchClauses', catchClauses)
-    ..addToken('finallyKeyword', finallyKeyword)
-    ..addNode('finallyBlock', finallyBlock);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('tryKeyword', tryKeyword)
+        ..addNode('body', body)
+        ..addNodeList('catchClauses', catchClauses)
+        ..addToken('finallyKeyword', finallyKeyword)
+        ..addNode('finallyBlock', finallyBlock);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitTryStatement(this);
@@ -18277,10 +17883,11 @@ final class TypeArgumentListImpl extends AstNodeImpl
 
   @override
   // TODO(paulberry): Add commas.
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('leftBracket', leftBracket)
-    ..addNodeList('arguments', arguments)
-    ..addToken('rightBracket', rightBracket);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('leftBracket', leftBracket)
+        ..addNodeList('arguments', arguments)
+        ..addToken('rightBracket', rightBracket);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitTypeArgumentList(this);
@@ -18345,9 +17952,10 @@ sealed class TypedLiteralImpl extends LiteralImpl implements TypedLiteral {
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('constKeyword', constKeyword)
-    ..addNode('typeArguments', typeArguments);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('constKeyword', constKeyword)
+        ..addNode('typeArguments', typeArguments);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -18376,9 +17984,7 @@ final class TypeLiteralImpl extends CommentReferableExpressionImpl
     implements TypeLiteral {
   NamedTypeImpl _typeName;
 
-  TypeLiteralImpl({
-    required NamedTypeImpl typeName,
-  }) : _typeName = typeName {
+  TypeLiteralImpl({required NamedTypeImpl typeName}) : _typeName = typeName {
     _becomeParentOf(_typeName);
   }
 
@@ -18433,10 +18039,6 @@ abstract final class TypeParameter implements Declaration {
   /// upper bound.
   TypeAnnotation? get bound;
 
-  @Deprecated('Use declaredFragment instead')
-  @override
-  TypeParameterElement? get declaredElement;
-
   @experimental
   @override
   TypeParameterFragment? get declaredFragment;
@@ -18463,7 +18065,7 @@ final class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   TypeAnnotationImpl? _bound;
 
   @override
-  TypeParameterElementImpl? declaredFragment;
+  TypeParameterFragmentImpl? declaredFragment;
 
   /// Initializes a newly created type parameter.
   ///
@@ -18490,10 +18092,6 @@ final class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
     _bound = _becomeParentOf(type);
   }
 
-  @Deprecated('Use declaredFragment instead')
-  @override
-  TypeParameterElementImpl? get declaredElement => declaredFragment;
-
   @override
   Token get endToken {
     return _bound?.endToken ?? name;
@@ -18503,10 +18101,11 @@ final class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   Token get firstTokenAfterCommentAndMetadata => varianceKeyword ?? name;
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('name', name)
-    ..addToken('extendsKeyword', extendsKeyword)
-    ..addNode('bound', bound);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addToken('name', name)
+        ..addToken('extendsKeyword', extendsKeyword)
+        ..addNode('bound', bound);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitTypeParameter(this);
@@ -18563,10 +18162,11 @@ final class TypeParameterListImpl extends AstNodeImpl
   NodeListImpl<TypeParameterImpl> get typeParameters => _typeParameters;
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('leftBracket', leftBracket)
-    ..addNodeList('typeParameters', typeParameters)
-    ..addToken('rightBracket', rightBracket);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('leftBracket', leftBracket)
+        ..addNodeList('typeParameters', typeParameters)
+        ..addToken('rightBracket', rightBracket);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitTypeParameterList(this);
@@ -18624,7 +18224,10 @@ sealed class UriBasedDirectiveImpl extends DirectiveImpl
   /// Returns a code indicating the problem if a problem was found, or `null` if
   /// there's no problem.
   static UriValidationCode? validateUri(
-      bool isImport, StringLiteral uriLiteral, String? uriContent) {
+    bool isImport,
+    StringLiteral uriLiteral,
+    String? uriContent,
+  ) {
     if (uriLiteral is StringInterpolation) {
       return UriValidationCode.URI_WITH_INTERPOLATION;
     }
@@ -18651,8 +18254,9 @@ sealed class UriBasedDirectiveImpl extends DirectiveImpl
 class UriValidationCode {
   static const UriValidationCode INVALID_URI = UriValidationCode('INVALID_URI');
 
-  static const UriValidationCode URI_WITH_INTERPOLATION =
-      UriValidationCode('URI_WITH_INTERPOLATION');
+  static const UriValidationCode URI_WITH_INTERPOLATION = UriValidationCode(
+    'URI_WITH_INTERPOLATION',
+  );
 
   /// The name of the validation code.
   final String name;
@@ -18686,16 +18290,8 @@ abstract final class VariableDeclaration implements Declaration {
   ///
   /// Returns `null` if the AST structure hasn't been resolved or if this node
   /// represents the declaration of a top-level variable or a field.
-  @Deprecated('Use declaredFragment instead')
-  @override
-  VariableElement? get declaredElement;
-
-  /// The element declared by this declaration.
-  ///
-  /// Returns `null` if the AST structure hasn't been resolved or if this node
-  /// represents the declaration of a top-level variable or a field.
   @experimental
-  LocalVariableElement2? get declaredElement2;
+  LocalVariableElement? get declaredElement2;
 
   /// The fragment declared by this declaration.
   ///
@@ -18735,7 +18331,7 @@ final class VariableDeclarationImpl extends DeclarationImpl
   final Token name;
 
   @override
-  VariableElementImpl? declaredFragment;
+  VariableFragmentImpl? declaredFragment;
 
   @override
   final Token? equals;
@@ -18755,15 +18351,9 @@ final class VariableDeclarationImpl extends DeclarationImpl
     required this.name,
     required this.equals,
     required ExpressionImpl? initializer,
-  })  : _initializer = initializer,
-        super(comment: null, metadata: null) {
+  }) : _initializer = initializer,
+       super(comment: null, metadata: null) {
     _becomeParentOf(_initializer);
-  }
-
-  @Deprecated('Use declaredFragment instead')
-  @override
-  VariableElementImpl? get declaredElement {
-    return declaredFragment;
   }
 
   @experimental
@@ -18824,10 +18414,11 @@ final class VariableDeclarationImpl extends DeclarationImpl
   }
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('name', name)
-    ..addToken('equals', equals)
-    ..addNode('initializer', initializer);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addToken('name', name)
+        ..addToken('equals', equals)
+        ..addNode('initializer', initializer);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitVariableDeclaration(this);
@@ -18946,11 +18537,12 @@ final class VariableDeclarationListImpl extends AnnotatedNodeImpl
 
   @override
   // TODO(paulberry): include commas.
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('lateKeyword', lateKeyword)
-    ..addToken('keyword', keyword)
-    ..addNode('type', type)
-    ..addNodeList('variables', variables);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addToken('lateKeyword', lateKeyword)
+        ..addToken('keyword', keyword)
+        ..addNode('type', type)
+        ..addNodeList('variables', variables);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
@@ -19007,9 +18599,10 @@ final class VariableDeclarationStatementImpl extends StatementImpl
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNode('variables', variables)
-    ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addNode('variables', variables)
+        ..addToken('semicolon', semicolon);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
@@ -19038,9 +18631,7 @@ sealed class VariablePatternImpl extends DartPatternImpl
   /// implicit name node is recorded here for a future use.
   PatternFieldNameImpl? fieldNameWithImplicitName;
 
-  VariablePatternImpl({
-    required this.name,
-  });
+  VariablePatternImpl({required this.name});
 
   @override
   VariablePatternImpl? get variablePattern => this;
@@ -19088,9 +18679,10 @@ final class WhenClauseImpl extends AstNodeImpl implements WhenClause {
   }
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('whenKeyword', whenKeyword)
-    ..addNode('expression', expression);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addToken('whenKeyword', whenKeyword)
+        ..addNode('expression', expression);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitWhenClause(this);
@@ -19144,8 +18736,8 @@ final class WhileStatementImpl extends StatementImpl implements WhileStatement {
     required ExpressionImpl condition,
     required this.rightParenthesis,
     required StatementImpl body,
-  })  : _condition = condition,
-        _body = body {
+  }) : _condition = condition,
+       _body = body {
     _becomeParentOf(_condition);
     _becomeParentOf(_body);
   }
@@ -19171,12 +18763,13 @@ final class WhileStatementImpl extends StatementImpl implements WhileStatement {
   Token get endToken => _body.endToken;
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('whileKeyword', whileKeyword)
-    ..addToken('leftParenthesis', leftParenthesis)
-    ..addNode('condition', condition)
-    ..addToken('rightParenthesis', rightParenthesis)
-    ..addNode('body', body);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('whileKeyword', whileKeyword)
+        ..addToken('leftParenthesis', leftParenthesis)
+        ..addNode('condition', condition)
+        ..addToken('rightParenthesis', rightParenthesis)
+        ..addNode('body', body);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitWhileStatement(this);
@@ -19243,10 +18836,11 @@ final class WildcardPatternImpl extends DartPatternImpl
   PatternPrecedence get precedence => PatternPrecedence.primary;
 
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('keyword', keyword)
-    ..addNode('type', type)
-    ..addToken('name', name);
+  ChildEntities get _childEntities =>
+      super._childEntities
+        ..addToken('keyword', keyword)
+        ..addNode('type', type)
+        ..addToken('name', name);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitWildcardPattern(this);
@@ -19255,7 +18849,8 @@ final class WildcardPatternImpl extends DartPatternImpl
   TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
     return resolverVisitor
         .analyzeDeclaredVariablePatternSchema(
-            type?.typeOrThrow.wrapSharedTypeView())
+          type?.typeOrThrow.wrapSharedTypeView(),
+        )
         .unwrapTypeSchemaView();
   }
 
@@ -19327,9 +18922,10 @@ final class WithClauseImpl extends AstNodeImpl implements WithClause {
 
   @override
   // TODO(paulberry): add commas.
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('withKeyword', withKeyword)
-    ..addNodeList('mixinTypes', mixinTypes);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('withKeyword', withKeyword)
+        ..addNodeList('mixinTypes', mixinTypes);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitWithClause(this);
@@ -19401,11 +18997,12 @@ final class YieldStatementImpl extends StatementImpl implements YieldStatement {
   }
 
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('yieldKeyword', yieldKeyword)
-    ..addToken('star', star)
-    ..addNode('expression', expression)
-    ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities =>
+      ChildEntities()
+        ..addToken('yieldKeyword', yieldKeyword)
+        ..addToken('star', star)
+        ..addNode('expression', expression)
+        ..addToken('semicolon', semicolon);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitYieldStatement(this);
@@ -19440,10 +19037,8 @@ base mixin _AnnotatedNodeMixin on AstNodeImpl implements AnnotatedNode {
   @override
   List<AstNode> get sortedCommentAndAnnotations {
     var comment = _comment;
-    return <AstNode>[
-      if (comment != null) comment,
-      ..._metadata,
-    ]..sort(AstNode.LEXICAL_ORDER);
+    return <AstNode>[if (comment != null) comment, ..._metadata]
+      ..sort(AstNode.LEXICAL_ORDER);
   }
 
   @override
@@ -19470,7 +19065,9 @@ base mixin _AnnotatedNodeMixin on AstNodeImpl implements AnnotatedNode {
   ///
   /// Intended to be called from the constructor.
   void _initializeCommentAndAnnotations(
-      CommentImpl? comment, List<AnnotationImpl>? metadata) {
+    CommentImpl? comment,
+    List<AnnotationImpl>? metadata,
+  ) {
     _comment = _becomeParentOf(comment);
     _metadata._initialize(this, metadata);
   }
@@ -19506,5 +19103,5 @@ enum _SetOrMapKind {
   ///   performed, or
   /// - the literal is invalid because resolution isn't able to resolve the
   ///   ambiguity.
-  unresolved
+  unresolved,
 }

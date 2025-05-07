@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
@@ -43,7 +43,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var declaredElement = node.declaredFragment?.element;
     if (declaredElement == null) return;
 
-    if (declaredElement is SuperFormalParameterElement2) {
+    if (declaredElement is SuperFormalParameterElement) {
       var superConstructorParameter =
           declaredElement.superConstructorParameter2;
       if (superConstructorParameter is! FormalParameterElement) return;
@@ -52,7 +52,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     if (node.defaultValue.isNullLiteral && isNullable(declaredElement.type)) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 
@@ -65,7 +65,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         !node.isFinal &&
         node.initializer.isNullLiteral &&
         isNullable(declaredElement.type)) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 }

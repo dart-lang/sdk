@@ -9,9 +9,7 @@
 
 class C<T> {
   void m() {
-    const List lst = const [
-
-    ];
+    const List lst = const [];
   }
 }
 

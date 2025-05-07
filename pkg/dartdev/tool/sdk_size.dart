@@ -55,7 +55,8 @@ void main(List<String> arguments) {
 
 String sizeMB(int size) => '${(size / (1024.0 * 1024)).toStringAsFixed(1)}MB';
 
-Map build(FileSystemEntity entity, {Map<String, String> extra = const {}}) {
+Map<String, Object?> build(FileSystemEntity entity,
+    {Map<String, String> extra = const {}}) {
   const fsBlockSize = 4096.0;
 
   if (entity is File) {

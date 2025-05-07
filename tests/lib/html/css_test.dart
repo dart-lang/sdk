@@ -17,8 +17,9 @@ main() {
 
   group('functional', () {
     test('DomPoint', () {
-      var expectation =
-          Window.supportsPointConversions ? returnsNormally : throws;
+      var expectation = Window.supportsPointConversions
+          ? returnsNormally
+          : throws;
       expect(() {
         Element element = new Element.tag('div');
         element.attributes['style'] = '''

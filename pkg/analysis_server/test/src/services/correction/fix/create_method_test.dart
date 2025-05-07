@@ -728,6 +728,164 @@ class A {
 ''');
   }
 
+  Future<void> test_enum_invocation() async {
+    await resolveTestCode('''
+enum E {
+  e1,
+  e2;
+}
+
+void test(E e) {
+  e.bar();
+}
+''');
+    await assertHasFix('''
+enum E {
+  e1,
+  e2;
+
+  void bar() {}
+}
+
+void test(E e) {
+  e.bar();
+}
+''');
+  }
+
+  Future<void> test_enum_invocation_static() async {
+    await resolveTestCode('''
+enum E {
+  e1,
+  e2;
+}
+
+void test() {
+  E.bar();
+}
+''');
+    await assertHasFix('''
+enum E {
+  e1,
+  e2;
+
+  static void bar() {}
+}
+
+void test() {
+  E.bar();
+}
+''');
+  }
+
+  Future<void> test_enum_tearoff() async {
+    await resolveTestCode('''
+enum E {
+  e1,
+  e2;
+}
+
+void g(int Function() f) {}
+
+void test(E e) {
+  g(e.bar);
+}
+''');
+    await assertHasFix('''
+enum E {
+  e1,
+  e2;
+  int bar() {
+  }
+}
+
+void g(int Function() f) {}
+
+void test(E e) {
+  g(e.bar);
+}
+''');
+  }
+
+  Future<void> test_enum_tearoff_static() async {
+    await resolveTestCode('''
+enum E {
+  e1,
+  e2;
+}
+
+void g(int Function() f) {}
+
+void test() {
+  g(E.bar);
+}
+''');
+    await assertHasFix('''
+enum E {
+  e1,
+  e2;
+  static int bar() {
+  }
+}
+
+void g(int Function() f) {}
+
+void test() {
+  g(E.bar);
+}
+''');
+  }
+
+  Future<void> test_extensionType_tearoff() async {
+    await resolveTestCode('''
+extension type E(int i) {
+}
+
+void g(int Function() f) {}
+
+void test(E e) {
+  g(e.bar);
+}
+''');
+    await assertHasFix('''
+extension type E(int i) {
+  int bar() {
+  }
+}
+
+void g(int Function() f) {}
+
+void test(E e) {
+  g(e.bar);
+}
+''');
+  }
+
+  Future<void> test_extensionType_tearoff_static() async {
+    await resolveTestCode('''
+extension type E(int i) {
+}
+
+void g(int Function() f) {}
+
+void test() {
+  g(E.bar);
+}
+''');
+    await assertHasFix('''
+extension type E(int i) {
+  static int bar() {
+  }
+}
+
+void g(int Function() f) {}
+
+void test() {
+  g(E.bar);
+}
+''');
+  }
+
   Future<void> test_functionType_argument() async {
     await resolveTestCode('''
 class A {
@@ -1464,15 +1622,5 @@ void f() {
   E.m();
 }
 ''');
-  }
-
-  Future<void> test_targetIsEnum() async {
-    await resolveTestCode('''
-enum MyEnum {A, B}
-void f() {
-  MyEnum.foo();
-}
-''');
-    await assertNoFix();
   }
 }

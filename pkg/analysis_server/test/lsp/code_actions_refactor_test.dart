@@ -12,6 +12,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../tool/lsp_spec/matchers.dart';
+import '../utils/lsp_protocol_extensions.dart';
 import '../utils/test_code_extensions.dart';
 import 'code_actions_abstract.dart';
 import 'request_helpers_mixin.dart';
@@ -48,7 +49,7 @@ void f() {
 }
 ''';
 
-    await verifyActionEdits(
+    await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
       command: Commands.performRefactor,
@@ -103,7 +104,7 @@ void f() {
 }
 ''';
 
-    await verifyActionEdits(
+    await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
       command: Commands.performRefactor,
@@ -134,7 +135,7 @@ void newMethod() {
   print('Test!');
 }
 ''';
-    await verifyActionEdits(
+    await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
       command: Commands.performRefactor,
@@ -161,7 +162,7 @@ void newMethod() {
 }
 ''';
 
-    var codeAction = await expectAction(
+    var codeAction = await expectCodeActionLiteral(
       content,
       command: Commands.performRefactor,
       title: extractMethodTitle,
@@ -209,7 +210,7 @@ void f() {
 }
 ''';
 
-    var codeAction = await expectAction(
+    var codeAction = await expectCodeActionLiteral(
       content,
       command: Commands.performRefactor,
       title: extractMethodTitle,
@@ -260,10 +261,7 @@ void f() {
     Future<void> checkResults(CodeActionKind kind) async {
       var results = await ofKind(kind);
       for (var result in results) {
-        var resultKind = result.map(
-          (cmd) => throw 'Expected CodeAction, got Command: ${cmd.title}',
-          (action) => action.kind,
-        );
+        var resultKind = result.asCodeActionLiteral.kind;
         expect('$resultKind', anyOf([equals('$kind'), startsWith('$kind.')]));
       }
     }
@@ -295,7 +293,7 @@ Object Container(Object text) => null;
 Object Text(Object text) => null;
 ''';
 
-    await verifyActionEdits(
+    await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
       command: Commands.performRefactor,
@@ -340,7 +338,7 @@ void f() {
 ''';
 
     setDocumentChangesSupport(false);
-    var action = await expectAction(
+    var action = await expectCodeActionLiteral(
       content,
       command: Commands.performRefactor,
       title: extractMethodTitle,
@@ -372,7 +370,7 @@ void newMethod() {
     // token was supplied by us (the client).
     expect(progressUpdates, emitsInOrder(['BEGIN', 'END']));
 
-    await verifyActionEdits(
+    await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
       command: Commands.performRefactor,
@@ -402,7 +400,7 @@ void newMethod() {
     var didGetProgressNotifications = false;
     progressUpdates.listen((_) => didGetProgressNotifications = true);
 
-    await verifyActionEdits(
+    await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
       command: Commands.performRefactor,
@@ -435,7 +433,7 @@ void newMethod() {
     expect(progressUpdates, emitsInOrder(['CREATE', 'BEGIN', 'END']));
 
     setWorkDoneProgressSupport();
-    await verifyActionEdits(
+    await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
       command: Commands.performRefactor,
@@ -454,7 +452,7 @@ f() {
 void doFoo(void Function() a) => a();
 
 ''';
-    var codeAction = await expectAction(
+    var codeAction = await expectCodeActionLiteral(
       content,
       command: Commands.performRefactor,
       title: extractMethodTitle,
@@ -493,7 +491,7 @@ f() {
 void doFoo(void Function() a) => a();
 ''';
 
-    var codeAction = await expectAction(
+    var codeAction = await expectCodeActionLiteral(
       content,
       command: Commands.performRefactor,
       title: extractMethodTitle,
@@ -528,7 +526,7 @@ void doFoo(void Function() a) => a();
 
 ''';
 
-    var codeAction = await expectAction(
+    var codeAction = await expectCodeActionLiteral(
       content,
       command: Commands.performRefactor,
       title: extractMethodTitle,
@@ -575,7 +573,7 @@ void f() {
 void foo(int arg) {}
 ''';
 
-    await verifyActionEdits(
+    await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
       command: Commands.performRefactor,
@@ -602,7 +600,7 @@ void f() {
 void foo(int arg) {}
 ''';
 
-    await verifyActionEdits(
+    await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
       command: Commands.performRefactor,
@@ -627,7 +625,7 @@ void f() {
 }
 ''';
 
-    await verifyActionEdits(
+    await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
       command: Commands.performRefactor,
@@ -652,7 +650,7 @@ void f() {
 }
 ''';
 
-    await verifyActionEdits(
+    await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
       command: Commands.performRefactor,
@@ -681,7 +679,7 @@ class A {
 }
 ''';
 
-    await verifyActionEdits(
+    await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
       command: Commands.performRefactor,
@@ -710,7 +708,7 @@ class A {
 }
 ''';
 
-    await verifyActionEdits(
+    await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
       command: Commands.performRefactor,
@@ -726,7 +724,7 @@ int test^() => 42;
 int get test => 42;
 ''';
 
-    await verifyActionEdits(
+    await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
       command: Commands.performRefactor,
@@ -742,7 +740,7 @@ int test^<T>() => 42;
 int get test<T> => 42;
 ''';
 
-    await verifyActionEdits(
+    await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
       command: Commands.performRefactor,
@@ -762,7 +760,7 @@ class A {
 }
 ''';
 
-    await verifyActionEdits(
+    await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
       command: Commands.performRefactor,
@@ -782,7 +780,7 @@ class A {
 }
 ''';
 
-    await verifyActionEdits(
+    await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
       command: Commands.performRefactor,
@@ -861,7 +859,7 @@ class NewWidget extends StatelessWidget {
 }
 ''';
 
-    await verifyActionEdits(
+    await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
       command: Commands.performRefactor,
@@ -907,7 +905,7 @@ void f() {
 }
 ''';
 
-    await verifyActionEdits(
+    await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
       command: Commands.performRefactor,
@@ -949,7 +947,7 @@ void bar() {
 }
 ''';
 
-    await verifyActionEdits(
+    await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
       command: Commands.performRefactor,
@@ -981,7 +979,7 @@ void foo2() {
 }
 ''';
 
-    await verifyActionEdits(
+    await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
       command: Commands.performRefactor,

@@ -31,7 +31,9 @@ main() async {
     });
     ;
     FileSystemEvent? event = await eventCompleter.future;
-    Expect.isNull(event,
-        "No event should be triggered or .contentChanged should equal false");
+    Expect.isNull(
+      event,
+      "No event should be triggered or .contentChanged should equal false",
+    );
   });
 }

@@ -4,13 +4,13 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
-import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -36,10 +36,11 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
+    var isStatic = false;
     var nameNode = node;
     if (nameNode is SimpleIdentifier) {
       // prepare argument expression (to get parameter)
-      InterfaceElement2? targetElement;
+      InterfaceElement? targetElement;
       Expression argument;
       var target = getQualifiedPropertyTarget(node);
       if (target != null) {
@@ -47,6 +48,13 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
         if (targetType is InterfaceType) {
           targetElement = targetType.element3;
           argument = target.parent as Expression;
+        } else if (target case SimpleIdentifier(
+          :InterfaceElement? element,
+          :Expression parent,
+        )) {
+          isStatic = true;
+          targetElement = element;
+          argument = parent;
         } else {
           return;
         }
@@ -107,7 +115,12 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
       }
       // add proposal
       if (targetElement != null) {
-        await _createMethod(builder, targetElement, parameterType);
+        await _createMethod(
+          builder,
+          targetElement,
+          parameterType,
+          isStatic: isStatic,
+        );
       } else {
         await _createFunction(builder, parameterType);
       }
@@ -194,22 +207,31 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
   /// [FunctionType] inside the target element.
   Future<void> _createMethod(
     ChangeBuilder builder,
-    InterfaceElement2 targetClassElement,
-    FunctionType functionType,
-  ) async {
+    InterfaceElement targetClassElement,
+    FunctionType functionType, {
+    required bool isStatic,
+  }) async {
     var name = (node as SimpleIdentifier).name;
     // prepare environment
     var targetSource = targetClassElement.firstFragment.libraryFragment.source;
     // prepare insert offset
     CompilationUnitMember? targetNode;
     List<ClassMember>? classMembers;
-    if (targetClassElement is MixinElement2) {
+    if (targetClassElement is MixinElement) {
       var fragment = targetClassElement.firstFragment;
       var node = targetNode = await getMixinDeclaration(fragment);
       classMembers = node?.members;
-    } else if (targetClassElement is ClassElement2) {
+    } else if (targetClassElement is ClassElement) {
       var fragment = targetClassElement.firstFragment;
       var node = targetNode = await getClassDeclaration(fragment);
+      classMembers = node?.members;
+    } else if (targetClassElement is ExtensionTypeElement) {
+      var fragment = targetClassElement.firstFragment;
+      var node = targetNode = await getExtensionTypeDeclaration(fragment);
+      classMembers = node?.members;
+    } else if (targetClassElement is EnumElement) {
+      var fragment = targetClassElement.firstFragment;
+      var node = targetNode = await getEnumDeclaration(fragment);
       classMembers = node?.members;
     }
     if (targetNode == null || classMembers == null) {
@@ -231,7 +253,7 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
       name,
       targetSource.fullName,
       insertOffset,
-      inStaticContext,
+      isStatic || inStaticContext,
       prefix,
       sourcePrefix,
       sourceSuffix,

@@ -17,17 +17,22 @@ void main() {
   asyncStart();
   Duration timeout = new Duration(milliseconds: 20);
   Socket.startConnect("8.8.8.7", 80).then((task) {
-    task.socket.timeout(timeout, onTimeout: () {
-      task.cancel();
-      return task.socket;
-    });
-    task.socket.then((socket) {
-      Expect.fail("Unexpected connection made.");
-      asyncEnd();
-    }).catchError((e) {
-      print(e);
-      Expect.isTrue(e is SocketException);
-      asyncEnd();
-    });
+    task.socket.timeout(
+      timeout,
+      onTimeout: () {
+        task.cancel();
+        return task.socket;
+      },
+    );
+    task.socket
+        .then((socket) {
+          Expect.fail("Unexpected connection made.");
+          asyncEnd();
+        })
+        .catchError((e) {
+          print(e);
+          Expect.isTrue(e is SocketException);
+          asyncEnd();
+        });
   });
 }

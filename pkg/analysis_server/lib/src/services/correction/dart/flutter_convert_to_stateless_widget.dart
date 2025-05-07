@@ -7,7 +7,7 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -86,7 +86,7 @@ class FlutterConvertToStatelessWidget extends ResolvedCorrectionProducer {
 
     // Prepare nodes to move.
     var nodesToMove = <ClassMember>[];
-    var elementsToMove = <Element2>{};
+    var elementsToMove = <Element>{};
     for (var member in stateClass.members) {
       if (member is FieldDeclaration) {
         if (member.isStatic) {
@@ -94,7 +94,7 @@ class FlutterConvertToStatelessWidget extends ResolvedCorrectionProducer {
         }
         for (var fieldNode in member.fields.variables) {
           var fieldElement =
-              fieldNode.declaredFragment!.element as FieldElement2;
+              fieldNode.declaredFragment!.element as FieldElement;
           if (!fieldsAssignedInConstructors.contains(fieldElement)) {
             nodesToMove.add(member);
             elementsToMove.add(fieldElement);
@@ -135,7 +135,7 @@ class FlutterConvertToStatelessWidget extends ResolvedCorrectionProducer {
         linesRange,
       );
       movedNode.accept(visitor);
-      return SourceEdit.applySequence(text, visitor.edits.reversed);
+      return SourceEdit.applySequence(text, visitor.edits.reversed.toList());
     }
 
     var statelessWidgetClass = await sessionHelper.getFlutterClass(
@@ -195,7 +195,7 @@ class FlutterConvertToStatelessWidget extends ResolvedCorrectionProducer {
     return null;
   }
 
-  ClassDeclaration? _findStateClass(ClassElement2 widgetClassElement) {
+  ClassDeclaration? _findStateClass(ClassElement widgetClassElement) {
     for (var declaration in unit.declarations) {
       if (declaration is ClassDeclaration) {
         var type = declaration.extendsClause?.superclass.type;
@@ -265,7 +265,7 @@ class FlutterConvertToStatelessWidget extends ResolvedCorrectionProducer {
     return false;
   }
 
-  static bool _isState(ClassElement2 widgetClassElement, DartType? type) {
+  static bool _isState(ClassElement widgetClassElement, DartType? type) {
     if (type is! InterfaceType) return false;
 
     var firstArgument = type.typeArguments.singleOrNull;
@@ -275,18 +275,18 @@ class FlutterConvertToStatelessWidget extends ResolvedCorrectionProducer {
     }
 
     var classElement = type.element3;
-    return classElement is ClassElement2 && classElement.isExactState;
+    return classElement is ClassElement && classElement.isExactState;
   }
 }
 
 class _FieldFinder extends RecursiveAstVisitor<void> {
-  Set<FieldElement2> fieldsAssignedInConstructors = {};
+  Set<FieldElement> fieldsAssignedInConstructors = {};
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.parent is FieldFormalParameter) {
       var element = node.element;
-      if (element is FieldFormalParameterElement2) {
+      if (element is FieldFormalParameterElement) {
         var field = element.field2;
         if (field != null) {
           fieldsAssignedInConstructors.add(field);
@@ -295,17 +295,17 @@ class _FieldFinder extends RecursiveAstVisitor<void> {
     }
     if (node.parent is ConstructorFieldInitializer) {
       var element = node.element;
-      if (element is FieldElement2) {
+      if (element is FieldElement) {
         fieldsAssignedInConstructors.add(element);
       }
     }
     if (node.inSetterContext()) {
       var element = node.writeOrReadElement2;
       var field = switch (element) {
-        PropertyAccessorElement2(:var variable3) => variable3,
+        PropertyAccessorElement(:var variable3) => variable3,
         _ => null,
       };
-      if (field is FieldElement2) {
+      if (field is FieldElement) {
         fieldsAssignedInConstructors.add(field);
       }
     }
@@ -313,9 +313,9 @@ class _FieldFinder extends RecursiveAstVisitor<void> {
 }
 
 class _ReplacementEditBuilder extends RecursiveAstVisitor<void> {
-  final ClassElement2 widgetClassElement;
+  final ClassElement widgetClassElement;
 
-  final Set<Element2> elementsToMove;
+  final Set<Element> elementsToMove;
 
   final SourceRange linesRange;
 
@@ -333,7 +333,7 @@ class _ReplacementEditBuilder extends RecursiveAstVisitor<void> {
       return;
     }
     var element = node.element;
-    if (element is ExecutableElement2 &&
+    if (element is ExecutableElement &&
         element.enclosingElement2 == widgetClassElement &&
         !elementsToMove.contains(element)) {
       var parent = node.parent;
@@ -390,7 +390,7 @@ class _StatelessVerifier extends RecursiveAstVisitor<void> {
   void visitMethodInvocation(MethodInvocation node) {
     var methodElement = node.methodName.element?.baseElement;
     var classElement = methodElement?.enclosingElement2;
-    if (classElement is ClassElement2 &&
+    if (classElement is ClassElement &&
         classElement.isExactState &&
         !FlutterConvertToStatelessWidget._isDefaultOverride(
           node.thisOrAncestorOfType<MethodDeclaration>(),
@@ -404,8 +404,8 @@ class _StatelessVerifier extends RecursiveAstVisitor<void> {
 
 class _StateUsageVisitor extends RecursiveAstVisitor<void> {
   bool used = false;
-  ClassElement2 widgetClassElement;
-  ClassElement2 stateClassElement;
+  ClassElement widgetClassElement;
+  ClassElement stateClassElement;
 
   _StateUsageVisitor(this.widgetClassElement, this.stateClassElement);
 

@@ -16,12 +16,13 @@ void main() {
 @reflectiveTest
 class DocImportCannotHavePrefixTest extends PubPackageResolutionTest {
   test_configurations() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 /// @docImport 'dart:math' as math;
 class C {}
-''', [
-      error(WarningCode.DOC_IMPORT_CANNOT_HAVE_PREFIX, 30, 4),
-    ]);
+''',
+      [error(WarningCode.DOC_IMPORT_CANNOT_HAVE_PREFIX, 30, 4)],
+    );
   }
 
   test_noConfigurations() async {

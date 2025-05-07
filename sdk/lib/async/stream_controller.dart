@@ -925,8 +925,9 @@ class _AddStreamState<T> {
   ) : addStreamFuture = _Future(),
       addSubscription = source.listen(
         controller._add,
-        onError:
-            cancelOnError ? makeErrorHandler(controller) : controller._addError,
+        onError: cancelOnError
+            ? makeErrorHandler(controller)
+            : controller._addError,
         onDone: controller._close,
         cancelOnError: cancelOnError,
       );

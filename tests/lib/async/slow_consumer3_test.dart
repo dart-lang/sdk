@@ -32,28 +32,31 @@ class SlowConsumer implements StreamConsumer<List<int>> {
   Future addStream(Stream stream) {
     Completer result = new Completer();
     var subscription;
-    subscription = stream.listen((dynamic _data) {
-      List<int> data = _data;
-      receivedCount += data.length;
-      usedBufferSize += data.length;
-      bufferedData.add(data);
-      int currentBufferedDataLength = bufferedData.length;
-      if (usedBufferSize > bufferSize) {
-        subscription.pause();
-        usedBufferSize = 0;
-        int ms = data.length * 1000 ~/ bytesPerSecond;
-        Duration duration = new Duration(milliseconds: ms);
-        new Timer(duration, () {
-          for (int i = 0; i < currentBufferedDataLength; i++) {
-            bufferedData[i] = null;
-          }
-          subscription.resume();
-        });
-      }
-    }, onDone: () {
-      finalCount = receivedCount;
-      result.complete(receivedCount);
-    });
+    subscription = stream.listen(
+      (dynamic _data) {
+        List<int> data = _data;
+        receivedCount += data.length;
+        usedBufferSize += data.length;
+        bufferedData.add(data);
+        int currentBufferedDataLength = bufferedData.length;
+        if (usedBufferSize > bufferSize) {
+          subscription.pause();
+          usedBufferSize = 0;
+          int ms = data.length * 1000 ~/ bytesPerSecond;
+          Duration duration = new Duration(milliseconds: ms);
+          new Timer(duration, () {
+            for (int i = 0; i < currentBufferedDataLength; i++) {
+              bufferedData[i] = null;
+            }
+            subscription.resume();
+          });
+        }
+      },
+      onDone: () {
+        finalCount = receivedCount;
+        result.complete(receivedCount);
+      },
+    );
     return result.future;
   }
 
@@ -64,10 +67,12 @@ class SlowConsumer implements StreamConsumer<List<int>> {
 
 Stream<List<int>> dataGenerator(int bytesTotal, int chunkSize) {
   int chunks = bytesTotal ~/ chunkSize;
-  return new Stream.fromIterable(new Iterable.generate(chunks, (_) {
-    // This assumes one byte per entry. In practice it will be more.
-    return new List<int>.filled(chunkSize, -1);
-  }));
+  return new Stream.fromIterable(
+    new Iterable.generate(chunks, (_) {
+      // This assumes one byte per entry. In practice it will be more.
+      return new List<int>.filled(chunkSize, -1);
+    }),
+  );
 }
 
 main() {
@@ -85,9 +90,10 @@ main() {
   // file). If the consumer doesn't pause the data-provider it will run out of
   // heap-space.
 
-  dataGenerator(100 * MB, 512 * KB)
-      .pipe(new SlowConsumer(200 * MB, 3 * MB))
-      .then((count) {
+  dataGenerator(
+    100 * MB,
+    512 * KB,
+  ).pipe(new SlowConsumer(200 * MB, 3 * MB)).then((count) {
     Expect.equals(100 * MB, count);
     asyncEnd();
   });

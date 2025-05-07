@@ -38,7 +38,8 @@ class C extends A {
   }
 
   test_fromExtendingClass() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 class A {
   @mustCallSuper
@@ -48,9 +49,9 @@ class B extends A {
   @override
   void a() {}
 }
-''', [
-      error(WarningCode.MUST_CALL_SUPER, 115, 1),
-    ]);
+''',
+      [error(WarningCode.MUST_CALL_SUPER, 115, 1)],
+    );
   }
 
   test_fromExtendingClass_abstractInSubclass() async {
@@ -82,7 +83,8 @@ class B extends A {
   }
 
   test_fromExtendingClass_genericClass() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 class A<T> {
   @mustCallSuper
@@ -92,13 +94,14 @@ class B extends A<int> {
   @override
   void a() {}
 }
-''', [
-      error(WarningCode.MUST_CALL_SUPER, 123, 1),
-    ]);
+''',
+      [error(WarningCode.MUST_CALL_SUPER, 123, 1)],
+    );
   }
 
   test_fromExtendingClass_genericMethod() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 class A {
   @mustCallSuper
@@ -108,13 +111,14 @@ class B extends A {
   @override
   void a<T>() {}
 }
-''', [
-      error(WarningCode.MUST_CALL_SUPER, 118, 1),
-    ]);
+''',
+      [error(WarningCode.MUST_CALL_SUPER, 118, 1)],
+    );
   }
 
   test_fromExtendingClass_getter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta.dart';
 class A {
   @mustCallSuper
@@ -124,9 +128,9 @@ class B extends A {
   @override
   int get a => 2;
 }
-''', [
-      error(WarningCode.MUST_CALL_SUPER, 122, 1),
-    ]);
+''',
+      [error(WarningCode.MUST_CALL_SUPER, 122, 1)],
+    );
   }
 
   test_fromExtendingClass_getter_containsSuperCall() async {
@@ -147,7 +151,8 @@ class B extends A {
   }
 
   test_fromExtendingClass_getter_invokesSuper_setter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -163,13 +168,14 @@ class B extends A {
     return 0;
   }
 }
-''', [
-      error(WarningCode.MUST_CALL_SUPER, 135, 3),
-    ]);
+''',
+      [error(WarningCode.MUST_CALL_SUPER, 135, 3)],
+    );
   }
 
   test_fromExtendingClass_operator() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 class A {
   @mustCallSuper
@@ -179,9 +185,9 @@ class B extends A {
   @override
   operator ==(Object o) => o is B;
 }
-''', [
-      error(WarningCode.MUST_CALL_SUPER, 140, 2),
-    ]);
+''',
+      [error(WarningCode.MUST_CALL_SUPER, 140, 2)],
+    );
   }
 
   test_fromExtendingClass_operator_containsSuperCall() async {
@@ -199,7 +205,8 @@ class B extends A {
   }
 
   test_fromExtendingClass_setter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta.dart';
 class A {
   @mustCallSuper
@@ -209,9 +216,9 @@ class B extends A {
   @override
   set a(int value) {}
 }
-''', [
-      error(WarningCode.MUST_CALL_SUPER, 122, 1),
-    ]);
+''',
+      [error(WarningCode.MUST_CALL_SUPER, 122, 1)],
+    );
   }
 
   test_fromExtendingClass_setter_containsSuperCall() async {
@@ -231,7 +238,8 @@ class B extends A {
   }
 
   test_fromExtendingClass_setter_invokesSuper_getter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 
 class A {
@@ -246,9 +254,9 @@ class B extends A {
     super.foo;
   }
 }
-''', [
-      error(WarningCode.MUST_CALL_SUPER, 131, 3),
-    ]);
+''',
+      [error(WarningCode.MUST_CALL_SUPER, 131, 3)],
+    );
   }
 
   test_fromInterface() async {
@@ -266,7 +274,8 @@ class C implements A {
   }
 
   test_fromMixin() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 mixin Mixin {
   @mustCallSuper
@@ -276,13 +285,14 @@ class C with Mixin {
   @override
   void a() {}
 }
-''', [
-      error(WarningCode.MUST_CALL_SUPER, 120, 1),
-    ]);
+''',
+      [error(WarningCode.MUST_CALL_SUPER, 120, 1)],
+    );
   }
 
   test_fromMixin_setter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 mixin Mixin {
   @mustCallSuper
@@ -292,13 +302,14 @@ class C with Mixin {
   @override
   void set a(int value) {}
 }
-''', [
-      error(WarningCode.MUST_CALL_SUPER, 137, 1),
-    ]);
+''',
+      [error(WarningCode.MUST_CALL_SUPER, 137, 1)],
+    );
   }
 
   test_fromMixin_throughExtendingClass() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 mixin M {
   @mustCallSuper
@@ -309,13 +320,14 @@ class D extends C {
   @override
   void a() {}
 }
-''', [
-      error(WarningCode.MUST_CALL_SUPER, 133, 1),
-    ]);
+''',
+      [error(WarningCode.MUST_CALL_SUPER, 133, 1)],
+    );
   }
 
   test_indirectlyInherited() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 class A {
   @mustCallSuper
@@ -331,13 +343,14 @@ class D extends C {
   @override
   void a() {}
 }
-''', [
-      error(WarningCode.MUST_CALL_SUPER, 181, 1),
-    ]);
+''',
+      [error(WarningCode.MUST_CALL_SUPER, 181, 1)],
+    );
   }
 
   test_indirectlyInheritedFromMixin() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 mixin Mixin {
   @mustCallSuper
@@ -348,13 +361,14 @@ class D extends C {
   @override
   void b() {}
 }
-''', [
-      error(WarningCode.MUST_CALL_SUPER, 156, 1),
-    ]);
+''',
+      [error(WarningCode.MUST_CALL_SUPER, 156, 1)],
+    );
   }
 
   test_indirectlyInheritedFromMixinConstraint() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 class A {
   @mustCallSuper
@@ -364,9 +378,9 @@ mixin C on A {
   @override
   void a() {}
 }
-''', [
-      error(WarningCode.MUST_CALL_SUPER, 110, 1),
-    ]);
+''',
+      [error(WarningCode.MUST_CALL_SUPER, 110, 1)],
+    );
   }
 
   test_overriddenWithFuture() async {

@@ -13,6 +13,4 @@ class Class {
   noSuchMethod(_) => 42;
 }
 
-main() {
-
-}
+main() {}

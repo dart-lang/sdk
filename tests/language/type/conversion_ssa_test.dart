@@ -23,9 +23,9 @@ var array = <dynamic>[
   new SelectorGroup([
     new Selector([new SimpleSelectorSequence(new ClassSelector())]),
     new Selector([new SimpleSelectorSequence(new ClassSelector())]),
-    new Selector([new SimpleSelectorSequence(new ClassSelector())])
+    new Selector([new SimpleSelectorSequence(new ClassSelector())]),
   ]),
-  new Object()
+  new Object(),
 ];
 
 class RuleSet {

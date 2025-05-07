@@ -17,6 +17,7 @@ abstract class DartLanguageServerBenchmark {
   late final Process p;
   late final Timer longRunningRequestsTimer;
   bool _launched = false;
+  bool _exited = false;
   Completer<bool> _analyzingCompleter = Completer();
   final _buffer = <int>[];
   int? _headerContentLength;
@@ -51,6 +52,7 @@ abstract class DartLanguageServerBenchmark {
   Future<void> afterInitialization();
 
   void exit() {
+    _exited = true;
     longRunningRequestsTimer.cancel();
     if (Platform.isLinux) {
       try {
@@ -303,6 +305,21 @@ abstract class DartLanguageServerBenchmark {
           ...cacheFolderArgs,
         ]);
     }
+
+    // ignore: unawaited_futures
+    p.exitCode.then((exitCode) {
+      if (verbosity >= 0) {
+        print('Process existed with exitCode $exitCode');
+      }
+      if (!_exited) {
+        _analyzingCompleter.completeError('Process exited 1.');
+        while (_outstandingRequestsWithId.isNotEmpty) {
+          var entry = _outstandingRequestsWithId.entries.first;
+          _outstandingRequestsWithId.remove(entry.key);
+          entry.value.completer.completeError('Process exited 2.');
+        }
+      }
+    });
 
     if (verbosity >= 0) {
       print('Launched with pid ${p.pid}');

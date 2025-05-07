@@ -46,7 +46,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitNullAssertPattern(NullAssertPattern node) {
     if (isNullableTypeParameterType(node.matchedValueType)) {
-      rule.reportLintForToken(node.operator);
+      rule.reportAtToken(node.operator);
     }
   }
 
@@ -61,7 +61,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         context.typeSystem.isPotentiallyNullable(expectedType) &&
         context.typeSystem.promoteToNonNull(type!) ==
             context.typeSystem.promoteToNonNull(expectedType)) {
-      rule.reportLintForToken(node.operator);
+      rule.reportAtToken(node.operator);
     }
   }
 }

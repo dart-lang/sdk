@@ -18,15 +18,17 @@ class DartdocDirectiveInfo {
   /// groups. The first contains the name of the template, the second contains
   /// the body of the template.
   static final templateRegExp = RegExp(
-      r'[ ]*{@template\s+(.+?)}([\s\S]+?){@endtemplate}[ ]*\n?',
-      multiLine: true);
+    r'[ ]*{@template\s+(.+?)}([\s\S]+?){@endtemplate}[ ]*\n?',
+    multiLine: true,
+  );
 
   /// A regular expression used to match a youtube or animation directive.
   ///
   /// These are in the form:
   /// `{@youtube 560 315 https://www.youtube.com/watch?v=2uaoEDOgk_I}`.
-  static final videoRegExp =
-      RegExp(r'{@(youtube|animation)\s+[^}]+\s+[^}]+\s+([^}]+)}');
+  static final videoRegExp = RegExp(
+    r'{@(youtube|animation)\s+[^}]+\s+[^}]+\s+([^}]+)}',
+  );
 
   /// A table mapping the names of templates to the unprocessed bodies of the
   /// templates.
@@ -103,9 +105,10 @@ class DartdocDirectiveInfo {
     }
     if (includeSummary) {
       var full = lines.join('\n');
-      var summary = firstBlankLine == lines.length
-          ? full
-          : lines.getRange(0, firstBlankLine).join('\n').trim();
+      var summary =
+          firstBlankLine == lines.length
+              ? full
+              : lines.getRange(0, firstBlankLine).join('\n').trim();
       return DocumentationWithSummary(full: full, summary: summary);
     }
     return Documentation(full: lines.join('\n'));
@@ -120,16 +123,24 @@ class DartdocDirectiveInfo {
     return false;
   }
 
-  int _skipWhitespaceBackward(String comment, int start, int end,
-      [bool skipEol = false]) {
+  int _skipWhitespaceBackward(
+    String comment,
+    int start,
+    int end, [
+    bool skipEol = false,
+  ]) {
     while (start < end && _isWhitespace(comment, end, skipEol)) {
       end--;
     }
     return end;
   }
 
-  int _skipWhitespaceForward(String comment, int start, int end,
-      [bool skipEol = false]) {
+  int _skipWhitespaceForward(
+    String comment,
+    int start,
+    int end, [
+    bool skipEol = false,
+  ]) {
     while (start < end && _isWhitespace(comment, start, skipEol)) {
       start++;
     }

@@ -27,11 +27,10 @@ Future<void> main(List<String> args) async {
     for (final testName in testNames) ...await _testGetConfigurations(testName),
   });
   final configurationBuilders = await _configurationBuilders();
-  final builders =
-      _filterBuilders({
-          for (final config in configurations) configurationBuilders[config]!,
-        }).toList()
-        ..sort();
+  final builders = _filterBuilders({
+    for (final config in configurations) configurationBuilders[config]!,
+  }).toList()
+    ..sort();
 
   final gerritTryList = builders.map((b) => '$b-try').join(',');
   print('Cq-Include-Trybots: dart/try:$gerritTryList');
@@ -116,10 +115,11 @@ Stream<Map<String, dynamic>> _configurationDocuments() async* {
 Future<Map<String, String>> _configurationBuilders() async {
   return {
     await for (final document in _configurationDocuments())
-      if (document case {
-        'name': String fullName,
-        'fields': {'builder': {'stringValue': String builder}},
-      })
+      if (document
+          case {
+            'name': String fullName,
+            'fields': {'builder': {'stringValue': String builder}},
+          })
         fullName.split('/').last: builder,
   };
 }

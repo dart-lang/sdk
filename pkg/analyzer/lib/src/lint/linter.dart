@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
@@ -57,7 +57,7 @@ abstract class LinterContext {
   /// The library element representing the library that contains the compilation
   /// unit being linted.
   @experimental
-  LibraryElement2? get libraryElement2;
+  LibraryElement? get libraryElement2;
 
   /// The package in which the library being analyzed lives, or `null` if it
   /// does not live in a package.
@@ -93,26 +93,34 @@ final class LinterContextWithParsedResults implements LinterContext {
 
   @override
   bool get isInLibDir => LinterContext._isInLibDir(
-      definingUnit.unit.declaredFragment?.source.fullName, package);
+    definingUnit.unit.declaredFragment?.source.fullName,
+    package,
+  );
 
   @override
   bool get isInTestDirectory => false;
 
   @experimental
   @override
-  LibraryElement2 get libraryElement2 => throw UnsupportedError(
-      'LinterContext with parsed results does not include a LibraryElement');
+  LibraryElement get libraryElement2 =>
+      throw UnsupportedError(
+        'LinterContext with parsed results does not include a LibraryElement',
+      );
 
   @override
   WorkspacePackage? get package => null;
 
   @override
-  TypeProvider get typeProvider => throw UnsupportedError(
-      'LinterContext with parsed results does not include a TypeProvider');
+  TypeProvider get typeProvider =>
+      throw UnsupportedError(
+        'LinterContext with parsed results does not include a TypeProvider',
+      );
 
   @override
-  TypeSystem get typeSystem => throw UnsupportedError(
-      'LinterContext with parsed results does not include a TypeSystem');
+  TypeSystem get typeSystem =>
+      throw UnsupportedError(
+        'LinterContext with parsed results does not include a TypeSystem',
+      );
 }
 
 /// A [LinterContext] for a library, resolved into [ResolvedUnitResult]s.
@@ -149,7 +157,9 @@ final class LinterContextWithResolvedResults implements LinterContext {
 
   @override
   bool get isInLibDir => LinterContext._isInLibDir(
-      definingUnit.libraryFragment.source.fullName, package);
+    definingUnit.libraryFragment.source.fullName,
+    package,
+  );
 
   @override
   bool get isInTestDirectory {
@@ -162,7 +172,7 @@ final class LinterContextWithResolvedResults implements LinterContext {
 
   @experimental
   @override
-  LibraryElement2 get libraryElement2 => definingUnit.libraryFragment.element;
+  LibraryElement get libraryElement2 => definingUnit.libraryFragment.element;
 }
 
 /// Describes a lint rule.
@@ -175,10 +185,6 @@ abstract class LintRule {
   /// Short description suitable for display in console output.
   final String description;
 
-  /// Deprecated field of lint groups (for example, 'style', 'errors', 'pub').
-  @Deprecated('Lint rule categories are no longer used.')
-  final Set<String> categories;
-
   /// Lint name.
   final String name;
 
@@ -187,8 +193,6 @@ abstract class LintRule {
 
   LintRule({
     required this.name,
-    @Deprecated('Lint rule categories are no longer used. Remove the argument.')
-    this.categories = const <String>{},
     required this.description,
     this.state = const State.stable(),
   });
@@ -207,8 +211,10 @@ abstract class LintRule {
   /// associate a lint rule with a single lint code. Use [lintCodes] for the
   /// full list of (possibly multiple) lint codes which a lint rule may be
   /// associated with.
-  LintCode get lintCode => throw UnimplementedError(
-      "'lintCode' is not implemented for $runtimeType");
+  LintCode get lintCode =>
+      throw UnimplementedError(
+        "'lintCode' is not implemented for $runtimeType",
+      );
 
   /// The lint codes associated with this lint rule.
   List<LintCode> get lintCodes => [lintCode];
@@ -235,14 +241,22 @@ abstract class LintRule {
   /// The node processors may use the provided [context] to access information
   /// that is not available from the AST nodes or their associated elements.
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {}
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {}
 
-  void reportLint(AstNode? node,
-      {List<Object> arguments = const [],
-      List<DiagnosticMessage>? contextMessages,
-      ErrorCode? errorCode,
-      bool ignoreSyntheticNodes = true}) {
-    if (node != null && (!node.isSynthetic || !ignoreSyntheticNodes)) {
+  /// Reports a diagnostic at [node] with message [arguments] and
+  /// [contextMessages].
+  ///
+  /// The error reported is either [errorCode] if that is passed in, otherwise
+  /// [lintCode].
+  void reportAtNode(
+    AstNode? node, {
+    List<Object> arguments = const [],
+    List<DiagnosticMessage>? contextMessages,
+    ErrorCode? errorCode,
+  }) {
+    if (node != null && !node.isSynthetic) {
       reporter.atNode(
         node,
         errorCode ?? lintCode,
@@ -252,10 +266,18 @@ abstract class LintRule {
     }
   }
 
-  void reportLintForOffset(int offset, int length,
-      {List<Object> arguments = const [],
-      List<DiagnosticMessage>? contextMessages,
-      ErrorCode? errorCode}) {
+  /// Reports a diagnostic at [offset], with [length], with message [arguments]
+  /// and [contextMessages].
+  ///
+  /// The error reported is either [errorCode] if that is passed in, otherwise
+  /// [lintCode].
+  void reportAtOffset(
+    int offset,
+    int length, {
+    List<Object> arguments = const [],
+    List<DiagnosticMessage>? contextMessages,
+    ErrorCode? errorCode,
+  }) {
     reporter.atOffset(
       offset: offset,
       length: length,
@@ -265,27 +287,19 @@ abstract class LintRule {
     );
   }
 
-  void reportLintForToken(Token? token,
-      {List<Object> arguments = const [],
-      List<DiagnosticMessage>? contextMessages,
-      ErrorCode? errorCode,
-      bool ignoreSyntheticTokens = true}) {
-    if (token != null && (!token.isSynthetic || !ignoreSyntheticTokens)) {
-      reporter.atToken(
-        token,
-        errorCode ?? lintCode,
-        arguments: arguments,
-        contextMessages: contextMessages,
-      );
-    }
-  }
-
-  void reportPubLint(PSNode node,
-      {List<Object> arguments = const [],
-      List<DiagnosticMessage> contextMessages = const [],
-      ErrorCode? errorCode}) {
+  /// Reports a diagnostic at Pubspec [node], with message [arguments] and
+  /// [contextMessages].
+  ///
+  /// The error reported is either [errorCode] if that is passed in, otherwise
+  /// [lintCode].
+  void reportAtPubNode(
+    PSNode node, {
+    List<Object> arguments = const [],
+    List<DiagnosticMessage> contextMessages = const [],
+    ErrorCode? errorCode,
+  }) {
     // Cache error and location info for creating `AnalysisErrorInfo`s.
-    var error = AnalysisError.tmp(
+    var error = Diagnostic.tmp(
       source: node.source,
       offset: node.span.start.offset,
       length: node.span.length,
@@ -294,6 +308,27 @@ abstract class LintRule {
       contextMessages: contextMessages,
     );
     reporter.reportError(error);
+  }
+
+  /// Reports a diagnostic at [token], with message [arguments] and
+  /// [contextMessages].
+  ///
+  /// The error reported is either [errorCode] if that is passed in, otherwise
+  /// [lintCode].
+  void reportAtToken(
+    Token token, {
+    List<Object> arguments = const [],
+    List<DiagnosticMessage>? contextMessages,
+    ErrorCode? errorCode,
+  }) {
+    if (!token.isSynthetic) {
+      reporter.atToken(
+        token,
+        errorCode ?? lintCode,
+        arguments: arguments,
+        contextMessages: contextMessages,
+      );
+    }
   }
 }
 

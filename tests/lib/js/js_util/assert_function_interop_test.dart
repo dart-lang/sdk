@@ -57,7 +57,8 @@ void main() {
 
   // Functions that aren't wrapped with `allowInterop` should throw.
   Expect.throws(
-      () => js_util.setProperty(jsClass, 'functionProperty', dartFunction));
+    () => js_util.setProperty(jsClass, 'functionProperty', dartFunction),
+  );
   Expect.throws(() => js_util.setProperty(jsClass, 'functionProperty', d));
   // Correctly wrapped functions should not throw.
   js_util.setProperty(jsClass, 'functionProperty', interopFunction);
@@ -67,27 +68,41 @@ void main() {
   js_util.setProperty(jsClass, 'functionProperty', jsFunction);
 
   Expect.throws(
-      () => js_util.callMethod(jsClass, 'methodWithFuncArgs', [dartFunction]));
+    () => js_util.callMethod(jsClass, 'methodWithFuncArgs', [dartFunction]),
+  );
   Expect.throws(() => js_util.callMethod(jsClass, 'methodWithFuncArgs', [d]));
   js_util.callMethod(jsClass, 'methodWithFuncArgs', [interopFunction]);
   js_util.callMethod(jsClass, 'methodWithFuncArgs', [interopDynamic]);
   // Check to see that all arguments are checked.
-  Expect.throws(() => js_util.callMethod(
-      jsClass, 'methodWithFuncArgs', [interopFunction, dartFunction]));
-  js_util.callMethod(
-      jsClass, 'methodWithFuncArgs', [interopFunction, interopFunction]);
+  Expect.throws(
+    () => js_util.callMethod(jsClass, 'methodWithFuncArgs', [
+      interopFunction,
+      dartFunction,
+    ]),
+  );
+  js_util.callMethod(jsClass, 'methodWithFuncArgs', [
+    interopFunction,
+    interopFunction,
+  ]);
 
   js_util.callMethod(jsClass, 'methodWithFuncArgs', [jsFunction]);
 
   Expect.throws(
-      () => js_util.callConstructor(JSClassWithFuncArgs, [dartFunction]));
+    () => js_util.callConstructor(JSClassWithFuncArgs, [dartFunction]),
+  );
   Expect.throws(() => js_util.callConstructor(JSClassWithFuncArgs, [d]));
   js_util.callConstructor(JSClassWithFuncArgs, [interopFunction]);
   js_util.callConstructor(JSClassWithFuncArgs, [interopDynamic]);
-  Expect.throws(() => js_util
-      .callConstructor(JSClassWithFuncArgs, [interopFunction, dartFunction]));
-  js_util
-      .callConstructor(JSClassWithFuncArgs, [interopFunction, interopFunction]);
+  Expect.throws(
+    () => js_util.callConstructor(JSClassWithFuncArgs, [
+      interopFunction,
+      dartFunction,
+    ]),
+  );
+  js_util.callConstructor(JSClassWithFuncArgs, [
+    interopFunction,
+    interopFunction,
+  ]);
 
   js_util.callConstructor(JSClassWithFuncArgs, [jsFunction]);
 }

@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
@@ -202,7 +202,7 @@ String? _getBaseNameFromUnwrappedExpression(Expression expression) {
       return namedType.name2.lexeme;
     }
     // new prefix.ClassName()
-    if (importPrefix.element2 is PrefixElement2) {
+    if (importPrefix.element2 is PrefixElement) {
       return namedType.name2.lexeme;
     }
     // new ClassName.constructorName()

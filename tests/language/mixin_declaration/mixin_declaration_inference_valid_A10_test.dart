@@ -13,7 +13,8 @@ class C1<T> implements I<T> {}
 mixin M0<T> on I<T> {}
 
 mixin M1<T> on I<T> {
-  T Function(T) get value => (param) => param;
+  T Function(T) get value =>
+      (param) => param;
 }
 
 mixin M2<T> implements I<T> {}
@@ -27,8 +28,10 @@ class C2 extends C1<int> implements J<double> {}
 class C3 extends J<double> {}
 
 mixin M4<S, T> on I<S>, J<T> {
-  S Function(S) get value0 => (param) => param;
-  T Function(T) get value1 => (param) => param;
+  S Function(S) get value0 =>
+      (param) => param;
+  T Function(T) get value1 =>
+      (param) => param;
 }
 
 // M1 is inferred as M1<int>

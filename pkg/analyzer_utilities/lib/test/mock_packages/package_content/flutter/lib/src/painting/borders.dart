@@ -45,8 +45,10 @@ import 'basic_types.dart';
 @immutable
 class BorderSide {
   /// A hairline black border that is not rendered.
-  static const BorderSide none =
-      BorderSide(width: 0.0, style: BorderStyle.none);
+  static const BorderSide none = BorderSide(
+    width: 0.0,
+    style: BorderStyle.none,
+  );
 
   /// The color of this side of the border.
   final Color color;
@@ -75,17 +77,13 @@ class BorderSide {
     this.color = const Color(0xFF000000),
     this.width = 1.0,
     this.style = BorderStyle.solid,
-  })  : assert(color != null),
-        assert(width != null),
-        assert(width >= 0.0),
-        assert(style != null);
+  }) : assert(color != null),
+       assert(width != null),
+       assert(width >= 0.0),
+       assert(style != null);
 
   /// Creates a copy of this border but with the given fields replaced with the new values.
-  BorderSide copyWith({
-    Color color,
-    double width,
-    BorderStyle style,
-  }) {
+  BorderSide copyWith({Color color, double width, BorderStyle style}) {
     assert(width == null || width >= 0.0);
     return BorderSide(
       color: color ?? this.color,

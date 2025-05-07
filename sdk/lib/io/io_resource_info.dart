@@ -166,8 +166,9 @@ class _SpawnedProcessResourceInfo extends _IOResourceInfo {
     'pid': process.pid,
     'startedAt': startedAt,
     'arguments': process._arguments,
-    'workingDirectory':
-        process._workingDirectory == null ? '.' : process._workingDirectory,
+    'workingDirectory': process._workingDirectory == null
+        ? '.'
+        : process._workingDirectory,
   };
 
   static processStarted(_SpawnedProcessResourceInfo info) {
@@ -201,10 +202,9 @@ class _SpawnedProcessResourceInfo extends _IOResourceInfo {
     Map<String, String> params,
   ) {
     final id = int.parse(params['id']!);
-    final result =
-        startedProcesses.containsKey(id)
-            ? startedProcesses[id]!.fullValueMap
-            : {};
+    final result = startedProcesses.containsKey(id)
+        ? startedProcesses[id]!.fullValueMap
+        : {};
     final jsonValue = json.encode(result);
     return Future.value(ServiceExtensionResponse.result(jsonValue));
   }

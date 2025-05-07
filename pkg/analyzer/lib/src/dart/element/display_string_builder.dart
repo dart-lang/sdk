@@ -4,7 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     show Variance;
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -30,13 +30,13 @@ class ElementDisplayStringBuilder {
     bool withNullability = true,
     bool multiline = false,
     required this.preferTypeAlias,
-  })  : _withNullability = withNullability,
-        _multiline = multiline;
+  }) : _withNullability = withNullability,
+       _multiline = multiline;
 
   @override
   String toString() => _buffer.toString();
 
-  void writeAbstractElement(ElementImpl element) {
+  void writeAbstractElement(FragmentImpl element) {
     _write(element.name ?? '<unnamed $runtimeType>');
   }
 
@@ -44,7 +44,7 @@ class ElementDisplayStringBuilder {
     _write(element.name3 ?? '<unnamed $runtimeType>');
   }
 
-  void writeClassElement(ClassElementImpl element) {
+  void writeClassElement(ClassFragmentImpl element) {
     if (element.isAugmentation) {
       _write('augment ');
     }
@@ -75,7 +75,7 @@ class ElementDisplayStringBuilder {
     _writeTypesIfNotEmpty(' implements ', element.interfaces);
   }
 
-  void writeCompilationUnitElement(CompilationUnitElementImpl element) {
+  void writeCompilationUnitElement(LibraryFragmentImpl element) {
     var path = element.source.fullName;
     _write(path);
   }
@@ -101,7 +101,7 @@ class ElementDisplayStringBuilder {
     _write('dynamic');
   }
 
-  void writeEnumElement(EnumElementImpl element) {
+  void writeEnumElement(EnumFragmentImpl element) {
     if (element.isAugmentation) {
       _write('augment ');
     }
@@ -140,7 +140,7 @@ class ElementDisplayStringBuilder {
     _writeDirectiveUri(element.uri);
   }
 
-  void writeExtensionElement(ExtensionElementImpl element) {
+  void writeExtensionElement(ExtensionFragmentImpl element) {
     if (element.isAugmentation) {
       _write('augment ');
     }
@@ -155,7 +155,7 @@ class ElementDisplayStringBuilder {
     _writeType(element.extendedType);
   }
 
-  void writeExtensionTypeElement(ExtensionTypeElementImpl element) {
+  void writeExtensionTypeElement(ExtensionTypeFragmentImpl element) {
     if (element.isAugmentation) {
       _write('augment ');
     }
@@ -201,7 +201,9 @@ class ElementDisplayStringBuilder {
     _writeNullability(type.nullabilitySuffix);
   }
 
-  void writeGenericFunctionTypeElement(GenericFunctionTypeElementImpl element) {
+  void writeGenericFunctionTypeElement(
+    GenericFunctionTypeFragmentImpl element,
+  ) {
     _writeType(element.returnType);
     _write(' Function');
     _writeTypeParameters(element.typeParameters);
@@ -232,7 +234,7 @@ class ElementDisplayStringBuilder {
     _write('${element.source.uri}');
   }
 
-  void writeMixinElement(MixinElementImpl element) {
+  void writeMixinElement(MixinFragmentImpl element) {
     if (element.isAugmentation) {
       _write('augment ');
     }
@@ -254,24 +256,6 @@ class ElementDisplayStringBuilder {
   void writePartElement(PartElementImpl element) {
     _write('part ');
     _writeDirectiveUri(element.uri);
-  }
-
-  void writePrefixElement(PrefixElementImpl element) {
-    var libraryImports = element.imports;
-    var displayName = element.displayName;
-    if (libraryImports.isEmpty) {
-      _write('as ');
-      _write(displayName);
-      return;
-    }
-    var first = libraryImports.first;
-    _write("import '${first.libraryName}' as $displayName;");
-    if (libraryImports.length == 1) {
-      return;
-    }
-    for (var libraryImport in libraryImports.sublist(1)) {
-      _write("\nimport '${libraryImport.libraryName}' as $displayName;");
-    }
   }
 
   void writePrefixElement2(PrefixElementImpl2 element) {
@@ -332,7 +316,7 @@ class ElementDisplayStringBuilder {
     _writeNullability(type.nullabilitySuffix);
   }
 
-  void writeTypeAliasElement(TypeAliasElementImpl element) {
+  void writeTypeAliasElement(TypeAliasFragmentImpl element) {
     if (element.isAugmentation) {
       _write('augment ');
     }
@@ -350,7 +334,7 @@ class ElementDisplayStringBuilder {
     }
   }
 
-  void writeTypeParameter(TypeParameterElementImpl element) {
+  void writeTypeParameter(TypeParameterFragmentImpl element) {
     var variance = element.variance;
     if (!element.isLegacyCovariant && variance != Variance.unrelated) {
       _write(variance.keyword);
@@ -433,7 +417,7 @@ class ElementDisplayStringBuilder {
 
   void _writeDirectiveUri(DirectiveUri uri) {
     if (uri is DirectiveUriWithUnitImpl) {
-      _write('unit ${uri.unit.source.uri}');
+      _write('unit ${uri.libraryFragment.source.uri}');
     } else if (uri is DirectiveUriWithSourceImpl) {
       _write('source ${uri.source}');
     } else {
@@ -538,7 +522,7 @@ class ElementDisplayStringBuilder {
     }
   }
 
-  void _writeTypeParameters(List<TypeParameterElementImpl> elements) {
+  void _writeTypeParameters(List<TypeParameterFragmentImpl> elements) {
     if (elements.isEmpty) return;
 
     _write('<');
@@ -551,7 +535,7 @@ class ElementDisplayStringBuilder {
     _write('>');
   }
 
-  void _writeTypeParameters2(List<TypeParameterElement2> elements) {
+  void _writeTypeParameters2(List<TypeParameterElement> elements) {
     if (elements.isEmpty) return;
 
     _write('<');
@@ -609,7 +593,7 @@ class ElementDisplayStringBuilder {
       return type;
     }
 
-    var referencedTypeParameters = <TypeParameterElement2>{};
+    var referencedTypeParameters = <TypeParameterElement>{};
 
     void collectTypeParameters(DartType? type) {
       if (type is TypeParameterType) {
@@ -644,14 +628,16 @@ class ElementDisplayStringBuilder {
         const unicodeSubscriptZero = 0x2080;
         const unicodeZero = 0x30;
 
-        var subscript = String.fromCharCodes('$counter'.codeUnits.map((n) {
-          return unicodeSubscriptZero + (n - unicodeZero);
-        }));
+        var subscript = String.fromCharCodes(
+          '$counter'.codeUnits.map((n) {
+            return unicodeSubscriptZero + (n - unicodeZero);
+          }),
+        );
 
         name = typeParameter.name3! + subscript;
       }
 
-      var newTypeParameter = TypeParameterElementImpl(name, -1);
+      var newTypeParameter = TypeParameterFragmentImpl(name, -1);
       newTypeParameter.name2 = name;
       newTypeParameter.bound = typeParameter.bound;
       newTypeParameters.add(newTypeParameter.asElement2);

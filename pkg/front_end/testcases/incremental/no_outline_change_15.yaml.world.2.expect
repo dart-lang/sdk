@@ -26,7 +26,7 @@ library from "org-dartlang-test:///main.dart" as main {
     synthetic constructor •() → main::C
       : super lib1::B::•()
       ;
-    forwarding-stub method foo(covariant-by-class dart.core::int t) → dynamic
+    forwarding-stub synthetic method foo(covariant-by-class dart.core::int t) → dynamic
       return super.{lib1::B::foo}(t);
   }
   static method main() → dynamic {

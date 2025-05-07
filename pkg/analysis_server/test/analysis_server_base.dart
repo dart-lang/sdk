@@ -21,6 +21,7 @@ import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_utilities/test/experiments/experiments.dart';
 import 'package:analyzer_utilities/test/mock_packages/mock_packages.dart';
+import 'package:analyzer_utilities/testing/test_support.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:unified_analytics/unified_analytics.dart';
@@ -28,44 +29,7 @@ import 'package:unified_analytics/unified_analytics.dart';
 import 'constants.dart';
 import 'mocks.dart';
 import 'support/configuration_files.dart';
-
-// TODO(scheglov): This is duplicate with pkg/linter/test/rule_test_support.dart.
-// Keep them as consistent with each other as they are today. Ultimately combine
-// them in a shared analyzer test utilities package (e.g. the analyzer_utilities
-// package).
-String analysisOptionsContent({
-  String? include,
-  List<String> experiments = const [],
-  List<String> plugins = const [],
-  List<String> rules = const [],
-}) {
-  var buffer = StringBuffer();
-
-  if (include != null) {
-    buffer.writeln('include: $include');
-  }
-  buffer.writeln('analyzer:');
-  if (experiments.isNotEmpty) {
-    buffer.writeln('  enable-experiment:');
-    for (var experiment in experiments) {
-      buffer.writeln('    - $experiment');
-    }
-  }
-  if (plugins.isNotEmpty) {
-    buffer.writeln('  plugins:');
-    for (var plugin in plugins) {
-      buffer.writeln('    - $plugin');
-    }
-  }
-
-  buffer.writeln('linter:');
-  buffer.writeln('  rules:');
-  for (var rule in rules) {
-    buffer.writeln('    - $rule');
-  }
-
-  return buffer.toString();
-}
+import 'utils/message_scheduler_test_view.dart';
 
 class BlazeWorkspaceAnalysisServerTest extends ContextResolutionTest {
   String get myPackageLibPath => '$myPackageRootPath/lib';
@@ -96,6 +60,7 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
 
   final TestPluginManager pluginManager = TestPluginManager();
   late final MockServerChannel serverChannel;
+  MessageSchedulerTestView? testView;
   late final LegacyAnalysisServer server;
 
   DartFixPromptManager? dartFixPromptManager;
@@ -198,6 +163,7 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
 
     serverChannel.notifications.listen(processNotification);
 
+    testView = retainDataForTesting ? MessageSchedulerTestView() : null;
     server = LegacyAnalysisServer(
       serverChannel,
       resourceProvider,
@@ -209,7 +175,7 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
       dartFixPromptManager: dartFixPromptManager,
       providedByteStore: _byteStore,
       pluginManager: pluginManager,
-      retainDataForTesting: retainDataForTesting,
+      messageSchedulerListener: testView,
     );
 
     server.completionState.budgetDuration = const Duration(seconds: 30);

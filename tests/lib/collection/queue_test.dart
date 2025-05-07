@@ -225,9 +225,31 @@ abstract class QueueTest {
     queue.retainWhere((x) => x != 3);
     testLength(23, queue);
 
-    Expect.listEquals(
-        [6, 8, 9, 1, 2, 4, 5, 6, 8, 9, 10, 1, 2, 4, 5, 6, 8, 9, 10, 1, 2, 4, 5],
-        queue.toList());
+    Expect.listEquals([
+      6,
+      8,
+      9,
+      1,
+      2,
+      4,
+      5,
+      6,
+      8,
+      9,
+      10,
+      1,
+      2,
+      4,
+      5,
+      6,
+      8,
+      9,
+      10,
+      1,
+      2,
+      4,
+      5,
+    ], queue.toList());
 
     // Regression test: http://dartbug.com/16270
     // These should all do nothing, and should not throw.

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -60,7 +60,9 @@ void main() {}
 void main() {}
 ''');
     expect(
-        testUnit.languageVersionToken, testUnit.beginToken.precedingComments);
+      testUnit.languageVersionToken,
+      testUnit.beginToken.precedingComments,
+    );
   }
 
   test_languageVersionComment_none() {
@@ -84,8 +86,10 @@ void main() {}
 // @dart=2.6
 void main() {}
 ''');
-    expect(testUnit.languageVersionToken,
-        testUnit.beginToken.precedingComments!.next);
+    expect(
+      testUnit.languageVersionToken,
+      testUnit.beginToken.precedingComments!.next,
+    );
   }
 
   test_languageVersionComment_thirdComment() {
@@ -95,8 +99,10 @@ void main() {}
 // @dart=2.6
 void main() {}
 ''');
-    expect(testUnit.languageVersionToken,
-        testUnit.beginToken.precedingComments!.next!.next);
+    expect(
+      testUnit.languageVersionToken,
+      testUnit.beginToken.precedingComments!.next!.next,
+    );
   }
 }
 
@@ -108,11 +114,12 @@ class ExpressionImplTest extends ParserTestCase {
   assertInContext(String snippet, bool isInContext) {
     int index = testSource.indexOf(snippet);
     expect(index >= 0, isTrue);
-    NodeLocator visitor = NodeLocator(index);
-    var node = visitor.searchWithin(testUnit) as AstNodeImpl;
+    var node = testUnit.nodeCovering(offset: index)! as AstNodeImpl;
     expect(node, TypeMatcher<ExpressionImpl>());
-    expect((node as ExpressionImpl).inConstantContext,
-        isInContext ? isTrue : isFalse);
+    expect(
+      (node as ExpressionImpl).inConstantContext,
+      isInContext ? isTrue : isFalse,
+    );
   }
 
   parse(String source) {
@@ -862,24 +869,28 @@ class C {
 class IntegerLiteralImplTest {
   test_isValidAsDouble_dec_1024Bits() {
     expect(
-        IntegerLiteralImpl.isValidAsDouble(
-            '179769313486231570814527423731704356798070567525844996598917476803'
-            '157260780028538760589558632766878171540458953514382464234321326889'
-            '464182768467546703537516986049910576551282076245490090389328944075'
-            '868508455133942304583236903222948165808559332123348274797826204144'
-            '723168738177180919299881250404026184124858369'),
-        false);
+      IntegerLiteralImpl.isValidAsDouble(
+        '179769313486231570814527423731704356798070567525844996598917476803'
+        '157260780028538760589558632766878171540458953514382464234321326889'
+        '464182768467546703537516986049910576551282076245490090389328944075'
+        '868508455133942304583236903222948165808559332123348274797826204144'
+        '723168738177180919299881250404026184124858369',
+      ),
+      false,
+    );
   }
 
   test_isValidAsDouble_dec_11ExponentBits() {
     expect(
-        IntegerLiteralImpl.isValidAsDouble(
-            '359538626972463141629054847463408713596141135051689993197834953606'
-            '314521560057077521179117265533756343080917907028764928468642653778'
-            '928365536935093407075033972099821153102564152490980180778657888151'
-            '737016910267884609166473806445896331617118664246696549595652408289'
-            '446337476354361838599762500808052368249716736'),
-        false);
+      IntegerLiteralImpl.isValidAsDouble(
+        '359538626972463141629054847463408713596141135051689993197834953606'
+        '314521560057077521179117265533756343080917907028764928468642653778'
+        '928365536935093407075033972099821153102564152490980180778657888151'
+        '737016910267884609166473806445896331617118664246696549595652408289'
+        '446337476354361838599762500808052368249716736',
+      ),
+      false,
+    );
   }
 
   test_isValidAsDouble_dec_16CharValue() {
@@ -889,13 +900,15 @@ class IntegerLiteralImplTest {
 
   test_isValidAsDouble_dec_53BitsMax() {
     expect(
-        IntegerLiteralImpl.isValidAsDouble(
-            '179769313486231570814527423731704356798070567525844996598917476803'
-            '157260780028538760589558632766878171540458953514382464234321326889'
-            '464182768467546703537516986049910576551282076245490090389328944075'
-            '868508455133942304583236903222948165808559332123348274797826204144'
-            '723168738177180919299881250404026184124858368'),
-        true);
+      IntegerLiteralImpl.isValidAsDouble(
+        '179769313486231570814527423731704356798070567525844996598917476803'
+        '157260780028538760589558632766878171540458953514382464234321326889'
+        '464182768467546703537516986049910576551282076245490090389328944075'
+        '868508455133942304583236903222948165808559332123348274797826204144'
+        '723168738177180919299881250404026184124858368',
+      ),
+      true,
+    );
   }
 
   test_isValidAsDouble_dec_54BitsMax() {
@@ -917,22 +930,26 @@ class IntegerLiteralImplTest {
 
   test_isValidAsDouble_hex_1024Bits() {
     expect(
-        IntegerLiteralImpl.isValidAsDouble(
-            '0xFFFFFFFFFFFFF800000000000000000000000000000000000000000000000000'
-            '000000000000000000000000000000000000000000000000000000000000000000'
-            '000000000000000000000000000000000000000000000000000000000000000000'
-            '000000000000000000000000000000000000000000000000000000000001'),
-        false);
+      IntegerLiteralImpl.isValidAsDouble(
+        '0xFFFFFFFFFFFFF800000000000000000000000000000000000000000000000000'
+        '000000000000000000000000000000000000000000000000000000000000000000'
+        '000000000000000000000000000000000000000000000000000000000000000000'
+        '000000000000000000000000000000000000000000000000000000000001',
+      ),
+      false,
+    );
   }
 
   test_isValidAsDouble_hex_11ExponentBits() {
     expect(
-        IntegerLiteralImpl.isValidAsDouble(
-            '0x1FFFFFFFFFFFFF00000000000000000000000000000000000000000000000000'
-            '000000000000000000000000000000000000000000000000000000000000000000'
-            '000000000000000000000000000000000000000000000000000000000000000000'
-            '0000000000000000000000000000000000000000000000000000000000000'),
-        false);
+      IntegerLiteralImpl.isValidAsDouble(
+        '0x1FFFFFFFFFFFFF00000000000000000000000000000000000000000000000000'
+        '000000000000000000000000000000000000000000000000000000000000000000'
+        '000000000000000000000000000000000000000000000000000000000000000000'
+        '0000000000000000000000000000000000000000000000000000000000000',
+      ),
+      false,
+    );
   }
 
   test_isValidAsDouble_hex_16CharValue() {
@@ -942,12 +959,14 @@ class IntegerLiteralImplTest {
 
   test_isValidAsDouble_hex_53BitsMax() {
     expect(
-        IntegerLiteralImpl.isValidAsDouble(
-            '0xFFFFFFFFFFFFF800000000000000000000000000000000000000000000000000'
-            '000000000000000000000000000000000000000000000000000000000000000000'
-            '000000000000000000000000000000000000000000000000000000000000000000'
-            '000000000000000000000000000000000000000000000000000000000000'),
-        true);
+      IntegerLiteralImpl.isValidAsDouble(
+        '0xFFFFFFFFFFFFF800000000000000000000000000000000000000000000000000'
+        '000000000000000000000000000000000000000000000000000000000000000000'
+        '000000000000000000000000000000000000000000000000000000000000000000'
+        '000000000000000000000000000000000000000000000000000000000000',
+      ),
+      true,
+    );
   }
 
   test_isValidAsDouble_hex_54BitsMax() {
@@ -969,7 +988,9 @@ class IntegerLiteralImplTest {
 
   test_isValidAsInteger_dec_negative_equalMax() {
     expect(
-        IntegerLiteralImpl.isValidAsInteger('9223372036854775808', true), true);
+      IntegerLiteralImpl.isValidAsInteger('9223372036854775808', true),
+      true,
+    );
   }
 
   test_isValidAsInteger_dec_negative_fewDigits() {
@@ -977,28 +998,38 @@ class IntegerLiteralImplTest {
   }
 
   test_isValidAsInteger_dec_negative_leadingZeros_overMax() {
-    expect(IntegerLiteralImpl.isValidAsInteger('009923372036854775807', true),
-        false);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('009923372036854775807', true),
+      false,
+    );
   }
 
   test_isValidAsInteger_dec_negative_leadingZeros_underMax() {
-    expect(IntegerLiteralImpl.isValidAsInteger('004223372036854775807', true),
-        true);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('004223372036854775807', true),
+      true,
+    );
   }
 
   test_isValidAsInteger_dec_negative_oneOverMax() {
-    expect(IntegerLiteralImpl.isValidAsInteger('9223372036854775809', true),
-        false);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('9223372036854775809', true),
+      false,
+    );
   }
 
   test_isValidAsInteger_dec_negative_tooManyDigits() {
-    expect(IntegerLiteralImpl.isValidAsInteger('10223372036854775808', true),
-        false);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('10223372036854775808', true),
+      false,
+    );
   }
 
   test_isValidAsInteger_dec_positive_equalMax() {
-    expect(IntegerLiteralImpl.isValidAsInteger('9223372036854775807', false),
-        true);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('9223372036854775807', false),
+      true,
+    );
   }
 
   test_isValidAsInteger_dec_positive_fewDigits() {
@@ -1006,33 +1037,45 @@ class IntegerLiteralImplTest {
   }
 
   test_isValidAsInteger_dec_positive_leadingZeros_overMax() {
-    expect(IntegerLiteralImpl.isValidAsInteger('009923372036854775807', false),
-        false);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('009923372036854775807', false),
+      false,
+    );
   }
 
   test_isValidAsInteger_dec_positive_leadingZeros_underMax() {
-    expect(IntegerLiteralImpl.isValidAsInteger('004223372036854775807', false),
-        true);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('004223372036854775807', false),
+      true,
+    );
   }
 
   test_isValidAsInteger_dec_positive_oneOverMax() {
-    expect(IntegerLiteralImpl.isValidAsInteger('9223372036854775808', false),
-        false);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('9223372036854775808', false),
+      false,
+    );
   }
 
   test_isValidAsInteger_dec_positive_tooManyDigits() {
-    expect(IntegerLiteralImpl.isValidAsInteger('10223372036854775808', false),
-        false);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('10223372036854775808', false),
+      false,
+    );
   }
 
   test_isValidAsInteger_heX_negative_equalMax() {
     expect(
-        IntegerLiteralImpl.isValidAsInteger('0X8000000000000000', true), true);
+      IntegerLiteralImpl.isValidAsInteger('0X8000000000000000', true),
+      true,
+    );
   }
 
   test_isValidAsInteger_hex_negative_equalMax() {
     expect(
-        IntegerLiteralImpl.isValidAsInteger('0x8000000000000000', true), true);
+      IntegerLiteralImpl.isValidAsInteger('0x8000000000000000', true),
+      true,
+    );
   }
 
   test_isValidAsInteger_heX_negative_fewDigits() {
@@ -1044,63 +1087,87 @@ class IntegerLiteralImplTest {
   }
 
   test_isValidAsInteger_heX_negative_leadingZeros_overMax() {
-    expect(IntegerLiteralImpl.isValidAsInteger('0X00FFFFFFFFFFFFFFFFF', true),
-        false);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('0X00FFFFFFFFFFFFFFFFF', true),
+      false,
+    );
   }
 
   test_isValidAsInteger_hex_negative_leadingZeros_overMax() {
-    expect(IntegerLiteralImpl.isValidAsInteger('0x00FFFFFFFFFFFFFFFFF', true),
-        false);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('0x00FFFFFFFFFFFFFFFFF', true),
+      false,
+    );
   }
 
   test_isValidAsInteger_heX_negative_leadingZeros_underMax() {
-    expect(IntegerLiteralImpl.isValidAsInteger('0X007FFFFFFFFFFFFFFF', true),
-        true);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('0X007FFFFFFFFFFFFFFF', true),
+      true,
+    );
   }
 
   test_isValidAsInteger_hex_negative_leadingZeros_underMax() {
-    expect(IntegerLiteralImpl.isValidAsInteger('0x007FFFFFFFFFFFFFFF', true),
-        true);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('0x007FFFFFFFFFFFFFFF', true),
+      true,
+    );
   }
 
   test_isValidAsInteger_heX_negative_oneBelowMax() {
     expect(
-        IntegerLiteralImpl.isValidAsInteger('0X7FFFFFFFFFFFFFFF', true), true);
+      IntegerLiteralImpl.isValidAsInteger('0X7FFFFFFFFFFFFFFF', true),
+      true,
+    );
   }
 
   test_isValidAsInteger_hex_negative_oneBelowMax() {
     expect(
-        IntegerLiteralImpl.isValidAsInteger('0x7FFFFFFFFFFFFFFF', true), true);
+      IntegerLiteralImpl.isValidAsInteger('0x7FFFFFFFFFFFFFFF', true),
+      true,
+    );
   }
 
   test_isValidAsInteger_heX_negative_oneOverMax() {
     expect(
-        IntegerLiteralImpl.isValidAsInteger('0X8000000000000001', true), false);
+      IntegerLiteralImpl.isValidAsInteger('0X8000000000000001', true),
+      false,
+    );
   }
 
   test_isValidAsInteger_hex_negative_oneOverMax() {
     expect(
-        IntegerLiteralImpl.isValidAsInteger('0x8000000000000001', true), false);
+      IntegerLiteralImpl.isValidAsInteger('0x8000000000000001', true),
+      false,
+    );
   }
 
   test_isValidAsInteger_heX_negative_tooManyDigits() {
-    expect(IntegerLiteralImpl.isValidAsInteger('0X10000000000000000', true),
-        false);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('0X10000000000000000', true),
+      false,
+    );
   }
 
   test_isValidAsInteger_hex_negative_tooManyDigits() {
-    expect(IntegerLiteralImpl.isValidAsInteger('0x10000000000000000', true),
-        false);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('0x10000000000000000', true),
+      false,
+    );
   }
 
   test_isValidAsInteger_heX_positive_equalMax() {
     expect(
-        IntegerLiteralImpl.isValidAsInteger('0X7FFFFFFFFFFFFFFF', false), true);
+      IntegerLiteralImpl.isValidAsInteger('0X7FFFFFFFFFFFFFFF', false),
+      true,
+    );
   }
 
   test_isValidAsInteger_hex_positive_equalMax() {
     expect(
-        IntegerLiteralImpl.isValidAsInteger('0x7FFFFFFFFFFFFFFF', false), true);
+      IntegerLiteralImpl.isValidAsInteger('0x7FFFFFFFFFFFFFFF', false),
+      true,
+    );
   }
 
   test_isValidAsInteger_heX_positive_fewDigits() {
@@ -1112,42 +1179,58 @@ class IntegerLiteralImplTest {
   }
 
   test_isValidAsInteger_heX_positive_leadingZeros_overMax() {
-    expect(IntegerLiteralImpl.isValidAsInteger('0X00FFFFFFFFFFFFFFFFF', false),
-        false);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('0X00FFFFFFFFFFFFFFFFF', false),
+      false,
+    );
   }
 
   test_isValidAsInteger_hex_positive_leadingZeros_overMax() {
-    expect(IntegerLiteralImpl.isValidAsInteger('0x00FFFFFFFFFFFFFFFFF', false),
-        false);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('0x00FFFFFFFFFFFFFFFFF', false),
+      false,
+    );
   }
 
   test_isValidAsInteger_heX_positive_leadingZeros_underMax() {
-    expect(IntegerLiteralImpl.isValidAsInteger('0X007FFFFFFFFFFFFFFF', false),
-        true);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('0X007FFFFFFFFFFFFFFF', false),
+      true,
+    );
   }
 
   test_isValidAsInteger_hex_positive_leadingZeros_underMax() {
-    expect(IntegerLiteralImpl.isValidAsInteger('0x007FFFFFFFFFFFFFFF', false),
-        true);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('0x007FFFFFFFFFFFFFFF', false),
+      true,
+    );
   }
 
   test_isValidAsInteger_heX_positive_oneOverMax() {
-    expect(IntegerLiteralImpl.isValidAsInteger('0X10000000000000000', false),
-        false);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('0X10000000000000000', false),
+      false,
+    );
   }
 
   test_isValidAsInteger_hex_positive_oneOverMax() {
-    expect(IntegerLiteralImpl.isValidAsInteger('0x10000000000000000', false),
-        false);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('0x10000000000000000', false),
+      false,
+    );
   }
 
   test_isValidAsInteger_heX_positive_tooManyDigits() {
-    expect(IntegerLiteralImpl.isValidAsInteger('0XFF0000000000000000', false),
-        false);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('0XFF0000000000000000', false),
+      false,
+    );
   }
 
   test_isValidAsInteger_hex_positive_tooManyDigits() {
-    expect(IntegerLiteralImpl.isValidAsInteger('0xFF0000000000000000', false),
-        false);
+    expect(
+      IntegerLiteralImpl.isValidAsInteger('0xFF0000000000000000', false),
+      false,
+    );
   }
 }

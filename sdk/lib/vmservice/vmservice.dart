@@ -357,13 +357,11 @@ class VMService extends MessageRouter {
       return;
     }
     final cpuSamplesEvent = eventData['cpuSamples']! as Map<String, dynamic>;
-    final samples =
-        (cpuSamplesEvent['samples']! as List<dynamic>)
-            .cast<Map<String, dynamic>>();
-    final updatedSamples =
-        samples
-            .where((s) => client.profilerUserTagFilters.contains(s['userTag']))
-            .toList();
+    final samples = (cpuSamplesEvent['samples']! as List<dynamic>)
+        .cast<Map<String, dynamic>>();
+    final updatedSamples = samples
+        .where((s) => client.profilerUserTagFilters.contains(s['userTag']))
+        .toList();
     if (updatedSamples.isEmpty) {
       return;
     }
@@ -762,8 +760,8 @@ class VMService extends MessageRouter {
 
     // TODO(bkonyi): handle "subscribe all" case.
     final client = message.client!;
-    final userTags =
-        (message.params['userTags']! as List<dynamic>).cast<String>();
+    final userTags = (message.params['userTags']! as List<dynamic>)
+        .cast<String>();
     final tags = userTags.toSet();
     final newTags = tags.difference(_profilerUserTagSubscriptions);
 

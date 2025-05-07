@@ -51,8 +51,8 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
   analyzer.Parser get parser;
 
   /// Assert that the number and codes of errors occurred during parsing is the
-  /// same as the [expectedErrorCodes].
-  void assertErrorsWithCodes(List<ErrorCode> expectedErrorCodes);
+  /// same as the [expectedCodes].
+  void assertErrorsWithCodes(List<DiagnosticCode> expectedCodes);
 
   /// Asserts that no errors occurred during parsing.
   void assertNoErrors();
@@ -72,7 +72,7 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
     FeatureSet featureSet,
   });
 
-  ExpectedError expectedError(ErrorCode code, int offset, int length);
+  ExpectedError expectedError(DiagnosticCode code, int offset, int length);
 
   void expectNotNullIfNoErrors(Object result);
 
@@ -80,8 +80,11 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
 
   Expression parseAssignableExpression(String code, bool primaryAllowed);
 
-  Expression parseAssignableSelector(String code, bool optional,
-      {bool allowConditional = true});
+  Expression parseAssignableSelector(
+    String code,
+    bool optional, {
+    bool allowConditional = true,
+  });
 
   AwaitExpression parseAwaitExpression(String code);
 
@@ -94,10 +97,15 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
   Expression parseCascadeSection(String code);
 
   CommentReference? parseCommentReference(
-      String referenceSource, int sourceOffset);
+    String referenceSource,
+    int sourceOffset,
+  );
 
-  CompilationUnit parseCompilationUnit(String source,
-      {List<ErrorCode> codes, List<ExpectedError> errors});
+  CompilationUnit parseCompilationUnit(
+    String source, {
+    List<DiagnosticCode> codes,
+    List<ExpectedError> errors,
+  });
 
   ConditionalExpression parseConditionalExpression(String code);
 
@@ -114,27 +122,36 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
   /// @throws Exception if the source could not be parsed, if the compilation
   ///           errors in the source do not match those that are expected, or if
   ///           the result would have been `null`
-  CompilationUnit parseDirectives(String source,
-      [List<ErrorCode> errorCodes = const <ErrorCode>[]]);
+  CompilationUnit parseDirectives(
+    String source, [
+    List<DiagnosticCode> diagnosticCodes = const <DiagnosticCode>[],
+  ]);
 
   BinaryExpression parseEqualityExpression(String code);
 
-  Expression parseExpression(String source,
-      {List<ErrorCode> codes,
-      List<ExpectedError> errors,
-      int expectedEndOffset});
+  Expression parseExpression(
+    String source, {
+    List<DiagnosticCode> codes,
+    List<ExpectedError> errors,
+    int expectedEndOffset,
+  });
 
   List<Expression> parseExpressionList(String code);
 
   Expression parseExpressionWithoutCascade(String code);
 
-  FormalParameter parseFormalParameter(String code, ParameterKind kind,
-      {List<ErrorCode> errorCodes = const <ErrorCode>[]});
+  FormalParameter parseFormalParameter(
+    String code,
+    ParameterKind kind, {
+    List<DiagnosticCode> diagnosticCodes = const <DiagnosticCode>[],
+  });
 
-  FormalParameterList parseFormalParameterList(String code,
-      {bool inFunctionType = false,
-      List<ErrorCode> errorCodes = const <ErrorCode>[],
-      List<ExpectedError> errors});
+  FormalParameterList parseFormalParameterList(
+    String code, {
+    bool inFunctionType = false,
+    List<DiagnosticCode> diagnosticCodes = const <DiagnosticCode>[],
+    List<ExpectedError> errors,
+  });
 
   /// Parses a single top level member of a compilation unit (other than a
   /// directive), including any comment and/or metadata that precedes it.
@@ -147,10 +164,15 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
   FunctionExpression parseFunctionExpression(String code);
 
   InstanceCreationExpression parseInstanceCreationExpression(
-      String code, Token newToken);
+    String code,
+    Token newToken,
+  );
 
   ListLiteral parseListLiteral(
-      Token token, String typeArgumentsCode, String code);
+    Token token,
+    String typeArgumentsCode,
+    String code,
+  );
 
   TypedLiteral parseListOrMapLiteral(Token modifier, String code);
 
@@ -159,7 +181,10 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
   Expression parseLogicalOrExpression(String code);
 
   SetOrMapLiteral parseMapLiteral(
-      Token token, String typeArgumentsCode, String code);
+    Token token,
+    String typeArgumentsCode,
+    String code,
+  );
 
   MapLiteralEntry parseMapLiteralEntry(String code);
 
@@ -167,16 +192,21 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
 
   InstanceCreationExpression parseNewExpression(String code);
 
-  NormalFormalParameter parseNormalFormalParameter(String code,
-      {bool inFunctionType = false,
-      List<ErrorCode> errorCodes = const <ErrorCode>[]});
+  NormalFormalParameter parseNormalFormalParameter(
+    String code, {
+    bool inFunctionType = false,
+    List<DiagnosticCode> diagnosticCodes = const <DiagnosticCode>[],
+  });
 
   Expression parsePostfixExpression(String code);
 
   Identifier parsePrefixedIdentifier(String code);
 
-  Expression parsePrimaryExpression(String code,
-      {int expectedEndOffset, List<ExpectedError> errors});
+  Expression parsePrimaryExpression(
+    String code, {
+    int expectedEndOffset,
+    List<ExpectedError> errors,
+  });
 
   Expression parseRelationalExpression(String code);
 
@@ -213,7 +243,7 @@ abstract class AbstractParserViaProxyTestCase
 class FastaParserTestCase
     with ParserTestHelpers
     implements AbstractParserTestCase {
-  static final List<ErrorCode> NO_ERROR_COMPARISON = <ErrorCode>[];
+  static final List<DiagnosticCode> NO_ERROR_COMPARISON = <DiagnosticCode>[];
 
   late ParserProxy parserProxy;
 
@@ -228,7 +258,10 @@ class FastaParserTestCase
   @override
   ParserProxy get parser => parserProxy;
 
-  void assertErrors({List<ErrorCode>? codes, List<ExpectedError>? errors}) {
+  void assertErrors({
+    List<DiagnosticCode>? codes,
+    List<ExpectedError>? errors,
+  }) {
     if (codes != null) {
       if (!identical(codes, NO_ERROR_COMPARISON)) {
         assertErrorsWithCodes(codes);
@@ -241,8 +274,8 @@ class FastaParserTestCase
   }
 
   @override
-  void assertErrorsWithCodes(List<ErrorCode> expectedErrorCodes) {
-    parserProxy.errorListener.assertErrorsWithCodes(expectedErrorCodes);
+  void assertErrorsWithCodes(List<DiagnosticCode> expectedCodes) {
+    parserProxy.errorListener.assertErrorsWithCodes(expectedCodes);
   }
 
   @override
@@ -251,29 +284,41 @@ class FastaParserTestCase
   }
 
   @override
-  void createParser(String content,
-      {int? expectedEndOffset, FeatureSet? featureSet}) {
+  void createParser(
+    String content, {
+    int? expectedEndOffset,
+    FeatureSet? featureSet,
+  }) {
     featureSet ??= FeatureSet.latestLanguageVersion();
     var languageVersion = LibraryLanguageVersion(
-        package: ExperimentStatus.currentVersion, override: null);
-    var result = scanString(content,
-        configuration: ScannerConfiguration.nonNullable, includeComments: true,
-        languageVersionChanged: (scanner, overrideVersion) {
-      languageVersion = LibraryLanguageVersion(
-        package: ExperimentStatus.currentVersion,
-        override: Version(overrideVersion.major, overrideVersion.minor, 0),
-      );
-    });
+      package: ExperimentStatus.currentVersion,
+      override: null,
+    );
+    var result = scanString(
+      content,
+      configuration: ScannerConfiguration.nonNullable,
+      includeComments: true,
+      languageVersionChanged: (scanner, overrideVersion) {
+        languageVersion = LibraryLanguageVersion(
+          package: ExperimentStatus.currentVersion,
+          override: Version(overrideVersion.major, overrideVersion.minor, 0),
+        );
+      },
+    );
     var lineInfo = LineInfo(result.lineStarts);
     _fastaTokens = result.tokens;
-    parserProxy = ParserProxy(_fastaTokens, featureSet, languageVersion,
-        allowNativeClause: allowNativeClause,
-        expectedEndOffset: expectedEndOffset,
-        lineInfo: lineInfo);
+    parserProxy = ParserProxy(
+      _fastaTokens,
+      featureSet,
+      languageVersion,
+      allowNativeClause: allowNativeClause,
+      expectedEndOffset: expectedEndOffset,
+      lineInfo: lineInfo,
+    );
   }
 
   @override
-  ExpectedError expectedError(ErrorCode code, int offset, int length) =>
+  ExpectedError expectedError(DiagnosticCode code, int offset, int length) =>
       ExpectedError(code, offset, length);
 
   @override
@@ -299,8 +344,11 @@ class FastaParserTestCase
   }
 
   @override
-  Expression parseAssignableSelector(String code, bool optional,
-      {bool allowConditional = true}) {
+  Expression parseAssignableSelector(
+    String code,
+    bool optional, {
+    bool allowConditional = true,
+  }) {
     if (optional) {
       if (code.isEmpty) {
         return _parseExpression('foo');
@@ -340,7 +388,9 @@ class FastaParserTestCase
 
   @override
   CommentReference? parseCommentReference(
-      String referenceSource, int sourceOffset) {
+    String referenceSource,
+    int sourceOffset,
+  ) {
     String padding = ' '.padLeft(sourceOffset - 4, 'a');
     String source = '/**$padding[$referenceSource] */ class C { }';
     CompilationUnit unit = parseCompilationUnit(source);
@@ -356,10 +406,12 @@ class FastaParserTestCase
   }
 
   @override
-  CompilationUnitImpl parseCompilationUnit(String content,
-      {List<ErrorCode>? codes,
-      List<ExpectedError>? errors,
-      FeatureSet? featureSet}) {
+  CompilationUnitImpl parseCompilationUnit(
+    String content, {
+    List<DiagnosticCode>? codes,
+    List<ExpectedError>? errors,
+    FeatureSet? featureSet,
+  }) {
     GatheringErrorListener listener = GatheringErrorListener();
 
     var unit = parseCompilationUnit2(content, listener, featureSet: featureSet);
@@ -376,36 +428,46 @@ class FastaParserTestCase
   }
 
   CompilationUnitImpl parseCompilationUnit2(
-      String content, GatheringErrorListener listener,
-      {FeatureSet? featureSet}) {
+    String content,
+    GatheringErrorListener listener, {
+    FeatureSet? featureSet,
+  }) {
     featureSet ??= FeatureSet.latestLanguageVersion();
     var source = StringSource(content, 'parser_test_StringSource.dart');
 
     // Adjust the feature set based on language version comment.
     void languageVersionChanged(
-        fasta.Scanner scanner, LanguageVersionToken languageVersion) {
+      fasta.Scanner scanner,
+      LanguageVersionToken languageVersion,
+    ) {
       featureSet = featureSet!.restrictToVersion(
-          Version(languageVersion.major, languageVersion.minor, 0));
+        Version(languageVersion.major, languageVersion.minor, 0),
+      );
       scanner.configuration = Scanner.buildConfig(featureSet);
     }
 
     // Scan tokens
-    ScannerResult result = scanString(content,
-        includeComments: true,
-        configuration: Scanner.buildConfig(featureSet),
-        languageVersionChanged: languageVersionChanged);
+    ScannerResult result = scanString(
+      content,
+      includeComments: true,
+      configuration: Scanner.buildConfig(featureSet),
+      languageVersionChanged: languageVersionChanged,
+    );
     _fastaTokens = result.tokens;
 
     // Run parser
     ErrorReporter errorReporter = ErrorReporter(listener, source);
     AstBuilder astBuilder = AstBuilder(
-        errorReporter,
-        source.uri,
-        true,
-        featureSet!,
-        LibraryLanguageVersion(
-            package: ExperimentStatus.currentVersion, override: null),
-        LineInfo.fromContent(content));
+      errorReporter,
+      source.uri,
+      true,
+      featureSet!,
+      LibraryLanguageVersion(
+        package: ExperimentStatus.currentVersion,
+        override: null,
+      ),
+      LineInfo.fromContent(content),
+    );
     fasta.Parser parser = fasta.Parser(
       astBuilder,
       allowPatterns: featureSet!.isEnabled(Feature.patterns),
@@ -441,14 +503,17 @@ class FastaParserTestCase
   }
 
   @override
-  CompilationUnit parseDirectives(String source,
-      [List<ErrorCode> errorCodes = const <ErrorCode>[]]) {
+  CompilationUnit parseDirectives(
+    String source, [
+    List<DiagnosticCode> diagnosticCodes = const <DiagnosticCode>[],
+  ]) {
     createParser(source);
-    CompilationUnit unit =
-        parserProxy.parseDirectives(parserProxy.currentToken);
+    CompilationUnit unit = parserProxy.parseDirectives(
+      parserProxy.currentToken,
+    );
     expect(unit, isNotNull);
     expect(unit.declarations, hasLength(0));
-    listener.assertErrorsWithCodes(errorCodes);
+    listener.assertErrorsWithCodes(diagnosticCodes);
     return unit;
   }
 
@@ -458,14 +523,19 @@ class FastaParserTestCase
   }
 
   @override
-  Expression parseExpression(String source,
-      {List<ErrorCode>? codes,
-      List<ExpectedError>? errors,
-      int? expectedEndOffset,
-      bool inAsync = false,
-      FeatureSet? featureSet}) {
-    createParser(source,
-        expectedEndOffset: expectedEndOffset, featureSet: featureSet);
+  Expression parseExpression(
+    String source, {
+    List<DiagnosticCode>? codes,
+    List<ExpectedError>? errors,
+    int? expectedEndOffset,
+    bool inAsync = false,
+    FeatureSet? featureSet,
+  }) {
+    createParser(
+      source,
+      expectedEndOffset: expectedEndOffset,
+      featureSet: featureSet,
+    );
     if (inAsync) {
       parserProxy.fastaParser.asyncState = AsyncModifier.Async;
     }
@@ -476,8 +546,7 @@ class FastaParserTestCase
 
   @override
   List<Expression> parseExpressionList(String code) {
-    return (_parseExpression('[$code]') as ListLiteral)
-        .elements
+    return (_parseExpression('[$code]') as ListLiteral).elements
         .toList()
         .cast<Expression>();
   }
@@ -488,9 +557,12 @@ class FastaParserTestCase
   }
 
   @override
-  FormalParameter parseFormalParameter(String code, ParameterKind kind,
-      {List<ErrorCode> errorCodes = const <ErrorCode>[],
-      FeatureSet? featureSet}) {
+  FormalParameter parseFormalParameter(
+    String code,
+    ParameterKind kind, {
+    List<DiagnosticCode> diagnosticCodes = const <DiagnosticCode>[],
+    FeatureSet? featureSet,
+  }) {
     String parametersCode;
     if (kind == ParameterKind.REQUIRED) {
       parametersCode = '($code)';
@@ -501,21 +573,30 @@ class FastaParserTestCase
     } else {
       fail('$kind');
     }
-    FormalParameterList list = parseFormalParameterList(parametersCode,
-        errorCodes: errorCodes, featureSet: featureSet);
+    FormalParameterList list = parseFormalParameterList(
+      parametersCode,
+      diagnosticCodes: diagnosticCodes,
+      featureSet: featureSet,
+    );
     return list.parameters.single;
   }
 
   @override
-  FormalParameterList parseFormalParameterList(String code,
-      {bool inFunctionType = false,
-      List<ErrorCode> errorCodes = const <ErrorCode>[],
-      List<ExpectedError>? errors,
-      FeatureSet? featureSet}) {
+  FormalParameterList parseFormalParameterList(
+    String code, {
+    bool inFunctionType = false,
+    List<DiagnosticCode> diagnosticCodes = const <DiagnosticCode>[],
+    List<ExpectedError>? errors,
+    FeatureSet? featureSet,
+  }) {
     createParser(code, featureSet: featureSet);
-    FormalParameterList result =
-        parserProxy.parseFormalParameterList(inFunctionType: inFunctionType);
-    assertErrors(codes: errors != null ? null : errorCodes, errors: errors);
+    FormalParameterList result = parserProxy.parseFormalParameterList(
+      inFunctionType: inFunctionType,
+    );
+    assertErrors(
+      codes: errors != null ? null : diagnosticCodes,
+      errors: errors,
+    );
     return result;
   }
 
@@ -536,13 +617,18 @@ class FastaParserTestCase
 
   @override
   InstanceCreationExpression parseInstanceCreationExpression(
-      String code, Token newToken) {
+    String code,
+    Token newToken,
+  ) {
     return _parseExpression('$newToken $code') as InstanceCreationExpression;
   }
 
   @override
   ListLiteral parseListLiteral(
-      Token? token, String? typeArgumentsCode, String code) {
+    Token? token,
+    String? typeArgumentsCode,
+    String code,
+  ) {
     String sc = '';
     if (token != null) {
       sc += '${token.lexeme} ';
@@ -572,7 +658,10 @@ class FastaParserTestCase
 
   @override
   SetOrMapLiteral parseMapLiteral(
-      Token? token, String? typeArgumentsCode, String code) {
+    Token? token,
+    String? typeArgumentsCode,
+    String code,
+  ) {
     String sc = '';
     if (token != null) {
       sc += '${token.lexeme} ';
@@ -601,11 +690,16 @@ class FastaParserTestCase
   }
 
   @override
-  NormalFormalParameter parseNormalFormalParameter(String code,
-      {bool inFunctionType = false,
-      List<ErrorCode> errorCodes = const <ErrorCode>[]}) {
-    FormalParameterList list = parseFormalParameterList('($code)',
-        inFunctionType: inFunctionType, errorCodes: errorCodes);
+  NormalFormalParameter parseNormalFormalParameter(
+    String code, {
+    bool inFunctionType = false,
+    List<DiagnosticCode> diagnosticCodes = const <DiagnosticCode>[],
+  }) {
+    FormalParameterList list = parseFormalParameterList(
+      '($code)',
+      inFunctionType: inFunctionType,
+      diagnosticCodes: diagnosticCodes,
+    );
     return list.parameters.single as NormalFormalParameter;
   }
 
@@ -620,8 +714,11 @@ class FastaParserTestCase
   }
 
   @override
-  Expression parsePrimaryExpression(String code,
-      {int? expectedEndOffset, List<ExpectedError>? errors}) {
+  Expression parsePrimaryExpression(
+    String code, {
+    int? expectedEndOffset,
+    List<ExpectedError>? errors,
+  }) {
     createParser(code, expectedEndOffset: expectedEndOffset);
     Expression result = parserProxy.parsePrimaryExpression();
     assertErrors(errors: errors);
@@ -649,10 +746,17 @@ class FastaParserTestCase
   }
 
   @override
-  Statement parseStatement(String source,
-      {int? expectedEndOffset, FeatureSet? featureSet, bool inAsync = false}) {
-    createParser(source,
-        expectedEndOffset: expectedEndOffset, featureSet: featureSet);
+  Statement parseStatement(
+    String source, {
+    int? expectedEndOffset,
+    FeatureSet? featureSet,
+    bool inAsync = false,
+  }) {
+    createParser(
+      source,
+      expectedEndOffset: expectedEndOffset,
+      featureSet: featureSet,
+    );
     if (inAsync) {
       parserProxy.fastaParser.asyncState = AsyncModifier.Async;
     }
@@ -713,30 +817,45 @@ class ParserProxy extends analyzer.Parser {
 
   /// Creates a [ParserProxy] which is prepared to begin parsing at the given
   /// Fasta token.
-  factory ParserProxy(Token firstToken, FeatureSet featureSet,
-      LibraryLanguageVersion languageVersion,
-      {bool allowNativeClause = false,
-      int? expectedEndOffset,
-      required LineInfo lineInfo}) {
+  factory ParserProxy(
+    Token firstToken,
+    FeatureSet featureSet,
+    LibraryLanguageVersion languageVersion, {
+    bool allowNativeClause = false,
+    int? expectedEndOffset,
+    required LineInfo lineInfo,
+  }) {
     TestSource source = TestSource();
     var errorListener = GatheringErrorListener();
     return ParserProxy._(
-        firstToken, source, errorListener, featureSet, languageVersion,
-        allowNativeClause: allowNativeClause,
-        expectedEndOffset: expectedEndOffset,
-        lineInfo: lineInfo);
+      firstToken,
+      source,
+      errorListener,
+      featureSet,
+      languageVersion,
+      allowNativeClause: allowNativeClause,
+      expectedEndOffset: expectedEndOffset,
+      lineInfo: lineInfo,
+    );
   }
 
-  ParserProxy._(Token firstToken, Source source, this.errorListener,
-      FeatureSet featureSet, LibraryLanguageVersion languageVersion,
-      {bool allowNativeClause = false,
-      this.expectedEndOffset,
-      required LineInfo lineInfo})
-      : super(source, errorListener,
-            featureSet: featureSet,
-            languageVersion: languageVersion,
-            allowNativeClause: allowNativeClause,
-            lineInfo: lineInfo) {
+  ParserProxy._(
+    Token firstToken,
+    Source source,
+    this.errorListener,
+    FeatureSet featureSet,
+    LibraryLanguageVersion languageVersion, {
+    bool allowNativeClause = false,
+    this.expectedEndOffset,
+    required LineInfo lineInfo,
+  }) : super(
+         source,
+         errorListener,
+         featureSet: featureSet,
+         languageVersion: languageVersion,
+         allowNativeClause: allowNativeClause,
+         lineInfo: lineInfo,
+       ) {
     _eventListener = ForwardingTestListener(astBuilder);
     fastaParser.listener = _eventListener;
     currentToken = firstToken;
@@ -747,18 +866,20 @@ class ParserProxy extends analyzer.Parser {
 
   Annotation parseAnnotation() {
     return _run('MetadataStar', () {
-      currentToken = fastaParser
-          .parseMetadata(fastaParser.syntheticPreviousToken(currentToken))
-          .next!;
+      currentToken =
+          fastaParser
+              .parseMetadata(fastaParser.syntheticPreviousToken(currentToken))
+              .next!;
       return astBuilder.pop() as Annotation;
     });
   }
 
   ArgumentList parseArgumentList() {
     return _run('unspecified', () {
-      currentToken = fastaParser
-          .parseArguments(fastaParser.syntheticPreviousToken(currentToken))
-          .next!;
+      currentToken =
+          fastaParser
+              .parseArguments(fastaParser.syntheticPreviousToken(currentToken))
+              .next!;
       var result = astBuilder.pop();
       return result is MethodInvocation
           ? result.argumentList
@@ -782,9 +903,12 @@ class ParserProxy extends analyzer.Parser {
 
   List<Combinator> parseCombinators() {
     return _run('Import', () {
-      currentToken = fastaParser
-          .parseCombinatorStar(fastaParser.syntheticPreviousToken(currentToken))
-          .next!;
+      currentToken =
+          fastaParser
+              .parseCombinatorStar(
+                fastaParser.syntheticPreviousToken(currentToken),
+              )
+              .next!;
       return astBuilder.pop() as List<Combinator>;
     });
   }
@@ -833,17 +957,25 @@ class ParserProxy extends analyzer.Parser {
 
   @override
   FormalParameterList parseFormalParameterList({bool inFunctionType = false}) {
-    return _run('unspecified',
-        () => super.parseFormalParameterList(inFunctionType: inFunctionType));
+    return _run(
+      'unspecified',
+      () => super.parseFormalParameterList(inFunctionType: inFunctionType),
+    );
   }
 
   @override
   FunctionBody parseFunctionBody(
-      bool mayBeEmpty, ParserErrorCode emptyErrorCode, bool inExpression) {
+    bool mayBeEmpty,
+    ParserErrorCode emptyErrorCode,
+    bool inExpression,
+  ) {
     Token? lastToken;
     FunctionBody body = _run('unspecified', () {
-      FunctionBody body =
-          super.parseFunctionBody(mayBeEmpty, emptyErrorCode, inExpression);
+      FunctionBody body = super.parseFunctionBody(
+        mayBeEmpty,
+        emptyErrorCode,
+        inExpression,
+      );
       lastToken = currentToken;
       currentToken = currentToken.next!;
       return body;
@@ -874,7 +1006,9 @@ class ParserProxy extends analyzer.Parser {
   @override
   AnnotatedNode parseTopLevelDeclaration(bool isDirective) {
     return _run(
-        'CompilationUnit', () => super.parseTopLevelDeclaration(isDirective));
+      'CompilationUnit',
+      () => super.parseTopLevelDeclaration(isDirective),
+    );
   }
 
   @override
@@ -917,9 +1051,10 @@ class ParserProxy extends analyzer.Parser {
 
     _eventListener.end(enclosingEvent);
 
-    String lexeme = currentToken is ErrorToken
-        ? currentToken.runtimeType.toString()
-        : currentToken.lexeme;
+    String lexeme =
+        currentToken is ErrorToken
+            ? currentToken.runtimeType.toString()
+            : currentToken.lexeme;
     if (expectedEndOffset == null) {
       expect(currentToken.isEof, isTrue, reason: lexeme);
     } else {
@@ -954,8 +1089,8 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
   late final analyzer.Parser parser;
 
   @override
-  void assertErrorsWithCodes(List<ErrorCode> expectedErrorCodes) {
-    listener.assertErrorsWithCodes(expectedErrorCodes);
+  void assertErrorsWithCodes(List<DiagnosticCode> expectedCodes) {
+    listener.assertErrorsWithCodes(expectedCodes);
   }
 
   @override
@@ -974,18 +1109,22 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
   }) {
     featureSet ??= FeatureSet.latestLanguageVersion();
     var languageVersion = LibraryLanguageVersion(
-        package: ExperimentStatus.currentVersion, override: null);
+      package: ExperimentStatus.currentVersion,
+      override: null,
+    );
     Source source = TestSource();
     listener = GatheringErrorListener();
 
-    fasta.ScannerResult result = fasta
-        .scanString(content, includeComments: true,
-            languageVersionChanged: (scanner, overrideVersion) {
-      languageVersion = LibraryLanguageVersion(
-        package: ExperimentStatus.currentVersion,
-        override: Version(overrideVersion.major, overrideVersion.minor, 0),
-      );
-    });
+    fasta.ScannerResult result = fasta.scanString(
+      content,
+      includeComments: true,
+      languageVersionChanged: (scanner, overrideVersion) {
+        languageVersion = LibraryLanguageVersion(
+          package: ExperimentStatus.currentVersion,
+          override: Version(overrideVersion.major, overrideVersion.minor, 0),
+        );
+      },
+    );
     LineInfo lineInfo = LineInfo(result.lineStarts);
     listener.setLineInfo(source, lineInfo);
 
@@ -1002,7 +1141,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
   }
 
   @override
-  ExpectedError expectedError(ErrorCode code, int offset, int length) =>
+  ExpectedError expectedError(DiagnosticCode code, int offset, int length) =>
       ExpectedError(code, offset, length);
 
   @override
@@ -1025,8 +1164,11 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
   }
 
   @override
-  Expression parseAssignableSelector(String code, bool optional,
-      {bool allowConditional = true}) {
+  Expression parseAssignableSelector(
+    String code,
+    bool optional, {
+    bool allowConditional = true,
+  }) {
     if (optional) {
       if (code.isEmpty) {
         createParser('foo');
@@ -1074,7 +1216,9 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
 
   @override
   CommentReference? parseCommentReference(
-      String referenceSource, int sourceOffset) {
+    String referenceSource,
+    int sourceOffset,
+  ) {
     String padding = ' '.padLeft(sourceOffset - 4, 'a');
     String source = '/**$padding[$referenceSource] */ class C { }';
     CompilationUnit unit = parseCompilationUnit(source);
@@ -1099,21 +1243,28 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
   ///           errors in the source do not match those that are expected, or if
   ///           the result would have been `null`
   @override
-  CompilationUnit parseCompilationUnit(String content,
-      {List<ErrorCode>? codes, List<ExpectedError>? errors}) {
+  CompilationUnit parseCompilationUnit(
+    String content, {
+    List<DiagnosticCode>? codes,
+    List<ExpectedError>? errors,
+  }) {
     Source source = TestSource();
     GatheringErrorListener listener = GatheringErrorListener();
 
     var languageVersion = LibraryLanguageVersion(
-        package: ExperimentStatus.currentVersion, override: null);
-    fasta.ScannerResult result = fasta
-        .scanString(content, includeComments: true,
-            languageVersionChanged: (scanner, overrideVersion) {
-      languageVersion = LibraryLanguageVersion(
-        package: ExperimentStatus.currentVersion,
-        override: Version(overrideVersion.major, overrideVersion.minor, 0),
-      );
-    });
+      package: ExperimentStatus.currentVersion,
+      override: null,
+    );
+    fasta.ScannerResult result = fasta.scanString(
+      content,
+      includeComments: true,
+      languageVersionChanged: (scanner, overrideVersion) {
+        languageVersion = LibraryLanguageVersion(
+          package: ExperimentStatus.currentVersion,
+          override: Version(overrideVersion.major, overrideVersion.minor, 0),
+        );
+      },
+    );
     LineInfo lineInfo = LineInfo(result.lineStarts);
     listener.setLineInfo(source, lineInfo);
 
@@ -1137,21 +1288,27 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
   }
 
   /// Parse the given [content] as a compilation unit.
-  CompilationUnit parseCompilationUnit2(String content,
-      {AnalysisErrorListener? listener}) {
+  CompilationUnit parseCompilationUnit2(
+    String content, {
+    AnalysisErrorListener? listener,
+  }) {
     Source source = NonExistingSource.unknown;
     listener ??= AnalysisErrorListener.NULL_LISTENER;
 
     var languageVersion = LibraryLanguageVersion(
-        package: ExperimentStatus.currentVersion, override: null);
-    fasta.ScannerResult result = fasta
-        .scanString(content, includeComments: true,
-            languageVersionChanged: (scanner, overrideVersion) {
-      languageVersion = LibraryLanguageVersion(
-        package: ExperimentStatus.currentVersion,
-        override: Version(overrideVersion.major, overrideVersion.minor, 0),
-      );
-    });
+      package: ExperimentStatus.currentVersion,
+      override: null,
+    );
+    fasta.ScannerResult result = fasta.scanString(
+      content,
+      includeComments: true,
+      languageVersionChanged: (scanner, overrideVersion) {
+        languageVersion = LibraryLanguageVersion(
+          package: ExperimentStatus.currentVersion,
+          override: Version(overrideVersion.major, overrideVersion.minor, 0),
+        );
+      },
+    );
     LineInfo lineInfo = LineInfo(result.lineStarts);
 
     analyzer.Parser parser = analyzer.Parser(
@@ -1187,13 +1344,15 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
   }
 
   @override
-  CompilationUnit parseDirectives(String source,
-      [List<ErrorCode> errorCodes = const <ErrorCode>[]]) {
+  CompilationUnit parseDirectives(
+    String source, [
+    List<DiagnosticCode> diagnosticCodes = const <DiagnosticCode>[],
+  ]) {
     createParser(source);
     CompilationUnit unit = parser.parseDirectives2();
     expect(unit, isNotNull);
     expect(unit.declarations, hasLength(0));
-    listener.assertErrorsWithCodes(errorCodes);
+    listener.assertErrorsWithCodes(diagnosticCodes);
     return unit;
   }
 
@@ -1208,10 +1367,12 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
   /// Otherwise, if a list of [errors] is provided, the assert that the produced
   /// errors matches the list. Otherwise, assert that there are no errors.
   @override
-  Expression parseExpression(String source,
-      {List<ErrorCode>? codes,
-      List<ExpectedError>? errors,
-      int? expectedEndOffset}) {
+  Expression parseExpression(
+    String source, {
+    List<DiagnosticCode>? codes,
+    List<ExpectedError>? errors,
+    int? expectedEndOffset,
+  }) {
     createParser(source, expectedEndOffset: expectedEndOffset);
     Expression expression = parser.parseExpression2();
     expectNotNullIfNoErrors(expression);
@@ -1228,8 +1389,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
   @override
   List<Expression> parseExpressionList(String code) {
     createParser('[$code]');
-    return (parser.parseExpression2() as ListLiteral)
-        .elements
+    return (parser.parseExpression2() as ListLiteral).elements
         .toList()
         .cast<Expression>();
   }
@@ -1241,8 +1401,11 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
   }
 
   @override
-  FormalParameter parseFormalParameter(String code, ParameterKind kind,
-      {List<ErrorCode> errorCodes = const <ErrorCode>[]}) {
+  FormalParameter parseFormalParameter(
+    String code,
+    ParameterKind kind, {
+    List<DiagnosticCode> diagnosticCodes = const <DiagnosticCode>[],
+  }) {
     String parametersCode;
     if (kind == ParameterKind.REQUIRED) {
       parametersCode = '($code)';
@@ -1253,23 +1416,28 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
     } else {
       fail('$kind');
     }
-    FormalParameterList list =
-        parseFormalParameterList(parametersCode, errorCodes: errorCodes);
+    FormalParameterList list = parseFormalParameterList(
+      parametersCode,
+      diagnosticCodes: diagnosticCodes,
+    );
     return list.parameters.single;
   }
 
   @override
-  FormalParameterList parseFormalParameterList(String code,
-      {bool inFunctionType = false,
-      List<ErrorCode> errorCodes = const <ErrorCode>[],
-      List<ExpectedError>? errors}) {
+  FormalParameterList parseFormalParameterList(
+    String code, {
+    bool inFunctionType = false,
+    List<DiagnosticCode> diagnosticCodes = const <DiagnosticCode>[],
+    List<ExpectedError>? errors,
+  }) {
     createParser(code);
-    FormalParameterList list =
-        parser.parseFormalParameterList(inFunctionType: inFunctionType);
+    FormalParameterList list = parser.parseFormalParameterList(
+      inFunctionType: inFunctionType,
+    );
     if (errors != null) {
-      errorCodes = errors.map((e) => e.code).toList();
+      diagnosticCodes = errors.map((e) => e.code).toList();
     }
-    assertErrorsWithCodes(errorCodes);
+    assertErrorsWithCodes(diagnosticCodes);
     return list;
   }
 
@@ -1292,14 +1460,19 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
 
   @override
   InstanceCreationExpression parseInstanceCreationExpression(
-      String code, Token newToken) {
+    String code,
+    Token newToken,
+  ) {
     createParser('$newToken $code');
     return parser.parseExpression2() as InstanceCreationExpression;
   }
 
   @override
   ListLiteral parseListLiteral(
-      Token? token, String? typeArgumentsCode, String code) {
+    Token? token,
+    String? typeArgumentsCode,
+    String code,
+  ) {
     String sc = '';
     if (token != null) {
       sc += '${token.lexeme} ';
@@ -1333,7 +1506,10 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
 
   @override
   SetOrMapLiteral parseMapLiteral(
-      Token? token, String? typeArgumentsCode, String code) {
+    Token? token,
+    String? typeArgumentsCode,
+    String code,
+  ) {
     String sc = '';
     if (token != null) {
       sc += '${token.lexeme} ';
@@ -1365,11 +1541,16 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
   }
 
   @override
-  NormalFormalParameter parseNormalFormalParameter(String code,
-      {bool inFunctionType = false,
-      List<ErrorCode> errorCodes = const <ErrorCode>[]}) {
-    FormalParameterList list = parseFormalParameterList('($code)',
-        inFunctionType: inFunctionType, errorCodes: errorCodes);
+  NormalFormalParameter parseNormalFormalParameter(
+    String code, {
+    bool inFunctionType = false,
+    List<DiagnosticCode> diagnosticCodes = const <DiagnosticCode>[],
+  }) {
+    FormalParameterList list = parseFormalParameterList(
+      '($code)',
+      inFunctionType: inFunctionType,
+      diagnosticCodes: diagnosticCodes,
+    );
     return list.parameters.single as NormalFormalParameter;
   }
 
@@ -1386,8 +1567,11 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
   }
 
   @override
-  Expression parsePrimaryExpression(String code,
-      {int? expectedEndOffset, List<ExpectedError>? errors}) {
+  Expression parsePrimaryExpression(
+    String code, {
+    int? expectedEndOffset,
+    List<ExpectedError>? errors,
+  }) {
     createParser(code);
     var expression = parser.parsePrimaryExpression();
     if (errors != null) {
@@ -1427,15 +1611,19 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
     listener = GatheringErrorListener();
 
     var languageVersion = LibraryLanguageVersion(
-        package: ExperimentStatus.currentVersion, override: null);
-    fasta.ScannerResult result = fasta
-        .scanString(content, includeComments: true,
-            languageVersionChanged: (scanner, overrideVersion) {
-      languageVersion = LibraryLanguageVersion(
-        package: ExperimentStatus.currentVersion,
-        override: Version(overrideVersion.major, overrideVersion.minor, 0),
-      );
-    });
+      package: ExperimentStatus.currentVersion,
+      override: null,
+    );
+    fasta.ScannerResult result = fasta.scanString(
+      content,
+      includeComments: true,
+      languageVersionChanged: (scanner, overrideVersion) {
+        languageVersion = LibraryLanguageVersion(
+          package: ExperimentStatus.currentVersion,
+          override: Version(overrideVersion.major, overrideVersion.minor, 0),
+        );
+      },
+    );
     LineInfo lineInfo = LineInfo(result.lineStarts);
     listener.setLineInfo(source, lineInfo);
 
@@ -1496,17 +1684,24 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
 ///
 /// Intended to be mixed into parser test case classes.
 mixin ParserTestHelpers {
-  ExpectedError error(ErrorCode code, int offset, int length,
-          {Pattern? correctionContains,
-          String? text,
-          List<Pattern> messageContains = const [],
-          List<ExpectedContextMessage> contextMessages =
-              const <ExpectedContextMessage>[]}) =>
-      ExpectedError(code, offset, length,
-          correctionContains: correctionContains,
-          message: text,
-          messageContains: messageContains,
-          expectedContextMessages: contextMessages);
+  ExpectedError error(
+    DiagnosticCode code,
+    int offset,
+    int length, {
+    Pattern? correctionContains,
+    String? text,
+    List<Pattern> messageContains = const [],
+    List<ExpectedContextMessage> contextMessages =
+        const <ExpectedContextMessage>[],
+  }) => ExpectedError(
+    code,
+    offset,
+    length,
+    correctionContains: correctionContains,
+    message: text,
+    messageContains: messageContains,
+    expectedContextMessages: contextMessages,
+  );
 
   void expectCommentText(Comment? comment, String expectedText) {
     comment!;

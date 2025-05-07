@@ -36,9 +36,17 @@ main() {
   // TwoByteString
   for (int i = 0; i < maxStringLength; i++) {
     final l = List.generate(i, (n) => (Random().nextInt(1024) + 1024));
-    compare(l, String.fromCharCodes(<int>[1042]),
-        String.fromCharCodes(<int>[1043]), false);
-    compare(l, String.fromCharCodes(<int>[1042]),
-        String.fromCharCodes(<int>[1042]), true);
+    compare(
+      l,
+      String.fromCharCodes(<int>[1042]),
+      String.fromCharCodes(<int>[1043]),
+      false,
+    );
+    compare(
+      l,
+      String.fromCharCodes(<int>[1042]),
+      String.fromCharCodes(<int>[1042]),
+      true,
+    );
   }
 }

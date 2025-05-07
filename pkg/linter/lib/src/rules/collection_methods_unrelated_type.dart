@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 
@@ -71,7 +71,7 @@ abstract class _MethodDefinition {
 
 class _MethodDefinitionForElement extends _MethodDefinition {
   /// The element on which this method is declared.
-  final ClassElement2 element;
+  final ClassElement element;
 
   _MethodDefinitionForElement(
     this.element,
@@ -258,7 +258,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         var typeArgument =
             collectionType.typeArguments[methodDefinition.typeArgumentIndex];
         if (typesAreUnrelated(typeSystem, argumentType, typeArgument)) {
-          rule.reportLint(
+          rule.reportAtNode(
             argument,
             arguments: [
               argumentType.getDisplayString(),
@@ -269,7 +269,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
       case _ExpectedArgumentKind.assignableToCollection:
         if (!typeSystem.isAssignableTo(argumentType, collectionType)) {
-          rule.reportLint(
+          rule.reportAtNode(
             argument,
             arguments: [
               argumentType.getDisplayString(),
@@ -284,7 +284,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         );
         if (iterableType != null &&
             !typeSystem.isAssignableTo(argumentType, iterableType)) {
-          rule.reportLint(
+          rule.reportAtNode(
             argument,
             arguments: [
               argumentType.getDisplayString(),

@@ -50,7 +50,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (_wildCardVariablesEnabled && name == '_') return;
 
     if (name.hasLeadingUnderscore) {
-      rule.reportLint(id, arguments: [id.name]);
+      rule.reportAtNode(id, arguments: [id.name]);
     }
   }
 

@@ -12,7 +12,7 @@ import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
@@ -27,6 +27,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
+import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -294,9 +295,8 @@ final class CorrectionProducerContext {
     int selectionOffset = -1,
     int selectionLength = 0,
   }) {
-    var selectionEnd = selectionOffset + selectionLength;
-    var locator = NodeLocator(selectionOffset, selectionEnd);
-    var node = locator.searchWithin(unitResult.unit);
+    var node = unitResult.unit
+        .nodeCovering(offset: selectionOffset, length: selectionLength);
     node ??= unitResult.unit;
 
     var token = _tokenAt(node, selectionOffset) ?? node.beginToken;
@@ -349,7 +349,7 @@ abstract class MultiCorrectionProducer
 
   /// The library element for the library in which a correction is being
   /// produced.
-  LibraryElement2 get libraryElement2 => unitResult.libraryElement2;
+  LibraryElement get libraryElement2 => unitResult.libraryElement2;
 
   @override
   ResolvedLibraryResult get libraryResult =>
@@ -400,7 +400,7 @@ abstract class ResolvedCorrectionProducer
 
   /// The library element for the library in which a correction is being
   /// produced.
-  LibraryElement2 get libraryElement2 => unitResult.libraryElement2;
+  LibraryElement get libraryElement2 => unitResult.libraryElement2;
 
   @override
   ResolvedLibraryResult get libraryResult =>
@@ -424,6 +424,17 @@ abstract class ResolvedCorrectionProducer
     var result = await sessionHelper.getFragmentDeclaration(fragment);
     var node = result?.node;
     if (node is ClassDeclaration) {
+      return node;
+    }
+    return null;
+  }
+
+  /// Returns the class declaration for the given [fragment], or `null` if there
+  /// is no such class.
+  Future<EnumDeclaration?> getEnumDeclaration(EnumFragment fragment) async {
+    var result = await sessionHelper.getFragmentDeclaration(fragment);
+    var node = result?.node;
+    if (node is EnumDeclaration) {
       return node;
     }
     return null;
@@ -466,13 +477,13 @@ abstract class ResolvedCorrectionProducer
 
   /// Returns the class element associated with the [target], or `null` if there
   /// is no such element.
-  InterfaceElement2? getTargetInterfaceElement(Expression target) {
+  InterfaceElement? getTargetInterfaceElement(Expression target) {
     var type = target.staticType;
     if (type is InterfaceType) {
       return type.element3;
     } else if (target is Identifier) {
       var element = target.element;
-      if (element is InterfaceElement2) {
+      if (element is InterfaceElement) {
         return element;
       }
     }
@@ -514,7 +525,7 @@ abstract class ResolvedCorrectionProducer
       if (_closureReturnType(expression) case var returnType?) {
         return returnType;
       }
-      var executable = expression.enclosingExecutableElement2;
+      var executable = expression.enclosingExecutableElement;
       return executable?.returnType;
     }
     // `return myFunction();`.
@@ -522,7 +533,7 @@ abstract class ResolvedCorrectionProducer
       if (_closureReturnType(expression) case var returnType?) {
         return returnType;
       }
-      var executable = expression.enclosingExecutableElement2;
+      var executable = expression.enclosingExecutableElement;
       return executable?.returnType;
     }
     // `int v = myFunction();`.
@@ -758,7 +769,7 @@ sealed class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
   /// library, and has the requested base name.
   ///
   /// For getters and setters the corresponding top-level variable is returned.
-  Future<Map<LibraryElement2, Element2>> getTopLevelDeclarations(
+  Future<Map<LibraryElement, Element>> getTopLevelDeclarations(
     String baseName,
   ) async {
     return await _context.dartFixContext!.getTopLevelDeclarations(baseName);
@@ -788,7 +799,7 @@ sealed class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
 
   /// Returns libraries with extensions that declare non-static public
   /// extension members with the [memberName].
-  Stream<LibraryElement2> librariesWithExtensions(Name memberName) {
+  Stream<LibraryElement> librariesWithExtensions(Name memberName) {
     return _context.dartFixContext!.librariesWithExtensions(memberName);
   }
 }

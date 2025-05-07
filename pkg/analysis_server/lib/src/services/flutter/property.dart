@@ -7,7 +7,7 @@ import 'package:analysis_server/src/services/flutter/class_description.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -17,13 +17,13 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dar
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:collection/collection.dart';
 
-String? getFieldDocumentation(FieldElement2 field) {
+String? getFieldDocumentation(FieldElement field) {
   var rawComment = field.documentationComment;
   return getDartDocPlainText(rawComment);
 }
 
 String? getParameterDocumentation(FormalParameterElement? parameter) {
-  if (parameter is FieldFormalParameterElement2) {
+  if (parameter is FieldFormalParameterElement) {
     var rawComment = parameter.field2?.documentationComment;
     return getDartDocPlainText(rawComment);
   }
@@ -91,7 +91,7 @@ class PropertyDescription {
   String get name => protocolProperty.name;
 
   /// This property has type `EdgeInsets`, add its nested properties.
-  void addEdgeInsetsNestedProperties(ClassElement2 classEdgeInsets) {
+  void addEdgeInsetsNestedProperties(ClassElement classEdgeInsets) {
     _edgeInsetsProperty = _EdgeInsetsProperty(classEdgeInsets, this)
       ..addNested();
   }
@@ -106,7 +106,7 @@ class PropertyDescription {
 
     var builder = ChangeBuilder(session: resolvedUnit.session);
 
-    InterfaceElement2? enumElement;
+    InterfaceElement? enumElement;
     var enumValue = value.enumValue;
     if (enumValue != null) {
       var helper = AnalysisSessionHelper(resolvedUnit.session);
@@ -389,7 +389,7 @@ class PropertyDescription {
 ///
 /// This class provides information necessary for such materialization.
 class VirtualContainerProperty {
-  final ClassElement2 containerElement;
+  final ClassElement containerElement;
   final InstanceCreationExpression widgetCreation;
 
   /// The existing wrapper around the widget, with semantic that is a subset
@@ -418,13 +418,13 @@ class VirtualContainerProperty {
 ///
 /// We try to generate nice looking code for `EdgeInsets` instances.
 class _EdgeInsetsProperty {
-  final ClassElement2 classEdgeInsets;
+  final ClassElement classEdgeInsets;
 
   /// The property that has type `EdgeInsets`.
   final PropertyDescription property;
 
   /// The constructor `EdgeInsets.only`.
-  ConstructorElement2? onlyConstructor;
+  ConstructorElement? onlyConstructor;
 
   double? leftValue;
   double? topValue;

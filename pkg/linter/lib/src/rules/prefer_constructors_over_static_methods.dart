@@ -75,7 +75,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (interfaceType != returnType) return;
 
     if (_hasNewInvocation(returnType, node.body)) {
-      rule.reportLintForToken(node.name);
+      rule.reportAtToken(node.name);
     }
   }
 }

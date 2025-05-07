@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/error/codes.g.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -37,7 +37,7 @@ class RemoveComparison extends ResolvedCorrectionProducer {
 
   /// Whether the condition will always return `false`.
   bool get _conditionIsFalse {
-    var errorCode = (diagnostic as AnalysisError).errorCode;
+    var errorCode = (diagnostic as Diagnostic).errorCode;
     return errorCode == WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE ||
         errorCode ==
             WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE ||
@@ -47,7 +47,7 @@ class RemoveComparison extends ResolvedCorrectionProducer {
 
   /// Whether the condition will always return `true`.
   bool get _conditionIsTrue {
-    var errorCode = (diagnostic as AnalysisError).errorCode;
+    var errorCode = (diagnostic as Diagnostic).errorCode;
     return errorCode == WarningCode.UNNECESSARY_NAN_COMPARISON_TRUE ||
         errorCode == WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE ||
         errorCode == WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE ||

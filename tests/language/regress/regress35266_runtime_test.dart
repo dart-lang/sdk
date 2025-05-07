@@ -8,7 +8,6 @@
 class B<T> extends C<T> {
   B();
   factory B.foo() = B<T>;
-
 }
 
 class C<K> {

@@ -21,10 +21,7 @@ void main() {
     for (var e in list) {}
   }
 
-  var tests = [
-    testForEach,
-    testForIn,
-  ]..shuffle();
+  var tests = [testForEach, testForIn]..shuffle();
 
   for (var test in tests) {
     test();
@@ -51,13 +48,13 @@ void matchIL$main_testForIn(FlowGraph graph) {
             // Not moved out of the loop due to the current pass
             // ordering (LICM is performed before RangeAnalysis).
             'v112' << match.UnboxInt32('v92'),
-          match.Branch(match.RelationalOp('v124', 'v112', kind: '>='),
-              ifTrue: 'B4', ifFalse: 'B3'),
+          match.Branch(
+            match.RelationalOp('v124', 'v112', kind: '>='),
+            ifTrue: 'B4',
+            ifFalse: 'B3',
+          ),
         ]),
-    'B4' <<
-        match.block('Target', [
-          match.DartReturn(match.any),
-        ]),
+    'B4' << match.block('Target', [match.DartReturn(match.any)]),
     'B3' <<
         match.block('Target', [
           if (is32BitConfiguration)

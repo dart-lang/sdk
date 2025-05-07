@@ -13,7 +13,6 @@ import '../../base/identifiers.dart';
 import '../../base/local_scope.dart';
 import '../../base/name_space.dart';
 import '../../base/scope.dart';
-import '../../builder/builder.dart';
 import '../../builder/constructor_builder.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
@@ -21,6 +20,7 @@ import '../../builder/member_builder.dart';
 import '../../builder/metadata_builder.dart';
 import '../../builder/omitted_type_builder.dart';
 import '../../builder/type_builder.dart';
+import '../../builder/variable_builder.dart';
 import '../../kernel/body_builder.dart';
 import '../../kernel/body_builder_context.dart';
 import '../../kernel/internal_ast.dart';
@@ -38,18 +38,19 @@ import '../../source/source_type_parameter_builder.dart';
 import '../fragment.dart';
 import 'encoding.dart';
 
+/// Interface for the constructor declaration aspect of a
+/// [SourceConstructorBuilder].
+///
+/// If a constructor is augmented, it will have multiple
+/// [ConstructorDeclaration]s on a single [SourceConstructorBuilder].
 abstract class ConstructorDeclaration {
-  int get fileOffset;
-
   Uri get fileUri;
 
   List<MetadataBuilder>? get metadata;
 
-  OmittedTypeBuilder get returnType;
-
-  List<FormalParameterBuilder>? get formals;
-
   FunctionNode get function;
+
+  bool get hasParameters;
 
   Member get readTarget;
 
@@ -58,14 +59,6 @@ abstract class ConstructorDeclaration {
   Member get invokeTarget;
 
   Reference get invokeTargetReference;
-
-  void registerFunctionBody(Statement value);
-
-  void registerNoBodyConstructor();
-
-  VariableDeclaration? get thisVariable;
-
-  List<TypeParameter>? get thisTypeParameters;
 
   List<Initializer> get initializers;
 
@@ -89,11 +82,11 @@ abstract class ConstructorDeclaration {
 
   void buildOutlineExpressions({
     required Iterable<Annotatable> annotatables,
+    required Uri annotatablesFileUri,
     required SourceLibraryBuilder libraryBuilder,
     required DeclarationBuilder declarationBuilder,
     required SourceConstructorBuilderImpl constructorBuilder,
     required ClassHierarchy classHierarchy,
-    required bool createFileUriExpression,
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   });
 
@@ -107,31 +100,10 @@ abstract class ConstructorDeclaration {
 
   void prependInitializer(Initializer initializer);
 
-  void becomeNative();
-
-  /// Returns the [VariableDeclaration] for the [index]th formal parameter
-  /// declared in the constructor.
-  ///
-  /// The synthetic parameters of enum constructor are *not* included, so index
-  /// 0 zero of an enum constructor is the first user defined parameter.
-  VariableDeclaration getFormalParameter(int index);
-
-  /// Returns the [VariableDeclaration] for the tear off, if any, of the
-  /// [index]th formal parameter declared in the constructor.
-  VariableDeclaration? getTearOffParameter(int index);
-
-  FormalParameterBuilder? getFormal(Identifier identifier);
-
-  LocalScope computeFormalParameterScope(LookupScope parent);
-
-  LocalScope computeFormalParameterInitializerScope(LocalScope parent);
-
   Substitution computeFieldTypeSubstitution(
       DeclarationBuilder declarationBuilder);
 
   void buildBody();
-
-  bool get isConst;
 
   bool get isExternal;
 
@@ -148,12 +120,10 @@ abstract class ConstructorDeclaration {
       SourceConstructorBuilderImpl constructorBuilder,
       ClassHierarchyBase hierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners);
-
-  BodyBuilderContext createBodyBuilderContext(
-      SourceConstructorBuilderImpl constructorBuilder);
 }
 
-mixin ConstructorDeclarationMixin implements ConstructorDeclaration {
+mixin ConstructorDeclarationMixin
+    implements ConstructorDeclaration, ConstructorFragmentDeclaration {
   bool get _hasSuperInitializingFormals;
 
   LookupScope get _typeParameterScope;
@@ -161,6 +131,9 @@ mixin ConstructorDeclarationMixin implements ConstructorDeclaration {
   abstract Token? _beginInitializers;
 
   List<SourceNominalParameterBuilder>? get _typeParameters;
+
+  @override
+  bool get hasParameters => formals != null;
 
   @override
   FormalParameterBuilder? getFormal(Identifier identifier) {
@@ -201,7 +174,7 @@ mixin ConstructorDeclarationMixin implements ConstructorDeclaration {
     // parameter initializer scope.
 
     if (formals == null) return parent;
-    Map<String, Builder> local = {};
+    Map<String, VariableBuilder> local = {};
     for (FormalParameterBuilder formal in formals!) {
       // Wildcard initializing formal parameters do not introduce a local
       // variable in the initializer list.
@@ -504,7 +477,7 @@ mixin ConstructorDeclarationMixin implements ConstructorDeclaration {
   @override
   LocalScope computeFormalParameterScope(LookupScope parent) {
     if (formals == null) return new FormalParameterScope(parent: parent);
-    Map<String, Builder> local = <String, Builder>{};
+    Map<String, VariableBuilder> local = {};
     for (FormalParameterBuilder formal in formals!) {
       if (formal.isWildcard) {
         continue;
@@ -558,12 +531,12 @@ mixin ConstructorDeclarationMixin implements ConstructorDeclaration {
 
   void _buildMetadataForOutlineExpressions({
     required Iterable<Annotatable> annotatables,
+    required Uri annotatablesFileUri,
     required SourceLibraryBuilder libraryBuilder,
     required DeclarationBuilder declarationBuilder,
     required SourceConstructorBuilderImpl constructorBuilder,
     required BodyBuilderContext bodyBuilderContext,
     required ClassHierarchy classHierarchy,
-    required bool createFileUriExpression,
   });
 
   void _buildTypeParametersAndFormalsForOutlineExpressions({
@@ -576,11 +549,11 @@ mixin ConstructorDeclarationMixin implements ConstructorDeclaration {
   @override
   void buildOutlineExpressions({
     required Iterable<Annotatable> annotatables,
+    required Uri annotatablesFileUri,
     required SourceLibraryBuilder libraryBuilder,
     required DeclarationBuilder declarationBuilder,
     required SourceConstructorBuilderImpl constructorBuilder,
     required ClassHierarchy classHierarchy,
-    required bool createFileUriExpression,
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   }) {
     formals?.infer(classHierarchy);
@@ -588,12 +561,12 @@ mixin ConstructorDeclarationMixin implements ConstructorDeclaration {
         createBodyBuilderContext(constructorBuilder);
     _buildMetadataForOutlineExpressions(
         annotatables: annotatables,
+        annotatablesFileUri: annotatablesFileUri,
         libraryBuilder: libraryBuilder,
         declarationBuilder: declarationBuilder,
         constructorBuilder: constructorBuilder,
         bodyBuilderContext: bodyBuilderContext,
-        classHierarchy: classHierarchy,
-        createFileUriExpression: createFileUriExpression);
+        classHierarchy: classHierarchy);
     _buildTypeParametersAndFormalsForOutlineExpressions(
         libraryBuilder: libraryBuilder,
         declarationBuilder: declarationBuilder,
@@ -670,11 +643,6 @@ mixin RegularConstructorDeclarationMixin
   @override
   void prependInitializer(Initializer initializer) {
     _encoding.prependInitializer(initializer);
-  }
-
-  @override
-  void becomeNative() {
-    _encoding.becomeNative();
   }
 
   @override
@@ -779,7 +747,7 @@ mixin RegularConstructorDeclarationMixin
 
 class RegularConstructorDeclaration
     with ConstructorDeclarationMixin, RegularConstructorDeclarationMixin
-    implements ConstructorDeclaration {
+    implements ConstructorDeclaration, ConstructorFragmentDeclaration {
   final ConstructorFragment _fragment;
   final List<FormalParameterBuilder>? _syntheticFormals;
 
@@ -805,6 +773,11 @@ class RegularConstructorDeclaration
             isExternal: _fragment.modifiers.isExternal,
             isEnumConstructor: isEnumConstructor) {
     _fragment.declaration = this;
+  }
+
+  @override
+  void becomeNative(SourceLoader loader) {
+    _encoding.becomeNative(loader, _fragment.nativeMethodName!);
   }
 
   @override
@@ -872,21 +845,20 @@ class RegularConstructorDeclaration
   @override
   void _buildMetadataForOutlineExpressions(
       {required Iterable<Annotatable> annotatables,
+      required Uri annotatablesFileUri,
       required SourceLibraryBuilder libraryBuilder,
       required DeclarationBuilder declarationBuilder,
       required SourceConstructorBuilderImpl constructorBuilder,
       required BodyBuilderContext bodyBuilderContext,
-      required ClassHierarchy classHierarchy,
-      required bool createFileUriExpression}) {
+      required ClassHierarchy classHierarchy}) {
     for (Annotatable annotatable in annotatables) {
       MetadataBuilder.buildAnnotations(
-          annotatable,
-          _fragment.metadata,
-          bodyBuilderContext,
-          libraryBuilder,
-          _fragment.fileUri,
-          _fragment.enclosingScope,
-          createFileUriExpression: createFileUriExpression);
+          annotatable: annotatable,
+          annotatableFileUri: annotatablesFileUri,
+          metadata: _fragment.metadata,
+          bodyBuilderContext: bodyBuilderContext,
+          libraryBuilder: libraryBuilder,
+          scope: _fragment.enclosingScope);
     }
   }
 
@@ -914,7 +886,7 @@ class RegularConstructorDeclaration
 // Coverage-ignore(suite): Not run.
 class PrimaryConstructorDeclaration
     with ConstructorDeclarationMixin, RegularConstructorDeclarationMixin
-    implements ConstructorDeclaration {
+    implements ConstructorDeclaration, ConstructorFragmentDeclaration {
   final PrimaryConstructorFragment _fragment;
 
   @override
@@ -929,6 +901,11 @@ class PrimaryConstructorDeclaration
             isExternal: _fragment.modifiers.isExternal,
             isEnumConstructor: false) {
     _fragment.declaration = this;
+  }
+
+  @override
+  void becomeNative(SourceLoader loader) {
+    throw new UnsupportedError("$runtimeType.becomeNative()");
   }
 
   @override
@@ -997,12 +974,12 @@ class PrimaryConstructorDeclaration
   @override
   void _buildMetadataForOutlineExpressions(
       {required Iterable<Annotatable> annotatables,
+      required Uri annotatablesFileUri,
       required SourceLibraryBuilder libraryBuilder,
       required DeclarationBuilder declarationBuilder,
       required SourceConstructorBuilderImpl constructorBuilder,
       required BodyBuilderContext bodyBuilderContext,
-      required ClassHierarchy classHierarchy,
-      required bool createFileUriExpression}) {
+      required ClassHierarchy classHierarchy}) {
     // There is no metadata on a primary constructor.
   }
 
@@ -1067,6 +1044,11 @@ class DefaultEnumConstructorDeclaration
         _beginInitializers = new Token.eof(-1);
 
   @override
+  void becomeNative(SourceLoader loader) {
+    throw new UnsupportedError("$runtimeType.becomeNative()");
+  }
+
+  @override
   LookupScope get _typeParameterScope => _lookupScope;
 
   @override
@@ -1126,12 +1108,12 @@ class DefaultEnumConstructorDeclaration
   @override
   void _buildMetadataForOutlineExpressions(
       {required Iterable<Annotatable> annotatables,
+      required Uri annotatablesFileUri,
       required SourceLibraryBuilder libraryBuilder,
       required DeclarationBuilder declarationBuilder,
       required SourceConstructorBuilderImpl constructorBuilder,
       required BodyBuilderContext bodyBuilderContext,
-      required ClassHierarchy classHierarchy,
-      required bool createFileUriExpression}) {
+      required ClassHierarchy classHierarchy}) {
     // There is no metadata on a default enum constructor.
   }
 
@@ -1199,7 +1181,7 @@ mixin ExtensionTypeConstructorDeclarationMixin
   }
 
   @override
-  void becomeNative() {
+  void becomeNative(SourceLoader loader) {
     throw new UnsupportedError("$runtimeType.becomeNative()");
   }
 
@@ -1314,7 +1296,7 @@ mixin ExtensionTypeConstructorDeclarationMixin
 
 class ExtensionTypeConstructorDeclaration
     with ConstructorDeclarationMixin, ExtensionTypeConstructorDeclarationMixin
-    implements ConstructorDeclaration {
+    implements ConstructorDeclaration, ConstructorFragmentDeclaration {
   final ConstructorFragment _fragment;
 
   @override
@@ -1397,21 +1379,20 @@ class ExtensionTypeConstructorDeclaration
   @override
   void _buildMetadataForOutlineExpressions(
       {required Iterable<Annotatable> annotatables,
+      required Uri annotatablesFileUri,
       required SourceLibraryBuilder libraryBuilder,
       required DeclarationBuilder declarationBuilder,
       required SourceConstructorBuilderImpl constructorBuilder,
       required BodyBuilderContext bodyBuilderContext,
-      required ClassHierarchy classHierarchy,
-      required bool createFileUriExpression}) {
+      required ClassHierarchy classHierarchy}) {
     for (Annotatable annotatable in annotatables) {
       MetadataBuilder.buildAnnotations(
-          annotatable,
-          _fragment.metadata,
-          bodyBuilderContext,
-          libraryBuilder,
-          _fragment.fileUri,
-          _fragment.enclosingScope,
-          createFileUriExpression: createFileUriExpression);
+          annotatable: annotatable,
+          annotatableFileUri: annotatablesFileUri,
+          metadata: _fragment.metadata,
+          bodyBuilderContext: bodyBuilderContext,
+          libraryBuilder: libraryBuilder,
+          scope: _fragment.enclosingScope);
     }
   }
 
@@ -1438,7 +1419,7 @@ class ExtensionTypeConstructorDeclaration
 
 class ExtensionTypePrimaryConstructorDeclaration
     with ConstructorDeclarationMixin, ExtensionTypeConstructorDeclarationMixin
-    implements ConstructorDeclaration {
+    implements ConstructorDeclaration, ConstructorFragmentDeclaration {
   final PrimaryConstructorFragment _fragment;
 
   @override
@@ -1522,12 +1503,12 @@ class ExtensionTypePrimaryConstructorDeclaration
   @override
   void _buildMetadataForOutlineExpressions(
       {required Iterable<Annotatable> annotatables,
+      required Uri annotatablesFileUri,
       required SourceLibraryBuilder libraryBuilder,
       required DeclarationBuilder declarationBuilder,
       required SourceConstructorBuilderImpl constructorBuilder,
       required BodyBuilderContext bodyBuilderContext,
-      required ClassHierarchy classHierarchy,
-      required bool createFileUriExpression}) {
+      required ClassHierarchy classHierarchy}) {
     // There is no metadata on a primary constructor.
   }
 
@@ -1550,4 +1531,50 @@ class ExtensionTypePrimaryConstructorDeclaration
 
   @override
   Uri get fileUri => _fragment.fileUri;
+}
+
+/// Interface for using a [ConstructorFragment] or [PrimaryConstructorFragment]
+/// to create a [BodyBuilderContext].
+abstract class ConstructorFragmentDeclaration {
+  int get fileOffset;
+
+  OmittedTypeBuilder get returnType;
+
+  List<FormalParameterBuilder>? get formals;
+
+  BodyBuilderContext createBodyBuilderContext(
+      SourceConstructorBuilderImpl constructorBuilder);
+
+  FunctionNode get function;
+
+  void registerFunctionBody(Statement value);
+
+  void registerNoBodyConstructor();
+
+  VariableDeclaration? get thisVariable;
+
+  List<TypeParameter>? get thisTypeParameters;
+
+  void becomeNative(SourceLoader loader);
+
+  /// Returns the [VariableDeclaration] for the [index]th formal parameter
+  /// declared in the constructor.
+  ///
+  /// The synthetic parameters of enum constructor are *not* included, so index
+  /// 0 zero of an enum constructor is the first user defined parameter.
+  VariableDeclaration getFormalParameter(int index);
+
+  /// Returns the [VariableDeclaration] for the tear off, if any, of the
+  /// [index]th formal parameter declared in the constructor.
+  VariableDeclaration? getTearOffParameter(int index);
+
+  FormalParameterBuilder? getFormal(Identifier identifier);
+
+  LocalScope computeFormalParameterScope(LookupScope parent);
+
+  LocalScope computeFormalParameterInitializerScope(LocalScope parent);
+
+  bool get isConst;
+
+  bool get isExternal;
 }

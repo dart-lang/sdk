@@ -28,16 +28,20 @@ base mixin B on A {}
 final class A {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart';
 base mixin B on A {}
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY,
           33,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_outside_multiple() async {
@@ -46,21 +50,26 @@ final class A {}
 final class B {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart';
 base mixin C on A, B {}
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY,
           33,
-          1),
-      error(
+          1,
+        ),
+        error(
           CompileTimeErrorCode
               .FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY,
           36,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_outside_noBase() async {
@@ -70,16 +79,20 @@ base mixin C on A, B {}
 final class A {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart';
 mixin B on A {}
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY,
           28,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_outside_viaTypedef_inside() async {
@@ -88,16 +101,20 @@ final class A {}
 typedef ATypedef = A;
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart';
 base mixin B on ATypedef {}
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY,
           33,
-          8),
-    ]);
+          8,
+        ),
+      ],
+    );
   }
 
   test_outside_viaTypedef_outside() async {
@@ -105,16 +122,20 @@ base mixin B on ATypedef {}
 final class A {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart';
 typedef ATypedef = A;
 base mixin B on ATypedef {}
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY,
           55,
-          8),
-    ]);
+          8,
+        ),
+      ],
+    );
   }
 }

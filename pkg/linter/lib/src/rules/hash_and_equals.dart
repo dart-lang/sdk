@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
@@ -49,19 +49,18 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (eq == null) {
       if (!node.hasMethod('==')) {
         if (hash is MethodDeclaration) {
-          rule.reportLintForToken(hash.name, arguments: ['==', 'hashCode']);
+          rule.reportAtToken(hash.name, arguments: ['==', 'hashCode']);
         } else if (hash is FieldDeclaration) {
-          rule.reportLintForToken(
-            getFieldName(hash, 'hashCode'),
-            arguments: ['==', 'hashCode'],
-          );
+          var hashCodeFieldName = getFieldName(hash, 'hashCode');
+          if (hashCodeFieldName == null) return;
+          rule.reportAtToken(hashCodeFieldName, arguments: ['==', 'hashCode']);
         }
       }
     }
 
     if (hash == null) {
       if (!node.hasField('hashCode') && !node.hasMethod('hashCode')) {
-        rule.reportLintForToken(eq!.name, arguments: ['hashCode', '==']);
+        rule.reportAtToken(eq!.name, arguments: ['hashCode', '==']);
       }
     }
   }
@@ -74,6 +73,6 @@ extension on ClassDeclaration {
       declaredFragment?.element.methods2.namedOrNull(name) != null;
 }
 
-extension<E extends Element2> on List<E> {
+extension<E extends Element> on List<E> {
   E? namedOrNull(String name) => firstWhereOrNull((e) => e.name3 == name);
 }

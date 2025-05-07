@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -29,7 +29,7 @@ class PreferForeach extends LintRule {
 
 class _PreferForEachVisitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  LocalVariableElement2? element;
+  LocalVariableElement? element;
   ForStatement? forEachStatement;
 
   _PreferForEachVisitor(this.rule);
@@ -63,7 +63,7 @@ class _PreferForEachVisitor extends SimpleAstVisitor<void> {
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     var arguments = node.argumentList.arguments;
     if (arguments.length == 1 && arguments.first.canonicalElement == element) {
-      rule.reportLint(forEachStatement);
+      rule.reportAtNode(forEachStatement);
     }
   }
 
@@ -74,7 +74,7 @@ class _PreferForEachVisitor extends SimpleAstVisitor<void> {
     if (arguments.length == 1 &&
         arguments.first.canonicalElement == element &&
         (target == null || !_ReferenceFinder(element).references(target))) {
-      rule.reportLint(forEachStatement);
+      rule.reportAtNode(forEachStatement);
     }
   }
 
@@ -86,7 +86,7 @@ class _PreferForEachVisitor extends SimpleAstVisitor<void> {
 
 class _ReferenceFinder extends UnifyingAstVisitor<void> {
   bool found = false;
-  final LocalVariableElement2? element;
+  final LocalVariableElement? element;
   _ReferenceFinder(this.element);
 
   bool references(Expression target) {

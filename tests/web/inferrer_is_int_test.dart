@@ -25,7 +25,9 @@ callWithDouble(value) {
 
 main() {
   Expect.throws(
-      () => callWithStringAndDouble('foo'), (e) => e is ArgumentError);
+    () => callWithStringAndDouble('foo'),
+    (e) => e is ArgumentError,
+  );
   Expect.equals(42, callWithStringAndDouble(0.0));
   Expect.equals(42, callWithDouble(0.0));
 }

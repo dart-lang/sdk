@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
@@ -229,7 +229,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var target = node.target;
     var methodName = node.methodName.name;
     var element = target is Identifier ? target.element : null;
-    if (element is ClassElement2) {
+    if (element is ClassElement) {
       // Static function called, "target" is the class.
       for (var function in _staticFunctionsWithNonNullableArguments) {
         if (methodName == function.name) {
@@ -268,11 +268,11 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (arg is NamedExpression) {
         if (arg.expression is NullLiteral &&
             names.contains(arg.name.label.name)) {
-          rule.reportLint(arg);
+          rule.reportAtNode(arg);
         }
       } else {
         if (arg is NullLiteral && positions.contains(i)) {
-          rule.reportLint(arg);
+          rule.reportAtNode(arg);
         }
       }
     }

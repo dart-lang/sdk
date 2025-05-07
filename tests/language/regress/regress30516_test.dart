@@ -5,8 +5,11 @@
 typedef void RecognizerCallback<T>();
 typedef void GestureTapCancelCallback();
 GestureTapCancelCallback? onTapCancel;
-T? invokeCallback<T>(String name, RecognizerCallback<T>? callback,
-    {String debugReport()?}) {}
+T? invokeCallback<T>(
+  String name,
+  RecognizerCallback<T>? callback, {
+  String debugReport()?,
+}) {}
 main() {
   invokeCallback<void>('spontaneous onTapCancel', onTapCancel);
 }

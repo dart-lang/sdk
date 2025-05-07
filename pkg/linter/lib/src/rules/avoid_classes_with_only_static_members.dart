@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 
@@ -48,7 +48,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var map = interface.map2;
     for (var member in map.values) {
       var enclosingElement = member.enclosingElement2;
-      if (enclosingElement is ClassElement2 &&
+      if (enclosingElement is ClassElement &&
           !enclosingElement.isDartCoreObject) {
         return;
       }
@@ -67,7 +67,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (methods.isNotEmpty && !methods.every((m) => m.isStatic)) return;
 
     if (methods.isNotEmpty || declaredElement.fields2.any((f) => !f.isConst)) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 }

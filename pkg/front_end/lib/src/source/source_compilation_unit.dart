@@ -509,7 +509,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     Arguments arguments =
         new Arguments(<Expression>[new StringLiteral(nativeImportPath)]);
     Expression annotation;
-    if (constructor.isConstructor) {
+    if (constructor is ConstructorBuilder) {
       annotation = new ConstructorInvocation(
           constructor.invokeTarget as Constructor, arguments)
         ..isConst = true;
@@ -878,11 +878,16 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 
   @override
   void buildOutlineExpressions(
-      Annotatable annotatable, BodyBuilderContext bodyBuilderContext,
-      {required bool createFileUriExpression}) {
-    MetadataBuilder.buildAnnotations(annotatable, metadata, bodyBuilderContext,
-        libraryBuilder, fileUri, compilationUnitScope,
-        createFileUriExpression: createFileUriExpression);
+      {required Annotatable annotatable,
+      required Uri annotatableFileUri,
+      required BodyBuilderContext bodyBuilderContext}) {
+    MetadataBuilder.buildAnnotations(
+        annotatable: annotatable,
+        annotatableFileUri: annotatableFileUri,
+        metadata: metadata,
+        bodyBuilderContext: bodyBuilderContext,
+        libraryBuilder: libraryBuilder,
+        scope: compilationUnitScope);
   }
 
   @override
@@ -962,8 +967,10 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       {required String name,
       required Builder builder,
       required int charOffset}) {
-    Builder? existing =
-        _importNameSpace.lookupLocalMember(name, setter: builder.isSetter);
+    bool isSetter = isMappedAsSetter(builder);
+    LookupResult? result = _importNameSpace.lookupLocalMember(name);
+
+    Builder? existing = isSetter ? result?.setable : result?.getable;
     if (existing != null) {
       if (existing != builder) {
         _importNameSpace.addLocalMember(
@@ -971,13 +978,13 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
             computeAmbiguousDeclarationForImport(
                 _problemReporting, name, existing, builder,
                 uriOffset: new UriOffset(fileUri, charOffset)),
-            setter: builder.isSetter);
+            setter: isSetter);
       }
     } else {
-      _importNameSpace.addLocalMember(name, builder, setter: builder.isSetter);
+      _importNameSpace.addLocalMember(name, builder, setter: isSetter);
     }
-    if (builder.isExtension) {
-      _importNameSpace.addExtension(builder as ExtensionBuilder);
+    if (builder is ExtensionBuilder) {
+      _importNameSpace.addExtension(builder);
     }
   }
 
@@ -1128,9 +1135,9 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   @override
   bool addPrefixFragment(
       String name, PrefixFragment prefixFragment, int charOffset) {
-    Builder? existing = prefixNameSpace.lookupLocalMember(name, setter: false);
+    Builder? existing = prefixNameSpace.lookupLocalMember(name)?.getable;
     existing ??=
-        libraryBuilder.libraryNameSpace.lookupLocalMember(name, setter: false);
+        libraryBuilder.libraryNameSpace.lookupLocalMember(name)?.getable;
     if (existing is PrefixBuilder) {
       assert(existing.next is! PrefixBuilder);
       int? deferredFileOffset;

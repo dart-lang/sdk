@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 class ImplementedComputer {
   final SearchEngine searchEngine;
@@ -32,7 +32,7 @@ class ImplementedComputer {
     }
   }
 
-  void _addImplementedClass(InterfaceElement2 element) {
+  void _addImplementedClass(InterfaceElement element) {
     for (var fragment in element.fragments) {
       var offset = fragment.nameOffset2;
       var name = fragment.name2;
@@ -42,7 +42,7 @@ class ImplementedComputer {
     }
   }
 
-  void _addImplementedMember(Element2 element) {
+  void _addImplementedMember(Element element) {
     for (var fragment in element.fragments) {
       var offset = fragment.nameOffset2;
       var name = fragment.name2;
@@ -52,7 +52,7 @@ class ImplementedComputer {
     }
   }
 
-  void _addMemberIfImplemented(Element2 element) {
+  void _addMemberIfImplemented(Element element) {
     if (element.isSynthetic || _isStatic(element)) {
       return;
     }
@@ -61,9 +61,9 @@ class ImplementedComputer {
     }
   }
 
-  Future<void> _computeForInterfaceElement(InterfaceElement2 element) async {
+  Future<void> _computeForInterfaceElement(InterfaceElement element) async {
     // Always include Object and its members.
-    if (element is ClassElement2 && element.isDartCoreObject) {
+    if (element is ClassElement && element.isDartCoreObject) {
       _addImplementedClass(element);
       element.getters2.forEach(_addImplementedMember);
       element.setters2.forEach(_addImplementedMember);
@@ -83,16 +83,16 @@ class ImplementedComputer {
     }
   }
 
-  bool _hasOverride(Element2 element) {
+  bool _hasOverride(Element element) {
     var name = element.displayName;
     return subtypeMembers!.contains(name);
   }
 
   /// Return `true` if the given [element] is a static element.
-  static bool _isStatic(Element2 element) {
-    if (element is ExecutableElement2) {
+  static bool _isStatic(Element element) {
+    if (element is ExecutableElement) {
       return element.isStatic;
-    } else if (element is PropertyInducingElement2) {
+    } else if (element is PropertyInducingElement) {
       return element.isStatic;
     }
     return false;

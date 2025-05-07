@@ -41,7 +41,13 @@ void main() {
 
     await assertErrorsInFile2(lib1, []);
     await assertErrorsInFile2(lib2, [
-      error(WarningCode.INVALID_USE_OF_PROTECTED_MEMBER, 56, 1),
+      error(
+        WarningCode.INVALID_USE_OF_PROTECTED_MEMBER,
+        56,
+        1,
+        text:
+            "The member 'a' can only be used within instance members of subclasses of 'A'.",
+      ),
     ]);
   }
 
@@ -470,7 +476,8 @@ class B {
   }
 
   test_setter_sameClass() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:meta/meta.dart';
 class A {
   int _a = 0;
@@ -480,9 +487,9 @@ class A {
     this.a = a;
   }
 }
-''', [
-      error(WarningCode.UNUSED_FIELD, 49, 2),
-    ]);
+''',
+      [error(WarningCode.UNUSED_FIELD, 49, 2)],
+    );
   }
 
   test_setter_subclass() async {

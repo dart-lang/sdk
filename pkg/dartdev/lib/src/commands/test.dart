@@ -8,7 +8,6 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:dartdev/src/experiments.dart';
 import 'package:pub/pub.dart';
-import 'package:yaml/yaml.dart';
 
 import '../core.dart';
 import '../native_assets.dart';
@@ -57,24 +56,9 @@ Run "${runner!.executableName} help" to see global options.''');
       );
       if (runPackageName != null) {
         final pubspecUri =
-            await DartNativeAssetsBuilder.findPubspec(Directory.current.uri);
-        final Map? pubspec;
-        if (pubspecUri == null) {
-          pubspec = null;
-        } else {
-          pubspec =
-              loadYaml(File.fromUri(pubspecUri).readAsStringSync()) as Map;
-          final pubspecErrors =
-              DartNativeAssetsBuilder.validateHooksUserDefinesFromPubspec(
-                  pubspec);
-          if (pubspecErrors.isNotEmpty) {
-            log.stderr('Errors in pubspec:');
-            pubspecErrors.forEach(log.stderr);
-            return DartdevCommand.errorExitCode;
-          }
-        }
+            await DartNativeAssetsBuilder.findWorkspacePubspec(packageConfig);
         final builder = DartNativeAssetsBuilder(
-          pubspec: pubspec,
+          pubspecUri: pubspecUri,
           packageConfigUri: packageConfig,
           runPackageName: runPackageName,
           verbose: verbose,
@@ -90,7 +74,16 @@ Run "${runner!.executableName} help" to see global options.''');
             log.stderr('Error: Compiling native assets failed.');
             return DartdevCommand.errorExitCode;
           }
-          nativeAssets = assetsYamlFileUri.toFilePath();
+          // TODO(https://github.com/dart-lang/sdk/issues/60489): Add a way to
+          // package:test to explicitly provide the native_assets.yaml path
+          // instead of copying to the workspace .dart_tool.
+          final expectedPackageTestLocation =
+              packageConfig.resolve('native_assets.yaml');
+          if (expectedPackageTestLocation != assetsYamlFileUri) {
+            await File.fromUri(assetsYamlFileUri)
+                .copy(expectedPackageTestLocation.toFilePath());
+          }
+          nativeAssets = expectedPackageTestLocation.toFilePath();
         }
       }
     }

@@ -5,6 +5,7 @@
 import 'dart:convert' show json;
 
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -22,6 +23,7 @@ import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_utilities/test/experiments/experiments.dart';
 import 'package:analyzer_utilities/test/mock_packages/mock_packages.dart';
+import 'package:analyzer_utilities/testing/test_support.dart';
 import 'package:collection/collection.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
@@ -33,57 +35,14 @@ export 'package:analyzer/src/error/codes.dart';
 export 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 export 'package:linter/src/lint_names.dart';
 
-// TODO(srawlins): This is duplicate with
-// pkg/analyzer/test/src/dart/resolution/context_collection_resolution.dart and
-// and pkg/analysis_server/test/analysis_server_base.dart. Keep them as
-// consistent with each other as they are today. Ultimately combine them in a
-// shared analyzer test utilities package.
-String analysisOptionsContent({
-  List<String> experiments = const [],
-  List<String> rules = const [],
-}) {
-  var buffer = StringBuffer();
-
-  buffer.writeln('analyzer:');
-  buffer.writeln('  enable-experiment:');
-  for (var experiment in experiments) {
-    buffer.writeln('    - $experiment');
-  }
-
-  buffer.writeln('  optional-checks:');
-  buffer.writeln('    propagate-linter-exceptions: true');
-
-  buffer.writeln('linter:');
-  buffer.writeln('  rules:');
-  for (var rule in rules) {
-    buffer.writeln('    - $rule');
-  }
-
-  return buffer.toString();
-}
-
 ExpectedDiagnostic error(
-  ErrorCode code,
+  DiagnosticCode code,
   int offset,
   int length, {
   Pattern? messageContains,
 }) => _ExpectedError(code, offset, length, messageContains: messageContains);
 
-// TODO(srawlins): This is duplicate with
-// pkg/analyzer/test/src/dart/resolution/context_collection_resolution.dart.
-// Keep them as consistent with each other as they are today. Ultimately combine
-// them in a shared analyzer test utilities package.
-String pubspecYamlContent({String? name}) {
-  var buffer = StringBuffer();
-
-  if (name != null) {
-    buffer.writeln('name: $name');
-  }
-
-  return buffer.toString();
-}
-
-typedef DiagnosticMatcher = bool Function(AnalysisError error);
+typedef DiagnosticMatcher = bool Function(Diagnostic diagnostic);
 
 /// A description of a diagnostic that is expected to be reported.
 class ExpectedDiagnostic {
@@ -92,18 +51,17 @@ class ExpectedDiagnostic {
   /// The offset of the beginning of the diagnostic's region.
   final int _offset;
 
-  /// The offset of the beginning of the diagnostic's region.
+  /// The length of the diagnostic's region.
   final int _length;
 
   /// A pattern that should be contained in the diagnostic message or `null` if
   /// the message contents should not be checked.
   final Pattern? _messageContains;
 
-  // A pattern that should be contained in the error's correction message, or
-  // `null` if the correction message contents should not be checked.
+  /// A pattern that should be contained in the error's correction message, or
+  /// `null` if the correction message contents should not be checked.
   final Pattern? _correctionContains;
 
-  /// Initialize a newly created diagnostic description.
   ExpectedDiagnostic(
     this._diagnosticMatcher,
     this._offset,
@@ -113,17 +71,19 @@ class ExpectedDiagnostic {
   }) : _messageContains = messageContains,
        _correctionContains = correctionContains;
 
-  /// Whether the [error] matches this description of what it's expected to be.
-  bool matches(AnalysisError error) {
-    if (!_diagnosticMatcher(error)) return false;
-    if (error.offset != _offset) return false;
-    if (error.length != _length) return false;
-    if (_messageContains != null && !error.message.contains(_messageContains)) {
+  /// Whether the [diagnostic] matches this description of what it's expected to be.
+  bool matches(Diagnostic diagnostic) {
+    if (!_diagnosticMatcher(diagnostic)) return false;
+    if (diagnostic.offset != _offset) return false;
+    if (diagnostic.length != _length) return false;
+    if (_messageContains != null &&
+        !diagnostic.message.contains(_messageContains)) {
       return false;
     }
     if (_correctionContains != null) {
-      if (error.correction == null ||
-          !error.correction!.contains(_correctionContains)) {
+      var correctionMessage = diagnostic.correctionMessage;
+      if (correctionMessage == null ||
+          !correctionMessage.contains(_correctionContains)) {
         return false;
       }
     }
@@ -138,6 +98,7 @@ mixin LanguageVersion219Mixin on PubPackageResolutionTest {
 }
 
 abstract class LintRuleTest extends PubPackageResolutionTest {
+  /// The name of the lint rule which this test is concerned with.
   String get lintRule;
 
   @override
@@ -149,6 +110,12 @@ abstract class LintRuleTest extends PubPackageResolutionTest {
     return [ruleName];
   }
 
+  /// Returns an "expected diagnostic" for [lintRule] (or [name], if given) at
+  /// [offset] and [length].
+  ///
+  /// If given, [messageContains] is used to match against a diagnostic's
+  /// message, and [correctionContains] is used to match against a diagnostic's
+  /// correction message.
   ExpectedDiagnostic lint(
     int offset,
     int length, {
@@ -167,20 +134,41 @@ abstract class LintRuleTest extends PubPackageResolutionTest {
 class PubPackageResolutionTest extends _ContextResolutionTest {
   final List<String> _lintRules = const [];
 
+  /// Adds the 'fixnum' package as a dependency to the package-under-test.
+  ///
+  /// This allows `package:fixnum/fixnum.dart` imports to resolve.
   bool get addFixnumPackageDep => false;
 
+  /// Adds the 'flutter' package as a dependency to the package-under-test.
+  ///
+  /// This allows various `package:flutter/` imports to resolve.
   bool get addFlutterPackageDep => false;
 
+  /// Adds the 'js' package as a dependency to the package-under-test.
+  ///
+  /// This allows various `package:js/` imports to resolve.
   bool get addJsPackageDep => false;
 
+  /// Adds the 'kernel' package as a dependency to the package-under-test.
+  ///
+  /// This allows various `package:kernel/` imports to resolve.
   bool get addKernelPackageDep => false;
 
+  /// Adds the 'meta' package as a dependency to the package-under-test.
+  ///
+  /// This allows various `package:meta/` imports to resolve.
   bool get addMetaPackageDep => false;
 
+  /// Adds the 'test_reflective_loader' package as a dependency to the
+  /// package-under-test.
+  ///
+  /// This allows various `package:test_reflective_loader/` imports to resolve.
   bool get addTestReflectiveLoaderPackageDep => false;
 
+  /// Whether to print out the syntax tree being tested, on a test failure.
   bool get dumpAstOnFailures => true;
 
+  /// The list of language experiments to be enabled for these tests.
   List<String> get experiments => experimentsForTests;
 
   String get testFileName => 'test.dart';
@@ -188,6 +176,10 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
   @override
   String get testFilePath => '$testPackageLibPath/$testFileName';
 
+  /// The language version for the package-under-test.
+  ///
+  /// Used for writing out a package config file. A `null` value means no
+  /// 'languageVersion' is written to the package config file.
   String? get testPackageLanguageVersion => null;
 
   String get testPackageLibPath => '$testPackageRootPath/lib';
@@ -212,7 +204,7 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
   ) async {
     addTestFile(content);
     await resolveTestFile();
-    await _assertDiagnosticsIn(_errors, expectedDiagnostics);
+    await _assertDiagnosticsIn(_diagnostics, expectedDiagnostics);
   }
 
   /// Asserts that the number of diagnostics that have been gathered at [path]
@@ -225,7 +217,7 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
     List<ExpectedDiagnostic> expectedDiagnostics,
   ) async {
     await _resolveFile(path);
-    await _assertDiagnosticsIn(_errors, expectedDiagnostics);
+    await _assertDiagnosticsIn(_diagnostics, expectedDiagnostics);
   }
 
   /// Asserts that the diagnostics for each `path` match those in the paired
@@ -344,15 +336,15 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
     writePackageConfig(path, configCopy);
   }
 
-  /// Asserts that the diagnostics in [errors] match [expectedDiagnostics].
+  /// Asserts that the diagnostics in [diagnostics] match [expectedDiagnostics].
   Future<void> _assertDiagnosticsIn(
-    List<AnalysisError> errors,
+    List<Diagnostic> diagnostics,
     List<ExpectedDiagnostic> expectedDiagnostics,
   ) async {
     //
     // Match actual diagnostics to expected diagnostics.
     //
-    var unmatchedActual = errors.toList();
+    var unmatchedActual = diagnostics.toList();
     var unmatchedExpected = expectedDiagnostics.toList();
     var actualIndex = 0;
     while (actualIndex < unmatchedActual.length) {
@@ -424,10 +416,12 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
       }
     }
     if (buffer.isNotEmpty) {
-      errors.sort((first, second) => first.offset.compareTo(second.offset));
+      diagnostics.sort(
+        (first, second) => first.offset.compareTo(second.offset),
+      );
       buffer.writeln();
       buffer.writeln('To accept the current state, expect:');
-      for (var actual in errors) {
+      for (var actual in diagnostics) {
         late String diagnosticKind;
         Object? description;
         if (actual.errorCode is LintCode) {
@@ -471,7 +465,7 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
     }
   }
 
-  Future<List<AnalysisError>> _resolvePubspecFile(String content) async {
+  Future<List<Diagnostic>> _resolvePubspecFile(String content) async {
     var path = convertPath(testPackagePubspecPath);
     var pubspecRules = <LintRule, PubspecVisitor<Object?>>{};
     for (var rule in Registry.ruleRegistry.where(
@@ -528,7 +522,9 @@ abstract class _ContextResolutionTest
   late ResolvedUnitResult result;
 
   /// Error codes that by default should be ignored in test expectations.
-  List<ErrorCode> get ignoredErrorCodes => [WarningCode.UNUSED_LOCAL_VARIABLE];
+  List<DiagnosticCode> get ignoredErrorCodes => [
+    WarningCode.UNUSED_LOCAL_VARIABLE,
+  ];
 
   /// The path to the root of the external packages.
   @override
@@ -538,8 +534,8 @@ abstract class _ContextResolutionTest
 
   List<String> get _collectionIncludedPaths;
 
-  /// The analysis errors that were computed during analysis.
-  List<AnalysisError> get _errors =>
+  /// The diagnostics that were computed during analysis.
+  List<Diagnostic> get _diagnostics =>
       result.errors
           .whereNot((e) => ignoredErrorCodes.any((c) => e.errorCode == c))
           .toList();
@@ -619,7 +615,7 @@ abstract class _ContextResolutionTest
 
 /// A description of an expected error.
 final class _ExpectedError extends ExpectedDiagnostic {
-  final ErrorCode _code;
+  final DiagnosticCode _code;
 
   _ExpectedError(this._code, int offset, int length, {Pattern? messageContains})
     : super(

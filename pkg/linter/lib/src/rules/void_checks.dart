@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
@@ -69,7 +69,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitAssignedVariablePattern(AssignedVariablePattern node) {
     var valueType = node.matchedValueType;
     var element = node.element2;
-    if (element is! VariableElement2) return;
+    if (element is! VariableElement) return;
     _check(element.type, valueType, node);
   }
 
@@ -155,11 +155,11 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
     if (expectedType is VoidType && !isTypeAcceptableWhenExpectingVoid(type)) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     } else if (expectedType.isDartAsyncFutureOr &&
         (expectedType as InterfaceType).typeArguments.first is VoidType &&
         !isTypeAcceptableWhenExpectingFutureOrVoid(type)) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     } else if (checkedNode is FunctionExpression &&
         checkedNode.body is! ExpressionFunctionBody &&
         expectedType is FunctionType &&

@@ -6,7 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -50,8 +50,9 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
 
   /// Return `true` if references to the constant-update-2018 features need to
   /// be checked.
-  bool get checkTripleShift => _checkTripleShift ??=
-      !before_2_14_0.intersect(_versionConstraint).isEmpty;
+  bool get checkTripleShift =>
+      _checkTripleShift ??=
+          !before_2_14_0.intersect(_versionConstraint).isEmpty;
 
   @override
   void visitArgumentList(ArgumentList node) {
@@ -160,7 +161,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _checkSinceSdkVersion(
-    Element2? element,
+    Element? element,
     AstNode target, {
     SyntacticEntity? errorEntity,
   }) {
@@ -218,8 +219,8 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   /// Returns `true` if [element] is something else, or if the target is a
   /// concrete enum. The `index` was always available for concrete enums,
   /// but there was no common `Enum` supertype for all enums.
-  static bool _shouldReportEnumIndex(AstNode node, Element2 element) {
-    if (element is PropertyAccessorElement2 && element.name3 == 'index') {
+  static bool _shouldReportEnumIndex(AstNode node, Element element) {
+    if (element is PropertyAccessorElement && element.name3 == 'index') {
       DartType? targetType;
       if (node is PrefixedIdentifier) {
         targetType = node.prefix.staticType;
@@ -228,7 +229,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
       }
       if (targetType != null) {
         var targetElement = targetType.element3;
-        return targetElement is ClassElement2 && targetElement.isDartCoreEnum;
+        return targetElement is ClassElement && targetElement.isDartCoreEnum;
       }
       return false;
     } else {

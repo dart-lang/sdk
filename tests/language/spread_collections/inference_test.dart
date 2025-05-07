@@ -14,37 +14,97 @@ void testBottomUpInference() {
   // Lists.
   Expect.type<List<dynamic>>([...[]]);
   Expect.type<List<int>>([...<int>[]]);
-  Expect.type<List<int>>([...[1]]);
-  Expect.type<List<int>>([1, ...[2]]);
-  Expect.type<List<num>>([1, ...[0.2]]);
-  Expect.type<List<int>>([...[1, 2]]);
-  Expect.type<List<num>>([...[1, 0.2]]);
-  Expect.type<List<int>>([...[1], ...[2]]);
-  Expect.type<List<num>>([...[1], ...[0.2]]);
+  Expect.type<List<int>>([
+    ...[1],
+  ]);
+  Expect.type<List<int>>([
+    1,
+    ...[2],
+  ]);
+  Expect.type<List<num>>([
+    1,
+    ...[0.2],
+  ]);
+  Expect.type<List<int>>([
+    ...[1, 2],
+  ]);
+  Expect.type<List<num>>([
+    ...[1, 0.2],
+  ]);
+  Expect.type<List<int>>([
+    ...[1],
+    ...[2],
+  ]);
+  Expect.type<List<num>>([
+    ...[1],
+    ...[0.2],
+  ]);
 
   // Maps.
   Expect.type<Map<dynamic, dynamic>>({...{}});
   Expect.type<Map<int, int>>({...<int, int>{}});
-  Expect.type<Map<int, int>>({...{1: 1}});
-  Expect.type<Map<int, int>>({1: 1, ...{2: 2}});
-  Expect.type<Map<num, num>>({1: 1, ...{0.2: 0.2}});
-  Expect.type<Map<int, int>>({...{1: 1, 2: 2}});
-  Expect.type<Map<num, num>>({...{1: 1, 0.2: 0.2}});
-  Expect.type<Map<int, int>>({...{1: 1}, ...{2: 2}});
-  Expect.type<Map<num, num>>({...{1: 1}, ...{0.2: 0.2}});
+  Expect.type<Map<int, int>>({
+    ...{1: 1},
+  });
+  Expect.type<Map<int, int>>({
+    1: 1,
+    ...{2: 2},
+  });
+  Expect.type<Map<num, num>>({
+    1: 1,
+    ...{0.2: 0.2},
+  });
+  Expect.type<Map<int, int>>({
+    ...{1: 1, 2: 2},
+  });
+  Expect.type<Map<num, num>>({
+    ...{1: 1, 0.2: 0.2},
+  });
+  Expect.type<Map<int, int>>({
+    ...{1: 1},
+    ...{2: 2},
+  });
+  Expect.type<Map<num, num>>({
+    ...{1: 1},
+    ...{0.2: 0.2},
+  });
 
   // Sets.
   Expect.type<Set<dynamic>>({...[]});
   Expect.type<Set<int>>({...<int>[]});
-  Expect.type<Set<int>>({...[1]});
-  Expect.type<Set<int>>({1, ...[2]});
-  Expect.type<Set<num>>({1, ...[0.2]});
-  Expect.type<Set<int>>({...[1, 2]});
-  Expect.type<Set<num>>({...[1, 0.2]});
-  Expect.type<Set<int>>({...[1], ...[2]});
-  Expect.type<Set<num>>({...[1], ...[0.2]});
-  Expect.type<Set<num>>({...{1}, ...[0.2]});
-  Expect.type<Set<num>>({...{1}, ...{0.2}});
+  Expect.type<Set<int>>({
+    ...[1],
+  });
+  Expect.type<Set<int>>({
+    1,
+    ...[2],
+  });
+  Expect.type<Set<num>>({
+    1,
+    ...[0.2],
+  });
+  Expect.type<Set<int>>({
+    ...[1, 2],
+  });
+  Expect.type<Set<num>>({
+    ...[1, 0.2],
+  });
+  Expect.type<Set<int>>({
+    ...[1],
+    ...[2],
+  });
+  Expect.type<Set<num>>({
+    ...[1],
+    ...[0.2],
+  });
+  Expect.type<Set<num>>({
+    ...{1},
+    ...[0.2],
+  });
+  Expect.type<Set<num>>({
+    ...{1},
+    ...{0.2},
+  });
 
   // If the iterable's type is dynamic, the element type is inferred as dynamic.
   Expect.type<List<dynamic>>([...([] as dynamic)]);
@@ -92,8 +152,10 @@ void testTopDownInference() {
   Expect.mapEquals(<int, String>{}, <int, String>{...expectIntStringMap()});
 
   // Bottom up-inference from elements is not pushed back down into spread.
-  Expect.mapEquals(<int, String>{1: "s"},
-      {1: "s", ...expectDynamicDynamicMap()});
+  Expect.mapEquals(
+    <int, String>{1: "s"},
+    {1: "s", ...expectDynamicDynamicMap()},
+  );
 
   // Sets.
   Set<T> expectIntSet<T>() {

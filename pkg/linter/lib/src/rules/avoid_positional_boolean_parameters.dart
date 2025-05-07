@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:collection/collection.dart';
 
@@ -45,7 +45,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void checkParams(List<FormalParameter>? parameters) {
     var parameterToLint = parameters?.firstWhereOrNull(_isBoolean);
     if (parameterToLint != null) {
-      rule.reportLint(parameterToLint);
+      rule.reportAtNode(parameterToLint);
     }
   }
 
@@ -92,8 +92,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  bool _isOverridingMember(Element2 member) {
-    var classElement = member.thisOrAncestorOfType2<ClassElement2>();
+  bool _isOverridingMember(Element member) {
+    var classElement = member.thisOrAncestorOfType2<ClassElement>();
     if (classElement == null) return false;
 
     var name = member.name3;

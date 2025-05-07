@@ -28,10 +28,7 @@ class TestTypeProvider extends TypeProviderImpl {
   TestTypeProvider._(
     LibraryElementImpl coreLibrary,
     LibraryElementImpl asyncLibrary,
-  ) : super(
-          coreLibrary: coreLibrary,
-          asyncLibrary: asyncLibrary,
-        );
+  ) : super(coreLibrary: coreLibrary, asyncLibrary: asyncLibrary);
 }
 
 class _MockAnalysisContext implements AnalysisContext {

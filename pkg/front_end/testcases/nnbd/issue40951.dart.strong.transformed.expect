@@ -158,11 +158,11 @@ import "dart:core" as core;
 class A extends core::Object {
   field core::num field1;
   field core::num field2;
-  constructor •() → self::A
+  erroneous constructor •() → self::A
     : self::A::field2 = null, self::A::field1 = null, super core::Object::•() {}
-  constructor foo() → self::A
+  erroneous constructor foo() → self::A
     : self::A::field2 = null, self::A::field1 = null, super core::Object::•() {}
-  constructor bar(core::num field1) → self::A
+  erroneous constructor bar(core::num field1) → self::A
     : self::A::field2 = null, self::A::field1 = field1, super core::Object::•() {}
   constructor baz(core::num field1, core::num field2) → self::A
     : self::A::field1 = field1, self::A::field2 = field2, super core::Object::•() {}
@@ -170,11 +170,11 @@ class A extends core::Object {
 abstract class B extends core::Object {
   field core::num field1;
   field core::num field2;
-  constructor •() → self::B
+  erroneous constructor •() → self::B
     : self::B::field2 = null, self::B::field1 = null, super core::Object::•() {}
-  constructor foo() → self::B
+  erroneous constructor foo() → self::B
     : self::B::field2 = null, self::B::field1 = null, super core::Object::•() {}
-  constructor bar(core::num field1) → self::B
+  erroneous constructor bar(core::num field1) → self::B
     : self::B::field2 = null, self::B::field1 = field1, super core::Object::•() {}
   constructor baz(core::num field1, core::num field2) → self::B
     : self::B::field1 = field1, self::B::field2 = field2, super core::Object::•() {}
@@ -182,11 +182,11 @@ abstract class B extends core::Object {
 class C extends core::Object {
   final field core::num? field1;
   final field core::num? field2;
-  constructor •() → self::C
+  erroneous constructor •() → self::C
     : self::C::field2 = null, self::C::field1 = null, super core::Object::•() {}
-  constructor foo() → self::C
+  erroneous constructor foo() → self::C
     : self::C::field2 = null, self::C::field1 = null, super core::Object::•() {}
-  constructor bar(core::num? field1) → self::C
+  erroneous constructor bar(core::num? field1) → self::C
     : self::C::field2 = null, self::C::field1 = field1, super core::Object::•() {}
   constructor baz(core::num? field1, core::num? field2) → self::C
     : self::C::field1 = field1, self::C::field2 = field2, super core::Object::•() {}
@@ -194,11 +194,11 @@ class C extends core::Object {
 abstract class D extends core::Object {
   final field core::num? field1;
   final field core::num? field2;
-  constructor •() → self::D
+  erroneous constructor •() → self::D
     : self::D::field2 = null, self::D::field1 = null, super core::Object::•() {}
-  constructor foo() → self::D
+  erroneous constructor foo() → self::D
     : self::D::field2 = null, self::D::field1 = null, super core::Object::•() {}
-  constructor bar(core::num? field1) → self::D
+  erroneous constructor bar(core::num? field1) → self::D
     : self::D::field2 = null, self::D::field1 = field1, super core::Object::•() {}
   constructor baz(core::num? field1, core::num? field2) → self::D
     : self::D::field1 = field1, self::D::field2 = field2, super core::Object::•() {}

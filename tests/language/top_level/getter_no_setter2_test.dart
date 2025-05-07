@@ -14,9 +14,9 @@ final int getter = () {
 class Class {
   method() {
     getter++;
-//  ^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL
-// [cfe] Setter not found: 'getter'.
+    // [error column 5, length 6]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL
+    // [cfe] Setter not found: 'getter'.
   }
 }
 

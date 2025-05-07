@@ -288,8 +288,10 @@ void main() {
   assertEquals("b", match.namedGroup("b"));
   assertFalse(match.groupNames.contains("c"));
 
-  match =
-      RegExp(r"(?<a>a)(?<b>b)\k<a>|(?<c>c)", unicode: true).firstMatch("aba")!;
+  match = RegExp(
+    r"(?<a>a)(?<b>b)\k<a>|(?<c>c)",
+    unicode: true,
+  ).firstMatch("aba")!;
   assertNull(match.namedGroup("c"));
 
   // Unicode names.

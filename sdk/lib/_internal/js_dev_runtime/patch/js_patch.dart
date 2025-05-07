@@ -261,10 +261,9 @@ class JsArray<E> /*extends JsObject with ListMixin<E>*/ {
 
   @patch
   void addAll(Iterable<E> iterable) {
-    var list =
-        (JS<bool>('!', '# instanceof Array', iterable))
-            ? JS<List>('', '#', iterable)
-            : List.from(iterable);
+    var list = (JS<bool>('!', '# instanceof Array', iterable))
+        ? JS<List>('', '#', iterable)
+        : List.from(iterable);
     callMethod('push', list);
   }
 
@@ -441,7 +440,7 @@ JsObject _wrapToDartHelper(Object o) {
   if (JS<bool>('!', 'typeof # == "function"', o)) {
     return JsFunction._fromJs(o);
   }
-  if (JS<bool>('!', '# instanceof Array', o)) {
+  if (JS<bool>('!', 'Array.isArray(#)', o)) {
     return JsArray._fromJs(o);
   }
   return JsObject._fromJs(o);

@@ -165,12 +165,16 @@ library
       getters
         synthetic static get aaa
           firstFragment: <testLibraryFragment>::@enum::E::@getter::aaa
+          returnType: E
         synthetic static get bbb
           firstFragment: <testLibraryFragment>::@enum::E::@getter::bbb
+          returnType: E
         synthetic static get ccc
           firstFragment: <testLibraryFragment>::@enum::E::@getter::ccc
+          returnType: E
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E>
 ''');
   }
 
@@ -313,10 +317,13 @@ library
       getters
         synthetic static get int
           firstFragment: <testLibraryFragment>::@enum::E::@getter::int
+          returnType: E<int>
         synthetic static get string
           firstFragment: <testLibraryFragment>::@enum::E::@getter::string
+          returnType: E<String>
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E<dynamic>>
 ''');
   }
 
@@ -406,8 +413,10 @@ library
       getters
         synthetic static get _name
           firstFragment: <testLibraryFragment>::@enum::E::@getter::_name
+          returnType: E
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E>
 ''');
   }
 
@@ -523,8 +532,10 @@ library
       getters
         synthetic static get v
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+          returnType: E<double>
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E<dynamic>>
 ''');
   }
 
@@ -613,8 +624,10 @@ library
       getters
         synthetic static get _
           firstFragment: <testLibraryFragment>::@enum::E::@getter::_
+          returnType: E
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E>
 ''');
   }
 
@@ -712,8 +725,10 @@ library
       getters
         synthetic static get v
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+          returnType: E
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E>
 ''');
   }
 
@@ -804,8 +819,10 @@ library
       getters
         synthetic static get v
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+          returnType: E
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E>
 ''');
   }
 
@@ -917,10 +934,13 @@ library
       getters
         synthetic static get v
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+          returnType: E
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E>
         synthetic get x
           firstFragment: <testLibraryFragment>::@enum::E::@getter::x
+          returnType: dynamic
 ''');
   }
 
@@ -1042,12 +1062,16 @@ library
       getters
         synthetic static get v
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+          returnType: E
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E>
         synthetic get x
           firstFragment: <testLibraryFragment>::@enum::E::@getter::x::@def::0
+          returnType: int
         synthetic get x
           firstFragment: <testLibraryFragment>::@enum::E::@getter::x::@def::1
+          returnType: String
 ''');
   }
 
@@ -1144,8 +1168,10 @@ library
       getters
         synthetic static get v
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+          returnType: E
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E>
 ''');
   }
 
@@ -1271,10 +1297,13 @@ library
       getters
         synthetic static get v
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+          returnType: E
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E>
         synthetic get x
           firstFragment: <testLibraryFragment>::@enum::E::@getter::x
+          returnType: int
 ''');
   }
 
@@ -1383,10 +1412,13 @@ library
       getters
         synthetic static get v
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+          returnType: E
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E>
         synthetic get x
           firstFragment: <testLibraryFragment>::@enum::E::@getter::x
+          returnType: num
 ''');
   }
 
@@ -1495,10 +1527,13 @@ library
       getters
         synthetic static get v
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+          returnType: E
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E>
         synthetic get x
           firstFragment: <testLibraryFragment>::@enum::E::@getter::x
+          returnType: dynamic
 ''');
   }
 
@@ -1607,10 +1642,13 @@ library
       getters
         synthetic static get v
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+          returnType: E
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E>
         synthetic get x
           firstFragment: <testLibraryFragment>::@enum::E::@getter::x
+          returnType: dynamic
 ''');
   }
 
@@ -1717,8 +1755,10 @@ library
       getters
         synthetic static get v
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+          returnType: E
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E>
 ''');
   }
 
@@ -1819,8 +1859,10 @@ library
       getters
         synthetic static get v
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+          returnType: E
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E>
 ''');
   }
 
@@ -1961,10 +2003,13 @@ library
       getters
         synthetic static get v
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+          returnType: E<dynamic>
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E<dynamic>>
         synthetic get x
           firstFragment: <testLibraryFragment>::@enum::E::@getter::x
+          returnType: int
 ''');
   }
 
@@ -2055,8 +2100,10 @@ library
       getters
         synthetic static get v
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+          returnType: E
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E>
 ''');
   }
 
@@ -2164,10 +2211,13 @@ library
       getters
         synthetic static get v
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+          returnType: E
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E>
         synthetic get foo
           firstFragment: <testLibraryFragment>::@enum::E::@getter::foo
+          returnType: int
 ''');
   }
 
@@ -2179,10 +2229,7 @@ enum E {
   E(this._foo);
 }
 ''');
-    configuration.forPromotableFields(
-      enumNames: {'E'},
-      fieldNames: {'_foo'},
-    );
+    configuration.forPromotableFields(enumNames: {'E'}, fieldNames: {'_foo'});
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2296,10 +2343,13 @@ library
       getters
         synthetic static get v
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+          returnType: E
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E>
         get foo
           firstFragment: <testLibraryFragment>::@enum::E::@getter::foo
+          returnType: int
 ''');
   }
 
@@ -2407,8 +2457,10 @@ library
       getters
         synthetic static get v
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+          returnType: E
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E>
 ''');
   }
 
@@ -2523,8 +2575,10 @@ library
       getters
         synthetic static get v
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+          returnType: E
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E>
   extensionTypes
     extension type B
       reference: <testLibrary>::@extensionType::B
@@ -2540,6 +2594,7 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::B::@getter::it
+          returnType: int
 ''');
   }
 
@@ -2659,8 +2714,10 @@ library
       getters
         synthetic static get v
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+          returnType: E<dynamic>
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E<dynamic>>
 ''');
   }
 
@@ -2784,8 +2841,10 @@ library
       getters
         synthetic static get v
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+          returnType: E
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E>
 ''');
   }
 
@@ -2894,11 +2953,14 @@ library
       getters
         synthetic static get v
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+          returnType: E<dynamic>
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E<dynamic>>
       methods
         foo
           firstFragment: <testLibraryFragment>::@enum::E::@method::foo
+          hasEnclosingTypeParameterReference: true
           typeParameters
             U
           formalParameters
@@ -2906,6 +2968,7 @@ library
               type: T
             requiredPositional u
               type: U
+          returnType: int
 ''');
   }
 
@@ -2999,11 +3062,14 @@ library
       getters
         synthetic static get v
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+          returnType: E
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E>
       methods
         toString
           firstFragment: <testLibraryFragment>::@enum::E::@method::toString
+          returnType: String
 ''');
   }
 
@@ -3018,7 +3084,7 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       enums
-        enum <null-name>
+        enum <null-name> (offset=5)
           reference: <testLibraryFragment>::@enum::0
           element: <testLibrary>::@enum::0
           fields
@@ -3090,8 +3156,10 @@ library
       getters
         synthetic static get v
           firstFragment: <testLibraryFragment>::@enum::0::@getter::v
+          returnType: 
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::0::@getter::values
+          returnType: List<>
 ''');
   }
 
@@ -3187,8 +3255,10 @@ library
       getters
         synthetic static get v
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+          returnType: E
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E>
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
@@ -3309,8 +3379,10 @@ library
       getters
         synthetic static get v
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+          returnType: E
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E>
   extensionTypes
     extension type B
       reference: <testLibrary>::@extensionType::B
@@ -3326,6 +3398,7 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::B::@getter::it
+          returnType: int
 ''');
   }
 
@@ -3432,8 +3505,10 @@ library
       getters
         synthetic static get v
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+          returnType: E
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E>
   mixins
     mixin M1
       reference: <testLibrary>::@mixin::M1
@@ -3553,14 +3628,17 @@ library
       getters
         synthetic static get v
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+          returnType: E
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E>
       setters
         set foo
           firstFragment: <testLibraryFragment>::@enum::E::@setter::foo
           formalParameters
             requiredPositional _
               type: int
+          returnType: void
 ''');
   }
 
@@ -3656,8 +3734,10 @@ library
       getters
         synthetic static get v
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+          returnType: E<dynamic>
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E<dynamic>>
 ''');
   }
 
@@ -3758,8 +3838,10 @@ library
       getters
         synthetic static get v
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+          returnType: E<num, num>
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E<num, num>>
 ''');
   }
 
@@ -3821,6 +3903,7 @@ library
       getters
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E<dynamic>>
 ''');
   }
 
@@ -3890,6 +3973,7 @@ library
       getters
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E<dynamic, num, dynamic>>
 ''');
   }
 
@@ -3951,6 +4035,7 @@ library
       getters
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E<dynamic>>
 ''');
   }
 
@@ -4011,6 +4096,7 @@ library
       getters
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E<dynamic>>
 ''');
   }
 
@@ -4071,6 +4157,7 @@ library
       getters
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E<dynamic>>
 ''');
   }
 
@@ -4131,6 +4218,7 @@ library
       getters
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E<dynamic>>
 ''');
   }
 
@@ -4197,6 +4285,7 @@ library
       getters
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E<dynamic, dynamic, dynamic>>
 ''');
   }
 
@@ -4319,10 +4408,13 @@ library
       getters
         synthetic static get a
           firstFragment: <testLibraryFragment>::@enum::E::@getter::a
+          returnType: E
         synthetic static get b
           firstFragment: <testLibraryFragment>::@enum::E::@getter::b
+          returnType: E
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E>
 ''');
   }
 
@@ -4463,10 +4555,13 @@ library
       getters
         synthetic static get a
           firstFragment: <testLibraryFragment>::@enum::E::@getter::a
+          returnType: E
         synthetic static get b
           firstFragment: <testLibraryFragment>::@enum::E::@getter::b
+          returnType: E
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E>
   topLevelVariables
     const hasInitializer annotation
       reference: <testLibrary>::@topLevelVariable::annotation
@@ -4479,6 +4574,7 @@ library
   getters
     synthetic static get annotation
       firstFragment: <testLibraryFragment>::@getter::annotation
+      returnType: int
 ''');
   }
 
@@ -4513,7 +4609,7 @@ library
                     rightParenthesis: ) @0
                   staticType: E
               getter2: <testLibraryFragment>::@enum::E::@getter::v
-            hasInitializer <null-name>
+            hasInitializer <null-name> (offset=10)
               reference: <testLibraryFragment>::@enum::E::@field::0
               element: <testLibraryFragment>::@enum::E::@field::0#element
               initializer: expression_1
@@ -4595,10 +4691,13 @@ library
       getters
         synthetic static get v
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+          returnType: E
         synthetic static get <null-name>
           firstFragment: <testLibraryFragment>::@enum::E::@getter::0
+          returnType: E
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E>
 ''');
   }
 
@@ -4713,10 +4812,13 @@ library
       getters
         synthetic static get v1
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v1
+          returnType: E
         synthetic static get v2
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v2
+          returnType: E
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E>
 ''');
   }
 
@@ -4847,8 +4949,10 @@ library
       getters
         synthetic static get v1
           firstFragment: <testLibraryFragment>::@enum::E1::@getter::v1
+          returnType: E1
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E1::@getter::values
+          returnType: List<E1>
     enum E2
       reference: <testLibrary>::@enum::E2
       firstFragment: <testLibraryFragment>::@enum::E2
@@ -4874,8 +4978,10 @@ library
       getters
         synthetic static get v2
           firstFragment: <testLibraryFragment>::@enum::E2::@getter::v2
+          returnType: E2
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E2::@getter::values
+          returnType: List<E2>
 ''');
   }
 
@@ -5067,6 +5173,7 @@ library
       methods
         foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
+          returnType: dynamic
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -5078,6 +5185,7 @@ library
       methods
         foo
           firstFragment: <testLibraryFragment>::@class::B::@method::foo
+          returnType: dynamic
     class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
@@ -5090,6 +5198,7 @@ library
       methods
         foo
           firstFragment: <testLibraryFragment>::@class::C::@method::foo
+          returnType: dynamic
     class alias D
       reference: <testLibrary>::@class::D
       firstFragment: <testLibraryFragment>::@class::D
@@ -5146,12 +5255,16 @@ library
       getters
         synthetic static get a
           firstFragment: <testLibraryFragment>::@enum::E::@getter::a
+          returnType: E
         synthetic static get b
           firstFragment: <testLibraryFragment>::@enum::E::@getter::b
+          returnType: E
         synthetic static get c
           firstFragment: <testLibraryFragment>::@enum::E::@getter::c
+          returnType: E
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E>
 ''');
   }
 
@@ -5249,8 +5362,10 @@ library
       getters
         synthetic static get v
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+          returnType: E
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E>
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -5263,6 +5378,7 @@ library
   getters
     synthetic static get a
       firstFragment: <testLibraryFragment>::@getter::a
+      returnType: int
 ''');
   }
 
@@ -5418,6 +5534,7 @@ library
       getters
         synthetic get value
           firstFragment: <testLibraryFragment>::@class::A::@getter::value
+          returnType: dynamic
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -5458,12 +5575,16 @@ library
       getters
         synthetic static get a
           firstFragment: <testLibraryFragment>::@enum::E::@getter::a
+          returnType: E
         synthetic static get b
           firstFragment: <testLibraryFragment>::@enum::E::@getter::b
+          returnType: E
         synthetic static get c
           firstFragment: <testLibraryFragment>::@enum::E::@getter::c
+          returnType: E
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E>
 ''');
   }
 
@@ -5553,8 +5674,10 @@ library
       getters
         synthetic static get v
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+          returnType: E
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E>
 ''');
   }
 
@@ -5676,8 +5799,10 @@ library
       getters
         synthetic static get v
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+          returnType: E
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E>
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -5690,6 +5815,7 @@ library
   getters
     synthetic static get a
       firstFragment: <testLibraryFragment>::@getter::a
+      returnType: int
 ''');
   }
 
@@ -5806,8 +5932,10 @@ library
       getters
         synthetic static get v
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+          returnType: E
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E>
       methods
         foo
           firstFragment: <testLibraryFragment>::@enum::E::@method::foo
@@ -5819,6 +5947,7 @@ library
                 element: <testLibraryFragment>::@getter::a#element
                 staticType: null
               element2: <testLibraryFragment>::@getter::a#element
+          returnType: void
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -5831,6 +5960,7 @@ library
   getters
     synthetic static get a
       firstFragment: <testLibraryFragment>::@getter::a
+      returnType: int
 ''');
   }
 
@@ -5991,10 +6121,13 @@ library
       getters
         synthetic static get v
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+          returnType: E<dynamic>
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E<dynamic>>
         synthetic static get foo
           firstFragment: <testLibraryFragment>::@enum::E::@getter::foo
+          returnType: int
       methods
         bar
           firstFragment: <testLibraryFragment>::@enum::E::@method::bar
@@ -6006,6 +6139,7 @@ library
                 element: <testLibraryFragment>::@enum::E::@getter::foo#element
                 staticType: null
               element2: <testLibraryFragment>::@enum::E::@getter::foo#element
+          returnType: void
   topLevelVariables
     const hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
@@ -6018,6 +6152,7 @@ library
   getters
     synthetic static get foo
       firstFragment: <testLibraryFragment>::@getter::foo
+      returnType: int
 ''');
   }
 
@@ -6143,8 +6278,10 @@ library
       getters
         synthetic static get v
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+          returnType: E<dynamic>
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E<dynamic>>
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -6157,6 +6294,7 @@ library
   getters
     synthetic static get a
       firstFragment: <testLibraryFragment>::@getter::a
+      returnType: int
 ''');
   }
 
@@ -6254,8 +6392,10 @@ library
       getters
         synthetic static get v
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+          returnType: E
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E>
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -6268,6 +6408,7 @@ library
   getters
     synthetic static get a
       firstFragment: <testLibraryFragment>::@getter::a
+      returnType: int
 ''');
   }
 }

@@ -143,8 +143,10 @@ class DocCommentVerifier {
 
   void validateArgumentFormat(DocDirectiveTag tag) {
     var required = tag.type.positionalParameters;
-    var positionalArgumentCount =
-        math.min(tag.positionalArguments.length, required.length);
+    var positionalArgumentCount = math.min(
+      tag.positionalArguments.length,
+      required.length,
+    );
     for (var i = 0; i < positionalArgumentCount; i++) {
       var parameter = required[i];
       var argument = tag.positionalArguments[i];
@@ -171,8 +173,9 @@ class DocCommentVerifier {
           }
         case DocDirectiveParameterFormat.youtubeUrl:
           if (Uri.tryParse(argument.value) == null ||
-              !argument.value
-                  .startsWith(DocDirectiveParameterFormat.youtubeUrlPrefix)) {
+              !argument.value.startsWith(
+                DocDirectiveParameterFormat.youtubeUrlPrefix,
+              )) {
             reportWrongFormat();
           }
       }

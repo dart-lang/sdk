@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/completion/dart/candidate_suggestio
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -65,9 +65,9 @@ class RelevanceComputer {
     return _cachedContainingMemberName;
   }
 
-  /// Compute the relevance for [FieldElement2] suggestion.
+  /// Compute the relevance for [FieldElement] suggestion.
   int computeFieldElementRelevance(
-    FieldElement2 element,
+    FieldElement element,
     double inheritanceDistance,
   ) {
     var contextType = featureComputer.contextTypeFeature(
@@ -340,7 +340,7 @@ class RelevanceComputer {
 
   /// Return the relevance score for a top-level [element].
   int computeTopLevelRelevance(
-    Element2 element, {
+    Element element, {
     required DartType elementType,
     required bool isNotImportedLibrary,
   }) {
@@ -367,7 +367,7 @@ class RelevanceComputer {
 
   /// Return the relevance score for a top-level [element].
   int computeTopLevelRelevance2(
-    Element2 element, {
+    Element element, {
     required DartType elementType,
     required bool isNotImportedLibrary,
   }) {
@@ -395,7 +395,7 @@ class RelevanceComputer {
   /// Compute the relevance for an [accessor].
   int _computeAccessorRelevance(
     DartType? type,
-    Element2 accessor,
+    Element accessor,
     bool isNotImportedLibrary, {
     double startsWithDollar = 0.0,
     double superMatches = 0.0,
@@ -420,9 +420,9 @@ class RelevanceComputer {
     );
   }
 
-  /// Compute the relevance for [ConstructorElement2].
+  /// Compute the relevance for [ConstructorElement].
   int _computeConstructorRelevance(
-    ConstructorElement2 element,
+    ConstructorElement element,
     NeverType neverType,
     bool isNotImportedLibrary,
   ) {
@@ -437,7 +437,7 @@ class RelevanceComputer {
 
   /// Compute the value of the _element kind_ feature for the given [element] in
   /// the completion context.
-  double _computeElementKind(Element2 element, {double? distance}) {
+  double _computeElementKind(Element element, {double? distance}) {
     var location = completionLocation;
     var elementKind = featureComputer.elementKindFeature(
       element,
@@ -459,7 +459,7 @@ class RelevanceComputer {
 
   /// Compute the value of the _element kind_ feature for the given [element] in
   /// the completion context.
-  double _computeElementKind2(Element2 element, {double? distance}) {
+  double _computeElementKind2(Element element, {double? distance}) {
     var location = completionLocation;
     var elementKind = featureComputer.elementKindFeature(
       element,
@@ -564,9 +564,9 @@ class RelevanceComputer {
     );
   }
 
-  /// Compute the relevance for [MethodElement2].
+  /// Compute the relevance for [MethodElement].
   int _computeMethodRelevance(
-    MethodElement2 method,
+    MethodElement method,
     double inheritanceDistance,
     bool isNotImportedLibrary,
   ) {
@@ -605,16 +605,16 @@ class RelevanceComputer {
     );
   }
 
-  /// Compute the relevance for [PropertyAccessorElement2].
+  /// Compute the relevance for [PropertyAccessorElement].
   int _computePropertyAccessorRelevance(
-    PropertyAccessorElement2 accessor,
+    PropertyAccessorElement accessor,
     double inheritanceDistance,
     bool isNotImportedLibrary,
   ) {
     if (accessor.isSynthetic) {
       if (accessor is GetterElement) {
         var variable = accessor.variable3;
-        if (variable is FieldElement2) {
+        if (variable is FieldElement) {
           return computeFieldElementRelevance(variable, inheritanceDistance);
         }
       }
@@ -639,9 +639,9 @@ class RelevanceComputer {
     return 0;
   }
 
-  /// Compute the relevance for a static [FieldElement2].
+  /// Compute the relevance for a static [FieldElement].
   int _computeStaticFieldRelevance(
-    FieldElement2 element,
+    FieldElement element,
     double inheritanceDistance,
     bool isNotImportedLibrary,
   ) {
@@ -649,7 +649,7 @@ class RelevanceComputer {
       var getter = element.getter2;
       if (getter != null) {
         var variable = getter.variable3;
-        if (variable is FieldElement2) {
+        if (variable is FieldElement) {
           return computeFieldElementRelevance(variable, inheritanceDistance);
         }
       }
@@ -663,15 +663,15 @@ class RelevanceComputer {
     return 0;
   }
 
-  /// Compute the relevance for top level [PropertyAccessorElement2].
+  /// Compute the relevance for top level [PropertyAccessorElement].
   int _computeTopLevelPropertyAccessorRelevance(
-    PropertyAccessorElement2 accessor,
+    PropertyAccessorElement accessor,
     bool isNotImportedLibrary,
   ) {
     if (accessor.isSynthetic) {
       if (accessor is GetterElement) {
         var variable = accessor.variable3;
-        if (variable is TopLevelVariableElement2) {
+        if (variable is TopLevelVariableElement) {
           return computeTopLevelRelevance(
             variable,
             elementType: variable.type,
@@ -694,8 +694,8 @@ class RelevanceComputer {
     return 0;
   }
 
-  /// Compute the relevance for [TypeParameterElement2].
-  int _computeTypeParameterRelevance(TypeParameterElement2 parameter) {
+  /// Compute the relevance for [TypeParameterElement].
+  int _computeTypeParameterRelevance(TypeParameterElement parameter) {
     var elementKind = _computeElementKind(parameter);
     var isConstant =
         preferConstants ? featureComputer.isConstantFeature(parameter) : 0.0;
@@ -704,7 +704,7 @@ class RelevanceComputer {
 
   /// Return the type associated with the [accessor], maybe `null` if an
   /// invalid setter with no parameters at all.
-  DartType? _getPropertyAccessorType(PropertyAccessorElement2 accessor) {
+  DartType? _getPropertyAccessorType(PropertyAccessorElement accessor) {
     if (accessor is GetterElement) {
       return accessor.returnType;
     } else {
@@ -718,7 +718,7 @@ class RelevanceComputer {
   }
 
   /// Return the [DartType] for an instantiated [TypeAlias].
-  DartType _instantiateTypeAlias(TypeAliasElement2 element) {
+  DartType _instantiateTypeAlias(TypeAliasElement element) {
     var typeParameters = element.typeParameters2;
     var typeArguments = const <DartType>[];
     if (typeParameters.isNotEmpty) {

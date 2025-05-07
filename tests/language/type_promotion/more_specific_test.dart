@@ -25,9 +25,7 @@ class D<T> {
 class E<T> extends D<T> {
   T? e;
 
-  E(e)
-      : this.e = e,
-        super(e);
+  E(e) : this.e = e, super(e);
 }
 
 void main() {

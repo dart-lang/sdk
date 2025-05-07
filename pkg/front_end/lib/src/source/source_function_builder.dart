@@ -6,13 +6,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
 import '../base/messages.dart'
-    show
-        messagePatchDeclarationMismatch,
-        messagePatchDeclarationOrigin,
-        messagePatchNonExternal,
-        noLength,
-        templateRequiredNamedParameterHasDefaultValueError;
-import '../builder/builder.dart';
+    show templateRequiredNamedParameterHasDefaultValueError;
 import '../builder/formal_parameter_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
@@ -89,39 +83,6 @@ void buildTypeParametersAndFormals(
       }
     }
   }
-}
-
-// Coverage-ignore(suite): Not run.
-/// Reports an error if [augmentation] is from a patch library and [origin] is
-/// not external.
-bool checkAugmentation(
-    {required SourceLibraryBuilder augmentationLibraryBuilder,
-    required Builder origin,
-    required Builder augmentation}) {
-  if (!origin.isExternal && !augmentationLibraryBuilder.isAugmentationLibrary) {
-    augmentationLibraryBuilder.addProblem(messagePatchNonExternal,
-        augmentation.fileOffset, noLength, augmentation.fileUri!,
-        context: [
-          messagePatchDeclarationOrigin.withLocation(
-              origin.fileUri!, origin.fileOffset, noLength)
-        ]);
-    return false;
-  }
-  return true;
-}
-
-// Coverage-ignore(suite): Not run.
-/// Reports the error that [augmentation] cannot augment [origin].
-void reportAugmentationMismatch(
-    {required SourceLibraryBuilder originLibraryBuilder,
-    required Builder origin,
-    required Builder augmentation}) {
-  originLibraryBuilder.addProblem(messagePatchDeclarationMismatch,
-      augmentation.fileOffset, noLength, augmentation.fileUri!,
-      context: [
-        messagePatchDeclarationOrigin.withLocation(
-            origin.fileUri!, origin.fileOffset, noLength)
-      ]);
 }
 
 extension FormalsMethods on List<FormalParameterBuilder> {

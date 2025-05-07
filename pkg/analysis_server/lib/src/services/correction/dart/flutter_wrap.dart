@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/selection_analyzer.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -337,7 +337,7 @@ abstract class _WrapSingleWidget extends ResolvedCorrectionProducer {
     // If the wrapper class is specified, find its element.
     var parentLibraryUri = _parentLibraryUri;
     var parentClassName = _parentClassName;
-    ClassElement2? parentClassElement;
+    ClassElement? parentClassElement;
     if (parentLibraryUri != null && parentClassName != null) {
       parentClassElement = await sessionHelper.getClass(
         parentLibraryUri,

@@ -6,10 +6,9 @@ import "package:expect/expect.dart";
 import "dart:typed_data";
 
 main() {
-  Iterable<int> iter(count, [values]) =>
-      values is List
-          ? new Iterable<int>.generate(count, (x) => values[x])
-          : new Iterable<int>.generate(count, (x) => values);
+  Iterable<int> iter(count, [values]) => values is List
+      ? new Iterable<int>.generate(count, (x) => values[x])
+      : new Iterable<int>.generate(count, (x) => values);
   void test(String expect, Iterable<int> iter, [int start = 0, int? end]) {
     var actual = new String.fromCharCodes(iter, start, end);
     Expect.equals(

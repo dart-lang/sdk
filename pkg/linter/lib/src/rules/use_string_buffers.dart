@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
@@ -66,7 +66,7 @@ class _IdentifierIsPrefixVisitor extends SimpleAstVisitor<void> {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.element == identifier.element) {
-      rule.reportLint(identifier);
+      rule.reportAtNode(identifier);
     }
   }
 
@@ -81,7 +81,7 @@ class _IdentifierIsPrefixVisitor extends SimpleAstVisitor<void> {
 
 class _UseStringBufferVisitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  final localElements = <Element2?>{};
+  final localElements = <Element?>{};
 
   _UseStringBufferVisitor(this.rule);
 
@@ -99,7 +99,7 @@ class _UseStringBufferVisitor extends SimpleAstVisitor<void> {
         writeType.isDartCoreString) {
       if (node.operator.type == TokenType.PLUS_EQ &&
           !localElements.contains(node.writeElement2)) {
-        rule.reportLint(node);
+        rule.reportAtNode(node);
       }
       if (node.operator.type == TokenType.EQ) {
         var visitor = _IdentifierIsPrefixVisitor(rule, left);

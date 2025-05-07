@@ -91,8 +91,11 @@ void matchIL$testCSE1(FlowGraph graph) {
       match.MoveArgument('a_foo'),
       match.StaticCall(),
       'cond' << match.LoadStaticField(),
-      match.Branch(match.StrictCompare('cond', match.any),
-          ifTrue: 'B3', ifFalse: 'B4'),
+      match.Branch(
+        match.StrictCompare('cond', match.any),
+        ifTrue: 'B3',
+        ifFalse: 'B4',
+      ),
     ]),
     'B3' <<
         match.block('Target', [
@@ -100,14 +103,8 @@ void matchIL$testCSE1(FlowGraph graph) {
           match.StaticCall(),
           match.Goto('B5'),
         ]),
-    'B4' <<
-        match.block('Target', [
-          match.Goto('B5'),
-        ]),
-    'B5' <<
-        match.block('Join', [
-          match.DartReturn(match.any),
-        ]),
+    'B4' << match.block('Target', [match.Goto('B5')]),
+    'B5' << match.block('Join', [match.DartReturn(match.any)]),
   ]);
 }
 
@@ -123,8 +120,11 @@ void matchIL$testCSE2(FlowGraph graph) {
       match.MoveArgument('b_bar'),
       match.StaticCall(),
       'cond' << match.LoadStaticField(),
-      match.Branch(match.StrictCompare('cond', match.any),
-          ifTrue: 'B3', ifFalse: 'B4'),
+      match.Branch(
+        match.StrictCompare('cond', match.any),
+        ifTrue: 'B3',
+        ifFalse: 'B4',
+      ),
     ]),
     'B3' <<
         match.block('Target', [
@@ -132,14 +132,8 @@ void matchIL$testCSE2(FlowGraph graph) {
           match.StaticCall(),
           match.Goto('B5'),
         ]),
-    'B4' <<
-        match.block('Target', [
-          match.Goto('B5'),
-        ]),
-    'B5' <<
-        match.block('Join', [
-          match.DartReturn(match.any),
-        ]),
+    'B4' << match.block('Target', [match.Goto('B5')]),
+    'B5' << match.block('Join', [match.DartReturn(match.any)]),
   ]);
 }
 
@@ -160,8 +154,11 @@ void matchIL$testCSE3(FlowGraph graph) {
       match.MoveArgument('b_bar_int'),
       match.StaticCall(),
       'cond' << match.LoadStaticField(),
-      match.Branch(match.StrictCompare('cond', match.any),
-          ifTrue: 'B3', ifFalse: 'B4'),
+      match.Branch(
+        match.StrictCompare('cond', match.any),
+        ifTrue: 'B3',
+        ifFalse: 'B4',
+      ),
     ]),
     'B3' <<
         match.block('Target', [
@@ -174,14 +171,8 @@ void matchIL$testCSE3(FlowGraph graph) {
           match.StaticCall(),
           match.Goto('B5'),
         ]),
-    'B4' <<
-        match.block('Target', [
-          match.Goto('B5'),
-        ]),
-    'B5' <<
-        match.block('Join', [
-          match.DartReturn(match.any),
-        ]),
+    'B4' << match.block('Target', [match.Goto('B5')]),
+    'B5' << match.block('Join', [match.DartReturn(match.any)]),
   ]);
 }
 
@@ -199,8 +190,11 @@ void matchIL$testLICM1(FlowGraph graph) {
         match.block('Join', [
           'i' << match.Phi(match.any, 'i+1'),
           match.CheckStackOverflow(),
-          match.Branch(match.RelationalOp('i', match.any),
-              ifTrue: 'B3', ifFalse: 'B4'),
+          match.Branch(
+            match.RelationalOp('i', match.any),
+            ifTrue: 'B3',
+            ifFalse: 'B4',
+          ),
         ]),
     'B3' <<
         match.block('Target', [
@@ -210,10 +204,7 @@ void matchIL$testLICM1(FlowGraph graph) {
           'i+1' << match.BinaryInt64Op('i', match.any),
           match.Goto('B5'),
         ]),
-    'B4' <<
-        match.block('Target', [
-          match.DartReturn(match.any),
-        ]),
+    'B4' << match.block('Target', [match.DartReturn(match.any)]),
   ]);
 }
 
@@ -232,8 +223,11 @@ void matchIL$testLICM2(FlowGraph graph) {
         match.block('Join', [
           'i' << match.Phi(match.any, 'i+1'),
           match.CheckStackOverflow(),
-          match.Branch(match.RelationalOp('i', match.any),
-              ifTrue: 'B3', ifFalse: 'B4'),
+          match.Branch(
+            match.RelationalOp('i', match.any),
+            ifTrue: 'B3',
+            ifFalse: 'B4',
+          ),
         ]),
     'B3' <<
         match.block('Target', [
@@ -243,9 +237,6 @@ void matchIL$testLICM2(FlowGraph graph) {
           'i+1' << match.BinaryInt64Op('i', match.any),
           match.Goto('B5'),
         ]),
-    'B4' <<
-        match.block('Target', [
-          match.DartReturn(match.any),
-        ]),
+    'B4' << match.block('Target', [match.DartReturn(match.any)]),
   ]);
 }

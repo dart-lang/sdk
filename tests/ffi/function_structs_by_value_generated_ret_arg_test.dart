@@ -50,10 +50,11 @@ void main() {
   }
 }
 
-final returnStructArgumentStruct1ByteInt = ffiTestFunctions.lookupFunction<
-  Struct1ByteInt Function(Struct1ByteInt),
-  Struct1ByteInt Function(Struct1ByteInt)
->("ReturnStructArgumentStruct1ByteInt");
+final returnStructArgumentStruct1ByteInt = ffiTestFunctions
+    .lookupFunction<
+      Struct1ByteInt Function(Struct1ByteInt),
+      Struct1ByteInt Function(Struct1ByteInt)
+    >("ReturnStructArgumentStruct1ByteInt");
 
 /// Test that a struct passed in as argument can be returned.
 /// Especially for ffi callbacks.
@@ -408,10 +409,11 @@ void testReturnStructArgumentStructStruct16BytesMixed3() {
   calloc.free(a0Pointer);
 }
 
-final returnStructAlignmentInt16 = ffiTestFunctions.lookupFunction<
-  StructAlignmentInt16 Function(Int8, Int16, Int8),
-  StructAlignmentInt16 Function(int, int, int)
->("ReturnStructAlignmentInt16");
+final returnStructAlignmentInt16 = ffiTestFunctions
+    .lookupFunction<
+      StructAlignmentInt16 Function(Int8, Int16, Int8),
+      StructAlignmentInt16 Function(int, int, int)
+    >("ReturnStructAlignmentInt16");
 
 /// Test alignment and padding of 16 byte int within struct.
 void testReturnStructAlignmentInt16() {
@@ -432,10 +434,11 @@ void testReturnStructAlignmentInt16() {
   Expect.equals(a2, result.a2);
 }
 
-final returnStructAlignmentInt32 = ffiTestFunctions.lookupFunction<
-  StructAlignmentInt32 Function(Int8, Int32, Int8),
-  StructAlignmentInt32 Function(int, int, int)
->("ReturnStructAlignmentInt32");
+final returnStructAlignmentInt32 = ffiTestFunctions
+    .lookupFunction<
+      StructAlignmentInt32 Function(Int8, Int32, Int8),
+      StructAlignmentInt32 Function(int, int, int)
+    >("ReturnStructAlignmentInt32");
 
 /// Test alignment and padding of 32 byte int within struct.
 void testReturnStructAlignmentInt32() {
@@ -456,10 +459,11 @@ void testReturnStructAlignmentInt32() {
   Expect.equals(a2, result.a2);
 }
 
-final returnStructAlignmentInt64 = ffiTestFunctions.lookupFunction<
-  StructAlignmentInt64 Function(Int8, Int64, Int8),
-  StructAlignmentInt64 Function(int, int, int)
->("ReturnStructAlignmentInt64");
+final returnStructAlignmentInt64 = ffiTestFunctions
+    .lookupFunction<
+      StructAlignmentInt64 Function(Int8, Int64, Int8),
+      StructAlignmentInt64 Function(int, int, int)
+    >("ReturnStructAlignmentInt64");
 
 /// Test alignment and padding of 64 byte int within struct.
 void testReturnStructAlignmentInt64() {
@@ -480,16 +484,17 @@ void testReturnStructAlignmentInt64() {
   Expect.equals(a2, result.a2);
 }
 
-final returnStruct8BytesNestedInt = ffiTestFunctions.lookupFunction<
-  Struct8BytesNestedInt Function(
-    Struct4BytesHomogeneousInt16,
-    Struct4BytesHomogeneousInt16,
-  ),
-  Struct8BytesNestedInt Function(
-    Struct4BytesHomogeneousInt16,
-    Struct4BytesHomogeneousInt16,
-  )
->("ReturnStruct8BytesNestedInt");
+final returnStruct8BytesNestedInt = ffiTestFunctions
+    .lookupFunction<
+      Struct8BytesNestedInt Function(
+        Struct4BytesHomogeneousInt16,
+        Struct4BytesHomogeneousInt16,
+      ),
+      Struct8BytesNestedInt Function(
+        Struct4BytesHomogeneousInt16,
+        Struct4BytesHomogeneousInt16,
+      )
+    >("ReturnStruct8BytesNestedInt");
 
 /// Simple nested struct.
 void testReturnStruct8BytesNestedInt() {
@@ -516,10 +521,11 @@ void testReturnStruct8BytesNestedInt() {
   calloc.free(a1Pointer);
 }
 
-final returnStruct8BytesNestedFloat = ffiTestFunctions.lookupFunction<
-  Struct8BytesNestedFloat Function(Struct4BytesFloat, Struct4BytesFloat),
-  Struct8BytesNestedFloat Function(Struct4BytesFloat, Struct4BytesFloat)
->("ReturnStruct8BytesNestedFloat");
+final returnStruct8BytesNestedFloat = ffiTestFunctions
+    .lookupFunction<
+      Struct8BytesNestedFloat Function(Struct4BytesFloat, Struct4BytesFloat),
+      Struct8BytesNestedFloat Function(Struct4BytesFloat, Struct4BytesFloat)
+    >("ReturnStruct8BytesNestedFloat");
 
 /// Simple nested struct with floats.
 void testReturnStruct8BytesNestedFloat() {
@@ -542,10 +548,11 @@ void testReturnStruct8BytesNestedFloat() {
   calloc.free(a1Pointer);
 }
 
-final returnStruct8BytesNestedFloat2 = ffiTestFunctions.lookupFunction<
-  Struct8BytesNestedFloat2 Function(Struct4BytesFloat, Float),
-  Struct8BytesNestedFloat2 Function(Struct4BytesFloat, double)
->("ReturnStruct8BytesNestedFloat2");
+final returnStruct8BytesNestedFloat2 = ffiTestFunctions
+    .lookupFunction<
+      Struct8BytesNestedFloat2 Function(Struct4BytesFloat, Float),
+      Struct8BytesNestedFloat2 Function(Struct4BytesFloat, double)
+    >("ReturnStruct8BytesNestedFloat2");
 
 /// The nesting is irregular, testing homogenous float rules on arm and arm64,
 /// and the fpu register usage on x64.
@@ -567,16 +574,17 @@ void testReturnStruct8BytesNestedFloat2() {
   calloc.free(a0Pointer);
 }
 
-final returnStruct8BytesNestedMixed = ffiTestFunctions.lookupFunction<
-  Struct8BytesNestedMixed Function(
-    Struct4BytesHomogeneousInt16,
-    Struct4BytesFloat,
-  ),
-  Struct8BytesNestedMixed Function(
-    Struct4BytesHomogeneousInt16,
-    Struct4BytesFloat,
-  )
->("ReturnStruct8BytesNestedMixed");
+final returnStruct8BytesNestedMixed = ffiTestFunctions
+    .lookupFunction<
+      Struct8BytesNestedMixed Function(
+        Struct4BytesHomogeneousInt16,
+        Struct4BytesFloat,
+      ),
+      Struct8BytesNestedMixed Function(
+        Struct4BytesHomogeneousInt16,
+        Struct4BytesFloat,
+      )
+    >("ReturnStruct8BytesNestedMixed");
 
 /// Simple nested struct with mixed members.
 void testReturnStruct8BytesNestedMixed() {
@@ -601,10 +609,17 @@ void testReturnStruct8BytesNestedMixed() {
   calloc.free(a1Pointer);
 }
 
-final returnStruct16BytesNestedInt = ffiTestFunctions.lookupFunction<
-  Struct16BytesNestedInt Function(Struct8BytesNestedInt, Struct8BytesNestedInt),
-  Struct16BytesNestedInt Function(Struct8BytesNestedInt, Struct8BytesNestedInt)
->("ReturnStruct16BytesNestedInt");
+final returnStruct16BytesNestedInt = ffiTestFunctions
+    .lookupFunction<
+      Struct16BytesNestedInt Function(
+        Struct8BytesNestedInt,
+        Struct8BytesNestedInt,
+      ),
+      Struct16BytesNestedInt Function(
+        Struct8BytesNestedInt,
+        Struct8BytesNestedInt,
+      )
+    >("ReturnStruct16BytesNestedInt");
 
 /// Deeper nested struct to test recursive member access.
 void testReturnStruct16BytesNestedInt() {
@@ -639,16 +654,17 @@ void testReturnStruct16BytesNestedInt() {
   calloc.free(a1Pointer);
 }
 
-final returnStruct32BytesNestedInt = ffiTestFunctions.lookupFunction<
-  Struct32BytesNestedInt Function(
-    Struct16BytesNestedInt,
-    Struct16BytesNestedInt,
-  ),
-  Struct32BytesNestedInt Function(
-    Struct16BytesNestedInt,
-    Struct16BytesNestedInt,
-  )
->("ReturnStruct32BytesNestedInt");
+final returnStruct32BytesNestedInt = ffiTestFunctions
+    .lookupFunction<
+      Struct32BytesNestedInt Function(
+        Struct16BytesNestedInt,
+        Struct16BytesNestedInt,
+      ),
+      Struct32BytesNestedInt Function(
+        Struct16BytesNestedInt,
+        Struct16BytesNestedInt,
+      )
+    >("ReturnStruct32BytesNestedInt");
 
 /// Even deeper nested struct to test recursive member access.
 void testReturnStruct32BytesNestedInt() {
@@ -822,20 +838,21 @@ void testReturnStructNestedIntStructAlignmentInt64() {
   calloc.free(a1Pointer);
 }
 
-final returnStructNestedIrregularEvenBigger = ffiTestFunctions.lookupFunction<
-  StructNestedIrregularEvenBigger Function(
-    Uint64,
-    StructNestedIrregularBigger,
-    StructNestedIrregularBigger,
-    Double,
-  ),
-  StructNestedIrregularEvenBigger Function(
-    int,
-    StructNestedIrregularBigger,
-    StructNestedIrregularBigger,
-    double,
-  )
->("ReturnStructNestedIrregularEvenBigger");
+final returnStructNestedIrregularEvenBigger = ffiTestFunctions
+    .lookupFunction<
+      StructNestedIrregularEvenBigger Function(
+        Uint64,
+        StructNestedIrregularBigger,
+        StructNestedIrregularBigger,
+        Double,
+      ),
+      StructNestedIrregularEvenBigger Function(
+        int,
+        StructNestedIrregularBigger,
+        StructNestedIrregularBigger,
+        double,
+      )
+    >("ReturnStructNestedIrregularEvenBigger");
 
 /// Return big irregular struct as smoke test.
 void testReturnStructNestedIrregularEvenBigger() {

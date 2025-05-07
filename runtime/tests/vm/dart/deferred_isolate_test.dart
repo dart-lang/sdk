@@ -10,8 +10,10 @@ import 'package:expect/expect.dart';
 import "gc/splay_test.dart" deferred as splay;
 
 worker(SendPort sendPort) {
-  Expect.throws(() => splay.main(),
-      (e) => e.toString() == "Deferred library splay was not loaded.");
+  Expect.throws(
+    () => splay.main(),
+    (e) => e.toString() == "Deferred library splay was not loaded.",
+  );
   sendPort.send(true);
 }
 

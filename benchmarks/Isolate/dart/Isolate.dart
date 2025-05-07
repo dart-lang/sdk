@@ -54,8 +54,8 @@ class SendReceiveHelper {
     port = ReceivePort();
     inbox = StreamIterator<dynamic>(port);
     workerCompleted = Completer<bool>();
-    workerExitedPort =
-        ReceivePort()..listen((_) => workerCompleted.complete(true));
+    workerExitedPort = ReceivePort()
+      ..listen((_) => workerCompleted.complete(true));
     worker = await Isolate.spawn(
       isolate,
       StartMessage(port.sendPort, useTransferable, size),

@@ -383,12 +383,14 @@ void main() {
 }
 ''');
 
-    await assertErrorsInFile2(lib1, [
-      error(WarningCode.UNUSED_FIELD, 49, 2),
-    ]);
+    await assertErrorsInFile2(lib1, [error(WarningCode.UNUSED_FIELD, 49, 2)]);
     await assertErrorsInFile2(lib2, [
-      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 40, 12,
-          messageContains: ['A.forTesting']),
+      error(
+        WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER,
+        40,
+        12,
+        messageContains: ['A.forTesting'],
+      ),
     ]);
   }
 
@@ -508,9 +510,7 @@ void main() {
 }
 ''');
 
-    await assertErrorsInFile2(lib1, [
-      error(WarningCode.UNUSED_FIELD, 49, 2),
-    ]);
+    await assertErrorsInFile2(lib1, [error(WarningCode.UNUSED_FIELD, 49, 2)]);
     await assertErrorsInFile2(lib2, [
       error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 40, 1),
     ]);

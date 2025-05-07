@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 
@@ -55,7 +55,7 @@ class _DeclarationVisitor extends RecursiveAstVisitor<void> {
     required this.paramDefaultsToNull,
   });
 
-  Element2? get parameterElement => parameter.declaredFragment?.element;
+  Element? get parameterElement => parameter.declaredFragment?.element;
 
   void checkPatternElements(DartPattern node) {
     NodeList<PatternField>? fields;
@@ -84,7 +84,7 @@ class _DeclarationVisitor extends RecursiveAstVisitor<void> {
   }
 
   void reportLint(AstNode node) {
-    rule.reportLint(node, arguments: [parameter.name!.lexeme]);
+    rule.reportAtNode(node, arguments: [parameter.name!.lexeme]);
   }
 
   @override
@@ -184,7 +184,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 }
 
 extension on AstNode {
-  Element2? get element => switch (this) {
+  Element? get element => switch (this) {
     AssignedVariablePattern(:var element2) => element2,
     _ => null,
   };

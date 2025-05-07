@@ -1665,7 +1665,8 @@ library
 
   test_typedef_function_generic() async {
     var library = await buildLibrary(
-        'typedef F<T> = int Function<S>(List<S> list, num Function<A>(A), T);');
+      'typedef F<T> = int Function<S>(List<S> list, num Function<A>(A), T);',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1753,6 +1754,10 @@ library
       getters
         synthetic get f
           firstFragment: <testLibraryFragment>::@class::A::@getter::f
+          returnType: int Function<T>(T)
+            alias: <testLibrary>::@typeAlias::Foo
+              typeArguments
+                int
       setters
         synthetic set f
           firstFragment: <testLibraryFragment>::@class::A::@setter::f
@@ -1762,6 +1767,7 @@ library
                 alias: <testLibrary>::@typeAlias::Foo
                   typeArguments
                     int
+          returnType: void
   typeAliases
     Foo
       firstFragment: <testLibraryFragment>::@typeAlias::Foo
@@ -1910,8 +1916,9 @@ library
   }
 
   test_typedef_function_typeParameters_f_bound_simple() async {
-    var library =
-        await buildLibrary('typedef F<T extends U, U> = U Function(T t);');
+    var library = await buildLibrary(
+      'typedef F<T extends U, U> = U Function(T t);',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2405,7 +2412,8 @@ library
 
   test_typedef_legacy_typeParameters_bound() async {
     var library = await buildLibrary(
-        'typedef U F<T extends Object, U extends D>(T t); class D {}');
+      'typedef U F<T extends Object, U extends D>(T t); class D {}',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3984,7 +3992,7 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        <null-name>
+        <null-name> (offset=8)
           reference: <testLibraryFragment>::@typeAlias::0
           element: <testLibrary>::@typeAlias::0
   typeAliases
@@ -4651,7 +4659,7 @@ library
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
-        synthetic A
+        synthetic A (offset=-1)
           reference: <testLibraryFragment>::@topLevelVariable::A
           element: <testLibrary>::@topLevelVariable::A
           getter2: <testLibraryFragment>::@getter::A
@@ -4789,7 +4797,7 @@ library
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
-        synthetic A
+        synthetic A (offset=-1)
           reference: <testLibraryFragment>::@topLevelVariable::A
           element: <testLibrary>::@topLevelVariable::A
           setter2: <testLibraryFragment>::@setter::A

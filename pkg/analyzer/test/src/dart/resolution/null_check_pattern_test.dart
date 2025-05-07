@@ -16,13 +16,14 @@ main() {
 @reflectiveTest
 class NullCheckPatternResolutionTest extends PubPackageResolutionTest {
   test_ifCase() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int? x) {
   if (x case var y?) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 34, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 34, 1)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 NullCheckPattern
@@ -38,16 +39,17 @@ NullCheckPattern
   }
 
   test_switchCase() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int? x) {
   switch (x) {
     case var y?:
       break;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 45, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 45, 1)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 NullCheckPattern
@@ -63,15 +65,21 @@ NullCheckPattern
   }
 
   test_variableDeclaration() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int? x) {
   var (a?) = x;
 }
-''', [
-      error(
-          CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT, 24, 2),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 24, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT,
+          24,
+          2,
+        ),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 24, 1),
+      ],
+    );
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration

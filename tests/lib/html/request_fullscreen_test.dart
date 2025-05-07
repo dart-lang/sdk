@@ -12,5 +12,6 @@ void main() async {
   await documentElement.requestFullscreen().catchError((_) {});
   // Try it with an options argument.
   await documentElement
-      .requestFullscreen({'navigationUI': 'show'}).catchError((_) {});
+      .requestFullscreen({'navigationUI': 'show'})
+      .catchError((_) {});
 }

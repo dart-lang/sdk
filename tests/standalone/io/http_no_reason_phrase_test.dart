@@ -29,10 +29,11 @@ void missingReasonPhrase(int statusCode, bool includeSpace) {
         .getUrl(Uri.parse("http://127.0.0.1:${server.port}/"))
         .then((request) => request.close())
         .then((response) {
-      Expect.equals(statusCode, response.statusCode);
-      Expect.equals("", response.reasonPhrase);
-      return response.drain();
-    }).whenComplete(() => server.close());
+          Expect.equals(statusCode, response.statusCode);
+          Expect.equals("", response.reasonPhrase);
+          return response.drain();
+        })
+        .whenComplete(() => server.close());
   });
 }
 

@@ -33,8 +33,12 @@ main([args, port]) async {
 Future runTest(String packageConfig) async {
   final data = Uri.dataFromString(packageConfig);
   final port = ReceivePort();
-  await Isolate.spawnUri(Platform.script, [], port.sendPort,
-      packageConfig: data);
+  await Isolate.spawnUri(
+    Platform.script,
+    [],
+    port.sendPort,
+    packageConfig: data,
+  );
   final msg = await port.first;
   if (msg is! List) {
     print(msg.runtimeType);
@@ -54,8 +58,9 @@ testPackageResolution(port) async {
   try {
     var packageConfigStr = Platform.packageConfig;
     var packageConfig = await Isolate.packageConfig;
-    var resolvedPkg =
-        await Isolate.resolvePackageUri(Uri.parse(packageUriToResolve));
+    var resolvedPkg = await Isolate.resolvePackageUri(
+      Uri.parse(packageUriToResolve),
+    );
     print("Spawned isolate's package config flag: $packageConfigStr");
     print("Spawned isolate's loaded package config: $packageConfig");
     print("Spawned isolate's resolved package path: $resolvedPkg");

@@ -18,7 +18,6 @@
 // VMOptions=--profiler --concurrent_mark --use_compactor
 // VMOptions=--profiler --concurrent_mark --use_compactor --force_evacuation
 // VMOptions=--profiler --scavenger_tasks=-1
-// VMOptions=--profiler --scavenger_tasks=0
 // VMOptions=--profiler --scavenger_tasks=1
 // VMOptions=--profiler --scavenger_tasks=2
 // VMOptions=--profiler --verify_before_gc
@@ -55,8 +54,7 @@ class Payload {
 
   static generate(depth, tag) {
     if (depth == 0) return new Leaf(tag);
-    return new Payload(generate(depth - 1, tag),
-                       generate(depth - 1, tag));
+    return new Payload(generate(depth - 1, tag), generate(depth - 1, tag));
   }
 }
 

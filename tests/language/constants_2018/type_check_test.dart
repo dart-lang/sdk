@@ -29,10 +29,9 @@ class T {
   const T.length2(dynamic l, int defaultValue)
     : value = l is! String ? defaultValue : l.length;
   const T.sum(dynamic o1, dynamic o2)
-    : value =
-          ((o1 is num) & (o2 is num)) | ((o1 is String) & (o2 is String))
-              ? o1 + o2
-              : o1;
+    : value = ((o1 is num) & (o2 is num)) | ((o1 is String) & (o2 is String))
+          ? o1 + o2
+          : o1;
 }
 
 class C {

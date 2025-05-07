@@ -7,7 +7,7 @@ import 'dart:collection';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
-import 'package:analyzer_utilities/package_root.dart';
+import 'package:analyzer_testing/package_root.dart';
 import 'package:test/test.dart';
 
 // TODO(scheglov): Remove it after SDK 3.1 published.

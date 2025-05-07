@@ -64,6 +64,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_constant
 import 'package:analysis_server/src/services/correction/dart/convert_to_contains.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_expression_function_body.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_flutter_style_todo.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_for_each.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_function_declaration.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_generic_function_syntax.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_if_null.dart';
@@ -311,7 +312,9 @@ final _builtInLintGenerators = <LintCode, List<ProducerGenerator>>{
     //  diagnostics and should also be available as an assist.
     ReplaceCascadeWithDot.new,
   ],
-  LinterLintCode.avoid_types_as_parameter_names: [ConvertToOnType.new],
+  LinterLintCode.avoid_types_as_parameter_names_formal_parameter: [
+    ConvertToOnType.new,
+  ],
   LinterLintCode.avoid_types_on_closure_parameters: [
     ReplaceWithIdentifier.new,
     RemoveTypeAnnotation.other,
@@ -421,6 +424,7 @@ final _builtInLintGenerators = <LintCode, List<ProducerGenerator>>{
   LinterLintCode.prefer_for_elements_to_map_fromIterable: [
     ConvertMapFromIterableToForLiteral.new,
   ],
+  LinterLintCode.prefer_foreach: [ConvertToForEach.new],
   LinterLintCode.prefer_function_declarations_over_variables: [
     ConvertToFunctionDeclaration.new,
   ],
@@ -430,7 +434,7 @@ final _builtInLintGenerators = <LintCode, List<ProducerGenerator>>{
   LinterLintCode.prefer_if_elements_to_conditional_expressions: [
     ConvertConditionalExpressionToIfElement.new,
   ],
-  LinterLintCode.prefer_if_null_operators: [ConvertToIfNull.new],
+  LinterLintCode.prefer_if_null_operators: [ConvertToIfNull.preferIfNull],
   LinterLintCode.prefer_initializing_formals: [ConvertToInitializingFormal.new],
   LinterLintCode.prefer_inlined_adds_single: [
     ConvertAddAllToSpread.new,
@@ -535,6 +539,9 @@ final _builtInLintGenerators = <LintCode, List<ProducerGenerator>>{
   LinterLintCode.use_function_type_syntax_for_parameters: [
     ConvertToGenericFunctionSyntax.new,
   ],
+  LinterLintCode.use_if_null_to_convert_nulls_to_bools: [
+    ConvertToIfNull.useToConvertNullsToBools,
+  ],
   LinterLintCode.use_key_in_widget_constructors: [AddKeyToConstructors.new],
   LinterLintCode.use_named_constants: [ReplaceWithNamedConstant.new],
   LinterLintCode.use_null_aware_elements: [
@@ -563,7 +570,7 @@ final _builtInLintMultiGenerators = {
   ],
 };
 
-final _builtInNonLintGenerators = <ErrorCode, List<ProducerGenerator>>{
+final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   CompileTimeErrorCode.ABSTRACT_FIELD_INITIALIZER: [
     RemoveAbstract.new,
     RemoveInitializer.new,
@@ -965,6 +972,7 @@ final _builtInNonLintGenerators = <ErrorCode, List<ProducerGenerator>>{
   CompileTimeErrorCode.UNDEFINED_ENUM_CONSTANT: [
     AddEnumConstant.new,
     ChangeTo.getterOrSetter,
+    CreateMethodOrFunction.new,
   ],
   CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_NAMED: [
     CreateConstructor.new,
@@ -1010,6 +1018,9 @@ final _builtInNonLintGenerators = <ErrorCode, List<ProducerGenerator>>{
     CreateMethodOrFunction.new,
     CreateMixin.new,
     CreateSetter.new,
+    CreateExtensionGetter.new,
+    CreateExtensionMethod.new,
+    CreateExtensionSetter.new,
   ],
   CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT: [AddAsync.new],
   CompileTimeErrorCode.UNDEFINED_METHOD: [

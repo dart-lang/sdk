@@ -31,8 +31,12 @@ main() async {
       exitCode = 250;
     });
   for (int i = 0; i < isolateCount; ++i) {
-    await Isolate.spawn(isolate, i,
-        onExit: onExit.sendPort, onError: onError.sendPort);
+    await Isolate.spawn(
+      isolate,
+      i,
+      onExit: onExit.sendPort,
+      onError: onError.sendPort,
+    );
   }
   final onExits = StreamIterator(onExit);
   for (int i = 0; i < isolateCount; ++i) {
@@ -78,5 +82,5 @@ class B implements A {
 
 void sleep(int us) {
   final sw = Stopwatch()..start();
-  while (sw.elapsedMicroseconds < us);
+  while (sw.elapsedMicroseconds < us) ;
 }

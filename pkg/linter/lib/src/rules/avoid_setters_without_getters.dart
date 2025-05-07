@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 
@@ -57,7 +57,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
       var element = member.declaredFragment?.element;
       var interface = element?.enclosingElement2;
-      if (interface is! InterfaceElement2) continue;
+      if (interface is! InterfaceElement) continue;
 
       var name = Name.forElement(element!);
       if (name == null) continue;
@@ -70,7 +70,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (getterName == null) continue;
 
       // Check for a declared (static) getter.
-      ExecutableElement2? getter = interface.getGetter2(getterName);
+      ExecutableElement? getter = interface.getGetter2(getterName);
       // Then look up for an inherited one.
       getter ??= inheritanceManager.getMember4(
         interface,
@@ -79,7 +79,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       );
 
       if (getter == null) {
-        rule.reportLintForToken(member.name);
+        rule.reportAtToken(member.name);
       }
     }
   }

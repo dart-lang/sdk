@@ -124,20 +124,11 @@ class NameScheme {
     }
   }
 
-  // Coverage-ignore(suite): Not run.
-  static String createProcedureNameForTesting(
-      {required ContainerName? containerName,
-      required ContainerType containerType,
-      required bool isStatic,
-      required ProcedureKind kind,
-      required String name}) {
-    return _createProcedureName(
-        containerName: containerName,
-        containerType: containerType,
-        isStatic: isStatic,
-        kind: kind,
-        name: name);
-  }
+  static const String extensionTypeConstructorPrefix = 'constructor#';
+  static const String extensionGetterPrefix = 'get#';
+  static const String extensionSetterPrefix = 'set#';
+  static const String extensionNameDelimiter = '|';
+  static const String unnamedExtensionNamePrefix = '_extension#';
 
   static String _createProcedureName(
       {required ContainerName? containerName,
@@ -155,10 +146,10 @@ class NameScheme {
           // infix to make their names unique.
           switch (kind) {
             case ProcedureKind.Getter:
-              kindInfix = 'get#';
+              kindInfix = extensionGetterPrefix;
               break;
             case ProcedureKind.Setter:
-              kindInfix = 'set#';
+              kindInfix = extensionSetterPrefix;
               break;
             case ProcedureKind.Method:
             case ProcedureKind.Operator:
@@ -170,7 +161,7 @@ class NameScheme {
                   'Unexpected extension method kind ${kind}');
           }
         }
-        return '${extensionName}|${kindInfix}${name}';
+        return '${extensionName}${extensionNameDelimiter}${kindInfix}${name}';
       // Coverage-ignore(suite): Not run.
       case ContainerType.Library:
       case ContainerType.Class:
@@ -512,7 +503,11 @@ class ExtensionTypeConstructorName extends UpdatableMemberName {
       name = _text;
     }
     return new Name.byReference(
-        '${className}|constructor#${name}', _libraryName.reference);
+        '${className}'
+        '${NameScheme.extensionNameDelimiter}'
+        '${NameScheme.extensionTypeConstructorPrefix}'
+        '${name}',
+        _libraryName.reference);
   }
 }
 

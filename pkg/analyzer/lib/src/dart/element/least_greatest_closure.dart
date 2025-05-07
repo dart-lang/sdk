@@ -120,10 +120,7 @@ class PatternGreatestClosureHelper extends ReplacementVisitor {
   TypeImpl? visitTypeParameterType(TypeParameterType type) {
     var replacement = _isCovariant ? topType : bottomType;
     return replacement.withNullability(
-      uniteNullabilities(
-        replacement.nullabilitySuffix,
-        type.nullabilitySuffix,
-      ),
+      uniteNullabilities(replacement.nullabilitySuffix, type.nullabilitySuffix),
     );
   }
 }

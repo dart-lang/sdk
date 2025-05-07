@@ -104,10 +104,6 @@ def load_source(modname, filename):
 
 
 def _CheckDartFormat(input_api, output_api):
-    # TODO(rnystrom): Dart format presubmit checks are temporarily disabled
-    # while rolling the new formatter into the SDK.
-    return []
-
     local_root = input_api.change.RepositoryRoot()
     utils = load_source('utils', os.path.join(local_root, 'tools', 'utils.py'))
 

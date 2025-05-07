@@ -62,16 +62,18 @@ const interpolation1 =
 // (Single string, the linebreak to fit this into 80 chars is inside an
 // interpolation, which is allowed, even for single-line strings).
 const interpolation2 =
-    "${u1} ${u2} ${u3} ${u4} ${u5} ${u6} ${n1} ${n2} ${n3} ${n4} ${n5} ${n6} ${
-     s1} ${s2} ${s3} ${s4} ${b1} ${b2} ${b3} ${b4}";
+    "${u1} ${u2} ${u3} ${u4} ${u5} ${u6} ${n1} ${n2} ${n3} ${n4} ${n5} ${n6} ${s1} ${s2} ${s3} ${s4} ${b1} ${b2} ${b3} ${b4}";
 // Adjacent string literals are combined.
-const interpolation3 = "$u1 $u2 $u3 $u4 $u5 "
+const interpolation3 =
+    "$u1 $u2 $u3 $u4 $u5 "
     '$u6 $n1 $n2 $n3 $n4 '
     """$n5 $n6 $s1 $s2 $s3 """
     '''$s4 $b1 $b2 $b3 $b4''';
 // Nested interpolations.
-const interpolation4 = "${"$u1 $u2 $u3 $u4 $u5 " '$u6 $n1 $n2 $n3 $n4'} ${
-     """$n5 $n6 $s1 $s2 $s3 """ '''$s4 $b1 $b2 $b3 $b4'''}";
+const interpolation4 =
+    "${"$u1 $u2 $u3 $u4 $u5 "
+        '$u6 $n1 $n2 $n3 $n4'} ${"""$n5 $n6 $s1 $s2 $s3 """
+        '''$s4 $b1 $b2 $b3 $b4'''}";
 
 main() {
   Expect.equals(u1.toString(), su1);
@@ -94,7 +96,8 @@ main() {
   Expect.equals(b2.toString(), sb2);
   Expect.equals(b3.toString(), sb3);
   Expect.equals(b4.toString(), sb4);
-  var expect = "null null null null null null 42 3.1415 37 4.6692 2.71828 87 "
+  var expect =
+      "null null null null null null 42 3.1415 37 4.6692 2.71828 87 "
       "s1 s2 s1s2 s4 true false false true";
   Expect.equals(expect, interpolation1);
   Expect.equals(expect, interpolation2);

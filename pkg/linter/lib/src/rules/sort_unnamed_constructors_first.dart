@@ -43,7 +43,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (member is ConstructorDeclaration) {
         if (member.name == null) {
           if (seenConstructor) {
-            rule.reportLint(member.returnType);
+            rule.reportAtNode(member.returnType);
           }
         } else {
           seenConstructor = true;

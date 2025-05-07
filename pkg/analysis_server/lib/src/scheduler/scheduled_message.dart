@@ -9,11 +9,18 @@ import 'package:analysis_server/protocol/protocol.dart' as legacy;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:language_server_protocol/protocol_custom_generated.dart';
+import 'package:watcher/watcher.dart';
 
 /// Represents a message from DTD (Dart Tooling Daemon).
 final class DtdMessage extends ScheduledMessage {
+  /// The message that was received.
   final lsp.IncomingMessage message;
+
+  /// The completer to be signalled when a response to the message has been
+  /// computed.
   final Completer<Map<String, Object?>> responseCompleter;
+
+  /// The object used to gather performance data.
   final OperationPerformanceImpl performance;
 
   DtdMessage({
@@ -28,7 +35,11 @@ final class DtdMessage extends ScheduledMessage {
 
 /// Represents a message in the Legacy protocol format.
 final class LegacyMessage extends ScheduledMessage {
+  /// The Legacy message that was received.
   final legacy.Request request;
+
+  /// The token used to cancel the request, or `null` if the message is not a
+  /// request.
   CancelableToken? cancellationToken;
 
   LegacyMessage({required this.request, this.cancellationToken});
@@ -39,7 +50,11 @@ final class LegacyMessage extends ScheduledMessage {
 
 /// Represents a message in the LSP protocol format.
 final class LspMessage extends ScheduledMessage {
+  /// The LSP message that was received.
   final lsp.Message message;
+
+  /// The token used to cancel the request, or `null` if the message is not a
+  /// request.
   CancelableToken? cancellationToken;
 
   LspMessage({required this.message, this.cancellationToken});
@@ -64,3 +79,16 @@ final class LspMessage extends ScheduledMessage {
 ///
 /// The client can be an IDE, a command-line tool, or DTD.
 sealed class ScheduledMessage {}
+
+/// Represents a message from the file watcher.
+///
+/// This is always a notification.
+final class WatcherMessage extends ScheduledMessage {
+  /// The event that was received.
+  final WatchEvent event;
+
+  WatcherMessage(this.event);
+
+  @override
+  String toString() => '${event.type} ${event.path}';
+}

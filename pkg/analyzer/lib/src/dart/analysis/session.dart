@@ -8,7 +8,6 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/analysis/uri_converter.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as driver;
 import 'package:analyzer/src/dart/analysis/uri_converter.dart';
@@ -93,20 +92,8 @@ class AnalysisSessionImpl implements AnalysisSession {
     return _driver.getParsedLibrary(path);
   }
 
-  @Deprecated('Use getParsedLibraryByElement2() instead')
   @override
-  SomeParsedLibraryResult getParsedLibraryByElement(LibraryElement element) {
-    checkConsistency();
-
-    if (element.session != this) {
-      return NotElementOfThisSessionResult();
-    }
-
-    return _driver.getParsedLibraryByUri(element.source.uri);
-  }
-
-  @override
-  SomeParsedLibraryResult getParsedLibraryByElement2(LibraryElement2 element) {
+  SomeParsedLibraryResult getParsedLibraryByElement2(LibraryElement element) {
     checkConsistency();
 
     if (element.session != this) {
@@ -128,9 +115,8 @@ class AnalysisSessionImpl implements AnalysisSession {
     return await _driver.getResolvedLibrary(path);
   }
 
-  @Deprecated('Use getResolvedLibraryByElement2() instead')
   @override
-  Future<SomeResolvedLibraryResult> getResolvedLibraryByElement(
+  Future<SomeResolvedLibraryResult> getResolvedLibraryByElement2(
     LibraryElement element,
   ) async {
     checkConsistency();
@@ -139,20 +125,22 @@ class AnalysisSessionImpl implements AnalysisSession {
       return NotElementOfThisSessionResult();
     }
 
-    return await _driver.getResolvedLibraryByUri(element.source.uri);
+    return await _driver.getResolvedLibraryByUri(element.uri);
   }
 
   @override
-  Future<SomeResolvedLibraryResult> getResolvedLibraryByElement2(
-    LibraryElement2 element,
+  Future<SomeResolvedLibraryResult> getResolvedLibraryContaining(
+    String path,
   ) async {
     checkConsistency();
-
-    if (element.session != this) {
-      return NotElementOfThisSessionResult();
-    }
-
-    return await _driver.getResolvedLibraryByUri(element.uri);
+    var libraryFragmentResult = await getUnitElement(path);
+    return switch (libraryFragmentResult) {
+      UnitElementResult(:var fragment) => await getResolvedLibraryByElement2(
+        fragment.element,
+      ),
+      SomeResolvedLibraryResult result => result,
+      _ => UnspecifiedInvalidResult(),
+    };
   }
 
   @override

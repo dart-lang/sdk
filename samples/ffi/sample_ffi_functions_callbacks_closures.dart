@@ -34,9 +34,10 @@ void main() {
 
 final testLibrary = dlopenPlatformSpecific("ffi_test_functions");
 
-final registerClosureCallback =
-    testLibrary.lookupFunction<Void Function(Handle), void Function(Object)>(
-        "RegisterClosureCallback");
+final registerClosureCallback = testLibrary
+    .lookupFunction<Void Function(Handle), void Function(Object)>(
+      "RegisterClosureCallback",
+    );
 
 final invokeClosureCallback = testLibrary
     .lookupFunction<Void Function(), void Function()>("InvokeClosureCallback");
@@ -49,19 +50,23 @@ void doClosureCallback(Object callback) {
   callback_as_function();
 }
 
-final closureCallbackPointer =
-    Pointer.fromFunction<Void Function(Handle)>(doClosureCallback);
+final closureCallbackPointer = Pointer.fromFunction<Void Function(Handle)>(
+  doClosureCallback,
+);
 
 void doDynamicLinking() {
   Expect.isTrue(NativeApi.majorVersion == 2);
   Expect.isTrue(NativeApi.minorVersion >= 2);
-  final initializeApi = testLibrary.lookupFunction<
-      IntPtr Function(Pointer<Void>),
-      int Function(Pointer<Void>)>("InitDartApiDL");
+  final initializeApi = testLibrary
+      .lookupFunction<
+        IntPtr Function(Pointer<Void>),
+        int Function(Pointer<Void>)
+      >("InitDartApiDL");
   Expect.isTrue(initializeApi(NativeApi.initializeApiDLData) == 0);
 
-  final registerClosureCallback = testLibrary.lookupFunction<
-      Void Function(Pointer),
-      void Function(Pointer)>("RegisterClosureCallbackFP");
+  final registerClosureCallback = testLibrary
+      .lookupFunction<Void Function(Pointer), void Function(Pointer)>(
+        "RegisterClosureCallbackFP",
+      );
   registerClosureCallback(closureCallbackPointer);
 }

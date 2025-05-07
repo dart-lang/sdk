@@ -138,28 +138,28 @@ class NamedMixin = self::Super with self::Mixin {
   synthetic constructor •() → self::NamedMixin
     : super self::Super::•()
     ;
-  mixin-super-stub get mixedInConcreteGetter() → core::int
+  synthetic mixin-super-stub get mixedInConcreteGetter() → core::int
     return super.{self::Mixin::mixedInConcreteGetter};
-  mixin-super-stub get extendedConcreteMixedInConcreteGetter() → core::int
+  abstract synthetic mixin-stub get mixedInAbstractGetter() → core::int; -> self::Mixin::mixedInAbstractGetter
+  synthetic mixin-super-stub get extendedConcreteMixedInConcreteGetter() → core::int
     return super.{self::Mixin::extendedConcreteMixedInConcreteGetter};
-  mixin-super-stub get extendedAbstractMixedInConcreteGetter() → core::int
+  synthetic mixin-super-stub get extendedAbstractMixedInConcreteGetter() → core::int
     return super.{self::Mixin::extendedAbstractMixedInConcreteGetter};
-  abstract mixin-stub get extendedConcreteMixedInAbstractGetter() → core::int; -> self::Mixin::extendedConcreteMixedInAbstractGetter
-  abstract mixin-stub get mixedInAbstractGetter() → core::int; -> self::Mixin::mixedInAbstractGetter
-  abstract mixin-stub get extendedAbstractMixedInAbstractGetter() → core::int; -> self::Mixin::extendedAbstractMixedInAbstractGetter
+  abstract synthetic mixin-stub get extendedConcreteMixedInAbstractGetter() → core::int; -> self::Mixin::extendedConcreteMixedInAbstractGetter
+  abstract synthetic mixin-stub get extendedAbstractMixedInAbstractGetter() → core::int; -> self::Mixin::extendedAbstractMixedInAbstractGetter
 }
 abstract class _ClassMixin&Super&Mixin = self::Super with self::Mixin /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_ClassMixin&Super&Mixin
     : super self::Super::•()
     ;
-  mixin-super-stub get mixedInConcreteGetter() → core::int
+  synthetic mixin-super-stub get mixedInConcreteGetter() → core::int
     return super.{self::Mixin::mixedInConcreteGetter};
-  mixin-super-stub get extendedConcreteMixedInConcreteGetter() → core::int
+  abstract synthetic mixin-stub get mixedInAbstractGetter() → core::int; -> self::Mixin::mixedInAbstractGetter
+  synthetic mixin-super-stub get extendedConcreteMixedInConcreteGetter() → core::int
     return super.{self::Mixin::extendedConcreteMixedInConcreteGetter};
-  mixin-super-stub get extendedAbstractMixedInConcreteGetter() → core::int
+  synthetic mixin-super-stub get extendedAbstractMixedInConcreteGetter() → core::int
     return super.{self::Mixin::extendedAbstractMixedInConcreteGetter};
-  abstract mixin-stub get extendedConcreteMixedInAbstractGetter() → core::int; -> self::Mixin::extendedConcreteMixedInAbstractGetter
-  abstract mixin-stub get mixedInAbstractGetter() → core::int; -> self::Mixin::mixedInAbstractGetter
-  abstract mixin-stub get extendedAbstractMixedInAbstractGetter() → core::int; -> self::Mixin::extendedAbstractMixedInAbstractGetter
+  abstract synthetic mixin-stub get extendedConcreteMixedInAbstractGetter() → core::int; -> self::Mixin::extendedConcreteMixedInAbstractGetter
+  abstract synthetic mixin-stub get extendedAbstractMixedInAbstractGetter() → core::int; -> self::Mixin::extendedAbstractMixedInAbstractGetter
 }
 static method main() → dynamic {}

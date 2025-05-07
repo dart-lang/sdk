@@ -10,13 +10,13 @@ class A {
   set foo(x) {}
   void set bar(x) {}
   dynamic set baz(x) {}
-//^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
-// [cfe] The return type of the setter must be 'void' or absent.
+  // [error column 3, length 7]
+  // [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
+  // [cfe] The return type of the setter must be 'void' or absent.
   bool set bob(x) {}
-//^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
-// [cfe] The return type of the setter must be 'void' or absent.
+  // [error column 3, length 4]
+  // [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
+  // [cfe] The return type of the setter must be 'void' or absent.
 }
 
 main() {

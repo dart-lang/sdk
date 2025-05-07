@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart' as analyzer;
+import 'package:analyzer/diagnostic/diagnostic.dart' as analyzer;
 import 'package:analyzer/error/error.dart' as analyzer;
 import 'package:analyzer/source/error_processor.dart' as analyzer;
 import 'package:analyzer/source/line_info.dart' as analyzer;
@@ -25,21 +26,22 @@ void main() {
 class AnalyzerConverterTest extends AbstractSingleUnitTest {
   AnalyzerConverter converter = AnalyzerConverter();
 
-  /// Assert that the given [pluginError] matches the given [analyzerError].
+  /// Asserts that the given [pluginError] matches the given
+  /// [analyzerDiagnostic].
   void assertError(
-      plugin.AnalysisError pluginError, analyzer.AnalysisError analyzerError,
-      {analyzer.ErrorSeverity? severity,
+      plugin.AnalysisError pluginError, analyzer.Diagnostic analyzerDiagnostic,
+      {analyzer.DiagnosticSeverity? severity,
       int startColumn = -1,
       int startLine = -1}) {
-    var errorCode = analyzerError.errorCode;
+    var errorCode = analyzerDiagnostic.errorCode;
     expect(pluginError, isNotNull);
     var location = pluginError.location;
     expect(pluginError.code, errorCode.name.toLowerCase());
     expect(pluginError.correction, errorCode.correctionMessage);
     expect(location, isNotNull);
-    expect(location.file, analyzerError.source.fullName);
-    expect(location.length, analyzerError.length);
-    expect(location.offset, analyzerError.offset);
+    expect(location.file, analyzerDiagnostic.source.fullName);
+    expect(location.length, analyzerDiagnostic.length);
+    expect(location.offset, analyzerDiagnostic.offset);
     expect(location.startColumn, startColumn);
     expect(location.startLine, startLine);
     expect(pluginError.message, errorCode.problemMessage);
@@ -48,7 +50,7 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
     expect(pluginError.type, converter.convertErrorType(errorCode.type));
   }
 
-  Future<analyzer.AnalysisError> createError(
+  Future<analyzer.Diagnostic> createError(
     int offset, {
     String? contextMessage,
   }) async {
@@ -68,7 +70,7 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
         ),
       );
     }
-    return analyzer.AnalysisError.tmp(
+    return analyzer.Diagnostic.tmp(
       source: testSource,
       offset: offset,
       length: 5,
@@ -80,7 +82,7 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
   Future<void> test_convertAnalysisError_contextMessages() async {
     var analyzerError = await createError(13, contextMessage: 'here');
     var lineInfo = analyzer.LineInfo([0, 10, 20]);
-    var severity = analyzer.ErrorSeverity.WARNING;
+    var severity = analyzer.DiagnosticSeverity.WARNING;
 
     var pluginError = converter.convertAnalysisError(analyzerError,
         lineInfo: lineInfo, severity: severity);
@@ -107,7 +109,7 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
   Future<void> test_convertAnalysisError_lineInfo_severity() async {
     var analyzerError = await createError(13);
     var lineInfo = analyzer.LineInfo([0, 10, 20]);
-    var severity = analyzer.ErrorSeverity.WARNING;
+    var severity = analyzer.DiagnosticSeverity.WARNING;
 
     assertError(
         converter.convertAnalysisError(analyzerError,
@@ -126,7 +128,7 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
 
   Future<void> test_convertAnalysisError_noLineInfo_severity() async {
     var analyzerError = await createError(11);
-    var severity = analyzer.ErrorSeverity.WARNING;
+    var severity = analyzer.DiagnosticSeverity.WARNING;
 
     assertError(
         converter.convertAnalysisError(analyzerError, severity: severity),
@@ -135,7 +137,7 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
   }
 
   Future<void> test_convertAnalysisErrors_lineInfo_noOptions() async {
-    var analyzerErrors = <analyzer.AnalysisError>[
+    var analyzerErrors = [
       await createError(13),
       await createError(25),
     ];
@@ -154,12 +156,12 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
   }
 
   Future<void> test_convertAnalysisErrors_lineInfo_options() async {
-    var analyzerErrors = <analyzer.AnalysisError>[
+    var analyzerErrors = [
       await createError(13),
       await createError(25),
     ];
     var lineInfo = analyzer.LineInfo([0, 10, 20]);
-    var severity = analyzer.ErrorSeverity.WARNING;
+    var severity = analyzer.DiagnosticSeverity.WARNING;
     var options = (analyzer.AnalysisOptionsBuilder()
           ..errorProcessors.add(analyzer.ErrorProcessor(
               analyzerErrors[0].errorCode.name, severity)))
@@ -175,7 +177,7 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
   }
 
   Future<void> test_convertAnalysisErrors_noLineInfo_noOptions() async {
-    var analyzerErrors = <analyzer.AnalysisError>[
+    var analyzerErrors = [
       await createError(11),
       await createError(25),
     ];
@@ -190,11 +192,11 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
   }
 
   Future<void> test_convertAnalysisErrors_noLineInfo_options() async {
-    var analyzerErrors = <analyzer.AnalysisError>[
+    var analyzerErrors = [
       await createError(13),
       await createError(25),
     ];
-    var severity = analyzer.ErrorSeverity.WARNING;
+    var severity = analyzer.DiagnosticSeverity.WARNING;
     var options = (analyzer.AnalysisOptionsBuilder()
           ..errorProcessors.add(analyzer.ErrorProcessor(
               analyzerErrors[0].errorCode.name, severity)))
@@ -620,8 +622,8 @@ typedef A<T> = Map<int, T>;
   }
 
   void test_convertErrorSeverity() {
-    for (var severity in analyzer.ErrorSeverity.values) {
-      if (severity != analyzer.ErrorSeverity.NONE) {
+    for (var severity in analyzer.DiagnosticSeverity.values) {
+      if (severity != analyzer.DiagnosticSeverity.NONE) {
         expect(converter.convertErrorSeverity(severity), isNotNull,
             reason: severity.name);
       }
@@ -629,7 +631,7 @@ typedef A<T> = Map<int, T>;
   }
 
   void test_convertErrorType() {
-    for (var type in analyzer.ErrorType.values) {
+    for (var type in analyzer.DiagnosticType.values) {
       expect(converter.convertErrorType(type), isNotNull, reason: type.name);
     }
   }

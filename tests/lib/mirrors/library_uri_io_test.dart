@@ -24,8 +24,10 @@ main() {
   var mirrors = currentMirrorSystem();
   test("Test current library uri", () {
     if (!Platform.script.toString().endsWith('.dart')) {
-      print("Skipping library uri test as not running from source "
-          "(Platform.script = ${Platform.script})");
+      print(
+        "Skipping library uri test as not running from source "
+        "(Platform.script = ${Platform.script})",
+      );
       return;
     }
     Uri uri = Uri.base.resolveUri(Platform.script);

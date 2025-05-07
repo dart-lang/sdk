@@ -17,26 +17,29 @@ import "package:expect/expect.dart";
 // connection as there is no keep alive.
 void testHttp10NoKeepAlive() {
   HttpServer.bind("127.0.0.1", 0).then((server) {
-    server.listen((HttpRequest request) {
-      Expect.isNull(request.headers.value('content-length'));
-      Expect.equals(-1, request.contentLength);
-      var response = request.response;
-      response.contentLength = 1;
-      Expect.equals("1.0", request.protocolVersion);
-      response.done
-          .then((_) => Expect.fail("Unexpected response completion"))
-          .catchError((error) => Expect.isTrue(error is HttpException));
-      response.write("Z");
-      response.write("Z");
-      response.close();
-      Expect.throws(() {
-        response.write("x");
-      }, (e) => e is StateError);
-    }, onError: (e, trace) {
-      String msg = "Unexpected error $e";
-      if (trace != null) msg += "\nStackTrace: $trace";
-      Expect.fail(msg);
-    });
+    server.listen(
+      (HttpRequest request) {
+        Expect.isNull(request.headers.value('content-length'));
+        Expect.equals(-1, request.contentLength);
+        var response = request.response;
+        response.contentLength = 1;
+        Expect.equals("1.0", request.protocolVersion);
+        response.done
+            .then((_) => Expect.fail("Unexpected response completion"))
+            .catchError((error) => Expect.isTrue(error is HttpException));
+        response.write("Z");
+        response.write("Z");
+        response.close();
+        Expect.throws(() {
+          response.write("x");
+        }, (e) => e is StateError);
+      },
+      onError: (e, trace) {
+        String msg = "Unexpected error $e";
+        if (trace != null) msg += "\nStackTrace: $trace";
+        Expect.fail(msg);
+      },
+    );
 
     int count = 0;
     makeRequest() {
@@ -44,17 +47,20 @@ void testHttp10NoKeepAlive() {
         socket.write("GET / HTTP/1.0\r\n\r\n");
 
         List<int> response = [];
-        socket.listen(response.addAll, onDone: () {
-          count++;
-          socket.destroy();
-          String s = new String.fromCharCodes(response).toLowerCase();
-          Expect.equals(-1, s.indexOf("keep-alive"));
-          if (count < 10) {
-            makeRequest();
-          } else {
-            server.close();
-          }
-        });
+        socket.listen(
+          response.addAll,
+          onDone: () {
+            count++;
+            socket.destroy();
+            String s = new String.fromCharCodes(response).toLowerCase();
+            Expect.equals(-1, s.indexOf("keep-alive"));
+            if (count < 10) {
+              makeRequest();
+            } else {
+              server.close();
+            }
+          },
+        );
       });
     }
 
@@ -67,20 +73,26 @@ void testHttp10NoKeepAlive() {
 // the response.
 void testHttp10ServerClose() {
   HttpServer.bind("127.0.0.1", 0).then((server) {
-    server.listen((HttpRequest request) {
-      Expect.isNull(request.headers.value('content-length'));
-      Expect.equals(-1, request.contentLength);
-      request.listen((_) {}, onDone: () {
-        var response = request.response;
-        Expect.equals("1.0", request.protocolVersion);
-        response.write("Z");
-        response.close();
-      });
-    }, onError: (e, trace) {
-      String msg = "Unexpected error $e";
-      if (trace != null) msg += "\nStackTrace: $trace";
-      Expect.fail(msg);
-    });
+    server.listen(
+      (HttpRequest request) {
+        Expect.isNull(request.headers.value('content-length'));
+        Expect.equals(-1, request.contentLength);
+        request.listen(
+          (_) {},
+          onDone: () {
+            var response = request.response;
+            Expect.equals("1.0", request.protocolVersion);
+            response.write("Z");
+            response.close();
+          },
+        );
+      },
+      onError: (e, trace) {
+        String msg = "Unexpected error $e";
+        if (trace != null) msg += "\nStackTrace: $trace";
+        Expect.fail(msg);
+      },
+    );
 
     int count = 0;
     makeRequest() {
@@ -89,21 +101,23 @@ void testHttp10ServerClose() {
         socket.write("Connection: Keep-Alive\r\n\r\n");
 
         List<int> response = [];
-        socket.listen(response.addAll,
-            onDone: () {
-              socket.destroy();
-              count++;
-              String s = new String.fromCharCodes(response).toLowerCase();
-              Expect.equals("z", s[s.length - 1]);
-              Expect.equals(-1, s.indexOf("content-length:"));
-              Expect.equals(-1, s.indexOf("keep-alive"));
-              if (count < 10) {
-                makeRequest();
-              } else {
-                server.close();
-              }
-            },
-            onError: (e) => print(e));
+        socket.listen(
+          response.addAll,
+          onDone: () {
+            socket.destroy();
+            count++;
+            String s = new String.fromCharCodes(response).toLowerCase();
+            Expect.equals("z", s[s.length - 1]);
+            Expect.equals(-1, s.indexOf("content-length:"));
+            Expect.equals(-1, s.indexOf("keep-alive"));
+            if (count < 10) {
+              makeRequest();
+            } else {
+              server.close();
+            }
+          },
+          onError: (e) => print(e),
+        );
       });
     }
 
@@ -116,20 +130,23 @@ void testHttp10ServerClose() {
 // used.
 void testHttp10KeepAlive() {
   HttpServer.bind("127.0.0.1", 0).then((server) {
-    server.listen((HttpRequest request) {
-      Expect.isNull(request.headers.value('content-length'));
-      Expect.equals(-1, request.contentLength);
-      var response = request.response;
-      response.contentLength = 1;
-      response.persistentConnection = true;
-      Expect.equals("1.0", request.protocolVersion);
-      response.write("Z");
-      response.close();
-    }, onError: (e, trace) {
-      String msg = "Unexpected error $e";
-      if (trace != null) msg += "\nStackTrace: $trace";
-      Expect.fail(msg);
-    });
+    server.listen(
+      (HttpRequest request) {
+        Expect.isNull(request.headers.value('content-length'));
+        Expect.equals(-1, request.contentLength);
+        var response = request.response;
+        response.contentLength = 1;
+        response.persistentConnection = true;
+        Expect.equals("1.0", request.protocolVersion);
+        response.write("Z");
+        response.close();
+      },
+      onError: (e, trace) {
+        String msg = "Unexpected error $e";
+        if (trace != null) msg += "\nStackTrace: $trace";
+        Expect.fail(msg);
+      },
+    );
 
     Socket.connect("127.0.0.1", server.port).then((socket) {
       void sendRequest() {
@@ -139,24 +156,27 @@ void testHttp10KeepAlive() {
 
       List<int> response = [];
       int count = 0;
-      socket.listen((d) {
-        response.addAll(d);
-        if (response[response.length - 1] == "Z".codeUnitAt(0)) {
-          String s = new String.fromCharCodes(response).toLowerCase();
-          Expect.isTrue(s.indexOf("\r\nconnection: keep-alive\r\n") > 0);
-          Expect.isTrue(s.indexOf("\r\ncontent-length: 1\r\n") > 0);
-          count++;
-          if (count < 10) {
-            response = [];
-            sendRequest();
-          } else {
-            socket.close();
+      socket.listen(
+        (d) {
+          response.addAll(d);
+          if (response[response.length - 1] == "Z".codeUnitAt(0)) {
+            String s = new String.fromCharCodes(response).toLowerCase();
+            Expect.isTrue(s.indexOf("\r\nconnection: keep-alive\r\n") > 0);
+            Expect.isTrue(s.indexOf("\r\ncontent-length: 1\r\n") > 0);
+            count++;
+            if (count < 10) {
+              response = [];
+              sendRequest();
+            } else {
+              socket.close();
+            }
           }
-        }
-      }, onDone: () {
-        socket.destroy();
-        server.close();
-      });
+        },
+        onDone: () {
+          socket.destroy();
+          server.close();
+        },
+      );
       sendRequest();
     });
   });
@@ -167,18 +187,21 @@ void testHttp10KeepAlive() {
 // keep alive.
 void testHttp10KeepAliveServerCloses() {
   HttpServer.bind("127.0.0.1", 0).then((server) {
-    server.listen((HttpRequest request) {
-      Expect.isNull(request.headers.value('content-length'));
-      Expect.equals(-1, request.contentLength);
-      var response = request.response;
-      Expect.equals("1.0", request.protocolVersion);
-      response.write("Z");
-      response.close();
-    }, onError: (e, trace) {
-      String msg = "Unexpected error $e";
-      if (trace != null) msg += "\nStackTrace: $trace";
-      Expect.fail(msg);
-    });
+    server.listen(
+      (HttpRequest request) {
+        Expect.isNull(request.headers.value('content-length'));
+        Expect.equals(-1, request.contentLength);
+        var response = request.response;
+        Expect.equals("1.0", request.protocolVersion);
+        response.write("Z");
+        response.close();
+      },
+      onError: (e, trace) {
+        String msg = "Unexpected error $e";
+        if (trace != null) msg += "\nStackTrace: $trace";
+        Expect.fail(msg);
+      },
+    );
 
     int count = 0;
     makeRequest() {
@@ -187,19 +210,22 @@ void testHttp10KeepAliveServerCloses() {
         socket.write("Connection: Keep-Alive\r\n\r\n");
 
         List<int> response = [];
-        socket.listen(response.addAll, onDone: () {
-          socket.destroy();
-          count++;
-          String s = new String.fromCharCodes(response).toLowerCase();
-          Expect.equals("z", s[s.length - 1]);
-          Expect.equals(-1, s.indexOf("content-length"));
-          Expect.equals(-1, s.indexOf("connection"));
-          if (count < 10) {
-            makeRequest();
-          } else {
-            server.close();
-          }
-        });
+        socket.listen(
+          response.addAll,
+          onDone: () {
+            socket.destroy();
+            count++;
+            String s = new String.fromCharCodes(response).toLowerCase();
+            Expect.equals("z", s[s.length - 1]);
+            Expect.equals(-1, s.indexOf("content-length"));
+            Expect.equals(-1, s.indexOf("connection"));
+            if (count < 10) {
+              makeRequest();
+            } else {
+              server.close();
+            }
+          },
+        );
       });
     }
 

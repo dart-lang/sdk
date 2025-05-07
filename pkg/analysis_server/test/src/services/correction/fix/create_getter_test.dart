@@ -10,8 +10,8 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(CreateGetterTest);
     defineReflectiveTests(CreateGetterMixinTest);
+    defineReflectiveTests(CreateGetterTest);
   });
 }
 
@@ -19,6 +19,29 @@ void main() {
 class CreateGetterMixinTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CREATE_GETTER;
+
+  Future<void> test_inExtensionGetter() async {
+    await resolveTestCode('''
+mixin M {
+  void m(M m) => m.foo;
+}
+
+extension on M {
+  int get foo => bar;
+}
+''');
+    await assertHasFix('''
+mixin M {
+  int get bar => null;
+
+  void m(M m) => m.foo;
+}
+
+extension on M {
+  int get foo => bar;
+}
+''');
+  }
 
   Future<void> test_main_part() async {
     var partPath = join(testPackageLibPath, 'part.dart');
@@ -198,6 +221,52 @@ void f(A a) {
 ''');
   }
 
+  Future<void> test_inExtensionGetter_class() async {
+    await resolveTestCode('''
+class A {
+  void m(A a) => a.foo;
+}
+
+extension on A {
+  int get foo => bar;
+}
+''');
+    await assertHasFix('''
+class A {
+  int get bar => null;
+
+  void m(A a) => a.foo;
+}
+
+extension on A {
+  int get foo => bar;
+}
+''');
+  }
+
+  Future<void> test_inExtensionGetter_extensionType() async {
+    await resolveTestCode('''
+extension type A(int _i) {
+  void m(A a) => a.foo;
+}
+
+extension on A {
+  int get foo => bar;
+}
+''');
+    await assertHasFix('''
+extension type A(int _i) {
+  int get bar => null;
+
+  void m(A a) => a.foo;
+}
+
+extension on A {
+  int get foo => bar;
+}
+''');
+  }
+
   Future<void> test_inSDK() async {
     await resolveTestCode('''
 void f(List p) {
@@ -214,13 +283,7 @@ extension E on String {
   int m()  => g;
 }
 ''');
-    await assertHasFix('''
-extension E on String {
-  int get g => null;
-
-  int m()  => g;
-}
-''');
+    await assertNoFix();
   }
 
   Future<void> test_internal_static() async {
@@ -620,7 +683,29 @@ void f(A a) {
     await assertNoFix();
   }
 
-  Future<void> test_static() async {
+  Future<void> test_static_class() async {
+    await resolveTestCode('''
+class C {
+}
+
+void f(String s) {
+  int v = C.test;
+  print(v);
+}
+''');
+    await assertHasFix('''
+class C {
+  static int get test => null;
+}
+
+void f(String s) {
+  int v = C.test;
+  print(v);
+}
+''');
+  }
+
+  Future<void> test_static_extension() async {
     await resolveTestCode('''
 extension E on String {
 }

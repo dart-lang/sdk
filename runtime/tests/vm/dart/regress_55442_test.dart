@@ -35,8 +35,11 @@ class Expect {
     throw ExpectException(message);
   }
 
-  static T throws<T extends Object>(void Function() computation,
-      [bool Function(T error)? check, String reason = ""]) {
+  static T throws<T extends Object>(
+    void Function() computation, [
+    bool Function(T error)? check,
+    String reason = "",
+  ]) {
     try {
       computation();
     } catch (e, s) {
@@ -49,8 +52,10 @@ class Expect {
       if (T != dynamic && T != Object) {
         type = "<$T>";
       }
-      _fail("Expect.throws$type$msg: "
-          "Unexpected '${Error.safeToString(e)}'\n$s");
+      _fail(
+        "Expect.throws$type$msg: "
+        "Unexpected '${Error.safeToString(e)}'\n$s",
+      );
     }
     _fail('Expect.throws${_getMessage(reason)} fails: Did not throw');
   }

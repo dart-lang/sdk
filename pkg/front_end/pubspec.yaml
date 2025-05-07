@@ -17,7 +17,6 @@ resolution: workspace
 dependencies:
   _fe_analyzer_shared: any
   kernel: any
-  macros: any
   package_config: any
   yaml: any
 

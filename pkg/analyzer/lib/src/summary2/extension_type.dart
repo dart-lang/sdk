@@ -47,6 +47,8 @@ void _breakImplementsCycles(List<ExtensionTypeElementImpl2> elements) {
 class _DependenciesCollector extends RecursiveTypeVisitor {
   final List<ExtensionTypeElementImpl2> dependencies = [];
 
+  _DependenciesCollector() : super(includeTypeAliasArguments: false);
+
   @override
   bool visitInterfaceType(InterfaceType type) {
     var element = type.element3;
@@ -87,9 +89,10 @@ class _ImplementsNode extends graph.Node<_ImplementsNode> {
     var representationType = element.firstFragment.representation.type;
     var typeSystem = element.library2.typeSystem;
 
-    var superInterface = typeSystem.isNonNullable(representationType)
-        ? typeSystem.objectNone
-        : typeSystem.objectQuestion;
+    var superInterface =
+        typeSystem.isNonNullable(representationType)
+            ? typeSystem.objectNone
+            : typeSystem.objectQuestion;
     element.firstFragment.interfaces = [superInterface];
   }
 }
@@ -153,10 +156,11 @@ class _Node extends graph.Node<_Node> {
 
     element.firstFragment.representation.type = type;
     element.firstFragment.typeErasure = type.extensionTypeErasure;
-    element.firstFragment.interfaces = element.interfaces
-        .whereType<InterfaceType>()
-        .where(typeSystem.isValidExtensionTypeSuperinterface)
-        .toFixedList();
+    element.firstFragment.interfaces =
+        element.interfaces
+            .whereType<InterfaceType>()
+            .where(typeSystem.isValidExtensionTypeSuperinterface)
+            .toFixedList();
 
     var primaryConstructor = element.constructors2.first;
     var primaryFormalParameter = primaryConstructor.formalParameters.first;

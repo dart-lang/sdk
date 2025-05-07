@@ -258,6 +258,7 @@ class JJ {}
 // ^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_ANNOTATION
 //  ^
+// [cfe] Not a constant expression.
 // [cfe] This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
 class KK {
   const KK();

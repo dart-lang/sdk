@@ -14,28 +14,41 @@ USE_PYTHON3 = True
 # problems we disallow the direct use of memcpy.  The exceptions are in
 # third-party code and in platform/globals.h which uses it to implement
 # bit_cast and bit_copy.
-def CheckMemcpy(filename):
+# pthread_detach (and therefore std::thread::detach) have a bug that can
+# result in crashes. https://sourceware.org/bugzilla/show_bug.cgi?id=19951
+BANNED_FUNCTIONS = [
+    ['\\bmemcpy\\(', 'memcpy'],
+    ['\\bpthread_detach\\(', 'pthread_detach'],
+]
+
+
+def CheckBannedFunctions(filename):
     if filename.endswith(os.path.join('platform', 'globals.h')) or \
        filename.find('third_party') != -1:
         return 0
     fh = open(filename, 'r')
     content = fh.read()
-    match = re.search('\\bmemcpy\\b', content)
-    if match:
-        offset = match.start()
-        end_of_line = content.index('\n', offset)
-        # We allow explicit use of memcpy with an opt-in via NOLINT
-        if 'NOLINT' not in content[offset:end_of_line]:
-            line_number = content[0:match.start()].count('\n') + 1
-            print("%s:%d: use of memcpy is forbidden" % (filename, line_number))
-            return 1
+
+    for banned_function in BANNED_FUNCTIONS:
+        pattern = banned_function[0]
+        name = banned_function[1]
+        match = re.search(pattern, content)
+        if match:
+            offset = match.start()
+            end_of_line = content.index('\n', offset)
+            # We allow explicit use of memcpy with an opt-in via NOLINT
+            if 'NOLINT' not in content[offset:end_of_line]:
+                line_number = content[0:match.start()].count('\n') + 1
+                print("%s:%d: use of %s is forbidden" %
+                      (filename, line_number, name))
+                return 1
     return 0
 
 
 def RunLint(input_api, output_api):
     result = []
     cpplint._cpplint_state.ResetErrorCounts()
-    memcpy_match_count = 0
+    banned_match_count = 0
     # Find all .cc and .h files in the change list.
     for git_file in input_api.AffectedTextFiles():
         filename = git_file.AbsoluteLocalPath()
@@ -47,10 +60,10 @@ def RunLint(input_api, output_api):
             # Run cpplint on the file.
             cpplint.ProcessFile(filename, 1)
             # Check for memcpy use.
-            memcpy_match_count += CheckMemcpy(filename)
+            banned_match_count += CheckBannedFunctions(filename)
 
     # Report a presubmit error if any of the files had an error.
-    if cpplint._cpplint_state.error_count > 0 or memcpy_match_count > 0:
+    if cpplint._cpplint_state.error_count > 0 or banned_match_count > 0:
         result = [output_api.PresubmitError('Failed cpplint check.')]
     return result
 

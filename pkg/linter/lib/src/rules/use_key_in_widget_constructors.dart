@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
@@ -43,7 +43,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         classElement.isPublic &&
         classElement.extendsWidget &&
         classElement.constructors2.where((e) => !e.isSynthetic).isEmpty) {
-      rule.reportLintForToken(node.name);
+      rule.reportAtToken(node.name);
     }
     super.visitClassDeclaration(node);
   }
@@ -60,7 +60,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (constructorElement.isPublic &&
         !constructorElement.isFactory &&
         classElement.isPublic &&
-        classElement is ClassElement2 &&
+        classElement is ClassElement &&
         !classElement.isExactlyWidget &&
         classElement.extendsWidget &&
         !_hasKeySuperParameterInitializerArg(node) &&
@@ -79,7 +79,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           return false;
         })) {
       var errorNode = node.name ?? node.returnType;
-      rule.reportLintForOffset(errorNode.offset, errorNode.length);
+      rule.reportAtOffset(errorNode.offset, errorNode.length);
     }
     super.visitConstructorDeclaration(node);
   }
@@ -87,14 +87,14 @@ class _Visitor extends SimpleAstVisitor<void> {
   bool _defineKeyArgument(ArgumentList argumentList) => argumentList.arguments
       .any((a) => a.correspondingParameter?.name3 == 'key');
 
-  bool _defineKeyParameter(ConstructorElement2 element) => element
+  bool _defineKeyParameter(ConstructorElement element) => element
       .formalParameters
       .any((e) => e.name3 == 'key' && _isKeyType(e.type));
 
   bool _hasKeySuperParameterInitializerArg(ConstructorDeclaration node) {
     for (var parameter in node.parameters.parameterFragments) {
       var element = parameter?.element;
-      if (element is SuperFormalParameterElement2 && element.name3 == 'key') {
+      if (element is SuperFormalParameterElement && element.name3 == 'key') {
         return true;
       }
     }

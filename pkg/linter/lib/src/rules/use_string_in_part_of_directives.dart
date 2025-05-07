@@ -42,7 +42,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitPartOfDirective(PartOfDirective node) {
     if (node.libraryName != null) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 }

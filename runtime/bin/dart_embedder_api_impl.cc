@@ -75,8 +75,9 @@ Dart_Isolate CreateKernelServiceIsolate(const IsolateCreationData& data,
     Dart_ShutdownIsolate();
     return nullptr;
   }
-  result = bin::DartUtils::PrepareForScriptLoading(/*is_service_isolate=*/false,
-                                                   /*trace_loading=*/false);
+  result = bin::DartUtils::PrepareForScriptLoading(
+      /*is_service_isolate=*/false,
+      /*trace_loading=*/false, /*flag_profile_microtasks=*/false);
   Dart_ExitScope();
   Dart_ExitIsolate();
   return kernel_isolate;

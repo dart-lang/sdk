@@ -72,7 +72,7 @@ class VerifyPointersVisitor : public ObjectPointerVisitor {
 class VerifyWeakPointersVisitor : public HandleVisitor {
  public:
   explicit VerifyWeakPointersVisitor(VerifyPointersVisitor* visitor)
-      : HandleVisitor(Thread::Current()), visitor_(visitor) {}
+      : HandleVisitor(), visitor_(visitor) {}
 
   void VisitHandle(uword addr) override;
 

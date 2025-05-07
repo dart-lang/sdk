@@ -18,8 +18,6 @@ class B {
 }
 
 main() {
-
   new B();
   print(B.b);
-
 }

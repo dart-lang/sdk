@@ -18,10 +18,10 @@ class Foo extends Bar {
   final Map<int, int> foo1 = {for (final (int x,) in records) x: x};
   final Map<int, int> foo2;
   Foo()
-      // Constructor field initializer
-      : foo2 = {for (final (int x,) in records) x: x},
-        // Super initializer
-        super({for (final (int x,) in records) x: x});
+    // Constructor field initializer
+    : foo2 = {for (final (int x,) in records) x: x},
+      // Super initializer
+      super({for (final (int x,) in records) x: x});
 }
 
 void main() {

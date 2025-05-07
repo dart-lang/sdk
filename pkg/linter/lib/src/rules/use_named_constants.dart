@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/lint/constants.dart'; // ignore: implementation_imports
 
@@ -40,7 +40,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       var type = node.staticType;
       if (type is! InterfaceType) return;
       var element = type.element3;
-      if (element is ClassElement2) {
+      if (element is ClassElement) {
         var nodeField =
             node
                 .thisOrAncestorOfType<VariableDeclaration>()
@@ -64,7 +64,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         )) {
           if (field.isAccessibleIn2(library) &&
               field.computeConstantValue() == value) {
-            rule.reportLint(
+            rule.reportAtNode(
               node,
               arguments: ['${element.name3}.${field.name3}'],
             );

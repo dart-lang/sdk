@@ -183,18 +183,18 @@ class Class1 extends core::Object {
   synthetic constructor •() → mai::Class1
     : super core::Object::•()
     ;
-  static method _#new#tearOff() → mai::Class1
+  static synthetic method _#new#tearOff() → mai::Class1
     return new mai::Class1::•();
 }
 class Class2 extends core::Object {
   constructor named() → mai::Class2
     : super core::Object::•()
     ;
-  static method _#named#tearOff() → mai::Class2
+  static synthetic method _#named#tearOff() → mai::Class2
     return new mai::Class2::named();
   static factory redirect() → mai::Class2 /* redirection-target: mai::Class2::named */
     return new mai::Class2::named();
-  static method _#redirect#tearOff() → mai::Class2
+  static synthetic method _#redirect#tearOff() → mai::Class2
     return new mai::Class2::named();
 }
 class Class3 extends core::Object {
@@ -202,33 +202,33 @@ class Class3 extends core::Object {
   constructor •(core::int field) → mai::Class3
     : mai::Class3::field = field, super core::Object::•()
     ;
-  static method _#new#tearOff(core::int field) → mai::Class3
+  static synthetic method _#new#tearOff(core::int field) → mai::Class3
     return new mai::Class3::•(field);
 }
 class Class4<T extends core::Object? = dynamic> extends core::Object {
   constructor _() → mai::Class4<mai::Class4::T%>
     : super core::Object::•()
     ;
-  static method _#_#tearOff<T extends core::Object? = dynamic>() → mai::Class4<mai::Class4::_#_#tearOff::T%>
+  static synthetic method _#_#tearOff<T extends core::Object? = dynamic>() → mai::Class4<mai::Class4::_#_#tearOff::T%>
     return new mai::Class4::_<mai::Class4::_#_#tearOff::T%>();
   static factory •<T extends core::Object? = dynamic>() → mai::Class4<mai::Class4::•::T%>
     return new mai::Class4::_<mai::Class4::•::T%>();
-  static method _#new#tearOff<T extends core::Object? = dynamic>() → mai::Class4<mai::Class4::_#new#tearOff::T%>
+  static synthetic method _#new#tearOff<T extends core::Object? = dynamic>() → mai::Class4<mai::Class4::_#new#tearOff::T%>
     return mai::Class4::•<mai::Class4::_#new#tearOff::T%>();
   static factory redirect<T extends core::Object? = dynamic>() → mai::Class4<mai::Class4::redirect::T%> /* redirection-target: mai::Class4::_<mai::Class4::redirect::T%>*/
     return new mai::Class4::_<mai::Class4::redirect::T%>();
-  static method _#redirect#tearOff<T extends core::Object? = dynamic>() → mai::Class4<mai::Class4::_#redirect#tearOff::T%>
+  static synthetic method _#redirect#tearOff<T extends core::Object? = dynamic>() → mai::Class4<mai::Class4::_#redirect#tearOff::T%>
     return new mai::Class4::_<mai::Class4::_#redirect#tearOff::T%>();
 }
 class Class5<T extends core::num> extends core::Object {
   constructor _() → mai::Class5<mai::Class5::T>
     : super core::Object::•()
     ;
-  static method _#_#tearOff<T extends core::num>() → mai::Class5<mai::Class5::_#_#tearOff::T>
+  static synthetic method _#_#tearOff<T extends core::num>() → mai::Class5<mai::Class5::_#_#tearOff::T>
     return new mai::Class5::_<mai::Class5::_#_#tearOff::T>();
   static factory •<T extends core::num>() → mai::Class5<mai::Class5::•::T>
     return new mai::Class5::_<mai::Class5::•::T>();
-  static method _#new#tearOff<T extends core::num>() → mai::Class5<mai::Class5::_#new#tearOff::T>
+  static synthetic method _#new#tearOff<T extends core::num>() → mai::Class5<mai::Class5::_#new#tearOff::T>
     return mai::Class5::•<mai::Class5::_#new#tearOff::T>();
 }
 

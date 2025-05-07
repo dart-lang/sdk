@@ -184,10 +184,7 @@ class _ClassInterfaceType {
     try {
       _currentResult = _merge(_currentResult!, normType);
     } catch (e) {
-      _error = IncompatibleInterfacesClassHierarchyError(
-        _currentResult!,
-        type,
-      );
+      _error = IncompatibleInterfacesClassHierarchyError(_currentResult!, type);
     }
   }
 
@@ -213,8 +210,5 @@ class _Hierarchy {
   List<ClassHierarchyError> errors;
   List<InterfaceType> interfaces;
 
-  _Hierarchy({
-    required this.errors,
-    required this.interfaces,
-  });
+  _Hierarchy({required this.errors, required this.interfaces});
 }

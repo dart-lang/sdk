@@ -17,9 +17,7 @@ main() {
 
 abstract class PartIncludeElementTest extends ElementsBaseTest {
   test_configurations_useDefault() async {
-    declaredVariables = {
-      'dart.library.io': 'false',
-    };
+    declaredVariables = {'dart.library.io': 'false'};
 
     newFile('$testPackageLibPath/foo.dart', r'''
 part of 'test.dart';
@@ -54,6 +52,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/foo.dart
+      parts
+        part_0
+          uri: package:test/foo.dart
+          unit: <testLibrary>::@fragment::package:test/foo.dart
       classes
         class B @102
           reference: <testLibraryFragment>::@class::B
@@ -117,6 +119,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/foo_io.dart
+      parts
+        part_0
+          uri: package:test/foo_io.dart
+          unit: <testLibrary>::@fragment::package:test/foo_io.dart
       classes
         class B @102
           reference: <testLibraryFragment>::@class::B
@@ -180,6 +186,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/foo_io.dart
+      parts
+        part_0
+          uri: package:test/foo_io.dart
+          unit: <testLibrary>::@fragment::package:test/foo_io.dart
       classes
         class B @122
           reference: <testLibraryFragment>::@class::B
@@ -243,6 +253,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/foo_html.dart
+      parts
+        part_0
+          uri: package:test/foo_html.dart
+          unit: <testLibrary>::@fragment::package:test/foo_html.dart
       classes
         class B @102
           reference: <testLibraryFragment>::@class::B
@@ -306,6 +320,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/foo_html.dart
+      parts
+        part_0
+          uri: package:test/foo_html.dart
+          unit: <testLibrary>::@fragment::package:test/foo_html.dart
       classes
         class B @122
           reference: <testLibraryFragment>::@class::B
@@ -333,16 +351,24 @@ library
   test_library_parts() async {
     newFile('$testPackageLibPath/a.dart', 'part of my.lib;');
     newFile('$testPackageLibPath/b.dart', 'part of my.lib;');
-    var library =
-        await buildLibrary('library my.lib; part "a.dart"; part "b.dart";');
+    var library = await buildLibrary(
+      'library my.lib; part "a.dart"; part "b.dart";',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
   name: my.lib
   fragments
-    <testLibraryFragment>
+    <testLibraryFragment> (offset=8)
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      parts
+        part_0
+          uri: package:test/a.dart
+          unit: <testLibrary>::@fragment::package:test/a.dart
+        part_1
+          uri: package:test/b.dart
+          unit: <testLibrary>::@fragment::package:test/b.dart
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       enclosingFragment: <testLibraryFragment>
@@ -403,6 +429,13 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      parts
+        part_0
+          uri: package:test/a.dart
+          unit: <testLibrary>::@fragment::package:test/a.dart
+        part_1
+          uri: package:test/b.dart
+          unit: <testLibrary>::@fragment::package:test/b.dart
       classes
         class Z @36
           reference: <testLibraryFragment>::@class::Z
@@ -412,6 +445,13 @@ library
       enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a11.dart
+      parts
+        part_2
+          uri: package:test/a11.dart
+          unit: <testLibrary>::@fragment::package:test/a11.dart
+        part_3
+          uri: package:test/a12.dart
+          unit: <testLibrary>::@fragment::package:test/a12.dart
       classes
         class A @61
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
@@ -439,6 +479,13 @@ library
       enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibrary>::@fragment::package:test/a12.dart
       nextFragment: <testLibrary>::@fragment::package:test/b11.dart
+      parts
+        part_4
+          uri: package:test/b11.dart
+          unit: <testLibrary>::@fragment::package:test/b11.dart
+        part_5
+          uri: package:test/b12.dart
+          unit: <testLibrary>::@fragment::package:test/b12.dart
     <testLibrary>::@fragment::package:test/b11.dart
       element: <testLibrary>
       enclosingFragment: <testLibrary>::@fragment::package:test/b.dart
@@ -488,6 +535,9 @@ library
   fragments
     <testLibraryFragment>
       element: <testLibrary>
+      parts
+        part_0
+          uri: noRelativeUriString
 ''');
   }
 
@@ -506,9 +556,13 @@ library
   reference: <testLibrary>
   name: my.lib
   fragments
-    <testLibraryFragment>
+    <testLibraryFragment> (offset=8)
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      parts
+        part_0
+          uri: package:test/a.dart
+          unit: <testLibrary>::@fragment::package:test/a.dart
       classes
         class A @37
           reference: <testLibraryFragment>::@class::A
@@ -563,6 +617,10 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      parts
+        part_0
+          uri: package:test/a.dart
+          unit: <testLibrary>::@fragment::package:test/a.dart
       classes
         class A @21
           reference: <testLibraryFragment>::@class::A
@@ -611,6 +669,9 @@ library
   fragments
     <testLibraryFragment>
       element: <testLibrary>
+      parts
+        part_0
+          uri: relativeUri 'foo:bar'
 ''');
   }
 
@@ -624,6 +685,9 @@ library
   fragments
     <testLibraryFragment>
       element: <testLibrary>
+      parts
+        part_0
+          uri: source 'package:test/test.dart'
 ''');
   }
 
@@ -638,6 +702,9 @@ library
   fragments
     <testLibraryFragment>
       element: <testLibrary>
+      parts
+        part_0
+          uri: source 'package:test/a.dart'
 ''');
   }
 
@@ -651,6 +718,9 @@ library
   fragments
     <testLibraryFragment>
       element: <testLibrary>
+      parts
+        part_0
+          uri: source 'package:test/a.dart'
 ''');
   }
 
@@ -664,6 +734,9 @@ library
   fragments
     <testLibraryFragment>
       element: <testLibrary>
+      parts
+        part_0
+          uri: relativeUriString ':'
 ''');
   }
 
@@ -688,6 +761,13 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      parts
+        part_0
+          uri: package:test/a.dart
+          unit: <testLibrary>::@fragment::package:test/a.dart
+        part_1
+          uri: package:test/b.dart
+          unit: <testLibrary>::@fragment::package:test/b.dart
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       enclosingFragment: <testLibraryFragment>
@@ -748,6 +828,13 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      parts
+        part_0
+          uri: package:test/a.dart
+          unit: <testLibrary>::@fragment::package:test/a.dart
+        part_1
+          uri: package:test/b.dart
+          unit: <testLibrary>::@fragment::package:test/b.dart
       classes
         class Z @36
           reference: <testLibraryFragment>::@class::Z
@@ -757,6 +844,13 @@ library
       enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a11.dart
+      parts
+        part_2
+          uri: package:test/a11.dart
+          unit: <testLibrary>::@fragment::package:test/a11.dart
+        part_3
+          uri: package:test/a12.dart
+          unit: <testLibrary>::@fragment::package:test/a12.dart
       classes
         class A @61
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
@@ -784,6 +878,13 @@ library
       enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibrary>::@fragment::package:test/a12.dart
       nextFragment: <testLibrary>::@fragment::package:test/b11.dart
+      parts
+        part_4
+          uri: package:test/b11.dart
+          unit: <testLibrary>::@fragment::package:test/b11.dart
+        part_5
+          uri: package:test/b12.dart
+          unit: <testLibrary>::@fragment::package:test/b12.dart
     <testLibrary>::@fragment::package:test/b11.dart
       element: <testLibrary>
       enclosingFragment: <testLibrary>::@fragment::package:test/b.dart

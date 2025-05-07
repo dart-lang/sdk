@@ -14,13 +14,13 @@ void testReadByte() {
   void test(String line, List<String> expected) {
     var script = Platform.script.resolve("stdin_sync_script.dart").toFilePath();
     Process.start(
-            Platform.executable,
-            []
-              ..addAll(Platform.executableArguments)
-              ..add('--verbosity=warning')
-              ..add(script)
-              ..addAll(expected.map(json.encode)))
-        .then((process) {
+      Platform.executable,
+      []
+        ..addAll(Platform.executableArguments)
+        ..add('--verbosity=warning')
+        ..add(script)
+        ..addAll(expected.map(json.encode)),
+    ).then((process) {
       process.stdin.write(line);
       process.stdin.flush().then((_) => process.stdin.close());
       process.stderr
@@ -28,15 +28,15 @@ void testReadByte() {
           .transform(new LineSplitter())
           .fold<StringBuffer>(new StringBuffer(), (b, d) => b..write(d))
           .then((data) {
-        if (data.toString() != '') throw "Bad output: '$data'";
-      });
+            if (data.toString() != '') throw "Bad output: '$data'";
+          });
       process.stdout
           .transform(utf8.decoder)
           .transform(new LineSplitter())
           .fold<StringBuffer>(new StringBuffer(), (b, d) => b..write(d))
           .then((data) {
-        if (data.toString() != 'true') throw "Bad output: '$data'";
-      });
+            if (data.toString() != 'true') throw "Bad output: '$data'";
+          });
     });
   }
 

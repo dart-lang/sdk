@@ -12,6 +12,4 @@ void main() {
   //            ^
   // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
   // [cfe] This requires the experimental 'dot-shorthands' language feature to be enabled.
-  //             ^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
 }

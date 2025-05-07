@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -76,7 +76,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       );
       node.expression.accept(visitor);
       if (!visitor.useParameter) {
-        rule.reportLint(node);
+        rule.reportAtNode(node);
       }
     }
   }
@@ -97,7 +97,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
       for (var variable in node.fields.variables) {
         if (variable.initializer != null) {
-          rule.reportLint(variable);
+          rule.reportAtNode(variable);
         }
       }
     }

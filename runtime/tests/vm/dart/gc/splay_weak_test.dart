@@ -18,7 +18,6 @@
 // VMOptions=--concurrent_mark --use_compactor
 // VMOptions=--concurrent_mark --use_compactor --force_evacuation
 // VMOptions=--scavenger_tasks=-1
-// VMOptions=--scavenger_tasks=0
 // VMOptions=--scavenger_tasks=1
 // VMOptions=--scavenger_tasks=2
 // VMOptions=--verify_before_gc
@@ -61,14 +60,18 @@ class Payload {
   set left(value) {
     leftWeak = new WeakReference(value as Object);
     // Indirection: chance for WeakRef to be scanned before target is marked.
-    leftStrong = [[value]];
+    leftStrong = [
+      [value],
+    ];
   }
 
   get right => rightWeak?.target;
   set right(value) {
     rightWeak = new WeakReference(value as Object);
     // Indirection: chance for WeakRef to be scanned before target is marked.
-    rightStrong = [[value]];
+    rightStrong = [
+      [value],
+    ];
   }
 
   static generate(depth, tag) {
@@ -93,13 +96,17 @@ class WeakNode extends Node {
   set left(Node? value) {
     leftWeak = value == null ? null : new WeakReference(value);
     // Indirection: chance for WeakRef to be scanned before target is marked.
-    leftStrong = [[value]];
+    leftStrong = [
+      [value],
+    ];
   }
 
   Node? get right => rightWeak?.target;
   set right(Node? value) {
     rightWeak = value == null ? null : new WeakReference(value);
     // Indirection: chance for WeakRef to be scanned before target is marked.
-    rightStrong = [[value]];
+    rightStrong = [
+      [value],
+    ];
   }
 }

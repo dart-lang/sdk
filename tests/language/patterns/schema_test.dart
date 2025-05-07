@@ -80,10 +80,9 @@ test() {
 
   //   ii. Else if `p` has no elements then `E` is `_`.
   {
-    var [] =
-        [1]
-          ..expectStaticType<Exactly<List<int>>>()
-          ..removeLast();
+    var [] = [1]
+      ..expectStaticType<Exactly<List<int>>>()
+      ..removeLast();
   }
 
   //   iii. Else, infer the type schema from the elements:

@@ -51,7 +51,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         loopVariableElement != null &&
         !function.isPotentiallyMutatedInScope2(loopVariableElement)) {
       var name = loopVariable.name;
-      rule.reportLintForToken(
+      rule.reportAtToken(
         name,
         errorCode: LinterLintCode.prefer_final_in_for_each_variable,
         arguments: [name.lexeme],
@@ -69,21 +69,21 @@ class _Visitor extends SimpleAstVisitor<void> {
     var pattern = node.pattern;
     if (pattern is RecordPattern) {
       if (!function.potentiallyMutatesAnyField(pattern.fields)) {
-        rule.reportLint(
+        rule.reportAtNode(
           pattern,
           errorCode: LinterLintCode.prefer_final_in_for_each_pattern,
         );
       }
     } else if (pattern is ObjectPattern) {
       if (!function.potentiallyMutatesAnyField(pattern.fields)) {
-        rule.reportLint(
+        rule.reportAtNode(
           pattern,
           errorCode: LinterLintCode.prefer_final_in_for_each_pattern,
         );
       }
     } else if (pattern is ListPattern) {
       if (!pattern.elements.any((e) => function.potentiallyMutates(e))) {
-        rule.reportLint(
+        rule.reportAtNode(
           pattern,
           errorCode: LinterLintCode.prefer_final_in_for_each_pattern,
         );
@@ -92,7 +92,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (!pattern.elements.any(
         (e) => e is! MapPatternEntry || function.potentiallyMutates(e.value),
       )) {
-        rule.reportLint(
+        rule.reportAtNode(
           pattern,
           errorCode: LinterLintCode.prefer_final_in_for_each_pattern,
         );

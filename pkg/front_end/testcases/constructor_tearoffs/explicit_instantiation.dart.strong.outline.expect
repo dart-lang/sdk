@@ -31,9 +31,9 @@ abstract class _D&C&M = self::C with self::M /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_D&C&M
     : super self::C::•()
     ;
-  mixin-super-stub method minst<T extends core::Object? = dynamic>(self::_D&C&M::minst::T% value) → self::_D&C&M::minst::T%
+  synthetic mixin-super-stub method minst<T extends core::Object? = dynamic>(self::_D&C&M::minst::T% value) → self::_D&C&M::minst::T%
     return super.{self::M::minst}<self::_D&C&M::minst::T%>(value);
-  mixin-super-stub method mmethod() → void
+  synthetic mixin-super-stub method mmethod() → void
     return super.{self::M::mmethod}();
 }
 extension Ext on self::C {

@@ -13,14 +13,14 @@ import "dart:core" as core;
 
 import "dart:_internal";
 
-@_in::patch
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 extension IntExtension on core::int {
   method method1 = self2::IntExtension|method1;
   method tearoff method1 = self2::IntExtension|get#method1;
   method method2 = self2::IntExtension|method2;
   method tearoff method2 = self2::IntExtension|get#method2;
 }
-@_in::patch
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 extension GenericExtension<T extends core::Object? = dynamic> on T% {
   method method3 = self2::GenericExtension|method3;
   method tearoff method3 = self2::GenericExtension|get#method3;
@@ -52,8 +52,8 @@ static method /* from org-dartlang-testcase:///patch_lib.dart */ _method2() → 
 
 
 Extra constant evaluation status:
-Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:5:63 -> InstanceConstant(const _Patch{})
-Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:7:5 -> InstanceConstant(const _Patch{})
+Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:8:1 -> InstanceConstant(const _Patch{})
+Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:16:1 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:10:4 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:18:4 -> InstanceConstant(const _Patch{})
 Extra constant evaluation: evaluated: 16, effectively constant: 4

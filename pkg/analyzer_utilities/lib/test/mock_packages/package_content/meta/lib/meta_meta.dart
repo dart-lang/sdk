@@ -95,14 +95,18 @@ class TargetKind {
   /// Indicates that an annotation is valid on any optional formal parameter
   /// declaration, whether it's in a constructor, function (named or anonymous),
   /// function type, function-typed formal parameter, or method.
-  static const optionalParameter =
-      TargetKind._('optional parameters', 'optionalParameter');
+  static const optionalParameter = TargetKind._(
+    'optional parameters',
+    'optionalParameter',
+  );
 
   /// Indicates that an annotation is valid on any overridable instance member
   /// declaration, whether it's in a class, enum, extension type, or mixin. This
   /// includes instance fields, getters, setters, methods, and operators.
-  static const overridableMember =
-      TargetKind._('overridable members', 'overridableMember');
+  static const overridableMember = TargetKind._(
+    'overridable members',
+    'overridableMember',
+  );
 
   /// Indicates that an annotation is valid on any formal parameter declaration,
   /// whether it's in a constructor, function (named or anonymous), function
@@ -116,15 +120,19 @@ class TargetKind {
 
   /// Indicates that an annotation is valid on any top-level variable
   /// declaration.
-  static const topLevelVariable =
-      TargetKind._('top-level variables', 'topLevelVariable');
+  static const topLevelVariable = TargetKind._(
+    'top-level variables',
+    'topLevelVariable',
+  );
 
   /// Indicates that an annotation is valid on any declaration that introduces a
   /// type. This includes classes, enums, mixins, and typedefs, but does not
   /// include extensions because extensions don't introduce a type.
   // TODO(srawlins): This should include extension types.
-  static const type =
-      TargetKind._('types (classes, enums, mixins, or typedefs)', 'type');
+  static const type = TargetKind._(
+    'types (classes, enums, mixins, or typedefs)',
+    'type',
+  );
 
   /// Indicates that an annotation is valid on any typedef declaration.
   static const typedefType = TargetKind._('typedefs', 'typedefType');

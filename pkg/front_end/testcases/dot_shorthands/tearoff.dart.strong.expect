@@ -33,7 +33,7 @@ static extension-type-member method ET1|constructor#(self::A1 _) → self::ET1 /
   lowered final self::ET1 /* erasure=self::A1 */ #this = _;
   return #this;
 }
-static extension-type-member method ET1|constructor#_#new#tearOff(self::A1 _) → self::ET1 /* erasure=self::A1 */
+static extension-type-member synthetic method ET1|constructor#_#new#tearOff(self::A1 _) → self::ET1 /* erasure=self::A1 */
   return self::ET1|constructor#(_);
 static method main() → void {
   core::Object o = #C4;

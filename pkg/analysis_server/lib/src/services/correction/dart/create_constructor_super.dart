@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
@@ -45,7 +45,7 @@ class CreateConstructorSuper extends MultiCorrectionProducer {
 /// the [CreateConstructorSuper] producer.
 class _CreateConstructor extends ResolvedCorrectionProducer {
   /// The constructor to be invoked.
-  final ConstructorElement2 _constructor;
+  final ConstructorElement _constructor;
 
   /// The class in which the constructor will be added.
   final ClassDeclaration _targetClass;

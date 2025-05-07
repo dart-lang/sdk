@@ -12,81 +12,61 @@ String toplevel = 'A';
 class Foo {
   String x = 'x';
 
-  easy(z) {
-
-  }
+  easy(z) {}
 
   // Shadow the 'y' field in various ways
-  shadow_y_parameter(y) {
-
-  }
+  shadow_y_parameter(y) {}
 
   shadow_y_local(z) {
     var y = z;
-
   }
 
   shadow_y_capturedLocal(z) {
     var y = z;
-    foo() {
-
-    }
+    foo() {}
     return foo();
   }
 
   shadow_y_closureParam(z) {
-    foo(y) {
-
-    }
+    foo(y) {}
     return foo(z);
   }
 
   shadow_y_localInsideClosure(z) {
     foo() {
       var y = z;
-
     }
 
     return foo();
   }
 
   // Shadow the 'x' field in various ways
-  shadow_x_parameter(x) {
-
-  }
+  shadow_x_parameter(x) {}
 
   shadow_x_local(z) {
     var x = z;
-
   }
 
   shadow_x_capturedLocal(z) {
     var x = z;
-    foo() {
-
-    }
+    foo() {}
     return foo();
   }
 
   shadow_x_closureParam(z) {
-    foo(x) {
-
-    }
+    foo(x) {}
     return foo(z);
   }
 
   shadow_x_localInsideClosure(z) {
     foo() {
       var x = z;
-
     }
 
     return foo();
   }
 
-  shadow_x_toplevel() {
-
-  }
+  shadow_x_toplevel() {}
 }
 
 class Sub extends Foo {
@@ -94,18 +74,4 @@ class Sub extends Foo {
   String toplevel = 'B';
 }
 
-main() {
-
-
-
-
-
-
-
-
-
-
-
-
-
-}
+main() {}

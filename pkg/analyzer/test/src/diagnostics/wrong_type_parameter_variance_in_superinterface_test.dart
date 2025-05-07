@@ -17,17 +17,20 @@ main() {
 class WrongTypeParameterVarianceInSuperinterfaceTest
     extends PubPackageResolutionTest {
   test_class_extends_function_parameterType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 typedef F<X> = void Function(X);
 class A<X> {}
 class B<X> extends A<F<X>> {}
-''', [
-      error(
-        CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
-        55,
-        1,
-      ),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+          55,
+          1,
+        ),
+      ],
+    );
   }
 
   test_class_extends_function_parameterType_parameterType() async {
@@ -40,18 +43,21 @@ class B<X> extends A<F2<X>> {}
   }
 
   test_class_extends_function_parameterType_returnType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 typedef F1<X> = X Function();
 typedef F2<X> = void Function(F1<X>);
 class A<X> {}
 class B<X> extends A<F2<X>> {}
-''', [
-      error(
-        CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
-        90,
-        1,
-      ),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+          90,
+          1,
+        ),
+      ],
+    );
   }
 
   test_class_extends_function_returnType() async {
@@ -63,18 +69,21 @@ class B<X> extends A<F<X>> {}
   }
 
   test_class_extends_function_returnType_parameterType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 typedef F1<X> = void Function(X);
 typedef F2<X> = F1<X> Function();
 class A<X> {}
 class B<X> extends A<F2<X>> {}
-''', [
-      error(
-        CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
-        90,
-        1,
-      ),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+          90,
+          1,
+        ),
+      ],
+    );
   }
 
   test_class_extends_withoutFunction() async {
@@ -85,17 +94,20 @@ class B<X> extends A<X> {}
   }
 
   test_class_implements_function_parameterType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 typedef F<X> = void Function(X);
 class A<X> {}
 class B<X> implements A<F<X>> {}
-''', [
-      error(
-        CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
-        55,
-        1,
-      ),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+          55,
+          1,
+        ),
+      ],
+    );
   }
 
   test_class_implements_function_returnType() async {
@@ -114,17 +126,20 @@ class B<X> implements A<X> {}
   }
 
   test_class_with_function_parameterType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 typedef F<X> = void Function(X);
 mixin A<X> {}
 class B<X> extends Object with A<F<X>> {}
-''', [
-      error(
-        CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
-        55,
-        1,
-      ),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+          55,
+          1,
+        ),
+      ],
+    );
   }
 
   test_class_with_function_returnType() async {
@@ -143,33 +158,39 @@ class B<X> extends Object with A<X> {}
   }
 
   test_classTypeAlias_extends_function_invariant() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 typedef F<X> = X Function(X);
 class A<X> {}
 mixin M {}
 class B<X> = A<F<X>> with M;
-''', [
-      error(
-        CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
-        63,
-        1,
-      ),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+          63,
+          1,
+        ),
+      ],
+    );
   }
 
   test_classTypeAlias_extends_function_parameterType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 typedef F<X> = void Function(X);
 class A<X> {}
 mixin M {}
 class B<X> = A<F<X>> with M;
-''', [
-      error(
-        CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
-        66,
-        1,
-      ),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+          66,
+          1,
+        ),
+      ],
+    );
   }
 
   test_classTypeAlias_extends_function_returnType() async {
@@ -190,18 +211,21 @@ class B<X> = A<X> with M;
   }
 
   test_classTypeAlias_implements_function_parameterType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 typedef F<X> = void Function(X);
 class A<X> {}
 mixin M {}
 class B<X> = Object with M implements A<F<X>>;
-''', [
-      error(
-        CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
-        66,
-        1,
-      ),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+          66,
+          1,
+        ),
+      ],
+    );
   }
 
   test_classTypeAlias_implements_function_returnType() async {
@@ -222,17 +246,20 @@ class B<X> = Object with M implements A<X>;
   }
 
   test_classTypeAlias_with_function_parameterType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 typedef F<X> = void Function(X);
 mixin M<X> {}
 class B<X> = Object with M<F<X>>;
-''', [
-      error(
-        CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
-        55,
-        1,
-      ),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+          55,
+          1,
+        ),
+      ],
+    );
   }
 
   test_classTypeAlias_with_function_returnType() async {
@@ -251,19 +278,22 @@ class B<X> = Object with M<X>;
   }
 
   test_enum_implements_function_parameterType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 typedef F<X> = void Function(X);
 class A<X> {}
 enum E<X> implements A<F<X>> {
   v
 }
-''', [
-      error(
-        CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
-        54,
-        1,
-      ),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+          54,
+          1,
+        ),
+      ],
+    );
   }
 
   test_enum_implements_function_returnType() async {
@@ -286,19 +316,22 @@ enum E<X> implements A<X> {
   }
 
   test_enum_with_function_parameterType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 typedef F<X> = void Function(X);
 mixin A<X> {}
 enum E<X> with A<F<X>> {
   v
 }
-''', [
-      error(
-        CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
-        54,
-        1,
-      ),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+          54,
+          1,
+        ),
+      ],
+    );
   }
 
   test_enum_with_function_returnType() async {
@@ -321,16 +354,20 @@ enum E<X> with A<X> {
   }
 
   test_extensionType_contravariant() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A<T> {}
 extension type B<T>(A<void Function(Object?)> it)
   implements A<void Function(T)> {}
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
           31,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_extensionType_covariant() async {
@@ -342,31 +379,37 @@ extension type B<T>(A<Never Function()> it)
   }
 
   test_extensionType_invariant() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A<T> {}
 extension type B<T>(A<Never Function(Object?)> it)
   implements A<T Function(T)> {}
-''', [
-      error(
-        CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
-        31,
-        1,
-      ),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+          31,
+          1,
+        ),
+      ],
+    );
   }
 
   test_mixin_implements_function_parameterType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 typedef F<X> = void Function(X);
 class A<X> {}
 mixin B<X> implements A<F<X>> {}
-''', [
-      error(
-        CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
-        55,
-        1,
-      ),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+          55,
+          1,
+        ),
+      ],
+    );
   }
 
   test_mixin_implements_function_returnType() async {
@@ -385,17 +428,20 @@ mixin B<X> implements A<X> {}
   }
 
   test_mixin_on_function_parameterType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 typedef F<X> = void Function(X);
 class A<X> {}
 mixin B<X> on A<F<X>> {}
-''', [
-      error(
-        CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
-        55,
-        1,
-      ),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+          55,
+          1,
+        ),
+      ],
+    );
   }
 
   test_mixin_on_function_returnType() async {
@@ -414,14 +460,18 @@ mixin B<X> on A<X> {}
   }
 
   test_typeParameter_bound() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A<X> {}
 class B<X> extends A<void Function<Y extends X>()> {}
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
           22,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 }

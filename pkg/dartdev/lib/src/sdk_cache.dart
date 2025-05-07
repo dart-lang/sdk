@@ -6,10 +6,11 @@ import 'dart:convert';
 import 'dart:io' as io;
 import 'dart:typed_data';
 
+import 'package:code_assets/code_assets.dart' show OS;
 import 'package:file/file.dart';
 import 'package:file/local.dart';
+import 'package:hooks_runner/hooks_runner.dart' show Target;
 import 'package:http/http.dart' as http;
-import 'package:native_assets_cli/code_assets_builder.dart' show OS, Target;
 
 /// S_IXUSR bit from POSIX sys/stat.h.
 ///

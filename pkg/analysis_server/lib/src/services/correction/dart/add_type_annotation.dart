@@ -8,7 +8,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
@@ -243,7 +243,7 @@ class _AssignedTypeCollector extends RecursiveAstVisitor<void> {
   /// The type system used to compute the best type.
   final TypeSystem typeSystem;
 
-  final LocalVariableElement2 variable;
+  final LocalVariableElement variable;
 
   /// The types that are assigned to the variable.
   final Set<DartType> assignedTypes = {};

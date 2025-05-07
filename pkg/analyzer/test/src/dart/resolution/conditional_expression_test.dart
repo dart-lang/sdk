@@ -21,15 +21,16 @@ main() {
 @reflectiveTest
 class ConditionalExpressionResolutionTest extends PubPackageResolutionTest {
   test_condition_super() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   void f() {
     super ? 0 : 1;
   }
 }
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 27, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_BOOL_CONDITION, 27, 5)],
+    );
 
     var node = findNode.singleConditionalExpression;
     assertResolvedNodeText(node, r'''
@@ -76,15 +77,16 @@ MethodInvocation
   }
 
   test_else_super() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   void f(bool c) {
     c ? 0 : super;
   }
 }
-''', [
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 41, 5),
-    ]);
+''',
+      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 41, 5)],
+    );
 
     var node = findNode.singleConditionalExpression;
     assertResolvedNodeText(node, r'''
@@ -142,7 +144,8 @@ ConditionalExpression
   }
 
   test_issue49692() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 T f<T>(T t, bool b) {
   if (t is int) {
     final u = b ? t : null;
@@ -151,9 +154,9 @@ T f<T>(T t, bool b) {
     return t;
   }
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 79, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 79, 1)],
+    );
 
     var node = findNode.conditionalExpression('b ?');
     assertResolvedNodeText(node, r'''
@@ -232,15 +235,16 @@ ConditionalExpression
   }
 
   test_then_super() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   void f(bool c) {
     c ? super : 0;
   }
 }
-''', [
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 37, 5),
-    ]);
+''',
+      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 37, 5)],
+    );
 
     var node = findNode.singleConditionalExpression;
     assertResolvedNodeText(node, r'''
@@ -328,10 +332,7 @@ void f(bool a, int b, int c) {
 class InferenceUpdate3Test extends PubPackageResolutionTest {
   @override
   List<String> get experiments {
-    return [
-      ...super.experiments,
-      Feature.inference_update_3.enableString,
-    ];
+    return [...super.experiments, Feature.inference_update_3.enableString];
   }
 
   test_contextIsConvertedToATypeUsingGreatestClosure() async {
@@ -348,7 +349,8 @@ f(bool b, C1<int> c1, C2<double> c2) {
 ''');
 
     assertResolvedNodeText(
-        findNode.conditionalExpression('b ? c1 : c2'), r'''ConditionalExpression
+      findNode.conditionalExpression('b ? c1 : c2'),
+      r'''ConditionalExpression
   condition: SimpleIdentifier
     token: b
     element: <testLibraryFragment>::@function::f::@parameter::b#element
@@ -367,7 +369,8 @@ f(bool b, C1<int> c1, C2<double> c2) {
     baseElement: <testLibraryFragment>::@function::contextB1::@parameter::b1#element
     substitution: {T: Object?}
   staticType: B1<Object?>
-''');
+''',
+    );
   }
 
   test_contextNotUsedIfLhsDoesNotSatisfyContext() async {
@@ -385,7 +388,8 @@ f(bool b, B2 b2, C1 c1, Object? o) {
 ''');
 
     assertResolvedNodeText(
-        findNode.conditionalExpression('b ? b2 : c1'), r'''ConditionalExpression
+      findNode.conditionalExpression('b ? b2 : c1'),
+      r'''ConditionalExpression
   condition: SimpleIdentifier
     token: b
     element: <testLibraryFragment>::@function::f::@parameter::b#element
@@ -402,7 +406,8 @@ f(bool b, B2 b2, C1 c1, Object? o) {
     staticType: C1
   correspondingParameter: <null>
   staticType: B2
-''');
+''',
+    );
   }
 
   test_contextNotUsedIfRhsDoesNotSatisfyContext() async {
@@ -420,7 +425,8 @@ f(bool b, C1 c1, B2 b2, Object? o) {
 ''');
 
     assertResolvedNodeText(
-        findNode.conditionalExpression('b ? c1 : b2'), r'''ConditionalExpression
+      findNode.conditionalExpression('b ? c1 : b2'),
+      r'''ConditionalExpression
   condition: SimpleIdentifier
     token: b
     element: <testLibraryFragment>::@function::f::@parameter::b#element
@@ -437,7 +443,8 @@ f(bool b, C1 c1, B2 b2, Object? o) {
     staticType: B2
   correspondingParameter: <null>
   staticType: B2
-''');
+''',
+    );
   }
 
   test_contextUsedInsteadOfLubIfLubDoesNotSatisfyContext() async {

@@ -14,7 +14,7 @@
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 
@@ -303,7 +303,7 @@ final typedDataFloatTypes = [
   float32x4ListEncoding,
   float64ListEncoding,
   float64x2Encoding,
-  float64x2ListEncoding
+  float64x2ListEncoding,
 ];
 
 void main() async {
@@ -328,7 +328,9 @@ void main() async {
     if (typeToLibraryMethodsList[key]!.isNotEmpty) {
       // Only output library methods lists that are non-empty.
       dumpTable(
-          typeToLibraryMethodsListName[key]!, typeToLibraryMethodsList[key]!);
+        typeToLibraryMethodsListName[key]!,
+        typeToLibraryMethodsList[key]!,
+      );
     }
   }
   dumpFooter();
@@ -338,101 +340,107 @@ Future<void> visitLibraryAtUri(AnalysisSession session, String uri) async {
   final libPath = session.uriConverter.uriToPath(Uri.parse(uri));
   var result = await session.getResolvedLibrary(libPath!);
   if (result is ResolvedLibraryResult) {
-    visitLibrary(result.element);
+    visitLibrary(result.element2);
   } else {
     throw StateError('Unable to resolve "$uri"');
   }
 }
 
-void visitLibrary(LibraryElement library) {
+void visitLibrary(LibraryElement2 library) {
   // This uses the element model to traverse the code. The element model
   // represents the semantic structure of the code. A library consists of
   // one or more compilation units.
-  for (var unit in library.units) {
-    visitCompilationUnit(unit);
-  }
-}
-
-void visitCompilationUnit(CompilationUnitElement unit) {
+  //
   // Each compilation unit contains elements for all of the top-level
   // declarations in a single file, such as variables, functions, and
   // classes. Note that `types` only returns classes. You can use
   // `mixins` to visit mixins, `enums` to visit enum, `functionTypeAliases`
   // to visit typedefs, etc.
-  for (var variable in unit.topLevelVariables) {
+  for (var variable in library.topLevelVariables) {
     if (variable.isPublic) {
-      addToTable(typeString(variable.type), variable.name,
-          [voidEncoding, voidEncoding],
-          isMethod: false);
+      addToTable(typeString(variable.type), variable.name3!, [
+        voidEncoding,
+        voidEncoding,
+      ], isMethod: false);
     }
   }
-  for (var function in unit.functions) {
-    if (function.isPublic && !function.isOperator) {
-      addToTable(typeString(function.returnType), function.name,
-          protoString(null, function.parameters));
+  for (var function in library.topLevelFunctions) {
+    if (function.isPublic) {
+      addToTable(
+        typeString(function.returnType),
+        function.name3!,
+        protoString(null, function.formalParameters),
+      );
     }
   }
-  for (var classElement in unit.classes) {
+  for (var classElement in library.classes) {
     if (classElement.isPublic) {
       visitClass(classElement);
     }
   }
 }
 
-void visitClass(ClassElement classElement) {
+void visitClass(ClassElement2 classElement) {
   // Classes that cause too many false divergences.
-  if (classElement.name == 'ProcessInfo' ||
-      classElement.name == 'Platform' ||
-      classElement.name.startsWith('FileSystem')) {
+  if (classElement.name3 == 'ProcessInfo' ||
+      classElement.name3 == 'Platform' ||
+      classElement.name3!.startsWith('FileSystem')) {
     return;
   }
   // Every class element contains elements for the members, viz. `methods` visits
   // methods, `fields` visits fields, `accessors` visits getters and setters, etc.
   // There are also accessors to get the superclass, mixins, interfaces, type
   // parameters, etc.
-  for (var constructor in classElement.constructors) {
+  for (var constructor in classElement.constructors2) {
     if (constructor.isPublic &&
         constructor.isFactory &&
-        constructor.name.isNotEmpty) {
+        constructor.name3 != 'new') {
       addToTable(
-          typeString(classElement.thisType),
-          '${classString(classElement)}.${constructor.name}',
-          protoString(null, constructor.parameters));
+        typeString(classElement.thisType),
+        '${classString(classElement)}.${constructor.name3}',
+        protoString(null, constructor.formalParameters),
+      );
     }
   }
-  for (var method in classElement.methods) {
+  for (var method in classElement.methods2) {
     if (method.isPublic && !method.isOperator) {
       if (method.isStatic) {
         addToTable(
-            typeString(method.returnType),
-            '${classString(classElement)}.${method.name}',
-            protoString(null, method.parameters));
+          typeString(method.returnType),
+          '${classString(classElement)}.${method.name3}',
+          protoString(null, method.formalParameters),
+        );
       } else {
-        addToTable(typeString(method.returnType), method.name,
-            protoString(classElement.thisType, method.parameters));
+        addToTable(
+          typeString(method.returnType),
+          method.name3!,
+          protoString(classElement.thisType, method.formalParameters),
+        );
       }
     }
   }
-  for (var accessor in classElement.accessors) {
-    if (accessor.isPublic && accessor.isGetter) {
-      var variable = accessor.variable2!;
+  for (var accessor in classElement.getters2) {
+    if (accessor.isPublic) {
+      var variable = accessor.variable3!;
       if (accessor.isStatic) {
         addToTable(
-            typeString(variable.type),
-            '${classElement.name}.${variable.name}',
-            [voidEncoding, voidEncoding],
-            isMethod: false);
+          typeString(variable.type),
+          '${classElement.name3}.${variable.name3}',
+          [voidEncoding, voidEncoding],
+          isMethod: false,
+        );
       } else {
-        addToTable(typeString(variable.type), variable.name,
-            [typeString(classElement.thisType), voidEncoding],
-            isMethod: false);
+        addToTable(typeString(variable.type), variable.name3!, [
+          typeString(classElement.thisType),
+          voidEncoding,
+        ], isMethod: false);
       }
     }
   }
 }
 
 // Function that returns the explicit class name.
-String classString(ClassElement classElement) {
+String classString(ClassElement2 classElement) {
   switch (typeString(classElement.thisType)) {
     case setIntEncoding:
       return 'Set<int>';
@@ -441,7 +449,7 @@ String classString(ClassElement classElement) {
     case mapIntStringEncoding:
       return 'Map<int, String>';
     default:
-      return classElement.name;
+      return classElement.name3!;
   }
 }
 
@@ -596,7 +604,9 @@ String typeStringHelper(DartType type) {
 }
 
 List<String> protoString(
-    DartType? receiver, List<ParameterElement> parameters) {
+  DartType? receiver,
+  List<FormalParameterElement> parameters,
+) {
   final proto = [receiver == null ? voidEncoding : typeString(receiver)];
   // Construct prototype for non-named parameters.
   for (var parameter in parameters) {
@@ -613,8 +623,12 @@ List<DartLib> getTable(String ret) => typeToLibraryMethodsList.containsKey(ret)
     ? typeToLibraryMethodsList[ret]!
     : throw ArgumentError('Invalid ret value: $ret');
 
-void addToTable(String ret, String name, List<String> proto,
-    {bool isMethod = true}) {
+void addToTable(
+  String ret,
+  String name,
+  List<String> proto, {
+  bool isMethod = true,
+}) {
   // If any of the type representations equal a question
   // mark, this means that DartFuzz' type system cannot
   // deal with such an expression yet. So drop the entry.
@@ -662,8 +676,9 @@ void addToTable(String ret, String name, List<String> proto,
   getTable(ret).add(DartLib(name, proto, restrictions, isMethod));
   // Every non-nullable result is also a valid nullable result.
   if (!ret.endsWith("_NULLABLE")) {
-    getTable("${ret}_NULLABLE")
-        .add(DartLib(name, proto, restrictions, isMethod));
+    getTable(
+      "${ret}_NULLABLE",
+    ).add(DartLib(name, proto, restrictions, isMethod));
   }
 }
 
@@ -726,13 +741,18 @@ void dumpTypedDataFloatTypes() {
 
 void dumpTable(String identifier, List<DartLib> table) {
   print('  static const $identifier = [');
-  table.sort((a, b) => (a.name.compareTo(b.name) == 0)
-      ? a.proto.join().compareTo(b.proto.join())
-      : a.name.compareTo(b.name));
+  table.sort(
+    (a, b) => (a.name.compareTo(b.name) == 0)
+        ? a.proto.join().compareTo(b.proto.join())
+        : a.name.compareTo(b.name),
+  );
   table.forEach(
-      (t) => print('    DartLib(\'${t.name}\', ${t.proto}, ${t.isMethod}'
-          '${t.restrictions == null ? "" : ", "
-              "restrictions: ${t.restrictions}"}),'));
+    (t) => print(
+      '    DartLib(\'${t.name}\', ${t.proto}, ${t.isMethod}'
+      '${t.restrictions == null ? "" : ", "
+                "restrictions: ${t.restrictions}"}),',
+    ),
+  );
   print('  ];');
 }
 

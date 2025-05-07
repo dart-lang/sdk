@@ -4,8 +4,7 @@
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/error/codes.g.dart';
 import 'package:analyzer/src/test_utilities/find_element2.dart';
@@ -26,7 +25,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   late CompilationUnit testUnit;
   late FindNode findNode;
   late FindElement2 findElement2;
-  late LibraryElement2 testLibraryElement;
+  late LibraryElement testLibraryElement;
   TestCode get parsedTestCode => _parsedTestCode!;
   set parsedTestCode(TestCode value) {
     if (_parsedTestCode != null) {
@@ -74,7 +73,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     }
     if (verifyNoTestUnitErrors) {
       expect(
-        unitResult.errors.where((AnalysisError error) {
+        unitResult.errors.where((error) {
           return error.errorCode != WarningCode.DEAD_CODE &&
               error.errorCode != WarningCode.UNUSED_CATCH_CLAUSE &&
               error.errorCode != WarningCode.UNUSED_CATCH_STACK &&

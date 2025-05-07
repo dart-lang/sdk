@@ -20,7 +20,7 @@ import 'package:analyzer/src/summary2/link.dart';
 /// Used to resolve some AST nodes - variable initializers, and annotations.
 class AstResolver {
   final Linker _linker;
-  final CompilationUnitElementImpl _unitElement;
+  final LibraryFragmentImpl _unitElement;
   final Scope _nameScope;
   final FeatureSet _featureSet;
   final AnalysisErrorListener _errorListener =
@@ -41,11 +41,14 @@ class AstResolver {
     nameScope: _nameScope,
   );
   late final _typeAnalyzerOptions = computeTypeAnalyzerOptions(_featureSet);
-  late final _flowAnalysis = FlowAnalysisHelper(false,
-      typeSystemOperations: TypeSystemOperations(
-          _unitElement.library.typeSystem,
-          strictCasts: analysisOptions.strictCasts),
-      typeAnalyzerOptions: _typeAnalyzerOptions);
+  late final _flowAnalysis = FlowAnalysisHelper(
+    false,
+    typeSystemOperations: TypeSystemOperations(
+      _unitElement.library.typeSystem,
+      strictCasts: analysisOptions.strictCasts,
+    ),
+    typeAnalyzerOptions: _typeAnalyzerOptions,
+  );
   late final _resolverVisitor = ResolverVisitor(
     _linker.inheritance,
     _unitElement.library,

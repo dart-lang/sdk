@@ -21,12 +21,12 @@ import "dart:core" as core;
 class Class extends core::Object {
   static factory •() → self2::Class /* redirection-target: self2::_Class::• */
     return new self2::_Class::•();
-  static method _#new#tearOff() → self2::Class
+  static synthetic method _#new#tearOff() → self2::Class
     return new self2::_Class::•();
 }
 class _Class extends core::Object implements self2::Class {
   synthetic constructor •() → self2::_Class
     ;
-  static method _#new#tearOff() → self2::_Class
+  static synthetic method _#new#tearOff() → self2::_Class
     return new self2::_Class::•();
 }

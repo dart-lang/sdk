@@ -1,5 +1,3 @@
-import "package:expect/expect.dart";
-
 class A {
   var x, y;
   A(this.x)

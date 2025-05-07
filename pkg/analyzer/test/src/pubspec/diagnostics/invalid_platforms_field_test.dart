@@ -24,38 +24,50 @@ platforms: {} # I don't think you should ever do this!
   }
 
   test_invalid_platforms_field() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: foo
 version: 1.0.0
 platforms:
   - android
   - ios
   - web
-''', [PubspecWarningCode.INVALID_PLATFORMS_FIELD]);
+''',
+      [PubspecWarningCode.INVALID_PLATFORMS_FIELD],
+    );
   }
 
   test_invalid_platforms_field_bool() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: foo
 version: 1.0.0
 platforms: true
-''', [PubspecWarningCode.INVALID_PLATFORMS_FIELD]);
+''',
+      [PubspecWarningCode.INVALID_PLATFORMS_FIELD],
+    );
   }
 
   test_invalid_platforms_field_empty_list() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: foo
 version: 1.0.0
 platforms: []
-''', [PubspecWarningCode.INVALID_PLATFORMS_FIELD]);
+''',
+      [PubspecWarningCode.INVALID_PLATFORMS_FIELD],
+    );
   }
 
   test_invalid_platforms_field_num() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: foo
 version: 1.0.0
 platforms: 42
-''', [PubspecWarningCode.INVALID_PLATFORMS_FIELD]);
+''',
+      [PubspecWarningCode.INVALID_PLATFORMS_FIELD],
+    );
   }
 
   test_subset_of_supported_platforms_is_allowed() {
@@ -84,20 +96,26 @@ platforms:
   }
 
   test_unknown_platform() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: foo
 version: 1.0.0
 platforms:
   windåse:
-''', [PubspecWarningCode.UNKNOWN_PLATFORM]);
+''',
+      [PubspecWarningCode.UNKNOWN_PLATFORM],
+    );
   }
 
   test_unknown_platform_capitalization() {
-    assertErrors('''
+    assertErrors(
+      '''
 name: foo
 version: 1.0.0
 platforms:
   Windows:
-''', [PubspecWarningCode.UNKNOWN_PLATFORM]);
+''',
+      [PubspecWarningCode.UNKNOWN_PLATFORM],
+    );
   }
 }

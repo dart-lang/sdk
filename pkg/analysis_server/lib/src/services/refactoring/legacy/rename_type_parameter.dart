@@ -6,17 +6,17 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/naming_conventions.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/rename.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 class RenameTypeParameterRefactoringImpl extends RenameRefactoringImpl {
   RenameTypeParameterRefactoringImpl(
     super.workspace,
     super.sessionHelper,
-    TypeParameterElement2 super.element2,
+    TypeParameterElement super.element2,
   ) : super();
 
   @override
-  TypeParameterElement2 get element => super.element as TypeParameterElement2;
+  TypeParameterElement get element => super.element as TypeParameterElement;
 
   @override
   String get refactoringName {
@@ -28,7 +28,7 @@ class RenameTypeParameterRefactoringImpl extends RenameRefactoringImpl {
     var result = RefactoringStatus();
 
     var enclosing = element.enclosingElement2;
-    if (enclosing is TypeParameterizedElement2) {
+    if (enclosing is TypeParameterizedElement) {
       for (var sibling in enclosing.typeParameters2) {
         if (sibling.name3 == newName) {
           var nodeKind = sibling.kind.displayName;

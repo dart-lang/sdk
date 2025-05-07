@@ -14,21 +14,26 @@ main() async {
   final _socket = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
   final port = _socket.port;
   final allDone = Completer<bool>()
-      ..future.whenComplete(() { _socket.close(); });
-  _socket.listen((RawSocketEvent event) {
-    print("event: $event");
-    switch (event) {
-      case RawSocketEvent.read:
-        _socket.receive();
-        break;
-      case RawSocketEvent.write:
-        print('received write event $event');
-        allDone.complete(true);
-        break;
-    }
-  }, onError: (e) {
-    Expect.fail('Should be no exceptions, but got $e');
-  });
+    ..future.whenComplete(() {
+      _socket.close();
+    });
+  _socket.listen(
+    (RawSocketEvent event) {
+      print("event: $event");
+      switch (event) {
+        case RawSocketEvent.read:
+          _socket.receive();
+          break;
+        case RawSocketEvent.write:
+          print('received write event $event');
+          allDone.complete(true);
+          break;
+      }
+    },
+    onError: (e) {
+      Expect.fail('Should be no exceptions, but got $e');
+    },
+  );
 
   for (int i = 0; i < 100; i++) {
     // Sending data to some non-existent reserved port to trigger

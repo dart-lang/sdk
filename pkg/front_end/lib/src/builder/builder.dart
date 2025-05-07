@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../base/problems.dart' show unsupported;
-
 abstract class Builder {
   /// Used when multiple things with the same name are declared within the same
   /// parent. Only used for top-level and class-member declarations, not for
@@ -17,29 +15,6 @@ abstract class Builder {
   int get fileOffset;
 
   String get fullNameForErrors;
-
-  bool get hasProblem;
-
-  bool get isConst;
-
-  bool get isConstructor;
-
-  bool get isFactory;
-
-  bool get isField;
-
-  bool get isGetter;
-
-  bool get isExternal;
-
-  /// Returns `true` if this builder is an extension declaration.
-  ///
-  /// For instance `B` in:
-  ///
-  ///    class A {}
-  ///    extension B on A {}
-  ///
-  bool get isExtension;
 
   /// Returns `true` if this builder is a member of a class, mixin, or extension
   /// declaration.
@@ -214,33 +189,13 @@ abstract class Builder {
   ///
   bool get isExtensionTypeInstanceMember;
 
-  bool get isLocal;
-
-  /// Returns `true` if the related declaration is marked `augment`
-  bool get isAugment;
-
-  bool get isRegularMethod;
-
-  bool get isOperator;
-
-  bool get isSetter;
-
   bool get isStatic;
 
   bool get isSynthetic;
 
   bool get isTopLevel;
 
-  bool get isTypeDeclaration;
-
   bool get isTypeParameter;
-
-  /// Adds [augmentation] to this declaration.
-  // TODO(johnniwinther): Remove this augmentations are based on fragments.
-  void addAugmentation(Builder augmentation);
-
-  /// Applies [augmentation] to this declaration.
-  void applyAugmentation(Builder augmentation);
 
   /// Return `true` if this builder is a duplicate of another with the same
   /// name. This is `false` for the builder first declared amongst duplicates.
@@ -252,28 +207,6 @@ abstract class BuilderImpl implements Builder {
   Builder? next;
 
   BuilderImpl();
-
-  @override
-  bool get hasProblem => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isConst => false;
-
-  @override
-  bool get isConstructor => false;
-
-  @override
-  bool get isFactory => false;
-
-  @override
-  bool get isField => false;
-
-  @override
-  bool get isGetter => false;
-
-  @override
-  bool get isExtension => false;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -295,36 +228,20 @@ abstract class BuilderImpl implements Builder {
   bool get isDeclarationInstanceMember => false;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isClassInstanceMember => false;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isExtensionInstanceMember => false;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isExtensionTypeInstanceMember => false;
-
-  @override
-  bool get isLocal => false;
-
-  @override
-  bool get isAugment => false;
-
-  @override
-  bool get isRegularMethod => false;
-
-  @override
-  bool get isOperator => false;
-
-  @override
-  bool get isSetter => false;
 
   @override
   // Coverage-ignore(suite): Not run.
   bool get isStatic => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isExternal => false;
 
   @override
   bool get isSynthetic => false;
@@ -334,22 +251,7 @@ abstract class BuilderImpl implements Builder {
   bool get isTopLevel => false;
 
   @override
-  bool get isTypeDeclaration => false;
-
-  @override
   bool get isTypeParameter => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void addAugmentation(Builder augmentation) {
-    unsupported("${runtimeType}.addAugmentation", fileOffset, fileUri);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void applyAugmentation(Builder augmentation) {
-    unsupported("${runtimeType}.applyAugmentation", fileOffset, fileUri);
-  }
 
   @override
   bool get isDuplicate => next != null;

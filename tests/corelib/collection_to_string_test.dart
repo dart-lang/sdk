@@ -103,8 +103,9 @@ void smokeTest() {
 void exactTest() {
   for (int i = 0; i < NUM_TESTS; i++) {
     // Choose a size from 0 to MAX_COLLECTION_SIZE, favoring larger sizes
-    int size =
-        Math.sqrt(random(MAX_COLLECTION_SIZE * MAX_COLLECTION_SIZE)).toInt();
+    int size = Math.sqrt(
+      random(MAX_COLLECTION_SIZE * MAX_COLLECTION_SIZE),
+    ).toInt();
 
     StringBuffer stringRep = new StringBuffer();
     Object o = randomCollection(size, stringRep, exact: true);
@@ -128,8 +129,9 @@ void exactTest() {
 void inexactTest() {
   for (int i = 0; i < NUM_TESTS; i++) {
     // Choose a size from 0 to MAX_COLLECTION_SIZE, favoring larger sizes
-    int size =
-        Math.sqrt(random(MAX_COLLECTION_SIZE * MAX_COLLECTION_SIZE)).toInt();
+    int size = Math.sqrt(
+      random(MAX_COLLECTION_SIZE * MAX_COLLECTION_SIZE),
+    ).toInt();
 
     StringBuffer stringRep = new StringBuffer();
     Object o = randomCollection(size, stringRep, exact: false);

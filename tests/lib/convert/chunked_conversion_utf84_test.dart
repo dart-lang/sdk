@@ -9,8 +9,9 @@ import 'unicode_tests.dart';
 String decode(List<int> bytes, int chunkSize) {
   // Use a non-chunked interface.
   late String result;
-  var chunkedSink =
-      new StringConversionSink.withCallback((decoded) => result = decoded);
+  var chunkedSink = new StringConversionSink.withCallback(
+    (decoded) => result = decoded,
+  );
   var byteSink = new Utf8Decoder().startChunkedConversion(chunkedSink);
   int i = 0;
   while (i < bytes.length) {

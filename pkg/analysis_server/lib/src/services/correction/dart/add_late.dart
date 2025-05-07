@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -61,7 +61,7 @@ class AddLate extends ResolvedCorrectionProducer {
       var getter = node.writeOrReadElement2;
       if (getter is GetterElement &&
           getter.isSynthetic &&
-          getter.enclosingElement2 is InterfaceElement2) {
+          getter.enclosingElement2 is InterfaceElement) {
         var variableElement = getter.variable3;
         if (variableElement != null &&
             !variableElement.isSynthetic &&

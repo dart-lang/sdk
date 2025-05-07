@@ -10,7 +10,7 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' as fasta;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show Token, TokenType;
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
@@ -62,19 +62,37 @@ class Scanner {
   /// [source]. The given character [reader] will be used to read the characters
   /// in the source. The given [_errorListener] will be informed of any errors
   /// that are found.
-  factory Scanner(Source source, CharacterReader reader,
-          AnalysisErrorListener errorListener) =>
-      Scanner.fasta(source, errorListener,
-          contents: reader.getContents(), offset: reader.offset);
+  factory Scanner(
+    Source source,
+    CharacterReader reader,
+    AnalysisErrorListener errorListener,
+  ) => Scanner.fasta(
+    source,
+    errorListener,
+    contents: reader.getContents(),
+    offset: reader.offset,
+  );
 
-  factory Scanner.fasta(Source source, AnalysisErrorListener errorListener,
-      {String? contents, int offset = -1}) {
+  factory Scanner.fasta(
+    Source source,
+    AnalysisErrorListener errorListener, {
+    String? contents,
+    int offset = -1,
+  }) {
     return Scanner._(
-        source, contents ?? source.contents.data, offset, errorListener);
+      source,
+      contents ?? source.contents.data,
+      offset,
+      errorListener,
+    );
   }
 
   Scanner._(
-      this.source, this._contents, this._readerOffset, this._errorListener);
+    this.source,
+    this._contents,
+    this._readerOffset,
+    this._errorListener,
+  );
 
   /// The features associated with this scanner.
   ///
@@ -106,9 +124,12 @@ class Scanner {
   }
 
   void reportError(
-      ScannerErrorCode errorCode, int offset, List<Object?>? arguments) {
+    ScannerErrorCode errorCode,
+    int offset,
+    List<Object?>? arguments,
+  ) {
     _errorListener.onError(
-      AnalysisError.tmp(
+      Diagnostic.tmp(
         source: source,
         offset: offset,
         length: 1,
@@ -123,10 +144,12 @@ class Scanner {
   /// and expects that scanner errors to be reported by this method.
   /// Set [reportScannerErrors] `true` when using the old parser.
   Token tokenize({bool reportScannerErrors = true}) {
-    fasta.ScannerResult result = fasta.scanString(_contents,
-        configuration: buildConfig(_featureSet),
-        includeComments: _preserveComments,
-        languageVersionChanged: _languageVersionChanged);
+    fasta.ScannerResult result = fasta.scanString(
+      _contents,
+      configuration: buildConfig(_featureSet),
+      includeComments: _preserveComments,
+      languageVersionChanged: _languageVersionChanged,
+    );
 
     // fasta pretends there is an additional line at EOF so we skip the last one.
     if (result.lineStarts.last > 65535) {
@@ -164,7 +187,9 @@ class Scanner {
   }
 
   void _languageVersionChanged(
-      fasta.Scanner scanner, fasta.LanguageVersionToken versionToken) {
+    fasta.Scanner scanner,
+    fasta.LanguageVersionToken versionToken,
+  ) {
     var overrideMajor = versionToken.major;
     var overrideMinor = versionToken.minor;
     if (overrideMajor < 0 || overrideMinor < 0) {
@@ -177,7 +202,7 @@ class Scanner {
     var latestVersion = ExperimentStatus.currentVersion;
     if (overrideVersion > latestVersion) {
       _errorListener.onError(
-        AnalysisError.tmp(
+        Diagnostic.tmp(
           source: source,
           offset: versionToken.offset,
           length: versionToken.length,
@@ -187,9 +212,7 @@ class Scanner {
       );
       _overrideVersion = null;
     } else {
-      _featureSet = _featureSetForOverriding.restrictToVersion(
-        overrideVersion,
-      );
+      _featureSet = _featureSetForOverriding.restrictToVersion(overrideVersion);
       scanner.configuration = buildConfig(_featureSet);
     }
   }
@@ -199,7 +222,7 @@ class Scanner {
       featureSet == null
           ? fasta.ScannerConfiguration()
           : fasta.ScannerConfiguration(
-              enableTripleShift: featureSet.isEnabled(Feature.triple_shift),
-              forAugmentationLibrary: featureSet.isEnabled(Feature.macros),
-            );
+            enableTripleShift: featureSet.isEnabled(Feature.triple_shift),
+            forAugmentationLibrary: featureSet.isEnabled(Feature.macros),
+          );
 }

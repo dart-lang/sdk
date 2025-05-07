@@ -67,10 +67,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     var keyword = node.keyword;
     keyword ??=
         node.thisOrAncestorOfType<PatternVariableDeclaration>()?.keyword;
-    if (keyword?.type != Keyword.FINAL) return;
+    if (keyword == null || keyword.type != Keyword.FINAL) return;
 
     var errorCode = getErrorCode(node.matchedValueType);
-    rule.reportLintForToken(keyword, errorCode: errorCode);
+    rule.reportAtToken(keyword, errorCode: errorCode);
   }
 
   @override
@@ -81,7 +81,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (keyword == null) continue;
 
         var errorCode = getErrorCode(type);
-        rule.reportLintForToken(keyword, errorCode: errorCode);
+        rule.reportAtToken(keyword, errorCode: errorCode);
       }
     }
   }
@@ -95,14 +95,16 @@ class _Visitor extends SimpleAstVisitor<void> {
     // loop. `a` is a variable declared outside the loop.
     if (forLoopParts is ForEachPartsWithDeclaration) {
       var loopVariable = forLoopParts.loopVariable;
+      var keyword = loopVariable.keyword;
+      if (keyword == null) return;
       if (loopVariable.isFinal) {
         var errorCode = getErrorCode(loopVariable.type);
-        rule.reportLintForToken(loopVariable.keyword, errorCode: errorCode);
+        rule.reportAtToken(keyword, errorCode: errorCode);
       }
     } else if (forLoopParts is ForEachPartsWithPattern) {
       var keyword = forLoopParts.keyword;
       if (keyword.isFinal) {
-        rule.reportLintForToken(
+        rule.reportAtToken(
           keyword,
           errorCode: LinterLintCode.unnecessary_final_without_type,
         );
@@ -112,9 +114,11 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
+    var keyword = node.variables.keyword;
+    if (keyword == null) return;
     if (node.variables.isFinal) {
       var errorCode = getErrorCode(node.variables.type);
-      rule.reportLintForToken(node.variables.keyword, errorCode: errorCode);
+      rule.reportAtToken(keyword, errorCode: errorCode);
     }
   }
 }

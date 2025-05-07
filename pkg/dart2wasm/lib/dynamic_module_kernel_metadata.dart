@@ -2,32 +2,38 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:kernel/ast.dart';
-import 'package:kernel/class_hierarchy.dart'
-    show ClassHierarchySubtypes, ClosedWorldClassHierarchy;
+import 'package:kernel/binary/ast_from_binary.dart'
+    show BinaryBuilderWithMetadata;
 import 'package:kernel/core_types.dart';
-import 'package:vm/metadata/direct_call.dart'
-    show DirectCallMetadata, DirectCallMetadataRepository;
+import 'package:kernel/kernel.dart'
+    show writeComponentToBinary, writeComponentToBytes;
+import 'package:kernel/library_index.dart';
+import 'package:path/path.dart' as path;
+import 'package:vm/metadata/direct_call.dart' show DirectCallMetadataRepository;
 import 'package:vm/metadata/inferred_type.dart'
     show
         InferredArgTypeMetadataRepository,
         InferredReturnTypeMetadataRepository,
         InferredTypeMetadataRepository;
 import 'package:vm/metadata/procedure_attributes.dart'
-    show ProcedureAttributesMetadata, ProcedureAttributesMetadataRepository;
-import 'package:vm/metadata/table_selector.dart'
-    show TableSelectorMetadataRepository;
-import 'package:vm/transformations/devirtualization.dart'
-    show CHADevirtualization;
-import 'package:vm/transformations/type_flow/table_selector_assigner.dart'
-    show TableSelectorAssigner;
+    show ProcedureAttributesMetadataRepository;
+import 'package:vm/metadata/table_selector.dart';
 
 import 'class_info.dart';
 import 'compiler_options.dart';
 import 'dispatch_table.dart';
 import 'dynamic_modules.dart';
+import 'js/method_collector.dart' show JSMethods;
 import 'serialization.dart';
 import 'translator.dart';
+
+const String dynamicMainModuleProcedureAttributeMetadataTag =
+    'dynMod:procedureAttributes';
+const String dynamicMainModuleSelectorMetadataTag = 'dynMod:selectors';
 
 /// Repository for kernel global entity IDs.
 ///
@@ -44,90 +50,68 @@ class DynamicModuleGlobalIdRepository extends MetadataRepository<int> {
 
   @override
   int readFromBinary(Node node, BinarySource source) {
-    throw UnsupportedError('');
+    return source.readUInt30();
   }
 
   @override
-  void writeToBinary(int globalId, Node node, BinarySink sink) {}
+  void writeToBinary(int globalId, Node node, BinarySink sink) {
+    sink.writeUInt30(globalId);
+  }
+}
+
+/// Repository for kernel constants.
+class DynamicModuleConstantRepository
+    extends MetadataRepository<Map<Constant, int>> {
+  static const repositoryTag = 'wasm.dynamic-modules.constants';
+
+  @override
+  final String tag = repositoryTag;
+
+  @override
+  final Map<TreeNode, Map<Constant, int>> mapping = {};
+
+  @override
+  Map<Constant, int> readFromBinary(Node node, BinarySource source) {
+    final length = source.readUInt30();
+    final Map<Constant, int> constants = {};
+    for (int i = 0; i < length; i++) {
+      final constant = source.readConstantReference();
+      final id = source.readUInt30();
+      constants[constant] = id;
+    }
+    return constants;
+  }
+
+  @override
+  void writeToBinary(Map<Constant, int> constants, Node node, BinarySink sink) {
+    sink.writeUInt30(constants.length);
+    constants.forEach((constant, id) {
+      sink.writeConstantReference(constant);
+      sink.writeUInt30(id);
+    });
+  }
 }
 
 class ClassMetadata {
   /// The class numbering ID assigned to this class.
   final int classId;
 
-  /// Tracked to ensure classes that are marked as not live by TFA tree-shaking
-  /// are consistently treated as such.
-  final bool isLive;
-
-  /// Whether or not this class was abstract after TFA ran.
-  final bool isAbstract;
-
   /// The brand index attached to the wasm struct representing this class, if
   /// any.
   final int? brandIndex;
 
-  final Set<Member> liveMembers;
-
-  ClassMetadata._(this.classId, this.brandIndex, this.liveMembers,
-      {required this.isLive, required this.isAbstract});
+  ClassMetadata._(this.classId, this.brandIndex);
 
   factory ClassMetadata.deserialize(DataDeserializer source) {
     final classId = source.readInt() - 1;
     final brandIndex = source.readInt();
-    final liveMembers = source.readList(source.readMember).toSet();
-    final [isLive, isAbstract] = source.readBoolList();
 
-    return ClassMetadata._(
-        classId, brandIndex == 0 ? null : brandIndex - 1, liveMembers,
-        isLive: isLive, isAbstract: isAbstract);
+    return ClassMetadata._(classId, brandIndex == 0 ? null : brandIndex - 1);
   }
 
   void serialize(DataSerializer sink) {
     sink.writeInt(classId + 1);
     sink.writeInt(brandIndex == null ? 0 : brandIndex! + 1);
-    sink.writeList(liveMembers, sink.writeMember);
-    sink.writeBoolList([isLive, isAbstract]);
-  }
-}
-
-class MemberMetadata {
-  final ProcedureAttributesMetadata procedureAttributes;
-
-  MemberMetadata._(this.procedureAttributes);
-
-  factory MemberMetadata.deserialize(DataDeserializer source) {
-    final [
-      methodOrSetterCalledDynamically,
-      getterCalledDynamically,
-      hasThisUses,
-      hasNonThisUses,
-      hasTearOffUses
-    ] = source.readBoolList();
-    final getterSelectorId = source.readInt();
-    final methodOrSetterSelectorId = source.readInt();
-    final procedureAttributes = ProcedureAttributesMetadata(
-      methodOrSetterCalledDynamically: methodOrSetterCalledDynamically,
-      getterCalledDynamically: getterCalledDynamically,
-      hasThisUses: hasThisUses,
-      hasNonThisUses: hasNonThisUses,
-      hasTearOffUses: hasTearOffUses,
-      getterSelectorId: getterSelectorId,
-      methodOrSetterSelectorId: methodOrSetterSelectorId,
-    );
-
-    return MemberMetadata._(procedureAttributes);
-  }
-
-  void serialize(DataSerializer sink) {
-    sink.writeBoolList([
-      procedureAttributes.methodOrSetterCalledDynamically,
-      procedureAttributes.getterCalledDynamically,
-      procedureAttributes.hasThisUses,
-      procedureAttributes.hasNonThisUses,
-      procedureAttributes.hasTearOffUses
-    ]);
-    sink.writeInt(procedureAttributes.getterSelectorId);
-    sink.writeInt(procedureAttributes.methodOrSetterSelectorId);
   }
 }
 
@@ -137,8 +121,8 @@ class SelectorMetadata {
   final int callCount;
   final bool isSetter;
   final bool useMultipleEntryPoints;
-  final bool isDynamicModuleOverrideable;
-  final bool isDynamicModuleCallable;
+  final bool isDynamicSubmoduleOverridable;
+  final bool isDynamicSubmoduleCallable;
   final bool isNoSuchMethod;
   final SelectorTargets? checked;
   final SelectorTargets? unchecked;
@@ -151,8 +135,8 @@ class SelectorMetadata {
       this.callCount,
       this.isSetter,
       this.useMultipleEntryPoints,
-      this.isDynamicModuleOverrideable,
-      this.isDynamicModuleCallable,
+      this.isDynamicSubmoduleOverridable,
+      this.isDynamicSubmoduleCallable,
       this.isNoSuchMethod,
       this.checked,
       this.unchecked,
@@ -166,8 +150,8 @@ class SelectorMetadata {
     sink.writeBoolList([
       isSetter,
       useMultipleEntryPoints,
-      isDynamicModuleOverrideable,
-      isDynamicModuleCallable,
+      isDynamicSubmoduleOverridable,
+      isDynamicSubmoduleCallable,
       isNoSuchMethod
     ]);
     sink.writeNullable(checked, (targets) => targets.serialize(sink));
@@ -183,8 +167,8 @@ class SelectorMetadata {
     final [
       isSetter,
       useMultipleEntryPoints,
-      isDynamicModuleOverrideable,
-      isDynamicModuleCallable,
+      isDynamicSubmoduleOverridable,
+      isDynamicSubmoduleCallable,
       isNoSuchMethod
     ] = source.readBoolList();
     final checked =
@@ -201,8 +185,8 @@ class SelectorMetadata {
         callCount,
         isSetter,
         useMultipleEntryPoints,
-        isDynamicModuleOverrideable,
-        isDynamicModuleCallable,
+        isDynamicSubmoduleOverridable,
+        isDynamicSubmoduleCallable,
         isNoSuchMethod,
         checked,
         unchecked,
@@ -216,70 +200,16 @@ class DispatchTableMetadata {
   final List<Reference?> table;
 
   // Ignore dynamic selectors since dynamic calls are not allowed from
-  // dynamic modules.
+  // submodules.
 
   DispatchTableMetadata(this.selectors, this.table);
-}
-
-class _TreeShake extends RemovingTransformer {
-  final CoreTypes coreTypes;
-  final Map<Class, ClassMetadata> classMetadata;
-  late Set<Member> liveMembers;
-  _TreeShake(this.classMetadata, this.coreTypes);
-
-  @override
-  TreeNode visitLibrary(Library library, TreeNode? sentinel) {
-    if (!library.isFromMainModule(coreTypes)) return library;
-    return super.visitLibrary(library, sentinel);
-  }
-
-  @override
-  TreeNode visitClass(Class cls, TreeNode? sentinel) {
-    if (cls.superclass == coreTypes.recordClass) return cls;
-
-    final metadata = classMetadata[cls];
-    if (metadata == null) {
-      cls.reference.canonicalName?.unbind();
-      return sentinel!;
-    } else if (!metadata.isLive) {
-      cls.supertype = coreTypes.objectClass.asRawSupertype;
-      cls.implementedTypes.clear();
-      cls.typeParameters.clear();
-      cls.isAbstract = true;
-      cls.isEnum = false;
-      cls.isEliminatedMixin = false;
-      cls.mixedInType = null;
-      cls.annotations = const <Expression>[];
-    } else if (metadata.isAbstract && !cls.isAbstract) {
-      cls.isAbstract = true;
-      cls.isEnum = false;
-    }
-    liveMembers = metadata.liveMembers;
-    return super.visitClass(cls, sentinel);
-  }
-
-  @override
-  TreeNode defaultMember(Member member, TreeNode? sentinel) {
-    if (member.isInstanceMember && !liveMembers.contains(member)) {
-      member.reference.canonicalName?.unbind();
-      return sentinel!;
-    }
-    return super.defaultMember(member, sentinel);
-  }
-
-  @override
-  TreeNode visitFieldInitializer(
-      FieldInitializer initializer, TreeNode? sentinel) {
-    if (!liveMembers.contains(initializer.field)) return sentinel!;
-    return initializer;
-  }
 }
 
 /// Metadata produced by the main module.
 ///
 /// This data will get serialized as part of the main module compilation process
-/// and will be provided as an input to be deserialized by subsequent dynamic
-/// module compilations.
+/// and will be provided as an input to be deserialized by subsequent submodule
+/// compilations.
 class MainModuleMetadata {
   /// Class to metadata about the class.
   final Map<Class, ClassMetadata> classMetadata;
@@ -288,33 +218,29 @@ class MainModuleMetadata {
   /// the export name for the reference.
   final Map<Reference, int> callableReferenceIds;
 
-  final Map<Member, MemberMetadata> memberMetadata;
-
   late final DispatchTable dispatchTable;
 
   /// Contains each invoked reference that targets an updateable function.
-  /// Includes whether the reference was invoked with unchecked entry.
-  final Set<(Reference, bool)> invokedReferences;
+  final Set<Reference> invokedOverridableReferences;
 
   /// Maps invocation keys (either selector or builtin) to the implementation's
   /// index in the runtime table. Key includes whether the key was invoked
   /// with unchecked entry.
-  final Map<(int, bool), int> keyInvocationToIndex;
+  final Map<int, int> keyInvocationToIndex;
 
   /// Classes in dfs order.
   final List<Class> dfsOrderClassIds;
 
   /// Saved flags from the main module to verify that settings have not changed
-  /// between main module invocation and dynamic module invocation.
+  /// between main module invocation and submodule invocation.
   final TranslatorOptions mainModuleTranslatorOptions;
   final Map<String, String> mainModuleEnvironment;
 
   MainModuleMetadata._(
       this.classMetadata,
-      this.memberMetadata,
       this.callableReferenceIds,
       this.dispatchTable,
-      this.invokedReferences,
+      this.invokedOverridableReferences,
       this.keyInvocationToIndex,
       this.dfsOrderClassIds,
       this.mainModuleTranslatorOptions,
@@ -323,17 +249,10 @@ class MainModuleMetadata {
   MainModuleMetadata.empty(
       this.mainModuleTranslatorOptions, this.mainModuleEnvironment)
       : classMetadata = {},
-        memberMetadata = {},
         callableReferenceIds = {},
-        invokedReferences = {},
+        invokedOverridableReferences = {},
         keyInvocationToIndex = {},
         dfsOrderClassIds = [];
-
-  void initializeDynamicModuleKernel(Component component, CoreTypes coreTypes,
-      ClosedWorldClassHierarchy classHierarchy) {
-    _TreeShake(classMetadata, coreTypes).visitComponent(component, null);
-    _addTfaMetadata(component, coreTypes, classHierarchy);
-  }
 
   void finalize(Translator translator) {
     translator.classInfo.forEach((cls, info) {
@@ -342,21 +261,33 @@ class MainModuleMetadata {
       final structType = info.struct;
       final brandIndex =
           translator.typesBuilder.brandTypeAssignments[structType];
-      classMetadata[cls] = ClassMetadata._(id, brandIndex, {...cls.members},
-          isLive: cls.isMainModuleLive(translator.coreTypes),
-          isAbstract: cls.isAbstract);
+      classMetadata[cls] = ClassMetadata._(id, brandIndex);
     });
 
     dispatchTable = translator.dispatchTable;
 
-    for (final cls in translator.classIdNumbering.dfsOrder) {
-      dfsOrderClassIds.add(cls);
+    dfsOrderClassIds.addAll(translator.classIdNumbering.dfsOrder);
+
+    // Annotate classes and procedures with indices for serialization.
+    int nextId = 0;
+    final idRepo = translator
+        .component.metadata[DynamicModuleGlobalIdRepository.repositoryTag]!;
+
+    void annotateMember(Member member) {
+      idRepo.mapping[member] = nextId++;
     }
 
-    final procedureAttributes = translator.procedureAttributeMetadata;
-    procedureAttributes.forEach((member, metadata) {
-      memberMetadata[member as Member] = MemberMetadata._(metadata);
-    });
+    for (final lib in translator.component.libraries) {
+      for (final member in lib.members) {
+        annotateMember(member);
+      }
+      for (final cls in lib.classes) {
+        idRepo.mapping[cls] = nextId++;
+        for (final member in cls.members) {
+          annotateMember(member);
+        }
+      }
+    }
   }
 
   void serialize(DataSerializer sink, Translator translator) {
@@ -364,21 +295,13 @@ class MainModuleMetadata {
 
     sink.writeMap(classMetadata, sink.writeClass, (m) => m.serialize(sink));
 
-    sink.writeMap(memberMetadata, sink.writeMember, (m) => m.serialize(sink));
-
     sink.writeMap(callableReferenceIds, sink.writeReference, sink.writeInt);
 
     dispatchTable.serialize(sink);
 
-    sink.writeList(invokedReferences, (r) {
-      sink.writeReference(r.$1);
-      sink.writeBool(r.$2);
-    });
+    sink.writeList(invokedOverridableReferences, sink.writeReference);
 
-    sink.writeMap(keyInvocationToIndex, (r) {
-      sink.writeInt(r.$1);
-      sink.writeBool(r.$2);
-    }, sink.writeInt);
+    sink.writeMap(keyInvocationToIndex, sink.writeInt, sink.writeInt);
 
     sink.writeList(dfsOrderClassIds, sink.writeClass);
 
@@ -390,25 +313,14 @@ class MainModuleMetadata {
     final classMetadata = source.readMap(
         source.readClass, () => ClassMetadata.deserialize(source));
 
-    final memberMetadata = source.readMap(
-        source.readMember, () => MemberMetadata.deserialize(source));
-
     final callableReferenceIds =
         source.readMap(source.readReference, source.readInt);
 
     final dispatchTable = DispatchTable.deserialize(source);
 
-    final invokedReferences = source.readList(() {
-      final reference = source.readReference();
-      final useUncheckedEntry = source.readBool();
-      return (reference, useUncheckedEntry);
-    }).toSet();
+    final invokedReferences = source.readList(source.readReference).toSet();
 
-    final keyInvocationToIndex = source.readMap(() {
-      final key = source.readInt();
-      final useUncheckedEntry = source.readBool();
-      return (key, useUncheckedEntry);
-    }, source.readInt);
+    final keyInvocationToIndex = source.readMap(source.readInt, source.readInt);
 
     final dfsOrderClasses = source.readList(source.readClass);
 
@@ -418,7 +330,6 @@ class MainModuleMetadata {
 
     final metadata = MainModuleMetadata._(
         classMetadata,
-        memberMetadata,
         callableReferenceIds,
         dispatchTable,
         invokedReferences,
@@ -428,44 +339,6 @@ class MainModuleMetadata {
         mainModuleEnvironment);
 
     return metadata;
-  }
-
-  void _addTfaMetadata(Component component, CoreTypes coreTypes,
-      ClosedWorldClassHierarchy? hierarchy) {
-    final selectorAssigner = TableSelectorAssigner(component);
-    final dynamicModuleProcedureAttributes =
-        ProcedureAttributesMetadataRepository();
-    for (final library in component.libraries) {
-      for (final cls in library.classes) {
-        for (final member in cls.members) {
-          if (!member.isInstanceMember) continue;
-          dynamicModuleProcedureAttributes.mapping[member] =
-              ProcedureAttributesMetadata(
-                  getterSelectorId: selectorAssigner.getterSelectorId(member),
-                  methodOrSetterSelectorId:
-                      selectorAssigner.methodOrSetterSelectorId(member));
-        }
-      }
-      component.addMetadataRepository(dynamicModuleProcedureAttributes);
-
-      for (final metadata in selectorAssigner.metadata.selectors) {
-        metadata.callCount++;
-        metadata.tornOff = true;
-        metadata.calledOnNull = true;
-      }
-      component.addMetadataRepository(TableSelectorMetadataRepository()
-        ..mapping[component] = selectorAssigner.metadata);
-
-      if (hierarchy != null) {
-        component.accept(_Devirtualization(coreTypes, component, hierarchy,
-            hierarchy.computeSubtypesInformation()));
-      } else {
-        component.addMetadataRepository(DirectCallMetadataRepository());
-      }
-      component.addMetadataRepository(InferredTypeMetadataRepository());
-      component.addMetadataRepository(InferredReturnTypeMetadataRepository());
-      component.addMetadataRepository(InferredArgTypeMetadataRepository());
-    }
   }
 
   static void verifyMainModuleOptions(WasmCompilerOptions options) {
@@ -484,16 +357,16 @@ class MainModuleMetadata {
     }
   }
 
-  void verifyDynamicModuleOptions(WasmCompilerOptions options) {
+  void verifyDynamicSubmoduleOptions(WasmCompilerOptions options) {
     final translatorOptions = options.translatorOptions;
 
     Never fail(String optionName) {
       throw StateError(
-          'Inconsistent flag for dynamic module compilation: $optionName');
+          'Inconsistent flag for dynamic submodule compilation: $optionName');
     }
 
     // TODO(natebiggs): Disallow certain flags from being used in conjunction
-    // with dynamic modules.
+    // with submodules.
 
     if (translatorOptions.enableAsserts !=
         mainModuleTranslatorOptions.enableAsserts) {
@@ -568,20 +441,76 @@ class MainModuleMetadata {
   }
 }
 
-class _Devirtualization extends CHADevirtualization {
-  final CoreTypes coreTypes;
+String _makeOptDillPath(String path) =>
+    '${path.substring(0, path.length - '.dill'.length)}.opt.dill';
 
-  _Devirtualization(
-      this.coreTypes,
-      Component component,
-      ClosedWorldClassHierarchy hierarchy,
-      ClassHierarchySubtypes hierarchySubtype)
-      : super(coreTypes, component, hierarchy, hierarchySubtype);
+Future<void> serializeMainModuleComponent(
+    Component component, Uri dynamicModuleMainUri,
+    {required bool optimized}) async {
+  // TODO(natebiggs): Serialize as a summary and filter to only necessary
+  // libraries.
+  await writeComponentToBinary(
+      component,
+      optimized
+          ? _makeOptDillPath(dynamicModuleMainUri.path)
+          : dynamicModuleMainUri.path,
+      includeSource: false);
+}
 
-  @override
-  void makeDirectCall(
-      TreeNode node, Member? target, DirectCallMetadata directCall) {
-    if (target != null && target.isDynamicModuleOverrideable(coreTypes)) return;
-    super.makeDirectCall(node, target, directCall);
-  }
+Future<(Component, JSMethods)> generateDynamicSubmoduleComponent(
+    Component component,
+    CoreTypes coreTypes,
+    Uri dynamicModuleMainUri,
+    JSMethods jsInteropMethods) async {
+  final submoduleComponentBytes = writeComponentToBytes(
+      Component(libraries: component.getDynamicSubmoduleLibraries(coreTypes)));
+  final optimizedMainComponentBytes =
+      await File(_makeOptDillPath(dynamicModuleMainUri.path)).readAsBytes();
+  final concatenatedComponentBytes = Uint8List(
+      submoduleComponentBytes.length + optimizedMainComponentBytes.length);
+  concatenatedComponentBytes.setAll(0, optimizedMainComponentBytes);
+  concatenatedComponentBytes.setAll(
+      optimizedMainComponentBytes.length, submoduleComponentBytes);
+  final newComponent = Component()
+    ..addMetadataRepository(DynamicModuleGlobalIdRepository())
+    ..addMetadataRepository(DynamicModuleConstantRepository())
+    ..addMetadataRepository(ProcedureAttributesMetadataRepository())
+    ..addMetadataRepository(TableSelectorMetadataRepository())
+    ..addMetadataRepository(DirectCallMetadataRepository())
+    ..addMetadataRepository(InferredTypeMetadataRepository())
+    ..addMetadataRepository(InferredReturnTypeMetadataRepository())
+    ..addMetadataRepository(InferredArgTypeMetadataRepository());
+  BinaryBuilderWithMetadata(concatenatedComponentBytes)
+      .readComponent(newComponent);
+
+  // Remap js interop methods into the new component.
+  final index = LibraryIndex.all(component);
+  final JSMethods newJsMethods = {};
+  jsInteropMethods.forEach((method, info) {
+    newJsMethods[index.getProcedure(
+        method.enclosingLibrary.importUri.path,
+        method.enclosingClass?.name ?? LibraryIndex.topLevel,
+        method.name.text)] = info;
+  });
+  return (newComponent, newJsMethods);
+}
+
+Future<MainModuleMetadata> deserializeMainModuleMetadata(
+    Component component, WasmCompilerOptions options) async {
+  final filename = options.dynamicModuleMetadataFile ??
+      Uri.parse(path.setExtension(
+          options.dynamicMainModuleUri!.toFilePath(), '.dyndata'));
+  final dynamicModuleMetadataBytes = await File.fromUri(filename).readAsBytes();
+  final source = DataDeserializer(dynamicModuleMetadataBytes, component);
+  return MainModuleMetadata.deserialize(source);
+}
+
+Future<void> serializeMainModuleMetadata(Component component,
+    Translator translator, WasmCompilerOptions options) async {
+  final filename = options.dynamicModuleMetadataFile ??
+      Uri.parse(path.setExtension(
+          options.dynamicMainModuleUri!.toFilePath(), '.dyndata'));
+  final serializer = DataSerializer(component);
+  translator.dynamicModuleInfo!.metadata.serialize(serializer, translator);
+  await File.fromUri(filename).writeAsBytes(serializer.takeBytes());
 }

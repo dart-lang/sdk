@@ -47,7 +47,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitImportDirective(ImportDirective node) {
     if (isRelativeLibImport(node)) {
-      rule.reportLint(node.uri);
+      rule.reportAtNode(node.uri);
     }
   }
 }

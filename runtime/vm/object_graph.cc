@@ -980,7 +980,7 @@ class Pass1Visitor : public ObjectVisitor,
   explicit Pass1Visitor(HeapSnapshotWriter* writer, ObjectSlots* object_slots)
       : ObjectVisitor(),
         ObjectPointerVisitor(IsolateGroup::Current()),
-        HandleVisitor(Thread::Current()),
+        HandleVisitor(),
         writer_(writer),
         object_slots_(object_slots) {}
 
@@ -1116,7 +1116,7 @@ class Pass2Visitor : public ObjectVisitor,
   explicit Pass2Visitor(HeapSnapshotWriter* writer, ObjectSlots* object_slots)
       : ObjectVisitor(),
         ObjectPointerVisitor(IsolateGroup::Current()),
-        HandleVisitor(Thread::Current()),
+        HandleVisitor(),
         writer_(writer),
         object_slots_(object_slots) {}
 
@@ -1233,7 +1233,7 @@ class Pass2Visitor : public ObjectVisitor,
       // Handle scope so we do not change the root set.
       // We are assuming that TypeArguments::PrintSubvectorName never allocates
       // objects or zone handles.
-      HANDLESCOPE(thread());
+      HANDLESCOPE(Thread::Current());
       const TypeArguments& args =
           TypeArguments::Handle(static_cast<TypeArgumentsPtr>(obj));
       TextBuffer buffer(128);
@@ -1835,7 +1835,7 @@ uint32_t HeapSnapshotWriter::GetHashHelper(Thread* thread, ObjectPtr obj) {
 
 CountObjectsVisitor::CountObjectsVisitor(Thread* thread, intptr_t class_count)
     : ObjectVisitor(),
-      HandleVisitor(thread),
+      HandleVisitor(),
       new_count_(new intptr_t[class_count]),
       new_size_(new intptr_t[class_count]),
       new_external_size_(new intptr_t[class_count]),

@@ -75,8 +75,11 @@ void f(e) {
     switch (_variant) {
       case _Variants.nullSafe:
         expectedErrors = [
-          error(CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
-              150, 10),
+          error(
+            CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
+            150,
+            10,
+          ),
         ];
       case _Variants.patterns:
         expectedErrors = [];

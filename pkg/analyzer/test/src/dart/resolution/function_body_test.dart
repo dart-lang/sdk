@@ -11,7 +11,8 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(
-        FunctionBodyResolutionTest_isPotentiallyMutatedInScope);
+      FunctionBodyResolutionTest_isPotentiallyMutatedInScope,
+    );
   });
 }
 

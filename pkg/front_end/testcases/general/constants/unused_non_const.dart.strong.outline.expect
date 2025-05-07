@@ -1,0 +1,12 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  static final field core::int nonConstField;
+  synthetic constructor •() → self::Class
+    ;
+  method test(final core::int nonConstParameter) → void
+    ;
+}
+static final field core::int nonConstTopLevel;

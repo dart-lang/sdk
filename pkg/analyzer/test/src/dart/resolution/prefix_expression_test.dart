@@ -65,13 +65,14 @@ PrefixExpression
   }
 
   test_bang_int_localVariable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int x) {
   !x;
 }
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 19, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 19, 1)],
+    );
 
     var node = findNode.prefix('!x');
     assertResolvedNodeText(node, r'''
@@ -87,7 +88,8 @@ PrefixExpression
   }
 
   test_bang_no_nullShorting() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   bool get foo => true;
 }
@@ -95,10 +97,15 @@ class A {
 void f(A? a) {
   !a?.foo;
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
-          55, 6),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
+          55,
+          6,
+        ),
+      ],
+    );
 
     assertResolvedNodeText(findNode.prefix('!a'), r'''
 PrefixExpression
@@ -120,16 +127,19 @@ PrefixExpression
   }
 
   test_bang_super() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void f() {
     !super;
   }
 }
-''', [
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 28, 5),
-      error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 28, 5),
-    ]);
+''',
+      [
+        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 28, 5),
+        error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 28, 5),
+      ],
+    );
 
     var node = findNode.singlePrefixExpression;
     assertResolvedNodeText(node, r'''
@@ -144,13 +154,14 @@ PrefixExpression
   }
 
   test_formalParameter_inc_inc() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int x) {
   ++ ++ x;
 }
-''', [
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 24, 1),
-    ]);
+''',
+      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 24, 1)],
+    );
 
     var node = findNode.prefix('++ ++ x');
     assertResolvedNodeText(node, r'''
@@ -178,15 +189,16 @@ PrefixExpression
   }
 
   test_formalParameter_inc_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 
 void f(A a) {
   ++a;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 28, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 28, 2)],
+    );
 
     var node = findNode.prefix('++a');
     assertResolvedNodeText(node, r'''
@@ -320,13 +332,14 @@ PrefixExpression
   }
 
   test_inc_unresolvedIdentifier() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   ++x;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 15, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 15, 1)],
+    );
 
     var node = findNode.prefix('++x');
     assertResolvedNodeText(node, r'''
@@ -423,7 +436,8 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 part of 'a.dart';
 
 augment class A {
@@ -431,9 +445,9 @@ augment class A {
     -augmented;
   }
 }
-''', [
-      error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_NOT_OPERATOR, 65, 9),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_NOT_OPERATOR, 65, 9)],
+    );
 
     var node = findNode.singlePrefixExpression;
     assertResolvedNodeText(node, r'''
@@ -460,7 +474,8 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 part of 'a.dart';
 
 augment class A {
@@ -468,9 +483,9 @@ augment class A {
     -augmented;
   }
 }
-''', [
-      error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_SETTER, 69, 9),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_SETTER, 69, 9)],
+    );
 
     var node = findNode.singlePrefixExpression;
     assertResolvedNodeText(node, r'''
@@ -543,7 +558,8 @@ PrefixExpression
   }
 
   test_minus_no_nullShorting() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int get foo => 0;
 }
@@ -551,10 +567,15 @@ class A {
 void f(A? a) {
   -a?.foo;
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          50, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          50,
+          1,
+        ),
+      ],
+    );
 
     assertResolvedNodeText(findNode.prefix('-a'), r'''
 PrefixExpression
@@ -625,7 +646,8 @@ PrefixExpression
   }
 
   test_plusPlus_notLValue_extensionOverride() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C {}
 
 extension Ext on C {
@@ -637,9 +659,9 @@ extension Ext on C {
 void f(C c) {
   ++Ext(c);
 }
-''', [
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 103, 1),
-    ]);
+''',
+      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 103, 1)],
+    );
 
     var node = findNode.prefix('++Ext');
     assertResolvedNodeText(node, r'''
@@ -669,13 +691,14 @@ PrefixExpression
   }
 
   test_plusPlus_notLValue_simpleIdentifier_typeLiteral() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   ++int;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 15, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 15, 3)],
+    );
 
     var node = findNode.prefix('++int');
     assertResolvedNodeText(node, r'''
@@ -1028,13 +1051,14 @@ PrefixExpression
   }
 
   test_plusPlus_simpleIdentifier_parameter_typeParameter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f<T extends num>(T x) {
   ++x;
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 31, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 31, 3)],
+    );
 
     var node = findNode.prefix('++x');
     assertResolvedNodeText(node, r'''
@@ -1171,15 +1195,16 @@ PrefixExpression
   }
 
   test_plusPlus_super() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void f() {
     ++super;
   }
 }
-''', [
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 29, 5),
-    ]);
+''',
+      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 29, 5)],
+    );
 
     var node = findNode.singlePrefixExpression;
     assertResolvedNodeText(node, r'''
@@ -1198,15 +1223,16 @@ PrefixExpression
   }
 
   test_plusPlus_switchExpression() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   ++switch (x) {
     _ => 0,
   };
 }
-''', [
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 51, 1),
-    ]);
+''',
+      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 51, 1)],
+    );
 
     var node = findNode.prefix('++switch');
     assertResolvedNodeText(node, r'''
@@ -1280,7 +1306,8 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 part of 'a.dart';
 
 augment class A {
@@ -1288,9 +1315,9 @@ augment class A {
     return ~augmented;
   }
 }
-''', [
-      error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_NOT_OPERATOR, 77, 9),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_NOT_OPERATOR, 77, 9)],
+    );
 
     var node = findNode.singlePrefixExpression;
     assertResolvedNodeText(node, r'''
@@ -1308,7 +1335,8 @@ PrefixExpression
   }
 
   test_tilde_no_nullShorting() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int get foo => 0;
 }
@@ -1316,10 +1344,15 @@ class A {
 void f(A? a) {
   ~a?.foo;
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          50, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          50,
+          1,
+        ),
+      ],
+    );
 
     assertResolvedNodeText(findNode.prefix('~a'), r'''
 PrefixExpression

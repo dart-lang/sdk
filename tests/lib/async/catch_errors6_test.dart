@@ -18,13 +18,16 @@ main() {
     completer.future.then((x) {
       Expect.fail("should not be executed");
     });
-  }).listen((x) {
-    errorHandlerOrDoneHasBeenExecuted = true;
-    Expect.fail("should not be executed (listen)");
-  }, onDone: () {
-    errorHandlerOrDoneHasBeenExecuted = true;
-    Expect.fail("should not be executed (onDone)");
-  });
+  }).listen(
+    (x) {
+      errorHandlerOrDoneHasBeenExecuted = true;
+      Expect.fail("should not be executed (listen)");
+    },
+    onDone: () {
+      errorHandlerOrDoneHasBeenExecuted = true;
+      Expect.fail("should not be executed (onDone)");
+    },
+  );
   Timer.run(() {
     Expect.isFalse(errorHandlerOrDoneHasBeenExecuted);
     asyncEnd();

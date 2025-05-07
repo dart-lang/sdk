@@ -5,9 +5,8 @@
 import 'dart:async';
 
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
@@ -15,11 +14,13 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_event.dart' as driver_events;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/fine/requirements.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:analyzer/src/utilities/extensions/async.dart';
+import 'package:analyzer_utilities/testing/test_support.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
@@ -52,11 +53,14 @@ class AnalysisDriver_BlazeWorkspaceTest extends BlazeWorkspaceResolutionTest {
     var analysisSession = contextFor(innerFile).currentSession;
 
     void assertInnerUri(ResolvedUnitResult result) {
-      var innerSource = result.libraryFragment.libraryImports2
-          .map((import) => import.importedLibrary2?.firstFragment.source)
-          .nonNulls
-          .where((importedSource) => importedSource.fullName == innerFile.path)
-          .single;
+      var innerSource =
+          result.libraryFragment.libraryImports2
+              .map((import) => import.importedLibrary2?.firstFragment.source)
+              .nonNulls
+              .where(
+                (importedSource) => importedSource.fullName == innerFile.path,
+              )
+              .single;
       expect(innerSource.uri, innerUri);
     }
 
@@ -101,9 +105,9 @@ class AnalysisDriver_LintTest extends PubPackageResolutionTest
 
     useEmptyByteStore();
     registerLintRule(_AlwaysReportedLint.instance);
-    writeTestPackageAnalysisOptionsFile(analysisOptionsContent(
-      rules: [_AlwaysReportedLint.code.name],
-    ));
+    writeTestPackageAnalysisOptionsFile(
+      analysisOptionsContent(rules: [_AlwaysReportedLint.code.name]),
+    );
   }
 
   @override
@@ -128,10 +132,11 @@ class AnalysisDriver_LintTest extends PubPackageResolutionTest
   }
 
   void _assertHasLintReported(List<AnalysisError> errors, String name) {
-    var matching = errors.where((element) {
-      var errorCode = element.errorCode;
-      return errorCode is LintCode && errorCode.name == name;
-    }).toList();
+    var matching =
+        errors.where((element) {
+          var errorCode = element.errorCode;
+          return errorCode is LintCode && errorCode.name == name;
+        }).toList();
     expect(matching, hasLength(1));
   }
 }
@@ -820,8 +825,9 @@ var B = 0;
     driver.priorityFiles2 = [a];
     driver.addFile2(a);
 
-    configuration.libraryConfiguration.unitConfiguration.nodeSelector =
-        (result) {
+    configuration.libraryConfiguration.unitConfiguration.nodeSelector = (
+      result,
+    ) {
       return result.findNode.simple('B;');
     };
 
@@ -1066,7 +1072,7 @@ import 'c.dart';
 
     var driver = driverFor(testFile);
 
-    Future<LibraryElement2> getLibrary(String shortName) async {
+    Future<LibraryElement> getLibrary(String shortName) async {
       var uriStr = 'package:test/$shortName';
       var result = await driver.getLibraryByUriValid(uriStr);
       return result.element2;
@@ -1113,10 +1119,7 @@ import 'c.dart';
         'package:test/c.dart',
         'package:test/d.dart',
       ],
-      included: [
-        'package:test/a.dart',
-        'package:test/e.dart',
-      ],
+      included: ['package:test/a.dart', 'package:test/e.dart'],
     );
 
     // `a.dart` and `e.dart` moved to the new session.
@@ -1145,7 +1148,7 @@ import 'b.dart';
 
     var driver = driverFor(testFile);
 
-    Future<LibraryElement2> getLibrary(String shortName) async {
+    Future<LibraryElement> getLibrary(String shortName) async {
       var uriStr = 'package:test/$shortName';
       var result = await driver.getLibraryByUriValid(uriStr);
       return result.element2;
@@ -1182,13 +1185,8 @@ import 'b.dart';
     expect(session2, isNot(session1));
 
     driver.assertLoadedLibraryUriSet(
-      excluded: [
-        'package:test/b.dart',
-        'package:test/c.dart',
-      ],
-      included: [
-        'package:test/d.dart',
-      ],
+      excluded: ['package:test/b.dart', 'package:test/c.dart'],
+      included: ['package:test/d.dart'],
     );
 
     // `d.dart` moved to the new session.
@@ -1217,17 +1215,17 @@ final B1 = A1;
     driver.addFile2(a);
     driver.addFile2(b);
 
-    configuration.libraryConfiguration.unitConfiguration.variableTypesSelector =
-        (result) {
+    configuration
+        .libraryConfiguration
+        .unitConfiguration
+        .variableTypesSelector = (result) {
       return switch (result.uriStr) {
         'package:test/a.dart' => [
-            result.findElement2.topVar('A1'),
-            result.findElement2.topVar('A2'),
-          ],
-        'package:test/b.dart' => [
-            result.findElement2.topVar('B1'),
-          ],
-        _ => []
+          result.findElement2.topVar('A1'),
+          result.findElement2.topVar('A2'),
+        ],
+        'package:test/b.dart' => [result.findElement2.topVar('B1')],
+        _ => [],
       };
     };
 
@@ -1304,13 +1302,13 @@ final A2 = B1;
     driver.addFile2(a);
     driver.priorityFiles2 = [a];
 
-    configuration.libraryConfiguration.unitConfiguration.variableTypesSelector =
-        (result) {
+    configuration
+        .libraryConfiguration
+        .unitConfiguration
+        .variableTypesSelector = (result) {
       switch (result.uriStr) {
         case 'package:test/a.dart':
-          return [
-            result.findElement2.topVar('V'),
-          ];
+          return [result.findElement2.topVar('V')];
         default:
           return [];
       }
@@ -1950,6 +1948,51 @@ part of 'b.dart';
 ''');
   }
 
+  test_getLibraryByUri_subsequentCallsDoesNoWork() async {
+    var aUriStr = 'package:test/a.dart';
+    var bUriStr = 'package:test/b.dart';
+
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+
+class A {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+
+class B {}
+''');
+
+    for (var run = 0; run < 5; run++) {
+      var driver = driverFor(testFile);
+      var collector = DriverEventCollector(driver);
+
+      var result = await driver.getLibraryByUri(aUriStr);
+      result as LibraryElementResult;
+      expect(result.element2.getClass2('A'), isNotNull);
+      expect(result.element2.getClass2('B'), isNotNull);
+
+      // It is an error to ask for a library when we know that it is a part.
+      expect(
+        await driver.getLibraryByUri(bUriStr),
+        isA<NotLibraryButPartResult>(),
+      );
+
+      if (run == 0) {
+        // First `getLibraryByUri` call does actual work.
+        await assertEventsText(collector, r'''
+[status] working
+[status] idle
+''');
+      } else {
+        // Subsequent `getLibraryByUri` just grabs the result via rootReference
+        // and thus does no actual work.
+        await assertEventsText(collector, '');
+      }
+    }
+  }
+
   test_getLibraryByUri_unresolvedUri() async {
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
@@ -2006,10 +2049,7 @@ part of 'b.dart';
   test_getParsedLibraryByUri_cannotResolveUri() async {
     var driver = driverFor(testFile);
     var uri = Uri.parse('foo:bar');
-    expect(
-      driver.getParsedLibraryByUri(uri),
-      isA<CannotResolveUriResult>(),
-    );
+    expect(driver.getParsedLibraryByUri(uri), isA<CannotResolveUriResult>());
   }
 
   test_getParsedLibraryByUri_notLibrary_part() async {
@@ -2019,10 +2059,7 @@ part of 'b.dart';
 
     var driver = driverFor(a);
     var uri = Uri.parse('package:test/a.dart');
-    expect(
-      driver.getParsedLibraryByUri(uri),
-      isA<NotLibraryButPartResult>(),
-    );
+    expect(driver.getParsedLibraryByUri(uri), isA<NotLibraryButPartResult>());
   }
 
   test_getParsedLibraryByUri_notLibraryButPart() async {
@@ -2604,11 +2641,11 @@ final foo = 0;
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
 
-    configuration.libraryConfiguration.unitConfiguration.variableTypesSelector =
-        (result) {
-      return [
-        result.findElement2.topVar('foo'),
-      ];
+    configuration
+        .libraryConfiguration
+        .unitConfiguration
+        .variableTypesSelector = (result) {
+      return [result.findElement2.topVar('foo')];
     };
 
     // The extension of the file does not matter.
@@ -2639,12 +2676,13 @@ linter:
     - omit_local_variable_types
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 library my.lib;
 part 'a.dart';
-''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 21, 8),
-    ]);
+''',
+      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 21, 8)],
+    );
   }
 
   test_getResolvedUnit_part_empty_lints() async {
@@ -2656,12 +2694,13 @@ linter:
 
     newFile('$testPackageLibPath/a.dart', '');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 library my.lib;
 part 'a.dart';
-''', [
-      error(CompileTimeErrorCode.PART_OF_NON_PART, 21, 8),
-    ]);
+''',
+      [error(CompileTimeErrorCode.PART_OF_NON_PART, 21, 8)],
+    );
   }
 
   test_getResolvedUnit_part_hasPartOfName_notThisLibrary_lints() async {
@@ -2675,12 +2714,13 @@ linter:
 part of other.lib;
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 library my.lib;
 part 'a.dart';
-''', [
-      error(CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY, 21, 8),
-    ]);
+''',
+      [error(CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY, 21, 8)],
+    );
   }
 
   test_getResolvedUnit_part_hasPartOfUri_notThisLibrary_lints() async {
@@ -2694,12 +2734,13 @@ linter:
 part of 'not_test.dart';
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 library my.lib;
 part 'a.dart';
-''', [
-      error(CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY, 21, 8),
-    ]);
+''',
+      [error(CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY, 21, 8)],
+    );
   }
 
   test_getResolvedUnit_part_library() async {
@@ -3023,13 +3064,13 @@ final B = A;
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
 
-    configuration.libraryConfiguration.unitConfiguration.variableTypesSelector =
-        (result) {
+    configuration
+        .libraryConfiguration
+        .unitConfiguration
+        .variableTypesSelector = (result) {
       switch (result.uriStr) {
         case 'package:test/b.dart':
-          return [
-            result.findElement2.topVar('B'),
-          ];
+          return [result.findElement2.topVar('B')];
         default:
           return [];
       }
@@ -3162,13 +3203,13 @@ import 'b.dart';
     driver.addFile2(a);
     driver.priorityFiles2 = [a];
 
-    configuration.libraryConfiguration.unitConfiguration.variableTypesSelector =
-        (result) {
+    configuration
+        .libraryConfiguration
+        .unitConfiguration
+        .variableTypesSelector = (result) {
       switch (result.uriStr) {
         case 'package:test/a.dart':
-          return [
-            result.findElement2.topVar('V'),
-          ];
+          return [result.findElement2.topVar('V')];
         default:
           return [];
       }
@@ -4649,17 +4690,15 @@ final B = 0;
     driver.addFile2(a);
     driver.addFile2(b);
 
-    configuration.libraryConfiguration.unitConfiguration.variableTypesSelector =
-        (result) {
+    configuration
+        .libraryConfiguration
+        .unitConfiguration
+        .variableTypesSelector = (result) {
       switch (result.uriStr) {
         case 'package:test/a.dart':
-          return [
-            result.findElement2.topVar('A'),
-          ];
+          return [result.findElement2.topVar('A')];
         case 'package:test/b.dart':
-          return [
-            result.findElement2.topVar('B'),
-          ];
+          return [result.findElement2.topVar('B')];
         default:
           return [];
       }
@@ -5275,10 +5314,8 @@ class DriverEventCollector {
   List<DriverEvent> events = [];
   final List<Completer<void>> statusIdleCompleters = [];
 
-  DriverEventCollector(
-    this.driver, {
-    IdProvider? idProvider,
-  }) : idProvider = idProvider ?? IdProvider() {
+  DriverEventCollector(this.driver, {IdProvider? idProvider})
+    : idProvider = idProvider ?? IdProvider() {
     _listenSchedulerEvents(driver.scheduler);
   }
 
@@ -5291,70 +5328,48 @@ class DriverEventCollector {
 
   void getCachedResolvedUnit(String name, File file) {
     var value = driver.getCachedResolvedUnit2(file);
-    events.add(
-      GetCachedResolvedUnitEvent(
-        name: name,
-        result: value,
-      ),
-    );
+    events.add(GetCachedResolvedUnitEvent(name: name, result: value));
   }
 
   void getErrors(String name, File file) {
     var future = driver.getErrors(file.path);
-    unawaited(future.then((value) {
-      events.add(
-        GetErrorsEvent(
-          name: name,
-          result: value,
-        ),
-      );
-    }));
+    unawaited(
+      future.then((value) {
+        events.add(GetErrorsEvent(name: name, result: value));
+      }),
+    );
   }
 
   void getIndex(String name, File file) async {
     var value = await driver.getIndex(file.path);
-    events.add(
-      GetIndexEvent(
-        name: name,
-        result: value,
-      ),
-    );
+    events.add(GetIndexEvent(name: name, result: value));
   }
 
   void getLibraryByUri(String name, String uriStr) {
     var future = driver.getLibraryByUri(uriStr);
-    unawaited(future.then((value) {
-      events.add(
-        GetLibraryByUriEvent(
-          name: name,
-          result: value,
-        ),
-      );
-    }));
+    unawaited(
+      future.then((value) {
+        events.add(GetLibraryByUriEvent(name: name, result: value));
+      }),
+    );
   }
 
   void getResolvedLibrary(String name, File file) {
     var future = driver.getResolvedLibrary(file.path);
-    unawaited(future.then((value) {
-      events.add(
-        GetResolvedLibraryEvent(
-          name: name,
-          result: value,
-        ),
-      );
-    }));
+    unawaited(
+      future.then((value) {
+        events.add(GetResolvedLibraryEvent(name: name, result: value));
+      }),
+    );
   }
 
   void getResolvedLibraryByUri(String name, Uri uri) {
     var future = driver.getResolvedLibraryByUri(uri);
-    unawaited(future.then((value) {
-      events.add(
-        GetResolvedLibraryByUriEvent(
-          name: name,
-          result: value,
-        ),
-      );
-    }));
+    unawaited(
+      future.then((value) {
+        events.add(GetResolvedLibraryByUriEvent(name: name, result: value));
+      }),
+    );
   }
 
   void getResolvedUnit(
@@ -5367,26 +5382,20 @@ class DriverEventCollector {
       sendCachedToStream: sendCachedToStream,
     );
 
-    unawaited(future.then((value) {
-      events.add(
-        GetResolvedUnitEvent(
-          name: name,
-          result: value,
-        ),
-      );
-    }));
+    unawaited(
+      future.then((value) {
+        events.add(GetResolvedUnitEvent(name: name, result: value));
+      }),
+    );
   }
 
   void getUnitElement(String name, File file) {
     var future = driver.getUnitElement2(file);
-    unawaited(future.then((value) {
-      events.add(
-        GetUnitElementEvent(
-          name: name,
-          result: value,
-        ),
-      );
-    }));
+    unawaited(
+      future.then((value) {
+        events.add(GetUnitElementEvent(name: name, result: value));
+      }),
+    );
   }
 
   Future<void> nextStatusIdle() {
@@ -5405,9 +5414,7 @@ class DriverEventCollector {
     scheduler.eventsBroadcast.listen((event) {
       switch (event) {
         case AnalysisStatus():
-          events.add(
-            SchedulerStatusEvent(event),
-          );
+          events.add(SchedulerStatusEvent(event));
           if (event.isIdle) {
             statusIdleCompleters.completeAll();
             statusIdleCompleters.clear();
@@ -5422,11 +5429,7 @@ class DriverEventCollector {
         case driver_events.ReuseLinkLibraryCycleBundle():
         case ErrorsResult():
         case ResolvedUnitResult():
-          events.add(
-            ResultStreamEvent(
-              object: event,
-            ),
-          );
+          events.add(ResultStreamEvent(object: event));
       }
     });
   }
@@ -5451,7 +5454,1893 @@ class FineAnalysisDriverTest extends PubPackageResolutionTest
     return super.tearDown();
   }
 
-  test_dependency_class_getter() async {
+  test_dependency_class_constructor_named_instanceGetterSetter_u1() async {
+    configuration.withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  A.foo(int _);
+  int get foo {}
+  set foo(int _) {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  var a = A.foo(0);
+  a.foo;
+  a.foo = 0;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.constructor: #M1
+          foo.getter: #M2
+          foo.setter: #M3
+        interface
+          map
+            foo: #M2
+            foo=: #M3
+  requirements
+    topLevels
+      dart:core
+        int: #M4
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M5
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: #M1
+          methods
+            foo: #M2
+            foo=: #M3
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  A.foo(double _);
+  int get foo {}
+  set foo(int _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.constructor: #M6
+          foo.getter: #M2
+          foo.setter: #M3
+        interface
+          map
+            foo: #M2
+            foo=: #M3
+  requirements
+    topLevels
+      dart:core
+        double: #M7
+        int: #M4
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  interfaceConstructorIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    constructorName: foo
+    expectedId: #M1
+    actualId: #M6
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: #M6
+          methods
+            foo: #M2
+            foo=: #M3
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_constructor_named_instanceGetterSetter_u2() async {
+    configuration.withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  A.foo(int _);
+  int get foo {}
+  set foo(int _) {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  var a = A.foo(0);
+  a.foo;
+  a.foo = 0;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.constructor: #M1
+          foo.getter: #M2
+          foo.setter: #M3
+        interface
+          map
+            foo: #M2
+            foo=: #M3
+  requirements
+    topLevels
+      dart:core
+        int: #M4
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M5
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: #M1
+          methods
+            foo: #M2
+            foo=: #M3
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  A.foo(int _);
+  double get foo {}
+  set foo(int _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.constructor: #M1
+          foo.getter: #M6
+          foo.setter: #M3
+        interface
+          map
+            foo: #M6
+            foo=: #M3
+  requirements
+    topLevels
+      dart:core
+        double: #M7
+        int: #M4
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  instanceMethodIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    methodName: foo
+    expectedId: #M2
+    actualId: #M6
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: #M1
+          methods
+            foo: #M6
+            foo=: #M3
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_constructor_named_instanceGetterSetter_u3() async {
+    configuration.withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  A.foo(int _);
+  int get foo {}
+  set foo(int _) {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  var a = A.foo(0);
+  a.foo;
+  a.foo = 0;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.constructor: #M1
+          foo.getter: #M2
+          foo.setter: #M3
+        interface
+          map
+            foo: #M2
+            foo=: #M3
+  requirements
+    topLevels
+      dart:core
+        int: #M4
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M5
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: #M1
+          methods
+            foo: #M2
+            foo=: #M3
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  A.foo(int _);
+  int get foo {}
+  set foo(double _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.constructor: #M1
+          foo.getter: #M2
+          foo.setter: #M6
+        interface
+          map
+            foo: #M2
+            foo=: #M6
+  requirements
+    topLevels
+      dart:core
+        double: #M7
+        int: #M4
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  instanceMethodIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    methodName: foo=
+    expectedId: #M3
+    actualId: #M6
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: #M1
+          methods
+            foo: #M2
+            foo=: #M6
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_constructor_named_instanceMethod_u1() async {
+    configuration.withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  A.foo(int _);
+  int foo() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.foo(0).foo();
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.constructor: #M1
+          foo.method: #M2
+        interface
+          map
+            foo: #M2
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M4
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: #M1
+          methods
+            foo: #M2
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  A.foo(double _);
+  int foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.constructor: #M5
+          foo.method: #M2
+        interface
+          map
+            foo: #M2
+  requirements
+    topLevels
+      dart:core
+        double: #M6
+        int: #M3
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  interfaceConstructorIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    constructorName: foo
+    expectedId: #M1
+    actualId: #M5
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: #M5
+          methods
+            foo: #M2
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_constructor_named_instanceMethod_u2() async {
+    configuration.withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  A.foo(int _);
+  int foo() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.foo(0).foo();
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.constructor: #M1
+          foo.method: #M2
+        interface
+          map
+            foo: #M2
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M4
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: #M1
+          methods
+            foo: #M2
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  A.foo(int _);
+  double foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.constructor: #M1
+          foo.method: #M5
+        interface
+          map
+            foo: #M5
+  requirements
+    topLevels
+      dart:core
+        double: #M6
+        int: #M3
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  instanceMethodIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    methodName: foo
+    expectedId: #M2
+    actualId: #M5
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: #M1
+          methods
+            foo: #M5
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_constructor_named_invocation() async {
+    configuration.withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  A.named(int _);
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.named(0);
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          named.constructor: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M3
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            named: #M1
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  A.named(double _);
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          named.constructor: #M4
+  requirements
+    topLevels
+      dart:core
+        double: #M5
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  interfaceConstructorIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    constructorName: named
+    expectedId: #M1
+    actualId: #M4
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            named: #M4
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_constructor_named_invocation_add() async {
+    configuration.withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  A.c1();
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.c2();
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      32 +2 UNDEFINED_METHOD
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          c1.constructor: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M2
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedMethods
+            c2: <null>
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            c2: <null>
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  A.c1();
+  A.c2();
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          c1.constructor: #M1
+          c2.constructor: #M3
+  requirements
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  interfaceConstructorIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    constructorName: c2
+    expectedId: <null>
+    actualId: #M3
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            c2: #M3
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_constructor_named_invocation_notUsed() async {
+    configuration.withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  A.c1();
+  A.c2(int _);
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.c1();
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          c1.constructor: #M1
+          c2.constructor: #M2
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M4
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            c1: #M1
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  A.c1();
+  A.c2(double _);
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          c1.constructor: #M1
+          c2.constructor: #M5
+  requirements
+    topLevels
+      dart:core
+        double: #M6
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_constructor_named_invocation_remove() async {
+    configuration.withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  A.c1();
+  A.c2();
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.c2();
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          c1.constructor: #M1
+          c2.constructor: #M2
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M3
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            c2: #M2
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  A.c1();
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          c1.constructor: #M1
+  requirements
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      32 +2 UNDEFINED_METHOD
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  interfaceConstructorIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    constructorName: c2
+    expectedId: #M2
+    actualId: <null>
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedMethods
+            c2: <null>
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            c2: <null>
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_constructor_named_superInvocation() async {
+    configuration.withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  A.named(int _);
+}
+''',
+      testCode: r'''
+import 'a.dart';
+class B extends A {
+  B.foo() : super.named(0);
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          named.constructor: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      B: #M3
+        declaredMembers
+          foo.constructor: #M4
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+        named: <null>
+      package:test/a.dart
+        A: #M0
+        named: <null>
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            named: #M1
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+        named: <null>
+      package:test/a.dart
+        A: #M0
+        named: <null>
+    instances
+      package:test/test.dart
+        B
+          requestedMethods
+            noSuchMethod: <null>
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            named: #M1
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  A.named(double _);
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          named.constructor: #M5
+  requirements
+    topLevels
+      dart:core
+        double: #M6
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] cannotReuseLinkedBundle
+  interfaceConstructorIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    constructorName: named
+    expectedId: #M1
+    actualId: #M5
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      B: #M3
+        declaredMembers
+          foo.constructor: #M4
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+        named: <null>
+      package:test/a.dart
+        A: #M0
+        named: <null>
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            named: #M5
+[operation] getErrorsCannotReuse
+  interfaceConstructorIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    constructorName: named
+    expectedId: #M1
+    actualId: #M5
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+        named: <null>
+      package:test/a.dart
+        A: #M0
+        named: <null>
+    instances
+      package:test/test.dart
+        B
+          requestedMethods
+            noSuchMethod: <null>
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            named: #M5
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_constructor_unnamed() async {
+    configuration
+      ..includeDefaultConstructors()
+      ..withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  A(int _);
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A(0);
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          new.constructor: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M3
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            new: #M1
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  A(double _);
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          new.constructor: #M4
+  requirements
+    topLevels
+      dart:core
+        double: #M5
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  interfaceConstructorIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    constructorName: new
+    expectedId: #M1
+    actualId: #M4
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            new: #M4
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_getter_inherited_fromGeneric_extends_changeTypeArgument() async {
+    configuration.withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A<T> {
+  T get foo {}
+}
+
+class B extends A<int> {}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(B b) {
+  b.foo;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        interface
+          map
+            foo: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M4
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+    interfaces
+      package:test/a.dart
+        B
+          methods
+            foo: #M1
+[status] idle
+''',
+      updatedA: r'''
+class A<T> {
+  T get foo {}
+}
+
+class B extends A<double> {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M5
+        interface
+          map
+            foo: #M1
+  requirements
+    topLevels
+      dart:core
+        double: #M6
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: B
+    expectedId: #M2
+    actualId: #M5
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M7
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M5
+[operation] getErrorsCannotReuse
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: B
+    expectedId: #M2
+    actualId: #M5
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M5
+    interfaces
+      package:test/a.dart
+        B
+          methods
+            foo: #M1
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_getter_inherited_fromGeneric_implements_changeTypeArgument() async {
+    configuration.withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A<T> {
+  T get foo {}
+}
+
+class B implements A<int> {}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(B b) {
+  b.foo;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        interface
+          map
+            foo: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M4
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+    interfaces
+      package:test/a.dart
+        B
+          methods
+            foo: #M1
+[status] idle
+''',
+      updatedA: r'''
+class A<T> {
+  T get foo {}
+}
+
+class B implements A<double> {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M5
+        interface
+          map
+            foo: #M1
+  requirements
+    topLevels
+      dart:core
+        double: #M6
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: B
+    expectedId: #M2
+    actualId: #M5
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M7
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M5
+[operation] getErrorsCannotReuse
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: B
+    expectedId: #M2
+    actualId: #M5
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M5
+    interfaces
+      package:test/a.dart
+        B
+          methods
+            foo: #M1
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_getter_inherited_fromGeneric_with_changeTypeArgument() async {
+    configuration.withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A<T> {
+  T get foo {}
+}
+
+class B with A<int> {}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(B b) {
+  b.foo;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        interface
+          map
+            foo: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M4
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+    interfaces
+      package:test/a.dart
+        B
+          methods
+            foo: #M1
+[status] idle
+''',
+      updatedA: r'''
+class A<T> {
+  T get foo {}
+}
+
+class B with A<double> {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M5
+        interface
+          map
+            foo: #M1
+  requirements
+    topLevels
+      dart:core
+        double: #M6
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: B
+    expectedId: #M2
+    actualId: #M5
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M7
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M5
+[operation] getErrorsCannotReuse
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: B
+    expectedId: #M2
+    actualId: #M5
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M5
+    interfaces
+      package:test/a.dart
+        B
+          methods
+            foo: #M1
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_getter_inherited_private() async {
+    // Test that there is a dependency between `f()` and `A._foo`.
+    // So, that we re-analyze `f()` body when `A._foo` changes.
+    // Currently this dependency is implicit: we analyze the whole library
+    // when any of its files changes.
+    configuration.withStreamResolvedUnitResults = false;
+
+    newFile(testFile.path, r'''
+class A {
+  int get _foo => 0;
+}
+
+class B extends A {}
+
+void f (B b) {
+  b._foo.isEven;
+}
+''');
+
+    await _runChangeScenario(
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _foo.getter: #M1
+      B: #M2
+      f: #M3
+  requirements
+    topLevels
+      dart:core
+        int: #M4
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        int: #M4
+    instances
+      package:test/test.dart
+        A
+          requestedMethods
+            noSuchMethod: <null>
+        B
+          requestedMethods
+            noSuchMethod: <null>
+[status] idle
+''',
+      updateFiles: () {
+        modifyFile2(testFile, r'''
+class A {
+  String get _foo => '';
+}
+
+class B extends A {}
+
+void f (B b) {
+  b._foo.isEven;
+}
+''');
+        return [testFile];
+      },
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _foo.getter: #M5
+      B: #M2
+      f: #M3
+  requirements
+    topLevels
+      dart:core
+        String: #M6
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      84 +6 UNDEFINED_GETTER
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        String: #M6
+    instances
+      package:test/test.dart
+        A
+          requestedMethods
+            noSuchMethod: <null>
+        B
+          requestedMethods
+            noSuchMethod: <null>
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_getter_returnType() async {
     await _runChangeScenarioTA(
       initialA: r'''
 class A {
@@ -5477,7 +7366,11 @@ void f(A a) {
   package:test/a.dart
     manifest
       A: #M0
-        foo: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
   requirements
     topLevels
       dart:core
@@ -5508,11 +7401,11 @@ void f(A a) {
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       package:test/a.dart
         A
-          foo: #M1
-          foo=: <null>
+          methods
+            foo: #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -5526,7 +7419,11 @@ class A {
   package:test/a.dart
     manifest
       A: #M0
-        foo: #M4
+        declaredMembers
+          foo.getter: #M4
+        interface
+          map
+            foo: #M4
   requirements
     topLevels
       dart:core
@@ -5539,10 +7436,10 @@ class A {
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] getErrorsCannotReuse
-  instanceMemberIdMismatch
+  instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
-    memberName: foo
+    methodName: foo
     expectedId: #M1
     actualId: #M4
 [operation] analyzeFile
@@ -5561,17 +7458,17 @@ class A {
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       package:test/a.dart
         A
-          foo: #M4
-          foo=: <null>
+          methods
+            foo: #M4
 [status] idle
 ''',
     );
   }
 
-  test_dependency_class_getter_notUsed() async {
+  test_dependency_class_getter_returnType_notUsed() async {
     await _runChangeScenarioTA(
       initialA: r'''
 class A {
@@ -5598,8 +7495,13 @@ void f(A a) {
   package:test/a.dart
     manifest
       A: #M0
-        bar: #M1
-        foo: #M2
+        declaredMembers
+          bar.getter: #M1
+          foo.getter: #M2
+        interface
+          map
+            bar: #M1
+            foo: #M2
   requirements
     topLevels
       dart:core
@@ -5630,11 +7532,11 @@ void f(A a) {
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       package:test/a.dart
         A
-          foo: #M2
-          foo=: <null>
+          methods
+            foo: #M2
 [status] idle
 ''',
       updatedA: r'''
@@ -5648,7 +7550,11 @@ class A {
   package:test/a.dart
     manifest
       A: #M0
-        foo: #M2
+        declaredMembers
+          foo.getter: #M2
+        interface
+          map
+            foo: #M2
   requirements
     topLevels
       dart:core
@@ -6263,126 +8169,6 @@ class A {}
     );
   }
 
-  test_dependency_class_method() async {
-    await _runChangeScenarioTA(
-      initialA: r'''
-class A {
-  int foo() {}
-}
-''',
-      testCode: r'''
-import 'a.dart';
-void f(A a) {
-  a.foo();
-}
-''',
-      operation: _FineOperationTestFileGetErrors(),
-      expectedInitialEvents: r'''
-[status] working
-[operation] linkLibraryCycle SDK
-[future] getErrors T1
-  ErrorsResult #0
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-[operation] linkLibraryCycle
-  package:test/a.dart
-    manifest
-      A: #M0
-        foo: #M1
-  requirements
-    topLevels
-      dart:core
-        int: #M2
-[operation] linkLibraryCycle
-  package:test/test.dart
-    manifest
-      f: #M3
-  requirements
-    topLevels
-      dart:core
-        A: <null>
-      package:test/a.dart
-        A: #M0
-[operation] analyzeFile
-  file: /home/test/lib/test.dart
-  library: /home/test/lib/test.dart
-[stream]
-  ResolvedUnitResult #1
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: exists isLibrary
-[operation] analyzedLibrary
-  file: /home/test/lib/test.dart
-  requirements
-    topLevels
-      dart:core
-        A: <null>
-      package:test/a.dart
-        A: #M0
-    interfaceMembers
-      package:test/a.dart
-        A
-          foo: #M1
-          foo=: <null>
-[status] idle
-''',
-      updatedA: r'''
-class A {
-  double foo() {}
-}
-''',
-      expectedUpdatedEvents: r'''
-[status] working
-[operation] linkLibraryCycle
-  package:test/a.dart
-    manifest
-      A: #M0
-        foo: #M4
-  requirements
-    topLevels
-      dart:core
-        double: #M5
-[future] getErrors T2
-  ErrorsResult #2
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
-[operation] readLibraryCycleBundle
-  package:test/test.dart
-[operation] getErrorsCannotReuse
-  instanceMemberIdMismatch
-    libraryUri: package:test/a.dart
-    interfaceName: A
-    memberName: foo
-    expectedId: #M1
-    actualId: #M4
-[operation] analyzeFile
-  file: /home/test/lib/test.dart
-  library: /home/test/lib/test.dart
-[stream]
-  ResolvedUnitResult #3
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: exists isLibrary
-[operation] analyzedLibrary
-  file: /home/test/lib/test.dart
-  requirements
-    topLevels
-      dart:core
-        A: <null>
-      package:test/a.dart
-        A: #M0
-    interfaceMembers
-      package:test/a.dart
-        A
-          foo: #M4
-          foo=: <null>
-[status] idle
-''',
-    );
-  }
-
   test_dependency_class_method_add() async {
     configuration.withStreamResolvedUnitResults = false;
     await _runChangeScenarioTA(
@@ -6432,15 +8218,17 @@ void f(A a) {
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
-      dart:core
-        Object
-          foo: <null>
-          foo=: <null>
+    instances
       package:test/a.dart
         A
-          foo: <null>
-          foo=: <null>
+          requestedMethods
+            foo: <null>
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo: <null>
+            foo=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -6454,7 +8242,11 @@ class A {
   package:test/a.dart
     manifest
       A: #M0
-        foo: #M2
+        declaredMembers
+          foo.method: #M2
+        interface
+          map
+            foo: #M2
   requirements
     topLevels
       dart:core
@@ -6467,10 +8259,10 @@ class A {
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] getErrorsCannotReuse
-  instanceMemberIdMismatch
+  instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
-    memberName: foo
+    methodName: foo
     expectedId: <null>
     actualId: #M2
 [operation] analyzeFile
@@ -6484,22 +8276,979 @@ class A {
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       package:test/a.dart
         A
-          foo: #M2
-          foo=: <null>
+          methods
+            foo: #M2
 [status] idle
 ''',
     );
   }
 
-  test_dependency_class_method_notUsed() async {
+  test_dependency_class_method_inherited_fromGeneric_extends2_changeTypeArgument() async {
+    configuration.withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A<T> {
+  T foo() {}
+}
+
+class B extends A<int> {}
+
+class C extends B {}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(C c) {
+  c.foo();
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        interface
+          map
+            foo: #M1
+      C: #M3
+        interface
+          map
+            foo: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M4
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M5
+  requirements
+    topLevels
+      dart:core
+        C: <null>
+      package:test/a.dart
+        C: #M3
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        C: <null>
+      package:test/a.dart
+        C: #M3
+    interfaces
+      package:test/a.dart
+        C
+          methods
+            foo: #M1
+[status] idle
+''',
+      updatedA: r'''
+class A<T> {
+  T foo() {}
+}
+
+class B extends A<double> {}
+
+class C extends B {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M6
+        interface
+          map
+            foo: #M1
+      C: #M7
+        interface
+          map
+            foo: #M1
+  requirements
+    topLevels
+      dart:core
+        double: #M8
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: C
+    expectedId: #M3
+    actualId: #M7
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M9
+  requirements
+    topLevels
+      dart:core
+        C: <null>
+      package:test/a.dart
+        C: #M7
+[operation] getErrorsCannotReuse
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: C
+    expectedId: #M3
+    actualId: #M7
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        C: <null>
+      package:test/a.dart
+        C: #M7
+    interfaces
+      package:test/a.dart
+        C
+          methods
+            foo: #M1
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_method_inherited_fromGeneric_extends_changeTypeArgument() async {
+    configuration.withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A<T> {
+  T foo() {}
+}
+
+class B extends A<int> {}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(B b) {
+  b.foo();
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        interface
+          map
+            foo: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M4
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+    interfaces
+      package:test/a.dart
+        B
+          methods
+            foo: #M1
+[status] idle
+''',
+      updatedA: r'''
+class A<T> {
+  T foo() {}
+}
+
+class B extends A<double> {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M5
+        interface
+          map
+            foo: #M1
+  requirements
+    topLevels
+      dart:core
+        double: #M6
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: B
+    expectedId: #M2
+    actualId: #M5
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M7
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M5
+[operation] getErrorsCannotReuse
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: B
+    expectedId: #M2
+    actualId: #M5
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M5
+    interfaces
+      package:test/a.dart
+        B
+          methods
+            foo: #M1
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_method_inherited_fromGeneric_implements_changeTypeArgument() async {
+    configuration.withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A<T> {
+  T foo() {}
+}
+
+class B implements A<int> {}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(B b) {
+  b.foo();
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        interface
+          map
+            foo: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M4
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+    interfaces
+      package:test/a.dart
+        B
+          methods
+            foo: #M1
+[status] idle
+''',
+      updatedA: r'''
+class A<T> {
+  T foo() {}
+}
+
+class B implements A<double> {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M5
+        interface
+          map
+            foo: #M1
+  requirements
+    topLevels
+      dart:core
+        double: #M6
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: B
+    expectedId: #M2
+    actualId: #M5
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M7
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M5
+[operation] getErrorsCannotReuse
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: B
+    expectedId: #M2
+    actualId: #M5
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M5
+    interfaces
+      package:test/a.dart
+        B
+          methods
+            foo: #M1
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_method_inherited_fromGeneric_with_changeTypeArgument() async {
+    configuration.withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A<T> {
+  T foo() {}
+}
+
+class B with A<int> {}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(B b) {
+  b.foo();
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        interface
+          map
+            foo: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M4
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+    interfaces
+      package:test/a.dart
+        B
+          methods
+            foo: #M1
+[status] idle
+''',
+      updatedA: r'''
+class A<T> {
+  T foo() {}
+}
+
+class B with A<double> {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M5
+        interface
+          map
+            foo: #M1
+  requirements
+    topLevels
+      dart:core
+        double: #M6
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: B
+    expectedId: #M2
+    actualId: #M5
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M7
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M5
+[operation] getErrorsCannotReuse
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: B
+    expectedId: #M2
+    actualId: #M5
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M5
+    interfaces
+      package:test/a.dart
+        B
+          methods
+            foo: #M1
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_method_inherited_private() async {
+    // Test that there is a dependency between `f()` and `A._foo`.
+    // So, that we re-analyze `f()` body when `A._foo` changes.
+    // Currently this dependency is implicit: we analyze the whole library
+    // when any of its files changes.
+    configuration.withStreamResolvedUnitResults = false;
+
+    newFile(testFile.path, r'''
+class A {
+  int _foo() => 0;
+}
+
+class B extends A {}
+
+void f (B b) {
+  b._foo().isEven;
+}
+''');
+
+    await _runChangeScenario(
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _foo.method: #M1
+      B: #M2
+      f: #M3
+  requirements
+    topLevels
+      dart:core
+        int: #M4
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        int: #M4
+    instances
+      package:test/test.dart
+        A
+          requestedMethods
+            noSuchMethod: <null>
+        B
+          requestedMethods
+            noSuchMethod: <null>
+[status] idle
+''',
+      updateFiles: () {
+        modifyFile2(testFile, r'''
+class A {
+  String _foo() => '';
+}
+
+class B extends A {}
+
+void f (B b) {
+  b._foo().isEven;
+}
+''');
+        return [testFile];
+      },
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _foo.method: #M5
+      B: #M2
+      f: #M3
+  requirements
+    topLevels
+      dart:core
+        String: #M6
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      84 +6 UNDEFINED_GETTER
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        String: #M6
+    instances
+      package:test/test.dart
+        A
+          requestedMethods
+            noSuchMethod: <null>
+        B
+          requestedMethods
+            noSuchMethod: <null>
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_method_private() async {
+    configuration.withStreamResolvedUnitResults = false;
+
+    newFile(testFile.path, r'''
+class A {
+  int _foo() => 0;
+}
+
+class B extends A {}
+
+void f(B b) {
+  b._foo();
+}
+''');
+
+    // Note:
+    // 1. No `_foo` in `B`, even though it is in the same library.
+    // 2. No dependency of `test.dart` on `_foo` through `B`.
+    // However: we reanalyze `test.dart` when we change it, because we
+    // always analyze the whole library when one of its files changes.
+    // So, we don't need a separate dependency on `_foo`.
+    await _runChangeScenario(
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _foo.method: #M1
+      B: #M2
+      f: #M3
+  requirements
+    topLevels
+      dart:core
+        int: #M4
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        int: #M4
+    instances
+      package:test/test.dart
+        A
+          requestedMethods
+            noSuchMethod: <null>
+        B
+          requestedMethods
+            noSuchMethod: <null>
+[status] idle
+''',
+      updateFiles: () {
+        modifyFile2(testFile, r'''
+class A {
+  double _foo() => 0;
+}
+
+class B extends A {}
+
+void f(B b) {
+  b._foo();
+}
+''');
+        return [testFile];
+      },
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _foo.method: #M5
+      B: #M2
+      f: #M3
+  requirements
+    topLevels
+      dart:core
+        double: #M6
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        double: #M6
+    instances
+      package:test/test.dart
+        A
+          requestedMethods
+            noSuchMethod: <null>
+        B
+          requestedMethods
+            noSuchMethod: <null>
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_method_private2() async {
+    configuration.withStreamResolvedUnitResults = false;
+
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'test.dart';
+
+class B extends A {}
+''');
+
+    newFile(testFile.path, r'''
+import 'a.dart';
+
+class A {
+  void _foo() {}
+}
+
+void f(B b) {
+  b._foo();
+}
+''');
+
+    // Note:
+    // 1. No `_foo` in `B`.
+    // 2. No dependency of `test.dart` on `_foo` through `B`.
+    // However: we reanalyze `test.dart` when we change it, because we
+    // always analyze the whole library when one of its files changes.
+    // So, we don't need a separate dependency on `_foo`.
+    await _runChangeScenario(
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      B: #M0
+  package:test/test.dart
+    manifest
+      A: #M1
+        declaredMembers
+          _foo.method: #M2
+      f: #M3
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+        B: <null>
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M0
+    instances
+      package:test/test.dart
+        A
+          requestedMethods
+            noSuchMethod: <null>
+[status] idle
+''',
+      updateFiles: () {
+        modifyFile2(testFile, r'''
+import 'a.dart';
+
+class A {
+  void _bar() {}
+}
+
+void f(B b) {
+  b._foo();
+}
+''');
+        return [testFile];
+      },
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      B: #M0
+  package:test/test.dart
+    manifest
+      A: #M1
+        declaredMembers
+          _bar.method: #M4
+      f: #M3
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+        B: <null>
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      66 +4 UNDEFINED_METHOD
+      35 +4 UNUSED_ELEMENT
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M0
+    instances
+      package:test/a.dart
+        B
+          requestedMethods
+            _foo: <null>
+      package:test/test.dart
+        A
+          requestedMethods
+            _foo: <null>
+            noSuchMethod: <null>
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_method_remove() async {
+    configuration.withStreamResolvedUnitResults = false;
     await _runChangeScenarioTA(
       initialA: r'''
 class A {
   void foo() {}
-  void bar() {}
 }
 ''',
       testCode: r'''
@@ -6521,9 +9270,128 @@ void f(A a) {
   package:test/a.dart
     manifest
       A: #M0
-        bar: #M1
-        foo: #M2
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
   requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M2
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo: #M1
+[status] idle
+''',
+      updatedA: r'''
+class A {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+  requirements
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      35 +3 UNDEFINED_METHOD
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  instanceMethodIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    methodName: foo
+    expectedId: #M1
+    actualId: <null>
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedMethods
+            foo: <null>
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo: <null>
+            foo=: <null>
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_method_returnType() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  int foo() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(A a) {
+  a.foo();
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
     manifest
@@ -6550,16 +9418,16 @@ void f(A a) {
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       package:test/a.dart
         A
-          foo: #M2
-          foo=: <null>
+          methods
+            foo: #M1
 [status] idle
 ''',
       updatedA: r'''
 class A {
-  void foo() {}
+  double foo() {}
 }
 ''',
       expectedUpdatedEvents: r'''
@@ -6568,8 +9436,15 @@ class A {
   package:test/a.dart
     manifest
       A: #M0
-        foo: #M2
+        declaredMembers
+          foo.method: #M4
+        interface
+          map
+            foo: #M4
   requirements
+    topLevels
+      dart:core
+        double: #M5
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -6577,20 +9452,45 @@ class A {
     flags: isLibrary
 [operation] readLibraryCycleBundle
   package:test/test.dart
-[operation] getErrorsFromBytes
+[operation] getErrorsCannotReuse
+  instanceMethodIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    methodName: foo
+    expectedId: #M1
+    actualId: #M4
+[operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo: #M4
 [status] idle
 ''',
     );
   }
 
-  test_dependency_class_method_remove() async {
-    configuration.withStreamResolvedUnitResults = false;
+  test_dependency_class_method_returnType_notUsed() async {
     await _runChangeScenarioTA(
       initialA: r'''
 class A {
   int foo() {}
+  int bar() {}
 }
 ''',
       testCode: r'''
@@ -6612,7 +9512,798 @@ void f(A a) {
   package:test/a.dart
     manifest
       A: #M0
-        foo: #M1
+        declaredMembers
+          bar.method: #M1
+          foo.method: #M2
+        interface
+          map
+            bar: #M1
+            foo: #M2
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M4
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo: #M2
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  int foo() {}
+  double bar() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.method: #M5
+          foo.method: #M2
+        interface
+          map
+            bar: #M5
+            foo: #M2
+  requirements
+    topLevels
+      dart:core
+        double: #M6
+        int: #M3
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_setter_add() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(A a) {
+  a.foo = 0;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      35 +3 UNDEFINED_SETTER
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M1
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+    errors
+      35 +3 UNDEFINED_SETTER
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedMethods
+            foo: <null>
+            foo=: <null>
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo: <null>
+            foo=: <null>
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  set foo(int _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M2
+        interface
+          map
+            foo=: #M2
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  instanceMethodIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    methodName: foo=
+    expectedId: <null>
+    actualId: #M2
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo=: #M2
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_setter_inherited_fromGeneric_extends_changeTypeArgument() async {
+    configuration.withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A<T> {
+  set foo(T _) {}
+}
+
+class B extends A<int> {}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(B b) {
+  b.foo = 0;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        interface
+          map
+            foo=: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M4
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+    interfaces
+      package:test/a.dart
+        B
+          methods
+            foo=: #M1
+[status] idle
+''',
+      updatedA: r'''
+class A<T> {
+  set foo(T _) {}
+}
+
+class B extends A<double> {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M5
+        interface
+          map
+            foo=: #M1
+  requirements
+    topLevels
+      dart:core
+        double: #M6
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: B
+    expectedId: #M2
+    actualId: #M5
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M7
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M5
+[operation] getErrorsCannotReuse
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: B
+    expectedId: #M2
+    actualId: #M5
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M5
+    interfaces
+      package:test/a.dart
+        B
+          methods
+            foo=: #M1
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_setter_inherited_fromGeneric_implements_changeTypeArgument() async {
+    configuration.withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A<T> {
+  set foo(T _) {}
+}
+
+class B implements A<int> {}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(B b) {
+  b.foo = 0;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        interface
+          map
+            foo=: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M4
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+    interfaces
+      package:test/a.dart
+        B
+          methods
+            foo=: #M1
+[status] idle
+''',
+      updatedA: r'''
+class A<T> {
+  set foo(T _) {}
+}
+
+class B implements A<double> {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M5
+        interface
+          map
+            foo=: #M1
+  requirements
+    topLevels
+      dart:core
+        double: #M6
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: B
+    expectedId: #M2
+    actualId: #M5
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M7
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M5
+[operation] getErrorsCannotReuse
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: B
+    expectedId: #M2
+    actualId: #M5
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M5
+    interfaces
+      package:test/a.dart
+        B
+          methods
+            foo=: #M1
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_setter_inherited_fromGeneric_with_changeTypeArgument() async {
+    configuration.withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A<T> {
+  set foo(T _) {}
+}
+
+class B with A<int> {}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(B b) {
+  b.foo = 0;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        interface
+          map
+            foo=: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M4
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+    interfaces
+      package:test/a.dart
+        B
+          methods
+            foo=: #M1
+[status] idle
+''',
+      updatedA: r'''
+class A<T> {
+  set foo(T _) {}
+}
+
+class B with A<double> {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M5
+        interface
+          map
+            foo=: #M1
+  requirements
+    topLevels
+      dart:core
+        double: #M6
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: B
+    expectedId: #M2
+    actualId: #M5
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M7
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M5
+[operation] getErrorsCannotReuse
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: B
+    expectedId: #M2
+    actualId: #M5
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M5
+    interfaces
+      package:test/a.dart
+        B
+          methods
+            foo=: #M1
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_setter_inherited_private() async {
+    // Test that there is a dependency between `f()` and `A._foo`.
+    // So, that we re-analyze `f()` body when `A._foo` changes.
+    // Currently this dependency is implicit: we analyze the whole library
+    // when any of its files changes.
+    configuration.withStreamResolvedUnitResults = false;
+
+    newFile(testFile.path, r'''
+class A {
+  set _foo(int _) {}
+}
+
+class B extends A {}
+
+void f (B b) {
+  b._foo = 0;
+}
+''');
+
+    await _runChangeScenario(
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _foo.setter: #M1
+      B: #M2
+      f: #M3
+  requirements
+    topLevels
+      dart:core
+        int: #M4
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        int: #M4
+    instances
+      package:test/test.dart
+        A
+          requestedMethods
+            noSuchMethod: <null>
+        B
+          requestedMethods
+            noSuchMethod: <null>
+[status] idle
+''',
+      updateFiles: () {
+        modifyFile2(testFile, r'''
+class A {
+  set _foo(String _) {}
+}
+
+class B extends A {}
+
+void f (B b) {
+  b._foo = 0;
+}
+''');
+        return [testFile];
+      },
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _foo.setter: #M5
+      B: #M2
+      f: #M3
+  requirements
+    topLevels
+      dart:core
+        String: #M6
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      85 +1 INVALID_ASSIGNMENT
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        String: #M6
+    instances
+      package:test/test.dart
+        A
+          requestedMethods
+            noSuchMethod: <null>
+        B
+          requestedMethods
+            noSuchMethod: <null>
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_setter_remove() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  set foo(int _) {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(A a) {
+  a.foo = 0;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
   requirements
     topLevels
       dart:core
@@ -6630,6 +10321,11 @@ void f(A a) {
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
@@ -6638,11 +10334,11 @@ void f(A a) {
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
+    interfaces
       package:test/a.dart
         A
-          foo: #M1
-          foo=: <null>
+          methods
+            foo=: #M1
 [status] idle
 ''',
       updatedA: r'''
@@ -6656,24 +10352,31 @@ class A {}
       A: #M0
   requirements
 [future] getErrors T2
-  ErrorsResult #1
+  ErrorsResult #2
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: isLibrary
     errors
-      35 +3 UNDEFINED_METHOD
+      35 +3 UNDEFINED_SETTER
 [operation] readLibraryCycleBundle
   package:test/test.dart
 [operation] getErrorsCannotReuse
-  instanceMemberIdMismatch
+  instanceMethodIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
-    memberName: foo
+    methodName: foo=
     expectedId: #M1
     actualId: <null>
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+    errors
+      35 +3 UNDEFINED_SETTER
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
@@ -6682,15 +10385,938 @@ class A {}
         A: <null>
       package:test/a.dart
         A: #M0
-    interfaceMembers
-      dart:core
-        Object
-          foo: <null>
-          foo=: <null>
+    instances
       package:test/a.dart
         A
-          foo: <null>
-          foo=: <null>
+          requestedMethods
+            foo: <null>
+            foo=: <null>
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo: <null>
+            foo=: <null>
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_setter_valueType() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  set foo(int _) {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(A a) {
+  a.foo = 0;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M3
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo=: #M1
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  set foo(double _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M4
+        interface
+          map
+            foo=: #M4
+  requirements
+    topLevels
+      dart:core
+        double: #M5
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  instanceMethodIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    methodName: foo=
+    expectedId: #M1
+    actualId: #M4
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo=: #M4
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_static_getter() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  static int get foo {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.foo;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M3
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedMethods
+            foo: #M1
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: <null>
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  static double get foo {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M4
+  requirements
+    topLevels
+      dart:core
+        double: #M5
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  instanceMethodIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    methodName: foo
+    expectedId: #M1
+    actualId: #M4
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedMethods
+            foo: #M4
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: <null>
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_static_getter_notUsed() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  static int get foo {}
+  static int get bar {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.foo;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.getter: #M1
+          foo.getter: #M2
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M4
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedMethods
+            foo: #M2
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: <null>
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  static int get foo {}
+  static double get bar {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.getter: #M5
+          foo.getter: #M2
+  requirements
+    topLevels
+      dart:core
+        double: #M6
+        int: #M3
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_static_method() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  static int foo() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.foo();
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M3
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedMethods
+            foo: #M1
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: <null>
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  static double foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M4
+  requirements
+    topLevels
+      dart:core
+        double: #M5
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  instanceMethodIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    methodName: foo
+    expectedId: #M1
+    actualId: #M4
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedMethods
+            foo: #M4
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: <null>
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_static_method_notUsed() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  static int foo() {}
+  static int bar() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.foo();
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.method: #M1
+          foo.method: #M2
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M4
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedMethods
+            foo: #M2
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: <null>
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  static int foo() {}
+  static double bar() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.method: #M5
+          foo.method: #M2
+  requirements
+    topLevels
+      dart:core
+        double: #M6
+        int: #M3
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_static_setter() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  static set foo(int _) {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.foo = 0;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M3
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedMethods
+            foo=: #M1
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  static set foo(double _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M4
+  requirements
+    topLevels
+      dart:core
+        double: #M5
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  instanceMethodIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    methodName: foo=
+    expectedId: #M1
+    actualId: #M4
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedMethods
+            foo=: #M4
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_static_setter_notUsed() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  static set foo(int _) {}
+  static set bar(int _) {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.foo = 0;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.setter: #M1
+          foo.setter: #M2
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M4
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedMethods
+            foo=: #M2
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  static set foo(int _) {}
+  static set bar(double _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.setter: #M5
+          foo.setter: #M2
+  requirements
+    topLevels
+      dart:core
+        double: #M6
+        int: #M3
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_classTypaAlias_constructor_named() async {
+    configuration.withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  A.named(int _);
+}
+mixin M {}
+class B = A with M;
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  B.named(0);
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          named.constructor: #M1
+      B: #M2
+        declaredMembers
+          named.constructor.inherited: #M1
+      M: #M3
+  requirements
+    topLevels
+      dart:core
+        int: #M4
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M5
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+    interfaces
+      package:test/a.dart
+        B
+          constructors
+            named: #M1
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  A.named(double _);
+}
+mixin M {}
+class B = A with M;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          named.constructor: #M6
+      B: #M2
+        declaredMembers
+          named.constructor.inherited: #M6
+      M: #M3
+  requirements
+    topLevels
+      dart:core
+        double: #M7
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  interfaceConstructorIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: B
+    constructorName: named
+    expectedId: #M1
+    actualId: #M6
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+    interfaces
+      package:test/a.dart
+        B
+          constructors
+            named: #M6
 [status] idle
 ''',
     );
@@ -7641,6 +12267,2266 @@ final a = 1.2;
     );
   }
 
+  test_dependency_mixin_getter_inherited_fromGeneric_on_changeTypeArgument() async {
+    configuration.withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+mixin A<T> {
+  T get foo {}
+}
+
+mixin B on A<int> {}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(B b) {
+  b.foo;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        interface
+          map
+            foo: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M4
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+    interfaces
+      package:test/a.dart
+        B
+          methods
+            foo: #M1
+[status] idle
+''',
+      updatedA: r'''
+mixin A<T> {
+  T get foo {}
+}
+
+mixin B on A<double> {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M5
+        interface
+          map
+            foo: #M1
+  requirements
+    topLevels
+      dart:core
+        double: #M6
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: B
+    expectedId: #M2
+    actualId: #M5
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M7
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M5
+[operation] getErrorsCannotReuse
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: B
+    expectedId: #M2
+    actualId: #M5
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M5
+    interfaces
+      package:test/a.dart
+        B
+          methods
+            foo: #M1
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_mixin_getter_returnType() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+mixin A {
+  int get foo => 0;
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(A a) {
+  a.foo;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M3
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo: #M1
+[status] idle
+''',
+      updatedA: r'''
+mixin A {
+  double get foo => 1.2;
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M4
+        interface
+          map
+            foo: #M4
+  requirements
+    topLevels
+      dart:core
+        double: #M5
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  instanceMethodIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    methodName: foo
+    expectedId: #M1
+    actualId: #M4
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo: #M4
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_mixin_getter_returnType_notUsed() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+mixin A {
+  int get foo => 0;
+  int get bar => 0;
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(A a) {
+  a.foo;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.getter: #M1
+          foo.getter: #M2
+        interface
+          map
+            bar: #M1
+            foo: #M2
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M4
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo: #M2
+[status] idle
+''',
+      updatedA: r'''
+mixin A {
+  int get foo => 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M2
+        interface
+          map
+            foo: #M2
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_mixin_it_add() async {
+    await _runChangeScenarioTA(
+      initialA: '',
+      testCode: r'''
+import 'a.dart';
+A foo() {}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      17 +1 UNDEFINED_CLASS
+[operation] linkLibraryCycle
+  package:test/a.dart
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      foo: #M0
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: <null>
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+    errors
+      17 +1 UNDEFINED_CLASS
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: <null>
+[status] idle
+''',
+      updatedA: r'''
+mixin A {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M1
+  requirements
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      19 +3 BODY_MIGHT_COMPLETE_NORMALLY
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: A
+    expectedId: <null>
+    actualId: #M1
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      foo: #M2
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M1
+[operation] getErrorsCannotReuse
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: A
+    expectedId: <null>
+    actualId: #M1
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+    errors
+      19 +3 BODY_MIGHT_COMPLETE_NORMALLY
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M1
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_mixin_it_add_notUsed() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+mixin A {}
+''',
+      testCode: r'''
+import 'a.dart';
+A foo() {}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      19 +3 BODY_MIGHT_COMPLETE_NORMALLY
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      foo: #M1
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+    errors
+      19 +3 BODY_MIGHT_COMPLETE_NORMALLY
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[status] idle
+''',
+      updatedA: r'''
+mixin A {}
+mixin B {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+      B: #M2
+  requirements
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      19 +3 BODY_MIGHT_COMPLETE_NORMALLY
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_mixin_it_change() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+mixin A {}
+mixin B {}
+''',
+      testCode: r'''
+import 'a.dart';
+A foo() {}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      19 +3 BODY_MIGHT_COMPLETE_NORMALLY
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+      B: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      foo: #M2
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+    errors
+      19 +3 BODY_MIGHT_COMPLETE_NORMALLY
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[status] idle
+''',
+      updatedA: r'''
+mixin A on B {}
+mixin B {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M3
+      B: #M1
+  requirements
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      19 +3 BODY_MIGHT_COMPLETE_NORMALLY
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: A
+    expectedId: #M0
+    actualId: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      foo: #M4
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M3
+[operation] getErrorsCannotReuse
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: A
+    expectedId: #M0
+    actualId: #M3
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+    errors
+      19 +3 BODY_MIGHT_COMPLETE_NORMALLY
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M3
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_mixin_it_change_notUsed() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+mixin A {}
+mixin B {}
+mixin C {}
+''',
+      testCode: r'''
+import 'a.dart';
+A foo() {}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      19 +3 BODY_MIGHT_COMPLETE_NORMALLY
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+      B: #M1
+      C: #M2
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      foo: #M3
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+    errors
+      19 +3 BODY_MIGHT_COMPLETE_NORMALLY
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[status] idle
+''',
+      updatedA: r'''
+mixin A {}
+mixin B on C {}
+mixin C {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+      B: #M4
+      C: #M2
+  requirements
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      19 +3 BODY_MIGHT_COMPLETE_NORMALLY
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_mixin_it_remove() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+mixin A {}
+''',
+      testCode: r'''
+import 'a.dart';
+A foo() => throw 0;
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      foo: #M1
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[status] idle
+''',
+      updatedA: '',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+  requirements
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      17 +1 UNDEFINED_CLASS
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: A
+    expectedId: #M0
+    actualId: <null>
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      foo: #M2
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: <null>
+[operation] getErrorsCannotReuse
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: A
+    expectedId: #M0
+    actualId: <null>
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+    errors
+      17 +1 UNDEFINED_CLASS
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: <null>
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_mixin_it_remove_notUsed() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+mixin A {}
+mixin B {}
+''',
+      testCode: r'''
+import 'a.dart';
+A foo() => throw 0;
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+      B: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      foo: #M2
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[status] idle
+''',
+      updatedA: r'''
+mixin A {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+  requirements
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_mixin_method_add() async {
+    configuration.withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+mixin A {}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(A a) {
+  a.foo();
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      35 +3 UNDEFINED_METHOD
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M1
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedMethods
+            foo: <null>
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo: <null>
+            foo=: <null>
+[status] idle
+''',
+      updatedA: r'''
+mixin A {
+  int foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M2
+        interface
+          map
+            foo: #M2
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  instanceMethodIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    methodName: foo
+    expectedId: <null>
+    actualId: #M2
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo: #M2
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_mixin_method_inherited_fromGeneric_implements_changeTypeArgument() async {
+    configuration.withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+mixin A<T> {
+  T foo() {}
+}
+
+mixin B implements A<int> {}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(B b) {
+  b.foo();
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        interface
+          map
+            foo: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M4
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+    interfaces
+      package:test/a.dart
+        B
+          methods
+            foo: #M1
+[status] idle
+''',
+      updatedA: r'''
+mixin A<T> {
+  T foo() {}
+}
+
+mixin B implements A<double> {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M5
+        interface
+          map
+            foo: #M1
+  requirements
+    topLevels
+      dart:core
+        double: #M6
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: B
+    expectedId: #M2
+    actualId: #M5
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M7
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M5
+[operation] getErrorsCannotReuse
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: B
+    expectedId: #M2
+    actualId: #M5
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M5
+    interfaces
+      package:test/a.dart
+        B
+          methods
+            foo: #M1
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_mixin_method_inherited_fromGeneric_on_changeTypeArgument() async {
+    configuration.withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+mixin A<T> {
+  T foo() {}
+}
+
+mixin B on A<int> {}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(B b) {
+  b.foo();
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        interface
+          map
+            foo: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M4
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+    interfaces
+      package:test/a.dart
+        B
+          methods
+            foo: #M1
+[status] idle
+''',
+      updatedA: r'''
+mixin A<T> {
+  T foo() {}
+}
+
+mixin B on A<double> {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M5
+        interface
+          map
+            foo: #M1
+  requirements
+    topLevels
+      dart:core
+        double: #M6
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: B
+    expectedId: #M2
+    actualId: #M5
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M7
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M5
+[operation] getErrorsCannotReuse
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: B
+    expectedId: #M2
+    actualId: #M5
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M5
+    interfaces
+      package:test/a.dart
+        B
+          methods
+            foo: #M1
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_mixin_method_remove() async {
+    configuration.withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+mixin A {
+  void foo() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(A a) {
+  a.foo();
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M2
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo: #M1
+[status] idle
+''',
+      updatedA: r'''
+mixin A {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+  requirements
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      35 +3 UNDEFINED_METHOD
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  instanceMethodIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    methodName: foo
+    expectedId: #M1
+    actualId: <null>
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedMethods
+            foo: <null>
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo: <null>
+            foo=: <null>
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_mixin_method_returnType() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+mixin A {
+  int foo() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(A a) {
+  a.foo();
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M3
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo: #M1
+[status] idle
+''',
+      updatedA: r'''
+mixin A {
+  double foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M4
+        interface
+          map
+            foo: #M4
+  requirements
+    topLevels
+      dart:core
+        double: #M5
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  instanceMethodIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    methodName: foo
+    expectedId: #M1
+    actualId: #M4
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo: #M4
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_mixin_method_returnType_notUsed() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+mixin A {
+  int foo() {}
+  int bar() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(A a) {
+  a.foo();
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.method: #M1
+          foo.method: #M2
+        interface
+          map
+            bar: #M1
+            foo: #M2
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M4
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo: #M2
+[status] idle
+''',
+      updatedA: r'''
+mixin A {
+  int foo() {}
+  double bar() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.method: #M5
+          foo.method: #M2
+        interface
+          map
+            bar: #M5
+            foo: #M2
+  requirements
+    topLevels
+      dart:core
+        double: #M6
+        int: #M3
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_mixin_setter_add() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+mixin A {}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(A a) {
+  a.foo = 0;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      35 +3 UNDEFINED_SETTER
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M1
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+    errors
+      35 +3 UNDEFINED_SETTER
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedMethods
+            foo: <null>
+            foo=: <null>
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo: <null>
+            foo=: <null>
+[status] idle
+''',
+      updatedA: r'''
+mixin A {
+  set foo(int _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M2
+        interface
+          map
+            foo=: #M2
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  instanceMethodIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    methodName: foo=
+    expectedId: <null>
+    actualId: #M2
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo=: #M2
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_mixin_setter_inherited_fromGeneric_on_changeTypeArgument() async {
+    configuration.withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+mixin A<T> {
+  set foo(T _) {}
+}
+
+mixin B on A<int> {}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(B b) {
+  b.foo = 0;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        interface
+          map
+            foo=: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M4
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M2
+    interfaces
+      package:test/a.dart
+        B
+          methods
+            foo=: #M1
+[status] idle
+''',
+      updatedA: r'''
+mixin A<T> {
+  set foo(T _) {}
+}
+
+mixin B on A<double> {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M5
+        interface
+          map
+            foo=: #M1
+  requirements
+    topLevels
+      dart:core
+        double: #M6
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: B
+    expectedId: #M2
+    actualId: #M5
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M7
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M5
+[operation] getErrorsCannotReuse
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: B
+    expectedId: #M2
+    actualId: #M5
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        B: <null>
+      package:test/a.dart
+        B: #M5
+    interfaces
+      package:test/a.dart
+        B
+          methods
+            foo=: #M1
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_mixin_setter_remove() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+mixin A {
+  set foo(int _) {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(A a) {
+  a.foo = 0;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M3
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo=: #M1
+[status] idle
+''',
+      updatedA: r'''
+mixin A {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+  requirements
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      35 +3 UNDEFINED_SETTER
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  instanceMethodIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    methodName: foo=
+    expectedId: #M1
+    actualId: <null>
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+    errors
+      35 +3 UNDEFINED_SETTER
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedMethods
+            foo: <null>
+            foo=: <null>
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo: <null>
+            foo=: <null>
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_mixin_setter_valueType() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+mixin A {
+  set foo(int _) {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(A a) {
+  a.foo = 0;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      f: #M3
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo=: #M1
+[status] idle
+''',
+      updatedA: r'''
+mixin A {
+  set foo(double _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M4
+        interface
+          map
+            foo=: #M4
+  requirements
+    topLevels
+      dart:core
+        double: #M5
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  instanceMethodIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    methodName: foo=
+    expectedId: #M1
+    actualId: #M4
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo=: #M4
+[status] idle
+''',
+    );
+  }
+
   test_dependency_topLevelFunction() async {
     await _runChangeScenarioTA(
       initialA: r'''
@@ -8290,6 +15176,9000 @@ elementFactory
     );
   }
 
+  test_manifest_baseName2_private2() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  void _foo() {}
+}
+''');
+
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+import 'a.dart';
+
+class B extends A {
+  int get _foo {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _foo.method: #M1
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      B: #M2
+        declaredMembers
+          _foo.getter: #M3
+''',
+      updatedCode: r'''
+import 'a.dart';
+
+class B extends A {
+  int get _foo {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      B: #M2
+        declaredMembers
+          _foo.getter: #M3
+          zzz.method: #M4
+        interface
+          map
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName2_private3() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'test.dart';
+
+class B extends A {
+  void _foo() {}
+}
+''');
+
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+import 'a.dart';
+
+class A {
+  int get _foo {}
+}
+
+class C extends B {
+  set _foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      B: #M0
+        declaredMembers
+          _foo.method: #M1
+  package:test/test.dart
+    manifest
+      A: #M2
+        declaredMembers
+          _foo.getter: #M3
+      C: #M4
+        declaredMembers
+          _foo.setter: #M5
+''',
+      updatedCode: r'''
+import 'a.dart';
+
+class A {
+  int get _foo {}
+}
+
+class C extends B {
+  set _foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      B: #M0
+        declaredMembers
+          _foo.method: #M1
+  package:test/test.dart
+    manifest
+      A: #M2
+        declaredMembers
+          _foo.getter: #M3
+      C: #M4
+        declaredMembers
+          _foo.setter: #M5
+          zzz.method: #M6
+        interface
+          map
+            zzz: #M6
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.foo();
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.constructor: #M1
+''',
+      updatedCode: r'''
+class A {
+  A.foo();
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.constructor: #M1
+          zzz.method: #M2
+        interface
+          map
+            zzz: #M2
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredConstructor() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.foo();
+  A.foo();
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M1
+''',
+      updatedCode: r'''
+class A {
+  A.foo();
+  A.foo();
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M2
+          zzz.method: #M3
+        interface
+          map
+            zzz: #M3
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredInstanceGetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.foo();
+  int get foo {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.constructor: #M1
+          foo.getter: #M2
+        interface
+          map
+            foo: #M2
+''',
+      updatedCode: r'''
+class A {
+  A.foo();
+  int get foo {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.constructor: #M1
+          foo.getter: #M2
+          zzz.method: #M3
+        interface
+          map
+            foo: #M2
+            zzz: #M3
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredInstanceGetter_declaredInstanceGetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.foo();
+  int get foo {}
+  int get foo {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M1
+        interface
+          map
+            foo: #M2
+''',
+      updatedCode: r'''
+class A {
+  A.foo();
+  int get foo {}
+  int get foo {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M5
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredInstanceGetter_declaredInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.foo();
+  int get foo {}
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.constructor: #M1
+          foo.getter: #M2
+          foo.setter: #M3
+        interface
+          map
+            foo: #M2
+            foo=: #M3
+''',
+      updatedCode: r'''
+class A {
+  A.foo();
+  int get foo {}
+  set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.constructor: #M1
+          foo.getter: #M2
+          foo.setter: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M2
+            foo=: #M3
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredInstanceGetter_declaredInstanceSetter_declaredInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.foo();
+  int get foo {}
+  set foo(int _) {}
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M1
+        interface
+          map
+            foo: #M2
+            foo=: #M3
+''',
+      updatedCode: r'''
+class A {
+  A.foo();
+  int get foo {}
+  set foo(int _) {}
+  set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M6
+            foo=: #M7
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredInstanceGetter_declaredInstanceSetter_inheritedInstanceGetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+  B.foo();
+  int get foo {}
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.constructor: #M3
+          foo.getter: #M4
+          foo.setter: #M5
+        interface
+          map
+            foo: #M4
+            foo=: #M5
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+  B.foo();
+  int get foo {}
+  set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.constructor: #M3
+          foo.getter: #M4
+          foo.setter: #M5
+          zzz.method: #M6
+        interface
+          map
+            foo: #M4
+            foo=: #M5
+            zzz: #M6
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredInstanceGetter_declaredInstanceSetter_inheritedInstanceGetter_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+  B.foo();
+  int get foo {}
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          foo.constructor: #M4
+          foo.getter: #M5
+          foo.setter: #M6
+        interface
+          map
+            foo: #M5
+            foo=: #M6
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+  B.foo();
+  int get foo {}
+  set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          foo.constructor: #M4
+          foo.getter: #M5
+          foo.setter: #M6
+          zzz.method: #M7
+        interface
+          map
+            foo: #M5
+            foo=: #M6
+            zzz: #M7
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredInstanceGetter_declaredInstanceSetter_inheritedInstanceMethod() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  B.foo();
+  int get foo {}
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.constructor: #M3
+          foo.getter: #M4
+          foo.setter: #M5
+        interface
+          map
+            foo: #M4
+            foo=: #M5
+''',
+      updatedCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  B.foo();
+  int get foo {}
+  set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.constructor: #M3
+          foo.getter: #M4
+          foo.setter: #M5
+          zzz.method: #M6
+        interface
+          map
+            foo: #M4
+            foo=: #M5
+            zzz: #M6
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredInstanceGetter_declaredInstanceSetter_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  B.foo();
+  int get foo {}
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.constructor: #M3
+          foo.getter: #M4
+          foo.setter: #M5
+        interface
+          map
+            foo: #M4
+            foo=: #M5
+''',
+      updatedCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  B.foo();
+  int get foo {}
+  set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.constructor: #M3
+          foo.getter: #M4
+          foo.setter: #M5
+          zzz.method: #M6
+        interface
+          map
+            foo: #M4
+            foo=: #M5
+            zzz: #M6
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredInstanceGetter_declaredStaticSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.foo();
+  int get foo {}
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M1
+        interface
+          map
+            foo: #M2
+''',
+      updatedCode: r'''
+class A {
+  A.foo();
+  int get foo {}
+  static set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M5
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredInstanceGetter_declaredStaticSetter_inheritedInstanceGetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+  B.foo();
+  int get foo {}
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M3
+        interface
+          map
+            foo: #M4
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+  B.foo();
+  int get foo {}
+  static set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M5
+          zzz.method: #M6
+        interface
+          map
+            foo: #M7
+            zzz: #M6
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredInstanceGetter_declaredStaticSetter_inheritedInstanceGetter_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+  B.foo();
+  int get foo {}
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          foo.conflict: #M4
+        interface
+          map
+            foo: #M5
+            foo=: #M2
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+  B.foo();
+  int get foo {}
+  static set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          foo.conflict: #M6
+          zzz.method: #M7
+        interface
+          map
+            foo: #M8
+            foo=: #M2
+            zzz: #M7
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredInstanceGetter_declaredStaticSetter_inheritedInstanceMethod() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  B.foo();
+  int get foo {}
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M3
+        interface
+          map
+            foo: #M4
+''',
+      updatedCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  B.foo();
+  int get foo {}
+  static set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M5
+          zzz.method: #M6
+        interface
+          map
+            foo: #M7
+            zzz: #M6
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredInstanceGetter_declaredStaticSetter_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  B.foo();
+  int get foo {}
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M3
+        interface
+          map
+            foo: #M4
+            foo=: #M1
+''',
+      updatedCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  B.foo();
+  int get foo {}
+  static set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M5
+          zzz.method: #M6
+        interface
+          map
+            foo: #M7
+            foo=: #M1
+            zzz: #M6
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredInstanceGetter_inheritedInstanceGetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+  B.foo();
+  int get foo {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.constructor: #M3
+          foo.getter: #M4
+        interface
+          map
+            foo: #M4
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+  B.foo();
+  int get foo {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.constructor: #M3
+          foo.getter: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M4
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredInstanceGetter_inheritedInstanceGetter_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+  B.foo();
+  int get foo {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          foo.constructor: #M4
+          foo.getter: #M5
+        interface
+          map
+            foo: #M5
+            foo=: #M2
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+  B.foo();
+  int get foo {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          foo.constructor: #M4
+          foo.getter: #M5
+          zzz.method: #M6
+        interface
+          map
+            foo: #M5
+            foo=: #M2
+            zzz: #M6
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredInstanceGetter_inheritedInstanceMethod() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  B.foo();
+  int get foo {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.constructor: #M3
+          foo.getter: #M4
+        interface
+          map
+            foo: #M4
+''',
+      updatedCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  B.foo();
+  int get foo {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.constructor: #M3
+          foo.getter: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M4
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredInstanceGetter_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  B.foo();
+  int get foo {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.constructor: #M3
+          foo.getter: #M4
+        interface
+          map
+            foo: #M4
+            foo=: #M1
+''',
+      updatedCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  B.foo();
+  int get foo {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.constructor: #M3
+          foo.getter: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M4
+            foo=: #M1
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredInstanceMethod() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.foo();
+  void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.constructor: #M1
+          foo.method: #M2
+        interface
+          map
+            foo: #M2
+''',
+      updatedCode: r'''
+class A {
+  A.foo();
+  void foo() {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.constructor: #M1
+          foo.method: #M2
+          zzz.method: #M3
+        interface
+          map
+            foo: #M2
+            zzz: #M3
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredInstanceMethod_declaredInstanceGetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.foo();
+  void foo() {}
+  int get foo {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M1
+        interface
+          map
+            foo: #M2
+''',
+      updatedCode: r'''
+class A {
+  A.foo();
+  void foo() {}
+  int get foo {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M5
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredInstanceMethod_declaredInstanceGetter_declaredInstanceGetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.foo();
+  void foo() {}
+  int get foo {}
+  int get foo {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M1
+        interface
+          map
+            foo: #M2
+''',
+      updatedCode: r'''
+class A {
+  A.foo();
+  void foo() {}
+  int get foo {}
+  int get foo {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M5
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredInstanceMethod_declaredInstanceGetter_declaredInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.foo();
+  void foo() {}
+  int get foo {}
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M1
+        interface
+          map
+            foo: #M2
+            foo=: #M3
+''',
+      updatedCode: r'''
+class A {
+  A.foo();
+  void foo() {}
+  int get foo {}
+  set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M6
+            foo=: #M7
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredInstanceMethod_declaredInstanceMethod() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.foo();
+  void foo() {}
+  void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M1
+        interface
+          map
+            foo: #M2
+''',
+      updatedCode: r'''
+class A {
+  A.foo();
+  void foo() {}
+  void foo() {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M5
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredInstanceMethod_declaredInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.foo();
+  void foo() {}
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M1
+        interface
+          map
+            foo: #M2
+            foo=: #M3
+''',
+      updatedCode: r'''
+class A {
+  A.foo();
+  void foo() {}
+  set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M6
+            foo=: #M7
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredInstanceMethod_declaredInstanceSetter_declaredInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.foo();
+  void foo() {}
+  set foo(int _) {}
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M1
+        interface
+          map
+            foo: #M2
+            foo=: #M3
+''',
+      updatedCode: r'''
+class A {
+  A.foo();
+  void foo() {}
+  set foo(int _) {}
+  set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M6
+            foo=: #M7
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredInstanceMethod_inheritedInstanceGetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+  B.foo();
+  void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.constructor: #M3
+          foo.method: #M4
+        interface
+          map
+            foo: #M4
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+  B.foo();
+  void foo() {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.constructor: #M3
+          foo.method: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M4
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredInstanceMethod_inheritedInstanceGetter_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+  B.foo();
+  void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          foo.constructor: #M4
+          foo.method: #M5
+        interface
+          map
+            foo: #M5
+            foo=: #M2
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+  B.foo();
+  void foo() {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          foo.constructor: #M4
+          foo.method: #M5
+          zzz.method: #M6
+        interface
+          map
+            foo: #M5
+            foo=: #M2
+            zzz: #M6
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredInstanceMethod_inheritedInstanceMethod() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  B.foo();
+  void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.constructor: #M3
+          foo.method: #M4
+        interface
+          map
+            foo: #M4
+''',
+      updatedCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  B.foo();
+  void foo() {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.constructor: #M3
+          foo.method: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M4
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredInstanceMethod_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  B.foo();
+  void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.constructor: #M3
+          foo.method: #M4
+        interface
+          map
+            foo: #M4
+            foo=: #M1
+''',
+      updatedCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  B.foo();
+  void foo() {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.constructor: #M3
+          foo.method: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M4
+            foo=: #M1
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.foo();
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.constructor: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo=: #M2
+''',
+      updatedCode: r'''
+class A {
+  A.foo();
+  set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.constructor: #M1
+          foo.setter: #M2
+          zzz.method: #M3
+        interface
+          map
+            foo=: #M2
+            zzz: #M3
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredInstanceSetter_declaredInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.foo();
+  set foo(int _) {}
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M1
+        interface
+          map
+            foo=: #M2
+''',
+      updatedCode: r'''
+class A {
+  A.foo();
+  set foo(int _) {}
+  set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo=: #M5
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredInstanceSetter_inheritedInstanceGetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+  B.foo();
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.constructor: #M3
+          foo.setter: #M4
+        interface
+          map
+            foo: #M1
+            foo=: #M4
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+  B.foo();
+  set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.constructor: #M3
+          foo.setter: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M1
+            foo=: #M4
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredInstanceSetter_inheritedInstanceGetter_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+  B.foo();
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          foo.constructor: #M4
+          foo.setter: #M5
+        interface
+          map
+            foo: #M1
+            foo=: #M5
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+  B.foo();
+  set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          foo.constructor: #M4
+          foo.setter: #M5
+          zzz.method: #M6
+        interface
+          map
+            foo: #M1
+            foo=: #M5
+            zzz: #M6
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredInstanceSetter_inheritedInstanceMethod() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  B.foo();
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.constructor: #M3
+          foo.setter: #M4
+        interface
+          map
+            foo: #M1
+            foo=: #M4
+''',
+      updatedCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  B.foo();
+  set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.constructor: #M3
+          foo.setter: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M1
+            foo=: #M4
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredInstanceSetter_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  B.foo();
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.constructor: #M3
+          foo.setter: #M4
+        interface
+          map
+            foo=: #M4
+''',
+      updatedCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  B.foo();
+  set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.constructor: #M3
+          foo.setter: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo=: #M4
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredStaticGetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.foo();
+  static int get foo {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M1
+''',
+      updatedCode: r'''
+class A {
+  A.foo();
+  static int get foo {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M2
+          zzz.method: #M3
+        interface
+          map
+            zzz: #M3
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredStaticGetter_declaredInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.foo();
+  static int get foo {}
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M1
+        interface
+          map
+            foo=: #M2
+''',
+      updatedCode: r'''
+class A {
+  A.foo();
+  static int get foo {}
+  set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo=: #M5
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredStaticGetter_declaredInstanceSetter_inheritedInstanceGetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+  B.foo();
+  static int get foo {}
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M3
+        interface
+          map
+            foo: #M1
+            foo=: #M4
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+  B.foo();
+  static int get foo {}
+  set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M5
+          zzz.method: #M6
+        interface
+          map
+            foo: #M1
+            foo=: #M7
+            zzz: #M6
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredStaticGetter_declaredInstanceSetter_inheritedInstanceGetter_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+  B.foo();
+  static int get foo {}
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          foo.conflict: #M4
+        interface
+          map
+            foo: #M1
+            foo=: #M5
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+  B.foo();
+  static int get foo {}
+  set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          foo.conflict: #M6
+          zzz.method: #M7
+        interface
+          map
+            foo: #M1
+            foo=: #M8
+            zzz: #M7
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredStaticGetter_declaredInstanceSetter_inheritedInstanceMethod() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  B.foo();
+  static int get foo {}
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M3
+        interface
+          map
+            foo: #M1
+            foo=: #M4
+''',
+      updatedCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  B.foo();
+  static int get foo {}
+  set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M5
+          zzz.method: #M6
+        interface
+          map
+            foo: #M1
+            foo=: #M7
+            zzz: #M6
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredStaticGetter_declaredInstanceSetter_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  B.foo();
+  static int get foo {}
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M3
+        interface
+          map
+            foo=: #M4
+''',
+      updatedCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  B.foo();
+  static int get foo {}
+  set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M5
+          zzz.method: #M6
+        interface
+          map
+            foo=: #M7
+            zzz: #M6
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredStaticGetter_declaredStaticSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.foo();
+  static int get foo {}
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M1
+''',
+      updatedCode: r'''
+class A {
+  A.foo();
+  static int get foo {}
+  static set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M2
+          zzz.method: #M3
+        interface
+          map
+            zzz: #M3
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredStaticGetter_declaredStaticSetter_inheritedInstanceGetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+  B.foo();
+  static int get foo {}
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M3
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+  B.foo();
+  static int get foo {}
+  static set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M1
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredStaticGetter_declaredStaticSetter_inheritedInstanceGetter_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+  B.foo();
+  static int get foo {}
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          foo.conflict: #M4
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+  B.foo();
+  static int get foo {}
+  static set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          foo.conflict: #M5
+          zzz.method: #M6
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+            zzz: #M6
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredStaticGetter_declaredStaticSetter_inheritedInstanceMethod() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  B.foo();
+  static int get foo {}
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M3
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  B.foo();
+  static int get foo {}
+  static set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M1
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredStaticGetter_declaredStaticSetter_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  B.foo();
+  static int get foo {}
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M3
+        interface
+          map
+            foo=: #M1
+''',
+      updatedCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  B.foo();
+  static int get foo {}
+  static set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo=: #M1
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredStaticGetter_inheritedInstanceGetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+  B.foo();
+  static int get foo {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M3
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+  B.foo();
+  static int get foo {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M1
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredStaticGetter_inheritedInstanceGetter_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+  B.foo();
+  static int get foo {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          foo.conflict: #M4
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+  B.foo();
+  static int get foo {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          foo.conflict: #M5
+          zzz.method: #M6
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+            zzz: #M6
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredStaticGetter_inheritedInstanceMethod() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  B.foo();
+  static int get foo {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M3
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  B.foo();
+  static int get foo {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M1
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredStaticGetter_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  B.foo();
+  static int get foo {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M3
+        interface
+          map
+            foo=: #M1
+''',
+      updatedCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  B.foo();
+  static int get foo {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo=: #M1
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredStaticMethod() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.foo();
+  static void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M1
+''',
+      updatedCode: r'''
+class A {
+  A.foo();
+  static void foo() {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M2
+          zzz.method: #M3
+        interface
+          map
+            zzz: #M3
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredStaticMethod_inheritedInstanceGetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+  B.foo();
+  static void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M3
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+  B.foo();
+  static void foo() {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M1
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredStaticMethod_inheritedInstanceGetter_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+  B.foo();
+  static void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          foo.conflict: #M4
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+  B.foo();
+  static void foo() {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          foo.conflict: #M5
+          zzz.method: #M6
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+            zzz: #M6
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredStaticMethod_inheritedInstanceMethod() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  B.foo();
+  static void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M3
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  B.foo();
+  static void foo() {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M1
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredStaticMethod_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  B.foo();
+  static void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M3
+        interface
+          map
+            foo=: #M1
+''',
+      updatedCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  B.foo();
+  static void foo() {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo=: #M1
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredStaticSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.foo();
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M1
+''',
+      updatedCode: r'''
+class A {
+  A.foo();
+  static set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M2
+          zzz.method: #M3
+        interface
+          map
+            zzz: #M3
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredStaticSetter_inheritedInstanceGetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+  B.foo();
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M3
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+  B.foo();
+  static set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M1
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredStaticSetter_inheritedInstanceGetter_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+  B.foo();
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          foo.conflict: #M4
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+  B.foo();
+  static set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          foo.conflict: #M5
+          zzz.method: #M6
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+            zzz: #M6
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredStaticSetter_inheritedInstanceMethod() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  B.foo();
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M3
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  B.foo();
+  static set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M1
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_declaredStaticSetter_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  B.foo();
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M3
+        interface
+          map
+            foo=: #M1
+''',
+      updatedCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  B.foo();
+  static set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo=: #M1
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_inheritedInstanceGetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+  B.foo();
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.constructor: #M3
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+  B.foo();
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.constructor: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M1
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_inheritedInstanceGetter_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+  B.foo();
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          foo.constructor: #M4
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+  B.foo();
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          foo.constructor: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_inheritedInstanceMethod() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  B.foo();
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.constructor: #M3
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  B.foo();
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.constructor: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M1
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredConstructor_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  B.foo();
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.constructor: #M3
+        interface
+          map
+            foo=: #M1
+''',
+      updatedCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  B.foo();
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.constructor: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo=: #M1
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredIndex() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int operator[](_) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          [].method: #M1
+        interface
+          map
+            []: #M1
+''',
+      updatedCode: r'''
+class A {
+  int operator[](_) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          [].method: #M1
+          zzz.method: #M2
+        interface
+          map
+            []: #M1
+            zzz: #M2
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredIndex_declaredIndex() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int operator[](_) {}
+  int operator[](_) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          [].conflict: #M1
+        interface
+          map
+            []: #M2
+''',
+      updatedCode: r'''
+class A {
+  int operator[](_) {}
+  int operator[](_) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          [].conflict: #M3
+          zzz.method: #M4
+        interface
+          map
+            []: #M5
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredIndex_declaredIndexEq() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int operator[](_) {}
+  operator[]=(_, _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          [].method: #M1
+          [].indexEq: #M2
+        interface
+          map
+            []: #M1
+            []=: #M2
+''',
+      updatedCode: r'''
+class A {
+  int operator[](_) {}
+  operator[]=(_, _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          [].method: #M1
+          [].indexEq: #M2
+          zzz.method: #M3
+        interface
+          map
+            []: #M1
+            []=: #M2
+            zzz: #M3
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredIndex_declaredIndexEq_declaredIndexEq() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int operator[](_) {}
+  operator[]=(_, _) {}
+  operator[]=(_, _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          [].conflict: #M1
+        interface
+          map
+            []: #M2
+            []=: #M3
+''',
+      updatedCode: r'''
+class A {
+  int operator[](_) {}
+  operator[]=(_, _) {}
+  operator[]=(_, _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          [].conflict: #M4
+          zzz.method: #M5
+        interface
+          map
+            []: #M6
+            []=: #M7
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredIndex_declaredIndexEq_inheritedIndex() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int operator[](_) {}
+}
+
+class B extends A {
+  int operator[](_) {}
+  operator[]=(_, _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          [].method: #M1
+        interface
+          map
+            []: #M1
+      B: #M2
+        declaredMembers
+          [].method: #M3
+          [].indexEq: #M4
+        interface
+          map
+            []: #M3
+            []=: #M4
+''',
+      updatedCode: r'''
+class A {
+  int operator[](_) {}
+}
+
+class B extends A {
+  int operator[](_) {}
+  operator[]=(_, _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          [].method: #M1
+        interface
+          map
+            []: #M1
+      B: #M2
+        declaredMembers
+          [].method: #M3
+          [].indexEq: #M4
+          zzz.method: #M5
+        interface
+          map
+            []: #M3
+            []=: #M4
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredIndex_declaredIndexEq_inheritedIndexEq() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  operator[]=(_, _) {}
+}
+
+class B extends A {
+  int operator[](_) {}
+  operator[]=(_, _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          [].indexEq: #M1
+        interface
+          map
+            []=: #M1
+      B: #M2
+        declaredMembers
+          [].method: #M3
+          [].indexEq: #M4
+        interface
+          map
+            []: #M3
+            []=: #M4
+''',
+      updatedCode: r'''
+class A {
+  operator[]=(_, _) {}
+}
+
+class B extends A {
+  int operator[](_) {}
+  operator[]=(_, _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          [].indexEq: #M1
+        interface
+          map
+            []=: #M1
+      B: #M2
+        declaredMembers
+          [].method: #M3
+          [].indexEq: #M4
+          zzz.method: #M5
+        interface
+          map
+            []: #M3
+            []=: #M4
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredIndex_inheritedIndex() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int operator[](_) {}
+}
+
+class B extends A {
+  int operator[](_) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          [].method: #M1
+        interface
+          map
+            []: #M1
+      B: #M2
+        declaredMembers
+          [].method: #M3
+        interface
+          map
+            []: #M3
+''',
+      updatedCode: r'''
+class A {
+  int operator[](_) {}
+}
+
+class B extends A {
+  int operator[](_) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          [].method: #M1
+        interface
+          map
+            []: #M1
+      B: #M2
+        declaredMembers
+          [].method: #M3
+          zzz.method: #M4
+        interface
+          map
+            []: #M3
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredIndex_inheritedIndexEq() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  operator[]=(_, _) {}
+}
+
+class B extends A {
+  int operator[](_) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          [].indexEq: #M1
+        interface
+          map
+            []=: #M1
+      B: #M2
+        declaredMembers
+          [].method: #M3
+        interface
+          map
+            []: #M3
+            []=: #M1
+''',
+      updatedCode: r'''
+class A {
+  operator[]=(_, _) {}
+}
+
+class B extends A {
+  int operator[](_) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          [].indexEq: #M1
+        interface
+          map
+            []=: #M1
+      B: #M2
+        declaredMembers
+          [].method: #M3
+          zzz.method: #M4
+        interface
+          map
+            []: #M3
+            []=: #M1
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredIndexEq() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  operator[]=(_, _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          [].indexEq: #M1
+        interface
+          map
+            []=: #M1
+''',
+      updatedCode: r'''
+class A {
+  operator[]=(_, _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          [].indexEq: #M1
+          zzz.method: #M2
+        interface
+          map
+            []=: #M1
+            zzz: #M2
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredIndexEq_declaredIndex() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+}
+
+class B extends A {
+  operator[]=(_, _) {}
+  int operator[](_) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+      B: #M1
+        declaredMembers
+          [].method: #M2
+          [].indexEq: #M3
+        interface
+          map
+            []: #M2
+            []=: #M3
+''',
+      updatedCode: r'''
+class A {
+}
+
+class B extends A {
+  operator[]=(_, _) {}
+  int operator[](_) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+      B: #M1
+        declaredMembers
+          [].method: #M2
+          [].indexEq: #M3
+          zzz.method: #M4
+        interface
+          map
+            []: #M2
+            []=: #M3
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredIndexEq_declaredIndexEq() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  operator[]=(_, _) {}
+  operator[]=(_, _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          [].conflict: #M1
+        interface
+          map
+            []=: #M2
+''',
+      updatedCode: r'''
+class A {
+  operator[]=(_, _) {}
+  operator[]=(_, _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          [].conflict: #M3
+          zzz.method: #M4
+        interface
+          map
+            []=: #M5
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredIndexEq_inheritedIndex() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int operator[](_) {}
+}
+
+class B extends A {
+  operator[]=(_, _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          [].method: #M1
+        interface
+          map
+            []: #M1
+      B: #M2
+        declaredMembers
+          [].indexEq: #M3
+        interface
+          map
+            []: #M1
+            []=: #M3
+''',
+      updatedCode: r'''
+class A {
+  int operator[](_) {}
+}
+
+class B extends A {
+  operator[]=(_, _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          [].method: #M1
+        interface
+          map
+            []: #M1
+      B: #M2
+        declaredMembers
+          [].indexEq: #M3
+          zzz.method: #M4
+        interface
+          map
+            []: #M1
+            []=: #M3
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredIndexEq_inheritedIndexEq() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  operator[]=(_, _) {}
+}
+
+class B extends A {
+  operator[]=(_, _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          [].indexEq: #M1
+        interface
+          map
+            []=: #M1
+      B: #M2
+        declaredMembers
+          [].indexEq: #M3
+        interface
+          map
+            []=: #M3
+''',
+      updatedCode: r'''
+class A {
+  operator[]=(_, _) {}
+}
+
+class B extends A {
+  operator[]=(_, _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          [].indexEq: #M1
+        interface
+          map
+            []=: #M1
+      B: #M2
+        declaredMembers
+          [].indexEq: #M3
+          zzz.method: #M4
+        interface
+          map
+            []=: #M3
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredInstanceGetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          zzz.method: #M2
+        interface
+          map
+            foo: #M1
+            zzz: #M2
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredInstanceGetter_declaredInstanceGetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+  int get foo {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M1
+        interface
+          map
+            foo: #M2
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+  int get foo {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M5
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredInstanceGetter_declaredInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+          zzz.method: #M3
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+            zzz: #M3
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredInstanceGetter_declaredInstanceSetter_declaredInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M1
+        interface
+          map
+            foo: #M2
+            foo=: #M3
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+  set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M6
+            foo=: #M7
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredInstanceGetter_declaredInstanceSetter_inheritedInstanceGetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+  int get foo {}
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.getter: #M3
+          foo.setter: #M4
+        interface
+          map
+            foo: #M3
+            foo=: #M4
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+  int get foo {}
+  set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.getter: #M3
+          foo.setter: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M3
+            foo=: #M4
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredInstanceGetter_declaredInstanceSetter_inheritedInstanceGetter_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+  int get foo {}
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          foo.getter: #M4
+          foo.setter: #M5
+        interface
+          map
+            foo: #M4
+            foo=: #M5
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+  int get foo {}
+  set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          foo.getter: #M4
+          foo.setter: #M5
+          zzz.method: #M6
+        interface
+          map
+            foo: #M4
+            foo=: #M5
+            zzz: #M6
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredInstanceGetter_declaredInstanceSetter_inheritedInstanceMethod() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  int get foo {}
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.getter: #M3
+          foo.setter: #M4
+        interface
+          map
+            foo: #M3
+            foo=: #M4
+''',
+      updatedCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  int get foo {}
+  set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.getter: #M3
+          foo.setter: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M3
+            foo=: #M4
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredInstanceGetter_declaredInstanceSetter_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  int get foo {}
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.getter: #M3
+          foo.setter: #M4
+        interface
+          map
+            foo: #M3
+            foo=: #M4
+''',
+      updatedCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  int get foo {}
+  set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.getter: #M3
+          foo.setter: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M3
+            foo=: #M4
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredInstanceGetter_declaredStaticSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M1
+        interface
+          map
+            foo: #M2
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+  static set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M5
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredInstanceGetter_declaredStaticSetter_inheritedInstanceGetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+  int get foo {}
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M3
+        interface
+          map
+            foo: #M4
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+  int get foo {}
+  static set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M5
+          zzz.method: #M6
+        interface
+          map
+            foo: #M7
+            zzz: #M6
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredInstanceGetter_declaredStaticSetter_inheritedInstanceGetter_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+  int get foo {}
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          foo.conflict: #M4
+        interface
+          map
+            foo: #M5
+            foo=: #M2
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+  int get foo {}
+  static set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          foo.conflict: #M6
+          zzz.method: #M7
+        interface
+          map
+            foo: #M8
+            foo=: #M2
+            zzz: #M7
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredInstanceGetter_declaredStaticSetter_inheritedInstanceMethod() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  int get foo {}
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M3
+        interface
+          map
+            foo: #M4
+''',
+      updatedCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  int get foo {}
+  static set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M5
+          zzz.method: #M6
+        interface
+          map
+            foo: #M7
+            zzz: #M6
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredInstanceGetter_declaredStaticSetter_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  int get foo {}
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M3
+        interface
+          map
+            foo: #M4
+            foo=: #M1
+''',
+      updatedCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  int get foo {}
+  static set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M5
+          zzz.method: #M6
+        interface
+          map
+            foo: #M7
+            foo=: #M1
+            zzz: #M6
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredInstanceGetter_inheritedInstanceGetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+  int get foo {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.getter: #M3
+        interface
+          map
+            foo: #M3
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+  int get foo {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.getter: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M3
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredInstanceGetter_inheritedInstanceGetter_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+  int get foo {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          foo.getter: #M4
+        interface
+          map
+            foo: #M4
+            foo=: #M2
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+  int get foo {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          foo.getter: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M4
+            foo=: #M2
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredInstanceGetter_inheritedInstanceMethod() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  int get foo {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.getter: #M3
+        interface
+          map
+            foo: #M3
+''',
+      updatedCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  int get foo {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.getter: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M3
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredInstanceGetter_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  int get foo {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.getter: #M3
+        interface
+          map
+            foo: #M3
+            foo=: #M1
+''',
+      updatedCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  int get foo {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.getter: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M3
+            foo=: #M1
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredInstanceMethod() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  void foo() {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+          zzz.method: #M2
+        interface
+          map
+            foo: #M1
+            zzz: #M2
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredInstanceMethod_declaredInstanceGetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo() {}
+  int get foo {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M1
+        interface
+          map
+            foo: #M2
+''',
+      updatedCode: r'''
+class A {
+  void foo() {}
+  int get foo {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M5
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredInstanceMethod_declaredInstanceGetter_declaredInstanceGetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo() {}
+  int get foo {}
+  int get foo {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M1
+        interface
+          map
+            foo: #M2
+''',
+      updatedCode: r'''
+class A {
+  void foo() {}
+  int get foo {}
+  int get foo {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M5
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredInstanceMethod_declaredInstanceGetter_declaredInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo() {}
+  int get foo {}
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M1
+        interface
+          map
+            foo: #M2
+            foo=: #M3
+''',
+      updatedCode: r'''
+class A {
+  void foo() {}
+  int get foo {}
+  set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M6
+            foo=: #M7
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredInstanceMethod_declaredInstanceGetter_declaredInstanceSetter_declaredInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo() {}
+  int get foo {}
+  set foo(int _) {}
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M1
+        interface
+          map
+            foo: #M2
+            foo=: #M3
+''',
+      updatedCode: r'''
+class A {
+  void foo() {}
+  int get foo {}
+  set foo(int _) {}
+  set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M6
+            foo=: #M7
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredInstanceMethod_declaredInstanceMethod() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo() {}
+  void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M1
+        interface
+          map
+            foo: #M2
+''',
+      updatedCode: r'''
+class A {
+  void foo() {}
+  void foo() {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M5
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredInstanceMethod_declaredInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo() {}
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M1
+        interface
+          map
+            foo: #M2
+            foo=: #M3
+''',
+      updatedCode: r'''
+class A {
+  void foo() {}
+  set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M6
+            foo=: #M7
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredInstanceMethod_declaredInstanceSetter_declaredInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo() {}
+  set foo(int _) {}
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M1
+        interface
+          map
+            foo: #M2
+            foo=: #M3
+''',
+      updatedCode: r'''
+class A {
+  void foo() {}
+  set foo(int _) {}
+  set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M6
+            foo=: #M7
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredInstanceMethod_inheritedInstanceGetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+  void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.method: #M3
+        interface
+          map
+            foo: #M3
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+  void foo() {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.method: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M3
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredInstanceMethod_inheritedInstanceGetter_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+  void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          foo.method: #M4
+        interface
+          map
+            foo: #M4
+            foo=: #M2
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+  void foo() {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          foo.method: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M4
+            foo=: #M2
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredInstanceMethod_inheritedInstanceMethod() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.method: #M3
+        interface
+          map
+            foo: #M3
+''',
+      updatedCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  void foo() {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.method: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M3
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredInstanceMethod_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.method: #M3
+        interface
+          map
+            foo: #M3
+            foo=: #M1
+''',
+      updatedCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  void foo() {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.method: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M3
+            foo=: #M1
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+''',
+      updatedCode: r'''
+class A {
+  set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+          zzz.method: #M2
+        interface
+          map
+            foo=: #M1
+            zzz: #M2
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredInstanceSetter_declaredInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M1
+        interface
+          map
+            foo=: #M2
+''',
+      updatedCode: r'''
+class A {
+  set foo(int _) {}
+  set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo=: #M5
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredInstanceSetter_inheritedInstanceGetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.setter: #M3
+        interface
+          map
+            foo: #M1
+            foo=: #M3
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+  set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.setter: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M1
+            foo=: #M3
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredInstanceSetter_inheritedInstanceGetter_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          foo.setter: #M4
+        interface
+          map
+            foo: #M1
+            foo=: #M4
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+  set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          foo.setter: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M1
+            foo=: #M4
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredInstanceSetter_inheritedInstanceMethod() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.setter: #M3
+        interface
+          map
+            foo: #M1
+            foo=: #M3
+''',
+      updatedCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.setter: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M1
+            foo=: #M3
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredInstanceSetter_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.setter: #M3
+        interface
+          map
+            foo=: #M3
+''',
+      updatedCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.setter: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo=: #M3
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredStaticGetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static int get foo {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+''',
+      updatedCode: r'''
+class A {
+  static int get foo {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          zzz.method: #M2
+        interface
+          map
+            zzz: #M2
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredStaticGetter_declaredInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static int get foo {}
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M1
+        interface
+          map
+            foo=: #M2
+''',
+      updatedCode: r'''
+class A {
+  static int get foo {}
+  set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo=: #M5
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredStaticGetter_declaredInstanceSetter_inheritedInstanceGetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+  static int get foo {}
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M3
+        interface
+          map
+            foo: #M1
+            foo=: #M4
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+  static int get foo {}
+  set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M5
+          zzz.method: #M6
+        interface
+          map
+            foo: #M1
+            foo=: #M7
+            zzz: #M6
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredStaticGetter_declaredInstanceSetter_inheritedInstanceGetter_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+  static int get foo {}
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          foo.conflict: #M4
+        interface
+          map
+            foo: #M1
+            foo=: #M5
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+  static int get foo {}
+  set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          foo.conflict: #M6
+          zzz.method: #M7
+        interface
+          map
+            foo: #M1
+            foo=: #M8
+            zzz: #M7
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredStaticGetter_declaredInstanceSetter_inheritedInstanceMethod() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  static int get foo {}
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M3
+        interface
+          map
+            foo: #M1
+            foo=: #M4
+''',
+      updatedCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  static int get foo {}
+  set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M5
+          zzz.method: #M6
+        interface
+          map
+            foo: #M1
+            foo=: #M7
+            zzz: #M6
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredStaticGetter_declaredInstanceSetter_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  static int get foo {}
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M3
+        interface
+          map
+            foo=: #M4
+''',
+      updatedCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  static int get foo {}
+  set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M5
+          zzz.method: #M6
+        interface
+          map
+            foo=: #M7
+            zzz: #M6
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredStaticGetter_declaredStaticSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static int get foo {}
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+''',
+      updatedCode: r'''
+class A {
+  static int get foo {}
+  static set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+          zzz.method: #M3
+        interface
+          map
+            zzz: #M3
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredStaticGetter_declaredStaticSetter_inheritedInstanceGetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+  static int get foo {}
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.getter: #M3
+          foo.setter: #M4
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+  static int get foo {}
+  static set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.getter: #M3
+          foo.setter: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M1
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredStaticGetter_declaredStaticSetter_inheritedInstanceGetter_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+  static int get foo {}
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          foo.getter: #M4
+          foo.setter: #M5
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+  static int get foo {}
+  static set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          foo.getter: #M4
+          foo.setter: #M5
+          zzz.method: #M6
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+            zzz: #M6
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredStaticGetter_declaredStaticSetter_inheritedInstanceMethod() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  static int get foo {}
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.getter: #M3
+          foo.setter: #M4
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  static int get foo {}
+  static set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.getter: #M3
+          foo.setter: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M1
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredStaticGetter_declaredStaticSetter_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  static int get foo {}
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.getter: #M3
+          foo.setter: #M4
+        interface
+          map
+            foo=: #M1
+''',
+      updatedCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  static int get foo {}
+  static set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.getter: #M3
+          foo.setter: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo=: #M1
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredStaticGetter_inheritedInstanceGetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+  static int get foo {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.getter: #M3
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+  static int get foo {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.getter: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M1
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredStaticGetter_inheritedInstanceGetter_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+  static int get foo {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          foo.getter: #M4
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+  static int get foo {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          foo.getter: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredStaticGetter_inheritedInstanceMethod() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  static int get foo {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.getter: #M3
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  static int get foo {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.getter: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M1
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredStaticGetter_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  static int get foo {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.getter: #M3
+        interface
+          map
+            foo=: #M1
+''',
+      updatedCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  static int get foo {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.getter: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo=: #M1
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredStaticMethod() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+''',
+      updatedCode: r'''
+class A {
+  static void foo() {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+          zzz.method: #M2
+        interface
+          map
+            zzz: #M2
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredStaticMethod_inheritedInstanceGetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+  static void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.method: #M3
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+  static void foo() {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.method: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M1
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredStaticMethod_inheritedInstanceGetter_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+  static void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          foo.method: #M4
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+  static void foo() {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          foo.method: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredStaticMethod_inheritedInstanceMethod() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  static void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.method: #M3
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  static void foo() {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.method: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M1
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredStaticMethod_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  static void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.method: #M3
+        interface
+          map
+            foo=: #M1
+''',
+      updatedCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  static void foo() {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.method: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo=: #M1
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredStaticSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+''',
+      updatedCode: r'''
+class A {
+  static set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+          zzz.method: #M2
+        interface
+          map
+            zzz: #M2
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredStaticSetter_inheritedInstanceGetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.setter: #M3
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+  static set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.setter: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M1
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredStaticSetter_inheritedInstanceGetter_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          foo.setter: #M4
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+  static set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          foo.setter: #M4
+          zzz.method: #M5
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredStaticSetter_inheritedInstanceMethod() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.setter: #M3
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  static set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.setter: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo: #M1
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_declaredStaticSetter_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.setter: #M3
+        interface
+          map
+            foo=: #M1
+''',
+      updatedCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  static set foo(int _) {}
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.setter: #M3
+          zzz.method: #M4
+        interface
+          map
+            foo=: #M1
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_inheritedConstructor() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin M {}
+
+class A {
+  A.foo();
+}
+
+class B = A with M;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.constructor: #M1
+      B: #M2
+        declaredMembers
+          foo.constructor.inherited: #M1
+      M: #M3
+''',
+      updatedCode: r'''
+mixin M {}
+
+class A {
+  A.foo();
+}
+
+class B = A with M;
+class Z {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.constructor: #M1
+      B: #M2
+        declaredMembers
+          foo.constructor.inherited: #M1
+      M: #M3
+      Z: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_inheritedConstructor_inheritedConstructor() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin M {}
+
+class A {
+  A.foo();
+  A.foo();
+}
+
+class B = A with M;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M1
+      B: #M2
+        declaredMembers
+          foo.conflict: #M3
+      M: #M4
+''',
+      updatedCode: r'''
+mixin M {}
+
+class A {
+  A.foo();
+  A.foo();
+}
+
+class B = A with M;
+class Z {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M5
+      B: #M2
+        declaredMembers
+          foo.conflict: #M6
+      M: #M4
+      Z: #M7
+''',
+    );
+  }
+
+  test_manifest_baseName_inheritedConstructor_inheritedInstanceGetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin M {}
+
+class A {
+  A.foo();
+  int get foo {}
+}
+
+class B = A with M;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.constructor: #M1
+          foo.getter: #M2
+        interface
+          map
+            foo: #M2
+      B: #M3
+        declaredMembers
+          foo.constructor.inherited: #M1
+        interface
+          map
+            foo: #M2
+      M: #M4
+''',
+      updatedCode: r'''
+mixin M {}
+
+class A {
+  A.foo();
+  int get foo {}
+}
+
+class B = A with M;
+class Z {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.constructor: #M1
+          foo.getter: #M2
+        interface
+          map
+            foo: #M2
+      B: #M3
+        declaredMembers
+          foo.constructor.inherited: #M1
+        interface
+          map
+            foo: #M2
+      M: #M4
+      Z: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_inheritedConstructor_inheritedInstanceGetter_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin M {}
+
+class A {
+  A.foo();
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B = A with M;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.constructor: #M1
+          foo.getter: #M2
+          foo.setter: #M3
+        interface
+          map
+            foo: #M2
+            foo=: #M3
+      B: #M4
+        declaredMembers
+          foo.constructor.inherited: #M1
+        interface
+          map
+            foo: #M2
+            foo=: #M3
+      M: #M5
+''',
+      updatedCode: r'''
+mixin M {}
+
+class A {
+  A.foo();
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B = A with M;
+class Z {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.constructor: #M1
+          foo.getter: #M2
+          foo.setter: #M3
+        interface
+          map
+            foo: #M2
+            foo=: #M3
+      B: #M4
+        declaredMembers
+          foo.constructor.inherited: #M1
+        interface
+          map
+            foo: #M2
+            foo=: #M3
+      M: #M5
+      Z: #M6
+''',
+    );
+  }
+
+  test_manifest_baseName_inheritedConstructor_inheritedInstanceMethod() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin M {}
+
+class A {
+  A.foo();
+  void foo() {}
+}
+
+class B = A with M;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.constructor: #M1
+          foo.method: #M2
+        interface
+          map
+            foo: #M2
+      B: #M3
+        declaredMembers
+          foo.constructor.inherited: #M1
+        interface
+          map
+            foo: #M2
+      M: #M4
+''',
+      updatedCode: r'''
+mixin M {}
+
+class A {
+  A.foo();
+  void foo() {}
+}
+
+class B = A with M;
+class Z {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.constructor: #M1
+          foo.method: #M2
+        interface
+          map
+            foo: #M2
+      B: #M3
+        declaredMembers
+          foo.constructor.inherited: #M1
+        interface
+          map
+            foo: #M2
+      M: #M4
+      Z: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_inheritedConstructor_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin M {}
+
+class A {
+  A.foo();
+  set foo(int _) {}
+}
+
+class B = A with M;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.constructor: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          foo.constructor.inherited: #M1
+        interface
+          map
+            foo=: #M2
+      M: #M4
+''',
+      updatedCode: r'''
+mixin M {}
+
+class A {
+  A.foo();
+  set foo(int _) {}
+}
+
+class B = A with M;
+class Z {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.constructor: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          foo.constructor.inherited: #M1
+        interface
+          map
+            foo=: #M2
+      M: #M4
+      Z: #M5
+''',
+    );
+  }
+
+  test_manifest_baseName_inheritedIndex() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int operator[](_) {}
+}
+
+class B extends A {
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          [].method: #M1
+        interface
+          map
+            []: #M1
+      B: #M2
+        interface
+          map
+            []: #M1
+''',
+      updatedCode: r'''
+class A {
+  int operator[](_) {}
+}
+
+class B extends A {
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          [].method: #M1
+        interface
+          map
+            []: #M1
+      B: #M2
+        declaredMembers
+          zzz.method: #M3
+        interface
+          map
+            []: #M1
+            zzz: #M3
+''',
+    );
+  }
+
+  test_manifest_baseName_inheritedIndex_inheritedIndexEq() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int operator[](_) {}
+  operator[]=(_, _) {}
+}
+
+class B extends A {
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          [].method: #M1
+          [].indexEq: #M2
+        interface
+          map
+            []: #M1
+            []=: #M2
+      B: #M3
+        interface
+          map
+            []: #M1
+            []=: #M2
+''',
+      updatedCode: r'''
+class A {
+  int operator[](_) {}
+  operator[]=(_, _) {}
+}
+
+class B extends A {
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          [].method: #M1
+          [].indexEq: #M2
+        interface
+          map
+            []: #M1
+            []=: #M2
+      B: #M3
+        declaredMembers
+          zzz.method: #M4
+        interface
+          map
+            []: #M1
+            []=: #M2
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_inheritedIndexEq() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  operator[]=(_, _) {}
+}
+
+class B extends A {
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          [].indexEq: #M1
+        interface
+          map
+            []=: #M1
+      B: #M2
+        interface
+          map
+            []=: #M1
+''',
+      updatedCode: r'''
+class A {
+  operator[]=(_, _) {}
+}
+
+class B extends A {
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          [].indexEq: #M1
+        interface
+          map
+            []=: #M1
+      B: #M2
+        declaredMembers
+          zzz.method: #M3
+        interface
+          map
+            []=: #M1
+            zzz: #M3
+''',
+    );
+  }
+
+  test_manifest_baseName_inheritedIndexEq_inheritedIndex() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  operator[]=(_, _) {}
+  int operator[](_) {}
+}
+
+class B extends A {
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          [].method: #M1
+          [].indexEq: #M2
+        interface
+          map
+            []: #M1
+            []=: #M2
+      B: #M3
+        interface
+          map
+            []: #M1
+            []=: #M2
+''',
+      updatedCode: r'''
+class A {
+  operator[]=(_, _) {}
+  int operator[](_) {}
+}
+
+class B extends A {
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          [].method: #M1
+          [].indexEq: #M2
+        interface
+          map
+            []: #M1
+            []=: #M2
+      B: #M3
+        declaredMembers
+          zzz.method: #M4
+        interface
+          map
+            []: #M1
+            []=: #M2
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_inheritedInstanceGetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+}
+
+class B extends A {
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          zzz.method: #M3
+        interface
+          map
+            foo: #M1
+            zzz: #M3
+''',
+    );
+  }
+
+  test_manifest_baseName_inheritedInstanceGetter_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+      B: #M3
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+
+class B extends A {
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          foo.setter: #M2
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+      B: #M3
+        declaredMembers
+          zzz.method: #M4
+        interface
+          map
+            foo: #M1
+            foo=: #M2
+            zzz: #M4
+''',
+    );
+  }
+
+  test_manifest_baseName_inheritedInstanceMethod() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          zzz.method: #M3
+        interface
+          map
+            foo: #M1
+            zzz: #M3
+''',
+    );
+  }
+
+  test_manifest_baseName_inheritedInstanceSetter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        interface
+          map
+            foo=: #M1
+''',
+      updatedCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          zzz.method: #M3
+        interface
+          map
+            foo=: #M1
+            zzz: #M3
+''',
+    );
+  }
+
   test_manifest_class_add() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -8329,7 +24209,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M1
+        declaredMembers
+          foo.constructor: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -8342,8 +24223,9 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        bar: #M2
-        foo: #M1
+        declaredMembers
+          bar.constructor: #M2
+          foo.constructor: #M1
 ''',
     );
   }
@@ -8362,7 +24244,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M1
+        declaredMembers
+          foo.constructor: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -8375,8 +24258,9 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        bar: #M2
-        foo: #M1
+        declaredMembers
+          bar.constructor: #M2
+          foo.constructor: #M1
 ''',
     );
   }
@@ -8395,7 +24279,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        new: #M1
+        declaredMembers
+          new.constructor: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -8407,7 +24292,660 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        new: #M2
+        declaredMembers
+          new.constructor: #M2
+''',
+    );
+  }
+
+  test_manifest_class_constructor_initializers_isConst_add() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  const A.named(int x);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          named.constructor: #M1
+''',
+      updatedCode: r'''
+class A {
+  const A.named(int x) : assert(x > 0);
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          named.constructor: #M2
+''',
+    );
+  }
+
+  test_manifest_class_constructor_initializers_isConst_assert() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  const A.c1(int x) : assert(x > 0);
+  const A.c2(int x) : assert(x > 0);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          c1.constructor: #M1
+          c2.constructor: #M2
+''',
+      updatedCode: r'''
+class A {
+  const A.c1(int x) : assert(x > 0);
+  const A.c2(int x) : assert(x > 1);
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          c1.constructor: #M1
+          c2.constructor: #M3
+''',
+    );
+  }
+
+  test_manifest_class_constructor_initializers_isConst_fieldInitializer_name() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  final int foo;
+  const A.named() : bar = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          named.constructor: #M2
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  final int foo;
+  const A.named() : foo = 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          named.constructor: #M3
+        interface
+          map
+            foo: #M1
+''',
+    );
+  }
+
+  test_manifest_class_constructor_initializers_isConst_fieldInitializer_value() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  final int foo;
+  const A.named() : foo = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          named.constructor: #M2
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  final int foo;
+  const A.named() : foo = 1;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          named.constructor: #M3
+        interface
+          map
+            foo: #M1
+''',
+    );
+  }
+
+  test_manifest_class_constructor_initializers_isConst_formalParameter_exchange() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  const A.named(int x, int y) : assert(x > 0);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          named.constructor: #M1
+''',
+      updatedCode: r'''
+class A {
+  const A.named(int y, int x) : assert(x > 0);
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          named.constructor: #M2
+''',
+    );
+  }
+
+  test_manifest_class_constructor_initializers_isConst_redirect_argument() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  final int f;
+  const A.c1(int a) : f = a;
+  const A.c2() : this.c1(0);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          c1.constructor: #M1
+          c2.constructor: #M2
+          f.getter: #M3
+        interface
+          map
+            f: #M3
+''',
+      updatedCode: r'''
+class A {
+  final int f;
+  const A.c1(int a) : f = a;
+  const A.c2() : this.c1(1);
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          c1.constructor: #M1
+          c2.constructor: #M4
+          f.getter: #M3
+        interface
+          map
+            f: #M3
+''',
+    );
+  }
+
+  test_manifest_class_constructor_initializers_isConst_redirect_name() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  final int f;
+  const A.c1() : f = 0;
+  const A.c2() : f = 1;
+  const A.c3() : this.c1();
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          c1.constructor: #M1
+          c2.constructor: #M2
+          c3.constructor: #M3
+          f.getter: #M4
+        interface
+          map
+            f: #M4
+''',
+      updatedCode: r'''
+class A {
+  final int f;
+  const A.c1() : f = 0;
+  const A.c2() : f = 1;
+  const A.c3() : this.c2();
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          c1.constructor: #M1
+          c2.constructor: #M2
+          c3.constructor: #M5
+          f.getter: #M4
+        interface
+          map
+            f: #M4
+''',
+    );
+  }
+
+  test_manifest_class_constructor_initializers_isConst_remove() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  const A.named(int x) : assert(x > 0);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          named.constructor: #M1
+''',
+      updatedCode: r'''
+class A {
+  const A.named(int x);
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          named.constructor: #M2
+''',
+    );
+  }
+
+  test_manifest_class_constructor_initializers_isConst_super_argument() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  const A.named(int _);
+}
+
+class B extends A {
+  const A.named() : super.named(0);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          named.constructor: #M1
+      B: #M2
+        declaredMembers
+          named.constructor: #M3
+''',
+      updatedCode: r'''
+class A {
+  const A.named(int _);
+}
+
+class B extends A {
+  const A.named() : super.named(1);
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          named.constructor: #M1
+      B: #M2
+        declaredMembers
+          named.constructor: #M4
+''',
+    );
+  }
+
+  test_manifest_class_constructor_initializers_isConst_super_name() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  final int f;
+  const A.c1() : f = 0;
+  const A.c2() : f = 1;
+}
+
+class B extends A {
+  const A.named() : super.c1(0);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          c1.constructor: #M1
+          c2.constructor: #M2
+          f.getter: #M3
+        interface
+          map
+            f: #M3
+      B: #M4
+        declaredMembers
+          named.constructor: #M5
+        interface
+          map
+            f: #M3
+''',
+      updatedCode: r'''
+class A {
+  final int f;
+  const A.c1() : f = 0;
+  const A.c2() : f = 1;
+}
+
+class B extends A {
+  const A.named() : super.c2(0);
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          c1.constructor: #M1
+          c2.constructor: #M2
+          f.getter: #M3
+        interface
+          map
+            f: #M3
+      B: #M4
+        declaredMembers
+          named.constructor: #M6
+        interface
+          map
+            f: #M3
+''',
+    );
+  }
+
+  test_manifest_class_constructor_initializers_isConst_super_transitive() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  final int f;
+  const A.named() : f = 0;
+}
+
+class B extends A {
+  const A.named() : super.named();
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          f.getter: #M1
+          named.constructor: #M2
+        interface
+          map
+            f: #M1
+      B: #M3
+        declaredMembers
+          named.constructor: #M4
+        interface
+          map
+            f: #M1
+''',
+      updatedCode: r'''
+class A {
+  final int f;
+  const A.named() : f = 1;
+}
+
+class B extends A {
+  const A.named() : super.named();
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          f.getter: #M1
+          named.constructor: #M5
+        interface
+          map
+            f: #M1
+      B: #M3
+        declaredMembers
+          named.constructor: #M6
+        interface
+          map
+            f: #M1
+''',
+    );
+  }
+
+  test_manifest_class_constructor_initializers_notConst_assert() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.named(int x) : assert(x > 0);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          named.constructor: #M1
+''',
+      updatedCode: r'''
+class A {
+  A.named(int x) : assert(x > 1);
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          named.constructor: #M1
+''',
+    );
+  }
+
+  test_manifest_class_constructor_initializers_notConst_fieldInitializer_value() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  final int foo;
+  A.named() : foo = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          named.constructor: #M2
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  final int foo;
+  A.named() : foo = 1;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+          named.constructor: #M2
+        interface
+          map
+            foo: #M1
+''',
+    );
+  }
+
+  test_manifest_class_constructor_initializers_notConst_redirect_argument() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  final int f;
+  A.c1(int a) : f = a;
+  A.c2() : this.c1(0);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          c1.constructor: #M1
+          c2.constructor: #M2
+          f.getter: #M3
+        interface
+          map
+            f: #M3
+''',
+      updatedCode: r'''
+class A {
+  final int f;
+  A.c1(int a) : f = a;
+  A.c2() : this.c1(1);
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          c1.constructor: #M1
+          c2.constructor: #M2
+          f.getter: #M3
+        interface
+          map
+            f: #M3
+''',
+    );
+  }
+
+  test_manifest_class_constructor_initializers_notConst_super_argument() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  const A.named(int _);
+}
+
+class B extends A {
+  A.named() : super.named(0);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          named.constructor: #M1
+      B: #M2
+        declaredMembers
+          named.constructor: #M3
+''',
+      updatedCode: r'''
+class A {
+  const A.named(int _);
+}
+
+class B extends A {
+  A.named() : super.named(1);
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          named.constructor: #M1
+      B: #M2
+        declaredMembers
+          named.constructor: #M3
 ''',
     );
   }
@@ -8425,7 +24963,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M1
+        declaredMembers
+          foo.constructor: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -8437,7 +24976,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M2
+        declaredMembers
+          foo.constructor: #M2
 ''',
     );
   }
@@ -8455,7 +24995,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M1
+        declaredMembers
+          foo.constructor: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -8467,7 +25008,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M2
+        declaredMembers
+          foo.constructor: #M2
 ''',
     );
   }
@@ -8485,7 +25027,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M1
+        declaredMembers
+          foo.constructor: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -8497,7 +25040,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M2
+        declaredMembers
+          foo.constructor: #M2
 ''',
     );
   }
@@ -8515,7 +25059,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M1
+        declaredMembers
+          foo.constructor: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -8527,7 +25072,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M2
+        declaredMembers
+          foo.constructor: #M2
 ''',
     );
   }
@@ -8548,8 +25094,9 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        bar: #M1
-        foo: #M2
+        declaredMembers
+          bar.constructor: #M1
+          foo.constructor: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -8564,8 +25111,9 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        bar: #M1
-        foo: #M3
+        declaredMembers
+          bar.constructor: #M1
+          foo.constructor: #M3
 ''',
     );
   }
@@ -8583,7 +25131,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        _foo: #M1
+        declaredMembers
+          _foo.constructor: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -8596,8 +25145,9 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        _foo: #M1
-        bar: #M2
+        declaredMembers
+          _foo.constructor: #M1
+          bar.constructor: #M2
 ''',
     );
   }
@@ -8615,7 +25165,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        _foo: #M1
+        declaredMembers
+          _foo.constructor: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -8628,8 +25179,9 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        _foo: #M1
-        bar: #M2
+        declaredMembers
+          _foo.constructor: #M1
+          bar.constructor: #M2
 ''',
     );
   }
@@ -8726,7 +25278,398 @@ class C {}
     );
   }
 
-  test_manifest_class_getter_add_extended() async {
+  test_manifest_class_field_add() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  final a = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a.getter: #M1
+        interface
+          map
+            a: #M1
+''',
+      updatedCode: r'''
+class A {
+  final a = 0;
+  final b = 1;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a.getter: #M1
+          b.getter: #M2
+        interface
+          map
+            a: #M1
+            b: #M2
+''',
+    );
+  }
+
+  test_manifest_class_field_initializer_type() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  final a = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a.getter: #M1
+        interface
+          map
+            a: #M1
+''',
+      updatedCode: r'''
+class A {
+  final a = 1.2;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a.getter: #M2
+        interface
+          map
+            a: #M2
+''',
+    );
+  }
+
+  test_manifest_class_field_initializer_value_final() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  final a = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a.getter: #M1
+        interface
+          map
+            a: #M1
+''',
+      updatedCode: r'''
+class A {
+  final a = 1;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a.getter: #M1
+        interface
+          map
+            a: #M1
+''',
+    );
+  }
+
+  test_manifest_class_field_initializer_value_static_const() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static const a = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a.getter: #M1
+''',
+      updatedCode: r'''
+class A {
+  static const a = 1;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a.getter: #M2
+''',
+    );
+  }
+
+  test_manifest_class_field_initializer_value_static_final() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static final a = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a.getter: #M1
+''',
+      updatedCode: r'''
+class A {
+  static final a = 1;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a.getter: #M1
+''',
+    );
+  }
+
+  test_manifest_class_field_metadata() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  @Deprecated('0')
+  var a = 0;
+  @Deprecated('0')
+  var b = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a.getter: #M1
+          a.setter: #M2
+          b.getter: #M3
+          b.setter: #M4
+        interface
+          map
+            a: #M1
+            a=: #M2
+            b: #M3
+            b=: #M4
+''',
+      updatedCode: r'''
+class A {
+  @Deprecated('0')
+  var a = 0;
+  @Deprecated('1')
+  var b = 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a.getter: #M1
+          a.setter: #M2
+          b.getter: #M5
+          b.setter: #M6
+        interface
+          map
+            a: #M1
+            a=: #M2
+            b: #M5
+            b=: #M6
+''',
+    );
+  }
+
+  test_manifest_class_field_private_final() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  final _a = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _a.getter: #M1
+''',
+      updatedCode: r'''
+class A {
+  final _a = 0;
+  final b = 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _a.getter: #M1
+          b.getter: #M2
+        interface
+          map
+            b: #M2
+''',
+    );
+  }
+
+  test_manifest_class_field_private_static_const() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static const _a = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _a.getter: #M1
+''',
+      updatedCode: r'''
+class A {
+  static const _a = 0;
+  static const b = 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _a.getter: #M1
+          b.getter: #M2
+''',
+    );
+  }
+
+  test_manifest_class_field_private_var() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  var _a = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _a.getter: #M1
+          _a.setter: #M2
+''',
+      updatedCode: r'''
+class A {
+  var _a = 0;
+  var b = 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _a.getter: #M1
+          _a.setter: #M2
+          b.getter: #M3
+          b.setter: #M4
+        interface
+          map
+            b: #M3
+            b=: #M4
+''',
+    );
+  }
+
+  test_manifest_class_field_type() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int? a;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a.getter: #M1
+          a.setter: #M2
+        interface
+          map
+            a: #M1
+            a=: #M2
+''',
+      updatedCode: r'''
+class A {
+  double? a;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a.getter: #M3
+          a.setter: #M4
+        interface
+          map
+            a: #M3
+            a=: #M4
+''',
+    );
+  }
+
+  test_manifest_class_getter_add_extends() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
 class A {
@@ -8741,9 +25684,15 @@ class B extends A {}
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        foo: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -8758,16 +25707,23 @@ class B extends A {}
   package:test/test.dart
     manifest
       A: #M0
-        bar: #M3
-        foo: #M1
+        declaredMembers
+          bar.getter: #M3
+          foo.getter: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
       B: #M2
-        bar: #M3
-        foo: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
 ''',
     );
   }
 
-  test_manifest_class_getter_add_extended_generic() async {
+  test_manifest_class_getter_add_extends_generic() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
 class A<T> {
@@ -8782,9 +25738,15 @@ class B extends A<int> {}
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        foo: #M3
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A<T> {
@@ -8799,11 +25761,313 @@ class B extends A<int> {}
   package:test/test.dart
     manifest
       A: #M0
-        bar: #M4
-        foo: #M1
+        declaredMembers
+          bar.getter: #M3
+          foo.getter: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
       B: #M2
-        bar: #M5
-        foo: #M3
+        interface
+          map
+            bar: #M3
+            foo: #M1
+''',
+    );
+  }
+
+  test_manifest_class_getter_add_implements() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo => 0;
+}
+
+class B implements A {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  int get foo => 0;
+  int get bar => 0;
+}
+
+class B implements A {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.getter: #M3
+          foo.getter: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
+      B: #M2
+        interface
+          map
+            bar: #M3
+            foo: #M1
+''',
+    );
+  }
+
+  test_manifest_class_getter_add_implements_generic() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A<T> {
+  T get foo => 0;
+}
+
+class B implements A<int> {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A<T> {
+  T get foo => 0;
+  T get bar => 0;
+}
+
+class B implements A<int> {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.getter: #M3
+          foo.getter: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
+      B: #M2
+        interface
+          map
+            bar: #M3
+            foo: #M1
+''',
+    );
+  }
+
+  test_manifest_class_getter_add_with() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo => 0;
+}
+
+class B with A {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  int get foo => 0;
+  int get bar => 0;
+}
+
+class B with A {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.getter: #M3
+          foo.getter: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
+      B: #M2
+        interface
+          map
+            bar: #M3
+            foo: #M1
+''',
+    );
+  }
+
+  test_manifest_class_getter_add_with_generic() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A<T> {
+  T get foo => 0;
+}
+
+class B with A<int> {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A<T> {
+  T get foo => 0;
+  T get bar => 0;
+}
+
+class B with A<int> {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.getter: #M3
+          foo.getter: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
+      B: #M2
+        interface
+          map
+            bar: #M3
+            foo: #M1
+''',
+    );
+  }
+
+  test_manifest_class_getter_combinedSignatures_merged_addUnrelated() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+abstract class A {
+  num get foo;
+}
+
+abstract class B {
+  int get foo;
+}
+
+abstract class C implements A, B {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.getter: #M3
+        interface
+          map
+            foo: #M3
+      C: #M4
+        interface
+          map
+            foo: #M5
+          combinedIds
+            [#M1, #M3]: #M5
+''',
+      updatedCode: r'''
+abstract class A {
+  num get foo;
+}
+
+abstract class B {
+  int get foo;
+}
+
+abstract class C implements A, B {
+  void zzz();
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.getter: #M3
+        interface
+          map
+            foo: #M3
+      C: #M4
+        declaredMembers
+          zzz.method: #M6
+        interface
+          map
+            foo: #M5
+            zzz: #M6
+          combinedIds
+            [#M1, #M3]: #M5
 ''',
     );
   }
@@ -8824,8 +26088,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        bar: #M1
-        foo: #M2
+        declaredMembers
+          bar.getter: #M1
+          foo.getter: #M2
+        interface
+          map
+            bar: #M1
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -8840,8 +26109,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        bar: #M1
-        foo: #M3
+        declaredMembers
+          bar.getter: #M1
+          foo.getter: #M3
+        interface
+          map
+            bar: #M1
+            foo: #M3
 ''',
     );
   }
@@ -8859,7 +26133,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        _foo: #M1
+        declaredMembers
+          _foo.getter: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -8872,8 +26147,12 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        _foo: #M1
-        bar: #M2
+        declaredMembers
+          _foo.getter: #M1
+          bar.getter: #M2
+        interface
+          map
+            bar: #M2
 ''',
     );
   }
@@ -8891,7 +26170,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        _foo: #M1
+        declaredMembers
+          _foo.getter: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -8904,8 +26184,12 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        _foo: #M1
-        bar: #M2
+        declaredMembers
+          _foo.getter: #M1
+          bar.getter: #M2
+        interface
+          map
+            bar: #M2
 ''',
     );
   }
@@ -8925,8 +26209,12 @@ class A {
     manifest
       A: #M0
         supertype: Object @ dart:core
-        foo: #M1
-          returnType: int @ dart:core
+        declaredMembers
+          foo.getter: #M1
+            returnType: int @ dart:core
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -8939,8 +26227,12 @@ class A {
     manifest
       A: #M0
         supertype: Object @ dart:core
-        foo: #M2
-          returnType: double @ dart:core
+        declaredMembers
+          foo.getter: #M2
+            returnType: double @ dart:core
+        interface
+          map
+            foo: #M2
 ''',
     );
   }
@@ -8958,7 +26250,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M1
+        declaredMembers
+          foo.getter: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -8971,8 +26264,9 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        bar: #M2
-        foo: #M1
+        declaredMembers
+          bar.getter: #M2
+          foo.getter: #M1
 ''',
     );
   }
@@ -8990,7 +26284,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M1
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -9002,7 +26300,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M2
+        declaredMembers
+          foo.getter: #M2
 ''',
     );
   }
@@ -9020,7 +26319,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M1
+        declaredMembers
+          foo.getter: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -9032,7 +26332,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M2
+        declaredMembers
+          foo.getter: #M2
 ''',
     );
   }
@@ -9050,7 +26351,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M1
+        declaredMembers
+          foo.getter: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -9062,7 +26364,233 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M2
+        declaredMembers
+          foo.getter: #M2
+        interface
+          map
+            foo: #M2
+''',
+    );
+  }
+
+  test_manifest_class_getter_toDuplicate_hasInstance_addInstance_after() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+  double get foo {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M2
+        interface
+          map
+            foo: #M3
+''',
+    );
+  }
+
+  test_manifest_class_getter_toDuplicate_hasInstance_addInstance_before() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  double get foo {}
+  int get foo {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M2
+        interface
+          map
+            foo: #M1
+''',
+    );
+  }
+
+  test_manifest_class_getter_toDuplicate_hasInstance_addStatic_after() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  int get foo {}
+  static double get foo {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M2
+        interface
+          map
+            foo: #M1
+''',
+    );
+  }
+
+  test_manifest_class_getter_toDuplicate_hasInstance_addStatic_before() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  static double get foo {}
+  int get foo {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M2
+        interface
+          map
+            foo: #M1
+''',
+    );
+  }
+
+  test_manifest_class_getter_toDuplicate_hasStatic_addStatic_after() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static int get foo {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+''',
+      updatedCode: r'''
+class A {
+  static int get foo {}
+  static double get foo {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M2
+''',
+    );
+  }
+
+  test_manifest_class_getter_toDuplicate_hasStatic_addStatic_before() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static int get foo {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+''',
+      updatedCode: r'''
+class A {
+  static double get foo {}
+  static int get foo {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M2
 ''',
     );
   }
@@ -9200,7 +26728,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -9213,13 +26745,18 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        bar: #M2
-        foo: #M1
+        declaredMembers
+          bar.method: #M2
+          foo.method: #M1
+        interface
+          map
+            bar: #M2
+            foo: #M1
 ''',
     );
   }
 
-  test_manifest_class_method_add_extended() async {
+  test_manifest_class_method_add_extends() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
 class A {
@@ -9234,9 +26771,15 @@ class B extends A {}
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        foo: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -9251,16 +26794,23 @@ class B extends A {}
   package:test/test.dart
     manifest
       A: #M0
-        bar: #M3
-        foo: #M1
+        declaredMembers
+          bar.method: #M3
+          foo.method: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
       B: #M2
-        bar: #M3
-        foo: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
 ''',
     );
   }
 
-  test_manifest_class_method_add_extended_generic() async {
+  test_manifest_class_method_add_extends_generic() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
 class A<T> {
@@ -9275,9 +26825,15 @@ class B extends A<int> {}
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
       B: #M2
-        foo: #M3
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A<T> {
@@ -9292,11 +26848,657 @@ class B extends A<int> {}
   package:test/test.dart
     manifest
       A: #M0
-        bar: #M4
-        foo: #M1
+        declaredMembers
+          bar.method: #M3
+          foo.method: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
       B: #M2
-        bar: #M5
-        foo: #M3
+        interface
+          map
+            bar: #M3
+            foo: #M1
+''',
+    );
+  }
+
+  test_manifest_class_method_add_extends_generic2() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A<T> {
+  T foo() {}
+}
+
+class B extends A<int> {}
+
+class C extends B {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        interface
+          map
+            foo: #M1
+      C: #M3
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A<T> {
+  T foo() {}
+  void bar() {}
+}
+
+class B extends A<int> {}
+
+class C extends B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.method: #M4
+          foo.method: #M1
+        interface
+          map
+            bar: #M4
+            foo: #M1
+      B: #M2
+        interface
+          map
+            bar: #M4
+            foo: #M1
+      C: #M3
+        interface
+          map
+            bar: #M4
+            foo: #M1
+''',
+    );
+  }
+
+  test_manifest_class_method_add_implements() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo() {}
+}
+
+class B implements A {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  void foo() {}
+  void bar() {}
+}
+
+class B implements A {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.method: #M3
+          foo.method: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
+      B: #M2
+        interface
+          map
+            bar: #M3
+            foo: #M1
+''',
+    );
+  }
+
+  test_manifest_class_method_add_implements_generic() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A<T> {
+  T foo() {}
+}
+
+class B implements A<int> {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A<T> {
+  T foo() {}
+  void bar() {}
+}
+
+class B implements A<int> {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.method: #M3
+          foo.method: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
+      B: #M2
+        interface
+          map
+            bar: #M3
+            foo: #M1
+''',
+    );
+  }
+
+  test_manifest_class_method_add_with() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo() {}
+}
+
+class B with A {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  void foo() {}
+  void bar() {}
+}
+
+class B with A {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.method: #M3
+          foo.method: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
+      B: #M2
+        interface
+          map
+            bar: #M3
+            foo: #M1
+''',
+    );
+  }
+
+  test_manifest_class_method_add_with_generic() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A<T> {
+  T foo() {}
+}
+
+class B with A<int> {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A<T> {
+  T foo() {}
+  void bar() {}
+}
+
+class B with A<int> {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.method: #M3
+          foo.method: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
+      B: #M2
+        interface
+          map
+            bar: #M3
+            foo: #M1
+''',
+    );
+  }
+
+  test_manifest_class_method_combinedSignatures_conflict_removeOne() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+abstract class A {
+  int foo();
+}
+
+abstract class B {
+  double foo();
+}
+
+abstract class C implements A, B {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.method: #M3
+        interface
+          map
+            foo: #M3
+      C: #M4
+''',
+      updatedCode: r'''
+abstract class A {
+  int foo();
+}
+
+abstract class B {}
+
+abstract class C implements A, B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+      C: #M4
+        interface
+          map
+            foo: #M1
+''',
+    );
+  }
+
+  test_manifest_class_method_combinedSignatures_merged_addUnrelated() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+abstract class A {
+  dynamic foo();
+}
+
+abstract class B {
+  void foo();
+}
+
+abstract class C implements A, B {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.method: #M3
+        interface
+          map
+            foo: #M3
+      C: #M4
+        interface
+          map
+            foo: #M5
+          combinedIds
+            [#M1, #M3]: #M5
+''',
+      updatedCode: r'''
+abstract class A {
+  dynamic foo();
+}
+
+abstract class B {
+  void foo();
+  void zzz();
+}
+
+abstract class C implements A, B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.method: #M3
+          zzz.method: #M6
+        interface
+          map
+            foo: #M3
+            zzz: #M6
+      C: #M4
+        interface
+          map
+            foo: #M5
+            zzz: #M6
+          combinedIds
+            [#M1, #M3]: #M5
+''',
+    );
+  }
+
+  test_manifest_class_method_combinedSignatures_merged_removeOne() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+abstract class A {
+  dynamic foo();
+}
+
+abstract class B {
+  void foo();
+}
+
+abstract class C implements A, B {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.method: #M3
+        interface
+          map
+            foo: #M3
+      C: #M4
+        interface
+          map
+            foo: #M5
+          combinedIds
+            [#M1, #M3]: #M5
+''',
+      updatedCode: r'''
+abstract class A {}
+
+abstract class B {
+  void foo();
+}
+
+abstract class C implements A, B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+      B: #M2
+        declaredMembers
+          foo.method: #M3
+        interface
+          map
+            foo: #M3
+      C: #M4
+        interface
+          map
+            foo: #M3
+''',
+    );
+  }
+
+  test_manifest_class_method_combinedSignatures_merged_sameBase() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+abstract class A<T> {
+  T foo();
+}
+
+abstract class B implements A<dynamic> {}
+
+abstract class C implements A<void> {}
+
+abstract class D implements B, C {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        interface
+          map
+            foo: #M1
+      C: #M3
+        interface
+          map
+            foo: #M1
+      D: #M4
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+abstract class A<T> {
+  T foo();
+}
+
+abstract class B implements A<dynamic> {}
+
+abstract class C implements A<void> {}
+
+abstract class D implements B, C {
+  void zzz() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        interface
+          map
+            foo: #M1
+      C: #M3
+        interface
+          map
+            foo: #M1
+      D: #M4
+        declaredMembers
+          zzz.method: #M5
+        interface
+          map
+            foo: #M1
+            zzz: #M5
+''',
+    );
+  }
+
+  test_manifest_class_method_combinedSignatures_merged_updateOne() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+abstract class A {
+  dynamic foo();
+}
+
+abstract class B {
+  void foo();
+}
+
+abstract class C implements A, B {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.method: #M3
+        interface
+          map
+            foo: #M3
+      C: #M4
+        interface
+          map
+            foo: #M5
+          combinedIds
+            [#M1, #M3]: #M5
+''',
+      updatedCode: r'''
+abstract class A {
+  dynamic foo();
+}
+
+abstract class B {
+  int foo();
+}
+
+abstract class C implements A, B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        declaredMembers
+          foo.method: #M6
+        interface
+          map
+            foo: #M6
+      C: #M4
+        interface
+          map
+            foo: #M7
+          combinedIds
+            [#M1, #M6]: #M7
 ''',
     );
   }
@@ -9314,7 +27516,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -9327,8 +27533,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        bar: #M2
-        foo: #M1
+        declaredMembers
+          bar.method: #M2
+          foo.method: #M1
+        interface
+          map
+            bar: #M2
+            foo: #M1
 ''',
     );
   }
@@ -9346,7 +27557,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -9359,8 +27574,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        bar: #M2
-        foo: #M1
+        declaredMembers
+          bar.method: #M2
+          foo.method: #M1
+        interface
+          map
+            bar: #M2
+            foo: #M1
 ''',
     );
   }
@@ -9378,7 +27598,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -9391,8 +27615,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        bar: #M2
-        foo: #M1
+        declaredMembers
+          bar.method: #M2
+          foo.method: #M1
+        interface
+          map
+            bar: #M2
+            foo: #M1
 ''',
     );
   }
@@ -9410,7 +27639,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -9422,7 +27655,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M2
+        declaredMembers
+          foo.method: #M2
+        interface
+          map
+            foo: #M2
 ''',
     );
   }
@@ -9442,11 +27679,15 @@ class A {
     manifest
       A: #M0
         supertype: Object @ dart:core
-        foo: #M1
-          functionType: FunctionType
-            named
-              a: required int @ dart:core
-            returnType: void
+        declaredMembers
+          foo.method: #M1
+            functionType: FunctionType
+              named
+                a: required int @ dart:core
+              returnType: void
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -9459,11 +27700,15 @@ class A {
     manifest
       A: #M0
         supertype: Object @ dart:core
-        foo: #M2
-          functionType: FunctionType
-            named
-              a: required double @ dart:core
-            returnType: void
+        declaredMembers
+          foo.method: #M2
+            functionType: FunctionType
+              named
+                a: required double @ dart:core
+              returnType: void
+        interface
+          map
+            foo: #M2
 ''',
     );
   }
@@ -9481,7 +27726,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -9494,8 +27743,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        bar: #M2
-        foo: #M1
+        declaredMembers
+          bar.method: #M2
+          foo.method: #M1
+        interface
+          map
+            bar: #M2
+            foo: #M1
 ''',
     );
   }
@@ -9513,7 +27767,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -9525,7 +27783,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
 ''',
     );
   }
@@ -9543,7 +27805,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -9555,7 +27821,305 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M2
+        declaredMembers
+          foo.method: #M2
+        interface
+          map
+            foo: #M2
+''',
+    );
+  }
+
+  test_manifest_class_method_fromDuplicate_hasInstanceInstance_removeFirst() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int foo() {}
+  double foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M1
+        interface
+          map
+            foo: #M2
+''',
+      updatedCode: r'''
+class A {
+  double foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M3
+        interface
+          map
+            foo: #M3
+''',
+    );
+  }
+
+  test_manifest_class_method_fromDuplicate_hasInstanceInstance_removeSecond() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int foo() {}
+  double foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M1
+        interface
+          map
+            foo: #M2
+''',
+      updatedCode: r'''
+class A {
+  int foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M3
+        interface
+          map
+            foo: #M3
+''',
+    );
+  }
+
+  test_manifest_class_method_fromDuplicate_hasInstanceStatic_removeFirst() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int foo() {}
+  static double foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M1
+        interface
+          map
+            foo: #M2
+''',
+      updatedCode: r'''
+class A {
+  static double foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M3
+''',
+    );
+  }
+
+  test_manifest_class_method_fromDuplicate_hasInstanceStatic_removeSecond() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int foo() {}
+  static double foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M1
+        interface
+          map
+            foo: #M2
+''',
+      updatedCode: r'''
+class A {
+  int foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M3
+        interface
+          map
+            foo: #M3
+''',
+    );
+  }
+
+  test_manifest_class_method_fromDuplicate_hasStaticInstance_removeFirst() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static int foo() {}
+  double foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M1
+        interface
+          map
+            foo: #M2
+''',
+      updatedCode: r'''
+class A {
+  double foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M3
+        interface
+          map
+            foo: #M3
+''',
+    );
+  }
+
+  test_manifest_class_method_fromDuplicate_hasStaticInstance_removeSecond() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static int foo() {}
+  double foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M1
+        interface
+          map
+            foo: #M2
+''',
+      updatedCode: r'''
+class A {
+  static int foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M3
+''',
+    );
+  }
+
+  test_manifest_class_method_fromDuplicate_hasStaticStatic_removeFirst() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static int foo() {}
+  static double foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M1
+''',
+      updatedCode: r'''
+class A {
+  static double foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M2
+''',
+    );
+  }
+
+  test_manifest_class_method_fromDuplicate_hasStaticStatic_removeSecond() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static int foo() {}
+  static double foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M1
+''',
+      updatedCode: r'''
+class A {
+  static int foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M2
 ''',
     );
   }
@@ -9576,8 +28140,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        bar: #M1
-        foo: #M2
+        declaredMembers
+          bar.method: #M1
+          foo.method: #M2
+        interface
+          map
+            bar: #M1
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -9592,8 +28161,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        bar: #M1
-        foo: #M3
+        declaredMembers
+          bar.method: #M1
+          foo.method: #M3
+        interface
+          map
+            bar: #M1
+            foo: #M3
 ''',
     );
   }
@@ -9611,7 +28185,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        _foo: #M1
+        declaredMembers
+          _foo.method: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -9624,8 +28199,12 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        _foo: #M1
-        bar: #M2
+        declaredMembers
+          _foo.method: #M1
+          bar.method: #M2
+        interface
+          map
+            bar: #M2
 ''',
     );
   }
@@ -9643,7 +28222,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        _foo: #M1
+        declaredMembers
+          _foo.method: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -9656,8 +28236,12 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        _foo: #M1
-        bar: #M2
+        declaredMembers
+          _foo.method: #M1
+          bar.method: #M2
+        interface
+          map
+            bar: #M2
 ''',
     );
   }
@@ -9676,8 +28260,13 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        bar: #M1
-        foo: #M2
+        declaredMembers
+          bar.method: #M1
+          foo.method: #M2
+        interface
+          map
+            bar: #M1
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -9689,7 +28278,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M2
+        declaredMembers
+          foo.method: #M2
+        interface
+          map
+            foo: #M2
 ''',
     );
   }
@@ -9709,9 +28302,13 @@ class A {
     manifest
       A: #M0
         supertype: Object @ dart:core
-        foo: #M1
-          functionType: FunctionType
-            returnType: int @ dart:core
+        declaredMembers
+          foo.method: #M1
+            functionType: FunctionType
+              returnType: int @ dart:core
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -9724,9 +28321,13 @@ class A {
     manifest
       A: #M0
         supertype: Object @ dart:core
-        foo: #M2
-          functionType: FunctionType
-            returnType: double @ dart:core
+        declaredMembers
+          foo.method: #M2
+            functionType: FunctionType
+              returnType: double @ dart:core
+        interface
+          map
+            foo: #M2
 ''',
     );
   }
@@ -9744,7 +28345,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -9756,7 +28361,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M2
+        declaredMembers
+          foo.method: #M2
 ''',
     );
   }
@@ -9774,7 +28380,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M1
+        declaredMembers
+          foo.method: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -9786,7 +28393,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M2
+        declaredMembers
+          foo.method: #M2
 ''',
     );
   }
@@ -9804,7 +28412,8 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M1
+        declaredMembers
+          foo.method: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -9816,7 +28425,305 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M2
+        declaredMembers
+          foo.method: #M2
+        interface
+          map
+            foo: #M2
+''',
+    );
+  }
+
+  test_manifest_class_method_toDuplicate_hasInstance_addInstance_after() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  int foo() {}
+  double foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M2
+        interface
+          map
+            foo: #M3
+''',
+    );
+  }
+
+  test_manifest_class_method_toDuplicate_hasInstance_addInstance_before() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  double foo() {}
+  int foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M2
+        interface
+          map
+            foo: #M1
+''',
+    );
+  }
+
+  test_manifest_class_method_toDuplicate_hasInstance_addStatic_after() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  int foo() {}
+  static double foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M2
+        interface
+          map
+            foo: #M1
+''',
+    );
+  }
+
+  test_manifest_class_method_toDuplicate_hasInstance_addStatic_before() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  static double foo() {}
+  int foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M2
+        interface
+          map
+            foo: #M1
+''',
+    );
+  }
+
+  test_manifest_class_method_toDuplicate_hasStatic_addInstance_after() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static int foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+''',
+      updatedCode: r'''
+class A {
+  static int foo() {}
+  double foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M2
+        interface
+          map
+            foo: #M3
+''',
+    );
+  }
+
+  test_manifest_class_method_toDuplicate_hasStatic_addInstance_before() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static int foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+''',
+      updatedCode: r'''
+class A {
+  double foo() {}
+  static int foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M2
+        interface
+          map
+            foo: #M3
+''',
+    );
+  }
+
+  test_manifest_class_method_toDuplicate_hasStatic_addStatic_after() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static int foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+''',
+      updatedCode: r'''
+class A {
+  static int foo() {}
+  static double foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M2
+''',
+    );
+  }
+
+  test_manifest_class_method_toDuplicate_hasStatic_addStatic_before() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static int foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+''',
+      updatedCode: r'''
+class A {
+  static double foo() {}
+  static int foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M2
 ''',
     );
   }
@@ -9838,13 +28745,17 @@ class A<T> {
         typeParameters
           bound: <null>
         supertype: Object @ dart:core
-        foo: #M1
-          functionType: FunctionType
-            typeParameters
-              bound: <null>
-            returnType: Map @ dart:core
-              typeParameter#1
-              typeParameter#0
+        declaredMembers
+          foo.method: #M1
+            functionType: FunctionType
+              typeParameters
+                bound: <null>
+              returnType: Map @ dart:core
+                typeParameter#1
+                typeParameter#0
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A<T> {
@@ -9860,16 +28771,21 @@ class A<T> {
         typeParameters
           bound: <null>
         supertype: Object @ dart:core
-        bar: #M2
-          functionType: FunctionType
-            returnType: void
-        foo: #M1
-          functionType: FunctionType
-            typeParameters
-              bound: <null>
-            returnType: Map @ dart:core
-              typeParameter#1
-              typeParameter#0
+        declaredMembers
+          bar.method: #M2
+            functionType: FunctionType
+              returnType: void
+          foo.method: #M1
+            functionType: FunctionType
+              typeParameters
+                bound: <null>
+              returnType: Map @ dart:core
+                typeParameter#1
+                typeParameter#0
+        interface
+          map
+            bar: #M2
+            foo: #M1
 ''',
     );
   }
@@ -9887,7 +28803,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -9899,7 +28819,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M2
+        declaredMembers
+          foo.method: #M2
+        interface
+          map
+            foo: #M2
 ''',
     );
   }
@@ -9917,7 +28841,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M1
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -9929,7 +28857,11 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M2
+        declaredMembers
+          foo.method: #M2
+        interface
+          map
+            foo: #M2
 ''',
     );
   }
@@ -9980,6 +28912,1667 @@ class A {}
     );
   }
 
+  test_manifest_class_setter_add_extends() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        interface
+          map
+            foo=: #M1
+''',
+      updatedCode: r'''
+class A {
+  set foo(int _) {}
+  set bar(int _) {}
+}
+
+class B extends A {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.setter: #M3
+          foo.setter: #M1
+        interface
+          map
+            bar=: #M3
+            foo=: #M1
+      B: #M2
+        interface
+          map
+            bar=: #M3
+            foo=: #M1
+''',
+    );
+  }
+
+  test_manifest_class_setter_add_extends_generic() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A<T> {
+  set foo(T _) {}
+}
+
+class B extends A<int> {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        interface
+          map
+            foo=: #M1
+''',
+      updatedCode: r'''
+class A<T> {
+  set foo(T _) {}
+  set bar(T _) {}
+}
+
+class B extends A<int> {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.setter: #M3
+          foo.setter: #M1
+        interface
+          map
+            bar=: #M3
+            foo=: #M1
+      B: #M2
+        interface
+          map
+            bar=: #M3
+            foo=: #M1
+''',
+    );
+  }
+
+  test_manifest_class_setter_add_implements() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B implements A {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        interface
+          map
+            foo=: #M1
+''',
+      updatedCode: r'''
+class A {
+  set foo(int _) {}
+  set bar(int _) {}
+}
+
+class B implements A {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.setter: #M3
+          foo.setter: #M1
+        interface
+          map
+            bar=: #M3
+            foo=: #M1
+      B: #M2
+        interface
+          map
+            bar=: #M3
+            foo=: #M1
+''',
+    );
+  }
+
+  test_manifest_class_setter_add_implements_generic() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A<T> {
+  set foo(T _) {}
+}
+
+class B implements A<int> {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        interface
+          map
+            foo=: #M1
+''',
+      updatedCode: r'''
+class A<T> {
+  set foo(T _) {}
+  set bar(T _) {}
+}
+
+class B implements A<int> {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.setter: #M3
+          foo.setter: #M1
+        interface
+          map
+            bar=: #M3
+            foo=: #M1
+      B: #M2
+        interface
+          map
+            bar=: #M3
+            foo=: #M1
+''',
+    );
+  }
+
+  test_manifest_class_setter_add_with() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+
+class B with A {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        interface
+          map
+            foo=: #M1
+''',
+      updatedCode: r'''
+class A {
+  set foo(int _) {}
+  set bar(int _) {}
+}
+
+class B with A {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.setter: #M3
+          foo.setter: #M1
+        interface
+          map
+            bar=: #M3
+            foo=: #M1
+      B: #M2
+        interface
+          map
+            bar=: #M3
+            foo=: #M1
+''',
+    );
+  }
+
+  test_manifest_class_setter_add_with_generic() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A<T> {
+  set foo(T _) {}
+}
+
+class B with A<int> {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        interface
+          map
+            foo=: #M1
+''',
+      updatedCode: r'''
+class A<T> {
+  set foo(T _) {}
+  set bar(T _) {}
+}
+
+class B with A<int> {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.setter: #M3
+          foo.setter: #M1
+        interface
+          map
+            bar=: #M3
+            foo=: #M1
+      B: #M2
+        interface
+          map
+            bar=: #M3
+            foo=: #M1
+''',
+    );
+  }
+
+  test_manifest_class_setter_combinedSignatures_merged_addUnrelated() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+abstract class A {
+  set foo(num _);
+}
+
+abstract class B {
+  set foo(int _);
+}
+
+abstract class C implements A, B {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.setter: #M3
+        interface
+          map
+            foo=: #M3
+      C: #M4
+        interface
+          map
+            foo=: #M5
+          combinedIds
+            [#M1, #M3]: #M5
+''',
+      updatedCode: r'''
+abstract class A {
+  set foo(num _);
+}
+
+abstract class B {
+  set foo(int _);
+}
+
+abstract class C implements A, B {
+  void zzz();
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        declaredMembers
+          foo.setter: #M3
+        interface
+          map
+            foo=: #M3
+      C: #M4
+        declaredMembers
+          zzz.method: #M6
+        interface
+          map
+            foo=: #M5
+            zzz: #M6
+          combinedIds
+            [#M1, #M3]: #M5
+''',
+    );
+  }
+
+  test_manifest_class_setter_metadata() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  @Deprecated('0')
+  set foo(int _) {}
+  @Deprecated('0')
+  set bar(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.setter: #M1
+          foo.setter: #M2
+        interface
+          map
+            bar=: #M1
+            foo=: #M2
+''',
+      updatedCode: r'''
+class A {
+  @Deprecated('1')
+  set foo(int _) {}
+  @Deprecated('0')
+  set bar(int _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.setter: #M1
+          foo.setter: #M3
+        interface
+          map
+            bar=: #M1
+            foo=: #M3
+''',
+    );
+  }
+
+  test_manifest_class_setter_private_instance() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set _foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _foo.setter: #M1
+''',
+      updatedCode: r'''
+class A {
+  set _foo(int _) {}
+  set bar(int _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _foo.setter: #M1
+          bar.setter: #M2
+        interface
+          map
+            bar=: #M2
+''',
+    );
+  }
+
+  test_manifest_class_setter_private_static() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static set _foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _foo.setter: #M1
+''',
+      updatedCode: r'''
+class A {
+  static set _foo(int _) {}
+  set bar(int _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _foo.setter: #M1
+          bar.setter: #M2
+        interface
+          map
+            bar=: #M2
+''',
+    );
+  }
+
+  test_manifest_class_setter_static() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+''',
+      updatedCode: r'''
+class A {
+  static set foo(int _) {}
+  static set bar(int _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.setter: #M2
+          foo.setter: #M1
+''',
+    );
+  }
+
+  test_manifest_class_setter_static_falseToTrue() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+''',
+      updatedCode: r'''
+class A {
+  static set foo(int _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M2
+''',
+    );
+  }
+
+  test_manifest_class_setter_static_trueToFalse() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+''',
+      updatedCode: r'''
+class A {
+  set foo(int _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M2
+        interface
+          map
+            foo=: #M2
+''',
+    );
+  }
+
+  test_manifest_class_setter_static_valueType() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+''',
+      updatedCode: r'''
+class A {
+  static set foo(double _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M2
+''',
+    );
+  }
+
+  test_manifest_class_setter_toDuplicate_hasInstance_addInstance_after() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+''',
+      updatedCode: r'''
+class A {
+  set foo(int _) {}
+  set foo(double _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M2
+        interface
+          map
+            foo=: #M3
+''',
+    );
+  }
+
+  test_manifest_class_setter_toDuplicate_hasInstance_addInstance_before() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+''',
+      updatedCode: r'''
+class A {
+  set foo(double _) {}
+  set foo(int _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M2
+        interface
+          map
+            foo=: #M1
+''',
+    );
+  }
+
+  test_manifest_class_setter_toDuplicate_hasInstance_addStatic_after() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+''',
+      updatedCode: r'''
+class A {
+  set foo(int _) {}
+  static set foo(double _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M2
+        interface
+          map
+            foo=: #M1
+''',
+    );
+  }
+
+  test_manifest_class_setter_toDuplicate_hasInstance_addStatic_before() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+''',
+      updatedCode: r'''
+class A {
+  static set foo(double _) {}
+  set foo(int _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M2
+        interface
+          map
+            foo=: #M1
+''',
+    );
+  }
+
+  test_manifest_class_setter_toDuplicate_hasStatic_addStatic_after() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+''',
+      updatedCode: r'''
+class A {
+  static set foo(int _) {}
+  static set foo(double _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M2
+''',
+    );
+  }
+
+  test_manifest_class_setter_toDuplicate_hasStatic_addStatic_before() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+''',
+      updatedCode: r'''
+class A {
+  static set foo(double _) {}
+  static set foo(int _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.conflict: #M2
+''',
+    );
+  }
+
+  test_manifest_class_setter_topMerge() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+abstract class A {
+  set foo(List _);
+}
+
+abstract class B {
+  set foo(List<void> _);
+}
+
+abstract class C implements A, B {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        supertype: Object @ dart:core
+        declaredMembers
+          foo.setter: #M1
+            valueType: List @ dart:core
+              dynamic
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        supertype: Object @ dart:core
+        declaredMembers
+          foo.setter: #M3
+            valueType: List @ dart:core
+              void
+        interface
+          map
+            foo=: #M3
+      C: #M4
+        supertype: Object @ dart:core
+        interfaces
+          A @ package:test/test.dart
+          B @ package:test/test.dart
+        interface
+          map
+            foo=: #M5
+          combinedIds
+            [#M1, #M3]: #M5
+''',
+      updatedCode: r'''
+abstract class A {
+  set foo(List _);
+}
+
+abstract class B {
+  set foo(List<int> _);
+}
+
+abstract class C implements A, B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        supertype: Object @ dart:core
+        declaredMembers
+          foo.setter: #M1
+            valueType: List @ dart:core
+              dynamic
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        supertype: Object @ dart:core
+        declaredMembers
+          foo.setter: #M6
+            valueType: List @ dart:core
+              int @ dart:core
+        interface
+          map
+            foo=: #M6
+      C: #M4
+        supertype: Object @ dart:core
+        interfaces
+          A @ package:test/test.dart
+          B @ package:test/test.dart
+        interface
+          map
+            foo=: #M7
+          combinedIds
+            [#M1, #M6]: #M7
+''',
+    );
+  }
+
+  test_manifest_class_setter_valueType() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        supertype: Object @ dart:core
+        declaredMembers
+          foo.setter: #M1
+            valueType: int @ dart:core
+        interface
+          map
+            foo=: #M1
+''',
+      updatedCode: r'''
+class A {
+  set foo(double _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        supertype: Object @ dart:core
+        declaredMembers
+          foo.setter: #M2
+            valueType: double @ dart:core
+        interface
+          map
+            foo=: #M2
+''',
+    );
+  }
+
+  test_manifest_classTypeAlias_constructors_add() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.c1();
+}
+mixin M {}
+class X = A with M;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          c1.constructor: #M1
+      M: #M2
+      X: #M3
+        declaredMembers
+          c1.constructor.inherited: #M1
+''',
+      updatedCode: r'''
+class A {
+  A.c1();
+  A.c2();
+}
+mixin M {}
+class X = A with M;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          c1.constructor: #M1
+          c2.constructor: #M4
+      M: #M2
+      X: #M3
+        declaredMembers
+          c1.constructor.inherited: #M1
+          c2.constructor.inherited: #M4
+''',
+    );
+  }
+
+  test_manifest_classTypeAlias_constructors_add_chain_backward() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.c1();
+}
+mixin M {}
+class X1 = X2 with M;
+class X2 = A with M;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          c1.constructor: #M1
+      M: #M2
+      X1: #M3
+        declaredMembers
+          c1.constructor.inherited: #M1
+      X2: #M4
+        declaredMembers
+          c1.constructor.inherited: #M1
+''',
+      updatedCode: r'''
+class A {
+  A.c1();
+  A.c2();
+}
+mixin M {}
+class X1 = X2 with M;
+class X2 = A with M;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          c1.constructor: #M1
+          c2.constructor: #M5
+      M: #M2
+      X1: #M3
+        declaredMembers
+          c1.constructor.inherited: #M1
+          c2.constructor.inherited: #M5
+      X2: #M4
+        declaredMembers
+          c1.constructor.inherited: #M1
+          c2.constructor.inherited: #M5
+''',
+    );
+  }
+
+  test_manifest_classTypeAlias_constructors_add_chain_forward() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.c1();
+}
+mixin M {}
+class X1 = A with M;
+class X2 = X1 with M;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          c1.constructor: #M1
+      M: #M2
+      X1: #M3
+        declaredMembers
+          c1.constructor.inherited: #M1
+      X2: #M4
+        declaredMembers
+          c1.constructor.inherited: #M1
+''',
+      updatedCode: r'''
+class A {
+  A.c1();
+  A.c2();
+}
+mixin M {}
+class X1 = A with M;
+class X2 = X1 with M;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          c1.constructor: #M1
+          c2.constructor: #M5
+      M: #M2
+      X1: #M3
+        declaredMembers
+          c1.constructor.inherited: #M1
+          c2.constructor.inherited: #M5
+      X2: #M4
+        declaredMembers
+          c1.constructor.inherited: #M1
+          c2.constructor.inherited: #M5
+''',
+    );
+  }
+
+  test_manifest_classTypeAlias_constructors_change() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.c1();
+  A.c2(int _);
+}
+mixin M {}
+class X = A with M;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          c1.constructor: #M1
+          c2.constructor: #M2
+      M: #M3
+      X: #M4
+        declaredMembers
+          c1.constructor.inherited: #M1
+          c2.constructor.inherited: #M2
+''',
+      updatedCode: r'''
+class A {
+  A.c1();
+  A.c2(double _);
+}
+mixin M {}
+class X = A with M;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          c1.constructor: #M1
+          c2.constructor: #M5
+      M: #M3
+      X: #M4
+        declaredMembers
+          c1.constructor.inherited: #M1
+          c2.constructor.inherited: #M5
+''',
+    );
+  }
+
+  test_manifest_classTypeAlias_constructors_remove() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.c1();
+  A.c2();
+}
+mixin M {}
+class X = A with M;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          c1.constructor: #M1
+          c2.constructor: #M2
+      M: #M3
+      X: #M4
+        declaredMembers
+          c1.constructor.inherited: #M1
+          c2.constructor.inherited: #M2
+''',
+      updatedCode: r'''
+class A {
+  A.c1();
+}
+mixin M {}
+class X = A with M;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          c1.constructor: #M1
+      M: #M3
+      X: #M4
+        declaredMembers
+          c1.constructor.inherited: #M1
+''',
+    );
+  }
+
+  test_manifest_classTypeAlias_extends() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {}
+class B {}
+mixin M {}
+class X = A with M;
+class Y = A with M;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+      B: #M1
+      M: #M2
+      X: #M3
+      Y: #M4
+''',
+      updatedCode: r'''
+class A {}
+class B {}
+mixin M {}
+class X = A with M;
+class Y = B with M;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+      B: #M1
+      M: #M2
+      X: #M3
+      Y: #M5
+''',
+    );
+  }
+
+  test_manifest_classTypeAlias_getter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo1 => 0;
+  int get foo2 => 0;
+}
+
+mixin M {
+  int get foo3 => 0;
+  int get foo4 => 0;
+}
+
+class X = A with M;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo1.getter: #M1
+          foo2.getter: #M2
+        interface
+          map
+            foo1: #M1
+            foo2: #M2
+      M: #M3
+        declaredMembers
+          foo3.getter: #M4
+          foo4.getter: #M5
+        interface
+          map
+            foo3: #M4
+            foo4: #M5
+      X: #M6
+        interface
+          map
+            foo1: #M1
+            foo2: #M2
+            foo3: #M4
+            foo4: #M5
+''',
+      updatedCode: r'''
+class A {
+  int get foo1 => 0;
+  double get foo2 => 0;
+}
+
+mixin M {
+  int get foo3 => 0;
+  double get foo4 => 0;
+}
+
+class X = A with M;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo1.getter: #M1
+          foo2.getter: #M7
+        interface
+          map
+            foo1: #M1
+            foo2: #M7
+      M: #M3
+        declaredMembers
+          foo3.getter: #M4
+          foo4.getter: #M8
+        interface
+          map
+            foo3: #M4
+            foo4: #M8
+      X: #M6
+        interface
+          map
+            foo1: #M1
+            foo2: #M7
+            foo3: #M4
+            foo4: #M8
+''',
+    );
+  }
+
+  test_manifest_classTypeAlias_interfaces() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {}
+mixin M {}
+class X1 = Object with M;
+class X2 = Object with M implements A;
+class X3 = Object with M;
+class X4 = Object with M implements A;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+      M: #M1
+      X1: #M2
+      X2: #M3
+      X3: #M4
+      X4: #M5
+''',
+      updatedCode: r'''
+class A {}
+mixin M {}
+class X1 = Object with M;
+class X2 = Object with M implements A;
+class X3 = Object with M implements A;
+class X4 = Object with M;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+      M: #M1
+      X1: #M2
+      X2: #M3
+      X3: #M6
+      X4: #M7
+''',
+    );
+  }
+
+  test_manifest_classTypeAlias_metadata() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin M {}
+@Deprecated('0')
+class X = Object with M;
+@Deprecated('0')
+class Y = Object with M;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      M: #M0
+      X: #M1
+      Y: #M2
+''',
+      updatedCode: r'''
+mixin M {}
+@Deprecated('0')
+class X = Object with M;
+@Deprecated('1')
+class Y = Object with M;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      M: #M0
+      X: #M1
+      Y: #M3
+''',
+    );
+  }
+
+  test_manifest_classTypeAlias_method() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo1(int _) {}
+  void foo2(int _) {}
+}
+
+mixin M {
+  void foo3(int _) {}
+  void foo4(int _) {}
+}
+
+class X = A with M;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo1.method: #M1
+          foo2.method: #M2
+        interface
+          map
+            foo1: #M1
+            foo2: #M2
+      M: #M3
+        declaredMembers
+          foo3.method: #M4
+          foo4.method: #M5
+        interface
+          map
+            foo3: #M4
+            foo4: #M5
+      X: #M6
+        interface
+          map
+            foo1: #M1
+            foo2: #M2
+            foo3: #M4
+            foo4: #M5
+''',
+      updatedCode: r'''
+class A {
+  void foo1(int _) {}
+  void foo2(double _) {}
+}
+
+mixin M {
+  void foo3(int _) {}
+  void foo4(double _) {}
+}
+
+class X = A with M;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo1.method: #M1
+          foo2.method: #M7
+        interface
+          map
+            foo1: #M1
+            foo2: #M7
+      M: #M3
+        declaredMembers
+          foo3.method: #M4
+          foo4.method: #M8
+        interface
+          map
+            foo3: #M4
+            foo4: #M8
+      X: #M6
+        interface
+          map
+            foo1: #M1
+            foo2: #M7
+            foo3: #M4
+            foo4: #M8
+''',
+    );
+  }
+
+  test_manifest_classTypeAlias_setter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo1(int _) {}
+  set foo2(int _) {}
+}
+
+mixin M {
+  set foo3(int _) {}
+  set foo4(int _) {}
+}
+
+class X = A with M;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo1.setter: #M1
+          foo2.setter: #M2
+        interface
+          map
+            foo1=: #M1
+            foo2=: #M2
+      M: #M3
+        declaredMembers
+          foo3.setter: #M4
+          foo4.setter: #M5
+        interface
+          map
+            foo3=: #M4
+            foo4=: #M5
+      X: #M6
+        interface
+          map
+            foo1=: #M1
+            foo2=: #M2
+            foo3=: #M4
+            foo4=: #M5
+''',
+      updatedCode: r'''
+class A {
+  set foo1(int _) {}
+  set foo2(double _) {}
+}
+
+mixin M {
+  set foo3(int _) {}
+  set foo4(double _) {}
+}
+
+class X = A with M;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo1.setter: #M1
+          foo2.setter: #M7
+        interface
+          map
+            foo1=: #M1
+            foo2=: #M7
+      M: #M3
+        declaredMembers
+          foo3.setter: #M4
+          foo4.setter: #M8
+        interface
+          map
+            foo3=: #M4
+            foo4=: #M8
+      X: #M6
+        interface
+          map
+            foo1=: #M1
+            foo2=: #M7
+            foo3=: #M4
+            foo4=: #M8
+''',
+    );
+  }
+
   test_manifest_constInitializer_adjacentStrings() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -10016,6 +30609,42 @@ const e = '$b' 'x';
       c: #M6
       d: #M7
       e: #M4
+''',
+    );
+  }
+
+  test_manifest_constInitializer_asExpression() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+const a = 0;
+const b = 0;
+const c = a as int;
+const d = b as int;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      b: #M1
+      c: #M2
+      d: #M3
+''',
+      updatedCode: r'''
+const a = 0;
+const b = 1;
+const c = a as int;
+const d = b as int;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      b: #M4
+      c: #M2
+      d: #M5
 ''',
     );
   }
@@ -10114,7 +30743,11 @@ const x = a + 1;
   package:test/test.dart
     manifest
       A: #M0
-        +: #M1
+        declaredMembers
+          +.method: #M1
+        interface
+          map
+            +: #M1
       a: #M2
       x: #M3
 ''',
@@ -10131,7 +30764,11 @@ const x = a + 1;
   package:test/test.dart
     manifest
       A: #M0
-        +: #M4
+        declaredMembers
+          +.method: #M4
+        interface
+          map
+            +: #M4
       a: #M2
       x: #M5
 ''',
@@ -10207,8 +30844,10 @@ const b = 0 + a;
           tokenBuffer: 0+a
           tokenLengthList: [1, 1, 1]
           elements
-            [2] (dart:core, num, +) #M1
-          elementIndexList: [0, 2]
+            [0] (dart:core, num, +) #M1
+          elementIndexList
+            0 = null
+            5 = element 0
 ''',
       updatedCode: r'''
 const a = 1;
@@ -10229,9 +30868,11 @@ const b = 0 + a;
           tokenBuffer: 0+a
           tokenLengthList: [1, 1, 1]
           elements
-            [2] (package:test/test.dart, a) <null>
-            [3] (dart:core, num, +) #M1
-          elementIndexList: [2, 3]
+            [0] (package:test/test.dart, a) <null>
+            [1] (dart:core, num, +) #M1
+          elementIndexList
+            5 = element 0
+            13 = element 1
 ''',
     );
   }
@@ -10259,9 +30900,11 @@ const b = 1 + a;
           tokenBuffer: 1+a
           tokenLengthList: [1, 1, 1]
           elements
-            [2] (package:test/test.dart, a) <null>
-            [3] (dart:core, num, +) #M2
-          elementIndexList: [2, 3]
+            [0] (package:test/test.dart, a) <null>
+            [1] (dart:core, num, +) #M2
+          elementIndexList
+            5 = element 0
+            13 = element 1
 ''',
       updatedCode: r'''
 const b = 1 + a;
@@ -10276,8 +30919,10 @@ const b = 1 + a;
           tokenBuffer: 1+a
           tokenLengthList: [1, 1, 1]
           elements
-            [2] (dart:core, num, +) #M2
-          elementIndexList: [0, 2]
+            [0] (dart:core, num, +) #M2
+          elementIndexList
+            0 = null
+            5 = element 0
 ''',
     );
   }
@@ -10308,6 +30953,42 @@ const b = false;
     );
   }
 
+  test_manifest_constInitializer_conditionalExpression() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+const a = true;
+const b = true;
+const c = a ? 0 : 1;
+const d = b ? 0 : 1;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      b: #M1
+      c: #M2
+      d: #M3
+''',
+      updatedCode: r'''
+const a = true;
+const b = false;
+const c = a ? 0 : 1;
+const d = b ? 0 : 1;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      b: #M4
+      c: #M2
+      d: #M5
+''',
+    );
+  }
+
   test_manifest_constInitializer_constructorName_named() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -10322,7 +31003,8 @@ const a = A.named();
   package:test/test.dart
     manifest
       A: #M0
-        named: #M1
+        declaredMembers
+          named.constructor: #M1
       a: #M2
 ''',
       updatedCode: r'''
@@ -10336,7 +31018,8 @@ const a = A.named();
   package:test/test.dart
     manifest
       A: #M0
-        named: #M3
+        declaredMembers
+          named.constructor: #M3
       a: #M4
 ''',
     );
@@ -10357,7 +31040,8 @@ const a = A();
   package:test/test.dart
     manifest
       A: #M0
-        new: #M1
+        declaredMembers
+          new.constructor: #M1
       a: #M2
 ''',
       updatedCode: r'''
@@ -10371,7 +31055,8 @@ const a = A();
   package:test/test.dart
     manifest
       A: #M0
-        new: #M3
+        declaredMembers
+          new.constructor: #M3
       a: #M4
 ''',
     );
@@ -10392,7 +31077,8 @@ const a = A();
   package:test/test.dart
     manifest
       A: #M0
-        new: #M1
+        declaredMembers
+          new.constructor: #M1
       a: #M2
 ''',
       updatedCode: r'''
@@ -10407,9 +31093,41 @@ const a = A();
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M3
-        new: #M1
+        declaredMembers
+          foo.method: #M3
+          new.constructor: #M1
+        interface
+          map
+            foo: #M3
       a: #M2
+''',
+    );
+  }
+
+  test_manifest_constInitializer_dynamicElement() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+const a = 0 as dynamic;
+const b = 0 as dynamic;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      b: #M1
+''',
+      updatedCode: r'''
+const a = 0 as dynamic;
+const b = 0 as int;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      b: #M2
 ''',
     );
   }
@@ -10652,8 +31370,103 @@ const b = B;
     );
   }
 
-  test_manifest_constInitializer_prefixedIdentifier_importPrefix() async {
-    // TODO(scheglov): also test ClassName.field
+  test_manifest_constInitializer_prefixedIdentifier_className_fieldName() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static const a = 0;
+  static const b = 0;
+}
+
+const c = A.a;
+const d = A.b;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a.getter: #M1
+          b.getter: #M2
+      c: #M3
+      d: #M4
+''',
+      updatedCode: r'''
+class A {
+  static const a = 0;
+  static const b = 1;
+}
+
+const c = A.a;
+const d = A.b;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a.getter: #M1
+          b.getter: #M5
+      c: #M3
+      d: #M6
+''',
+    );
+  }
+
+  test_manifest_constInitializer_prefixedIdentifier_importPrefix_className_fieldName() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+import '' as self;
+
+class A {
+  static const a = 0;
+  static const b = 0;
+}
+
+const c = self.A.a;
+const d = self.A.b;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a.getter: #M1
+          b.getter: #M2
+      c: #M3
+      d: #M4
+''',
+      updatedCode: r'''
+import '' as self;
+
+class A {
+  static const a = 0;
+  static const b = 1;
+}
+
+const c = self.A.a;
+const d = self.A.b;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a.getter: #M1
+          b.getter: #M5
+      c: #M3
+      d: #M6
+''',
+    );
+  }
+
+  test_manifest_constInitializer_prefixedIdentifier_importPrefix_topVariable() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
 import '' as self;
@@ -10691,7 +31504,37 @@ const d = self.b;
     );
   }
 
-  test_manifest_constInitializer_prefixedIdentifier_importPrefix2() async {
+  test_manifest_constInitializer_prefixedIdentifier_importPrefix_topVariable_changePrefix() async {
+    newFile('$testPackageLibPath/a.dart', '');
+
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+import 'a.dart' as x;
+const z = x.x + y.y;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      z: #M0
+''',
+      updatedCode: r'''
+import 'a.dart' as y;
+const z = x.x + y.y;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      z: #M1
+''',
+    );
+  }
+
+  test_manifest_constInitializer_prefixedIdentifier_importPrefix_topVariable_changeUri() async {
     newFile('$testPackageLibPath/a.dart', r'''
 const x = 0;
 ''');
@@ -10733,36 +31576,6 @@ const z = p.x;
     );
   }
 
-  test_manifest_constInitializer_prefixedIdentifier_importPrefix3() async {
-    newFile('$testPackageLibPath/a.dart', '');
-
-    await _runLibraryManifestScenario(
-      initialCode: r'''
-import 'a.dart' as x;
-const z = x.x + y.y;
-''',
-      expectedInitialEvents: r'''
-[operation] linkLibraryCycle SDK
-[operation] linkLibraryCycle
-  package:test/a.dart
-[operation] linkLibraryCycle
-  package:test/test.dart
-    manifest
-      z: #M0
-''',
-      updatedCode: r'''
-import 'a.dart' as y;
-const z = x.x + y.y;
-''',
-      expectedUpdatedEvents: r'''
-[operation] linkLibraryCycle
-  package:test/test.dart
-    manifest
-      z: #M1
-''',
-    );
-  }
-
   test_manifest_constInitializer_prefixExpression() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -10778,7 +31591,11 @@ const b = -a;
   package:test/test.dart
     manifest
       A: #M0
-        unary-: #M1
+        declaredMembers
+          unary-.method: #M1
+        interface
+          map
+            unary-: #M1
       a: #M2
       b: #M3
 ''',
@@ -10794,7 +31611,11 @@ const b = -a;
   package:test/test.dart
     manifest
       A: #M0
-        unary-: #M4
+        declaredMembers
+          unary-.method: #M4
+        interface
+          map
+            unary-: #M4
       a: #M2
       b: #M5
 ''',
@@ -10816,7 +31637,11 @@ const b = -a;
   package:test/test.dart
     manifest
       A: #M0
-        unary-: #M1
+        declaredMembers
+          unary-.method: #M1
+        interface
+          map
+            unary-: #M1
       a: #M2
       b: #M3
 ''',
@@ -10833,8 +31658,13 @@ const b = -a;
   package:test/test.dart
     manifest
       A: #M0
-        foo: #M4
-        unary-: #M1
+        declaredMembers
+          foo.method: #M4
+          unary-.method: #M1
+        interface
+          map
+            foo: #M4
+            unary-: #M1
       a: #M2
       b: #M3
 ''',
@@ -11031,6 +31861,2434 @@ int get a => 0;
   package:test/test.dart
     manifest
       a: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_add() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+''',
+      updatedCode: r'''
+mixin A {}
+mixin B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+      B: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_field_add() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  final a = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a.getter: #M1
+        interface
+          map
+            a: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  final a = 0;
+  final b = 1;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a.getter: #M1
+          b.getter: #M2
+        interface
+          map
+            a: #M1
+            b: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_field_initializer_type() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  final a = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a.getter: #M1
+        interface
+          map
+            a: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  final a = 1.2;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a.getter: #M2
+        interface
+          map
+            a: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_field_initializer_value_final() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  final a = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a.getter: #M1
+        interface
+          map
+            a: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  final a = 1;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a.getter: #M1
+        interface
+          map
+            a: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_field_initializer_value_static_const() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  static const a = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a.getter: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  static const a = 1;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a.getter: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_field_initializer_value_static_final() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  static final a = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a.getter: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  static final a = 1;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a.getter: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_field_metadata() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  @Deprecated('0')
+  var a = 0;
+  @Deprecated('0')
+  var b = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a.getter: #M1
+          a.setter: #M2
+          b.getter: #M3
+          b.setter: #M4
+        interface
+          map
+            a: #M1
+            a=: #M2
+            b: #M3
+            b=: #M4
+''',
+      updatedCode: r'''
+mixin A {
+  @Deprecated('0')
+  var a = 0;
+  @Deprecated('1')
+  var b = 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a.getter: #M1
+          a.setter: #M2
+          b.getter: #M5
+          b.setter: #M6
+        interface
+          map
+            a: #M1
+            a=: #M2
+            b: #M5
+            b=: #M6
+''',
+    );
+  }
+
+  test_manifest_mixin_field_private_final() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  final _a = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _a.getter: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  final _a = 0;
+  final b = 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _a.getter: #M1
+          b.getter: #M2
+        interface
+          map
+            b: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_field_private_static_const() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  static const _a = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _a.getter: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  static const _a = 0;
+  static const b = 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _a.getter: #M1
+          b.getter: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_field_private_var() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  var _a = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _a.getter: #M1
+          _a.setter: #M2
+''',
+      updatedCode: r'''
+mixin A {
+  var _a = 0;
+  var b = 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _a.getter: #M1
+          _a.setter: #M2
+          b.getter: #M3
+          b.setter: #M4
+        interface
+          map
+            b: #M3
+            b=: #M4
+''',
+    );
+  }
+
+  test_manifest_mixin_field_type() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  int? a;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a.getter: #M1
+          a.setter: #M2
+        interface
+          map
+            a: #M1
+            a=: #M2
+''',
+      updatedCode: r'''
+mixin A {
+  double? a;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          a.getter: #M3
+          a.setter: #M4
+        interface
+          map
+            a: #M3
+            a=: #M4
+''',
+    );
+  }
+
+  test_manifest_mixin_getter_add_implements() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  int get foo => 0;
+}
+
+mixin B implements A {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  int get foo => 0;
+  int get bar => 0;
+}
+
+mixin B implements A {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.getter: #M3
+          foo.getter: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
+      B: #M2
+        interface
+          map
+            bar: #M3
+            foo: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_getter_add_implements_generic() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A<T> {
+  T get foo => 0;
+}
+
+mixin B implements A<int> {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+mixin A<T> {
+  T get foo => 0;
+  T get bar => 0;
+}
+
+mixin B implements A<int> {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.getter: #M3
+          foo.getter: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
+      B: #M2
+        interface
+          map
+            bar: #M3
+            foo: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_getter_add_on() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  int get foo => 0;
+}
+
+mixin B on A {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  int get foo => 0;
+  int get bar => 0;
+}
+
+mixin B on A {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.getter: #M3
+          foo.getter: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
+      B: #M2
+        interface
+          map
+            bar: #M3
+            foo: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_getter_add_on_generic() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A<T> {
+  T get foo => 0;
+}
+
+mixin B on A<int> {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+mixin A<T> {
+  T get foo => 0;
+  T get bar => 0;
+}
+
+mixin B on A<int> {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.getter: #M3
+          foo.getter: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
+      B: #M2
+        interface
+          map
+            bar: #M3
+            foo: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_getter_metadata() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  @Deprecated('0')
+  int get foo => 0;
+  @Deprecated('0')
+  int get bar => 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.getter: #M1
+          foo.getter: #M2
+        interface
+          map
+            bar: #M1
+            foo: #M2
+''',
+      updatedCode: r'''
+mixin A {
+  @Deprecated('1')
+  int get foo => 0;
+  @Deprecated('0')
+  int get bar => 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.getter: #M1
+          foo.getter: #M3
+        interface
+          map
+            bar: #M1
+            foo: #M3
+''',
+    );
+  }
+
+  test_manifest_mixin_getter_private_instance() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  int get _foo => 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _foo.getter: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  int get _foo => 0;
+  int get bar => 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _foo.getter: #M1
+          bar.getter: #M2
+        interface
+          map
+            bar: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_getter_private_static() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  static int get _foo => 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _foo.getter: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  static int get _foo => 0;
+  int get bar => 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _foo.getter: #M1
+          bar.getter: #M2
+        interface
+          map
+            bar: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_getter_returnType() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  int get foo => 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        superclassConstraints
+          Object @ dart:core
+        declaredMembers
+          foo.getter: #M1
+            returnType: int @ dart:core
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  double get foo => 1.2;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        superclassConstraints
+          Object @ dart:core
+        declaredMembers
+          foo.getter: #M2
+            returnType: double @ dart:core
+        interface
+          map
+            foo: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_getter_static() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  static int get foo => 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  static int get foo => 0;
+  static int get bar => 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.getter: #M2
+          foo.getter: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_getter_static_falseToTrue() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  int get foo => 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  static int get foo => 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_getter_static_returnType() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  static int get foo => 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  static double get foo => 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_getter_static_trueToFalse() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  static int get foo => 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  int get foo => 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.getter: #M2
+        interface
+          map
+            foo: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_interfacesAdd() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {}
+mixin B {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+      B: #M1
+''',
+      updatedCode: r'''
+mixin A implements B {}
+mixin B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M2
+      B: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_interfacesRemove() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A implements B {}
+mixin B {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+      B: #M1
+''',
+      updatedCode: r'''
+mixin A {}
+mixin B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M2
+      B: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_interfacesReplace() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A implements B {}
+mixin B {}
+mixin C {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+      B: #M1
+      C: #M2
+''',
+      updatedCode: r'''
+mixin A implements C {}
+mixin B {}
+mixin C {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M3
+      B: #M1
+      C: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_metadata() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+@Deprecated('0')
+mixin A {}
+@Deprecated('0')
+mixin B {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+      B: #M1
+''',
+      updatedCode: r'''
+@Deprecated('0')
+mixin A {}
+@Deprecated('1')
+mixin B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+      B: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_method_add() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  void foo() {}
+  void bar() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.method: #M2
+          foo.method: #M1
+        interface
+          map
+            bar: #M2
+            foo: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_method_add_implements() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  void foo() {}
+}
+
+mixin B implements A {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  void foo() {}
+  void bar() {}
+}
+
+mixin B implements A {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.method: #M3
+          foo.method: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
+      B: #M2
+        interface
+          map
+            bar: #M3
+            foo: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_method_add_implements_generic() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A<T> {
+  T foo() {}
+}
+
+mixin B implements A<int> {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+mixin A<T> {
+  T foo() {}
+  void bar() {}
+}
+
+mixin B implements A<int> {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.method: #M3
+          foo.method: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
+      B: #M2
+        interface
+          map
+            bar: #M3
+            foo: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_method_add_on() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  void foo() {}
+}
+
+mixin B on A {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  void foo() {}
+  void bar() {}
+}
+
+mixin B extends A {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.method: #M3
+          foo.method: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
+      B: #M2
+        interface
+          map
+            bar: #M3
+            foo: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_method_add_on_generic() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A<T> {
+  T foo() {}
+}
+
+mixin B extends A<int> {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+      B: #M2
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+mixin A<T> {
+  T foo() {}
+  void bar() {}
+}
+
+mixin B extends A<int> {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.method: #M3
+          foo.method: #M1
+        interface
+          map
+            bar: #M3
+            foo: #M1
+      B: #M2
+        interface
+          map
+            bar: #M3
+            foo: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_method_metadata() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  @Deprecated('0')
+  void foo() {}
+  @Deprecated('0')
+  void bar() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.method: #M1
+          foo.method: #M2
+        interface
+          map
+            bar: #M1
+            foo: #M2
+''',
+      updatedCode: r'''
+mixin A {
+  @Deprecated('1')
+  void foo() {}
+  @Deprecated('0')
+  void bar() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.method: #M1
+          foo.method: #M3
+        interface
+          map
+            bar: #M1
+            foo: #M3
+''',
+    );
+  }
+
+  test_manifest_mixin_method_private_instance() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  void _foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _foo.method: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  void _foo() {}
+  void bar() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _foo.method: #M1
+          bar.method: #M2
+        interface
+          map
+            bar: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_method_private_static() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  static void _foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _foo.method: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  static void _foo() {}
+  void bar() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _foo.method: #M1
+          bar.method: #M2
+        interface
+          map
+            bar: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_method_remove() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  void foo() {}
+  void bar() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.method: #M1
+          foo.method: #M2
+        interface
+          map
+            bar: #M1
+            foo: #M2
+''',
+      updatedCode: r'''
+mixin A {
+  void foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M2
+        interface
+          map
+            foo: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_method_returnType() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  int foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        superclassConstraints
+          Object @ dart:core
+        declaredMembers
+          foo.method: #M1
+            functionType: FunctionType
+              returnType: int @ dart:core
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  double foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        superclassConstraints
+          Object @ dart:core
+        declaredMembers
+          foo.method: #M2
+            functionType: FunctionType
+              returnType: double @ dart:core
+        interface
+          map
+            foo: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_method_static_falseToTrue() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  static void foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_method_static_returnType() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  static int foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  static double foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_method_static_trueToFalse() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  static void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  void foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M2
+        interface
+          map
+            foo: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_method_typeParameter() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A<T> {
+  Map<T, U> foo<U>() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        typeParameters
+          bound: <null>
+        superclassConstraints
+          Object @ dart:core
+        declaredMembers
+          foo.method: #M1
+            functionType: FunctionType
+              typeParameters
+                bound: <null>
+              returnType: Map @ dart:core
+                typeParameter#1
+                typeParameter#0
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+mixin A<T> {
+  Map<T, U> foo<U>() {}
+  void bar() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        typeParameters
+          bound: <null>
+        superclassConstraints
+          Object @ dart:core
+        declaredMembers
+          bar.method: #M2
+            functionType: FunctionType
+              returnType: void
+          foo.method: #M1
+            functionType: FunctionType
+              typeParameters
+                bound: <null>
+              returnType: Map @ dart:core
+                typeParameter#1
+                typeParameter#0
+        interface
+          map
+            bar: #M2
+            foo: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_method_typeParameter_add() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  void foo<T>() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  void foo<T, U>() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M2
+        interface
+          map
+            foo: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_method_typeParameter_remove() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  void foo<T, U>() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M1
+        interface
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  void foo<T>() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.method: #M2
+        interface
+          map
+            foo: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_onAdd_direct() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {}
+mixin B {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+      B: #M1
+''',
+      updatedCode: r'''
+mixin A on B {}
+mixin B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M2
+      B: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_onAdd_indirect() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A on B {}
+mixin B {}
+mixin C {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+      B: #M1
+      C: #M2
+''',
+      updatedCode: r'''
+mixin A on B {}
+mixin B on C {}
+mixin C {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M3
+      B: #M4
+      C: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_onChange() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A on B {}
+mixin B {}
+mixin C {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+      B: #M1
+      C: #M2
+''',
+      updatedCode: r'''
+mixin A on C {}
+mixin B {}
+mixin C {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M3
+      B: #M1
+      C: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_private() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin _A {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      _A: #M0
+''',
+      updatedCode: r'''
+mixin _A {}
+mixin B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      B: #M1
+      _A: #M0
+''',
+    );
+  }
+
+  test_manifest_mixin_remove() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {}
+mixin B {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+      B: #M1
+''',
+      updatedCode: r'''
+mixin B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      B: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_setter_add_implements() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  set foo(int _) {}
+}
+
+mixin B implements A {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        interface
+          map
+            foo=: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  set foo(int _) {}
+  set bar(int _) {}
+}
+
+mixin B implements A {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.setter: #M3
+          foo.setter: #M1
+        interface
+          map
+            bar=: #M3
+            foo=: #M1
+      B: #M2
+        interface
+          map
+            bar=: #M3
+            foo=: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_setter_add_implements_generic() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A<T> {
+  set foo(T _) {}
+}
+
+mixin B implements A<int> {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        interface
+          map
+            foo=: #M1
+''',
+      updatedCode: r'''
+mixin A<T> {
+  set foo(T _) {}
+  set bar(T _) {}
+}
+
+mixin B implements A<int> {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.setter: #M3
+          foo.setter: #M1
+        interface
+          map
+            bar=: #M3
+            foo=: #M1
+      B: #M2
+        interface
+          map
+            bar=: #M3
+            foo=: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_setter_add_on() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  set foo(int _) {}
+}
+
+mixin B on A {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        interface
+          map
+            foo=: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  set foo(int _) {}
+  set bar(int _) {}
+}
+
+mixin B on A {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.setter: #M3
+          foo.setter: #M1
+        interface
+          map
+            bar=: #M3
+            foo=: #M1
+      B: #M2
+        interface
+          map
+            bar=: #M3
+            foo=: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_setter_add_on_generic() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A<T> {
+  set foo(T _) {}
+}
+
+mixin B on A<int> {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+      B: #M2
+        interface
+          map
+            foo=: #M1
+''',
+      updatedCode: r'''
+mixin A<T> {
+  set foo(T _) {}
+  set bar(T _) {}
+}
+
+mixin B on A<int> {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.setter: #M3
+          foo.setter: #M1
+        interface
+          map
+            bar=: #M3
+            foo=: #M1
+      B: #M2
+        interface
+          map
+            bar=: #M3
+            foo=: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_setter_metadata() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  @Deprecated('0')
+  set foo(int _) {}
+  @Deprecated('0')
+  set bar(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.setter: #M1
+          foo.setter: #M2
+        interface
+          map
+            bar=: #M1
+            foo=: #M2
+''',
+      updatedCode: r'''
+mixin A {
+  @Deprecated('1')
+  set foo(int _) {}
+  @Deprecated('0')
+  set bar(int _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.setter: #M1
+          foo.setter: #M3
+        interface
+          map
+            bar=: #M1
+            foo=: #M3
+''',
+    );
+  }
+
+  test_manifest_mixin_setter_private_instance() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  set _foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _foo.setter: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  set _foo(int _) {}
+  set bar(int _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _foo.setter: #M1
+          bar.setter: #M2
+        interface
+          map
+            bar=: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_setter_private_static() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  static set _foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _foo.setter: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  static set _foo(int _) {}
+  set bar(int _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          _foo.setter: #M1
+          bar.setter: #M2
+        interface
+          map
+            bar=: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_setter_static() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  static set foo(int _) {}
+  static set bar(int _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          bar.setter: #M2
+          foo.setter: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_setter_static_falseToTrue() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+        interface
+          map
+            foo=: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  static set foo(int _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_setter_static_trueToFalse() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  set foo(int _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M2
+        interface
+          map
+            foo=: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_setter_static_valueType() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  static set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  static set foo(double _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        declaredMembers
+          foo.setter: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_setter_valueType() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {
+  set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        superclassConstraints
+          Object @ dart:core
+        declaredMembers
+          foo.setter: #M1
+            valueType: int @ dart:core
+        interface
+          map
+            foo=: #M1
+''',
+      updatedCode: r'''
+mixin A {
+  set foo(double _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        superclassConstraints
+          Object @ dart:core
+        declaredMembers
+          foo.setter: #M2
+            valueType: double @ dart:core
+        interface
+          map
+            foo=: #M2
 ''',
     );
   }
@@ -13644,15 +36902,12 @@ int get b => 0;
 
     withFineDependencies = true;
     configuration
-      ..withBundleRequirements = true
+      ..withResultRequirements = true
       ..withLibraryManifest = true
       ..withLinkBundleEvents = true;
 
     var driver = driverFor(testFile);
-    var collector = DriverEventCollector(
-      driver,
-      idProvider: idProvider,
-    );
+    var collector = DriverEventCollector(driver, idProvider: idProvider);
 
     configuration.elementTextConfiguration
       ..withLibraryFragments = false
@@ -13740,10 +36995,7 @@ int get b => 0;
       ..withSchedulerStatus = false;
 
     var driver = driverFor(testFile);
-    var collector = DriverEventCollector(
-      driver,
-      idProvider: idProvider,
-    );
+    var collector = DriverEventCollector(driver, idProvider: idProvider);
 
     var libraryUri = Uri.parse('package:test/test.dart');
     collector.getLibraryByUri('T1', '$libraryUri');
@@ -13790,18 +37042,16 @@ class _AlwaysReportedLint extends LintRule {
     'This lint is reported for all files',
   );
 
-  _AlwaysReportedLint()
-      : super(
-          name: 'always_reported_lint',
-          description: '',
-        );
+  _AlwaysReportedLint() : super(name: 'always_reported_lint', description: '');
 
   @override
   LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {
     var visitor = _AlwaysReportedLintVisitor(this);
     registry.addCompilationUnit(this, visitor);
   }
@@ -13815,7 +37065,7 @@ class _AlwaysReportedLintVisitor extends SimpleAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    rule.reportLintForOffset(0, 0);
+    rule.reportAtOffset(0, 0);
   }
 }
 

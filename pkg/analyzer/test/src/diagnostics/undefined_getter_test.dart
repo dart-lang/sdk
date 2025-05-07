@@ -17,7 +17,8 @@ main() {
 @reflectiveTest
 class UndefinedGetterTest extends PubPackageResolutionTest {
   test_compoundAssignment_hasSetter_instance() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   set foo(int _) {}
 }
@@ -25,13 +26,14 @@ class C {
 f(C c) {
   c.foo += 1;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 46, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 46, 3)],
+    );
   }
 
   test_compoundAssignment_hasSetter_static() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   static set foo(int _) {}
 }
@@ -39,25 +41,27 @@ class C {
 f() {
   C.foo += 1;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 50, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 50, 3)],
+    );
   }
 
   test_emptyName() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
 }
 main() {
   print(A().);
 }
-''', [
-      error(ParserErrorCode.MISSING_IDENTIFIER, 33, 1),
-    ]);
+''',
+      [error(ParserErrorCode.MISSING_IDENTIFIER, 33, 1)],
+    );
   }
 
   test_extension_instance_extendedHasSetter_extensionHasGetter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   void set foo(int _) {}
 }
@@ -69,35 +73,38 @@ extension E on C {
     this.foo;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 95, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 95, 3)],
+    );
   }
 
   test_extension_instance_undefined_hasSetter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on int {
   void set foo(int _) {}
 }
 f() {
   0.foo;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 58, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 58, 3)],
+    );
   }
 
   test_extension_instance_withInference() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on int {}
 var a = 3.v;
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 32, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 32, 1)],
+    );
   }
 
   test_extension_instance_withoutInference() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C {}
 
 extension E on C {}
@@ -105,13 +112,14 @@ extension E on C {}
 f(C c) {
   c.a;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 46, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 46, 1)],
+    );
   }
 
   test_extension_this_extendedHasSetter_extensionHasGetter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   void set foo(int _) {}
 }
@@ -123,13 +131,14 @@ extension E on C {
 f(C c) {
   c.foo;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 93, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 93, 3)],
+    );
   }
 
   test_functionAlias_typeInstantiated_getter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 typedef Fn<T> = void Function(T);
 
 void bar() {
@@ -139,9 +148,9 @@ void bar() {
 extension E on Type {
   int get foo => 1;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER_ON_FUNCTION_TYPE, 58, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER_ON_FUNCTION_TYPE, 58, 3)],
+    );
   }
 
   test_functionAlias_typeInstantiated_getter_parenthesized() async {
@@ -224,13 +233,14 @@ int f() => A.x;
   }
 
   test_ifElement_inList_notPromoted() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f(int x) {
   return [if (x is String) x.length];
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 40, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 40, 6)],
+    );
   }
 
   test_ifElement_inList_promoted() async {
@@ -242,13 +252,14 @@ f(Object x) {
   }
 
   test_ifElement_inMap_notPromoted() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f(int x) {
   return {if (x is String) x : x.length};
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 44, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 44, 6)],
+    );
   }
 
   test_ifElement_inMap_promoted() async {
@@ -260,13 +271,14 @@ f(Object x) {
   }
 
   test_ifElement_inSet_notPromoted() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f(int x) {
   return {if (x is String) x.length};
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 40, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 40, 6)],
+    );
   }
 
   test_ifElement_inSet_promoted() async {
@@ -278,15 +290,16 @@ f(Object x) {
   }
 
   test_ifStatement_notPromoted() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f(int x) {
   if (x is String) {
     x.length;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 38, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 38, 6)],
+    );
   }
 
   test_ifStatement_promoted() async {
@@ -300,72 +313,79 @@ f(Object x) {
   }
 
   test_instance_undefined() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class T {}
 f(T e) { return e.m; }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 29, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 29, 1)],
+    );
   }
 
   test_instance_undefined_mixin() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M {
   f() { return this.m; }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 1)],
+    );
   }
 
   test_new_cascade() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {}
 
 f(C? c) {
   c..new;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 27, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 27, 3)],
+    );
   }
 
   test_new_dynamic() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f(dynamic d) {
   d.new;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 19, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 19, 3)],
+    );
   }
 
   test_new_expression() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {}
 
 f(C? c1, C c2) {
   (c1 ?? c2).new;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 42, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 42, 3)],
+    );
   }
 
   test_new_nullAware() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {}
 
 f(C? c) {
   c?.new;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 27, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 27, 3)],
+    );
   }
 
   test_new_prefixedIdentifier() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {}
 
 abstract class D {
@@ -375,74 +395,80 @@ abstract class D {
 f(D d) {
   d.c.new;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 60, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 60, 3)],
+    );
   }
 
   test_new_simpleIdentifier() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {}
 
 f(C c) {
   c.new;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 25, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 25, 3)],
+    );
   }
 
   test_new_typeVariable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f<T>(T t) {
   t.new;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 16, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 16, 3)],
+    );
   }
 
   test_nullMember_undefined() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 m() {
   Null _null;
   _null.foo;
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 28, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 28, 3)],
+    );
   }
 
   test_object_call() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f(Object o) {
   return o.call;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 25, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 25, 4)],
+    );
   }
 
   test_promotedTypeParameter_regress35305() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f<X extends num, Y extends X>(Y y) {
   if (y is int) {
     y.isEven;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 66, 6),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 66, 6)],
+    );
   }
 
   test_propertyAccess_functionClass_call() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Function a) {
   return (a).call;
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 30, 8),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 30, 8)],
+    );
   }
 
   test_propertyAccess_functionType_call() async {
@@ -458,31 +484,34 @@ void f(A a) {
   }
 
   test_static_conditionalAccess_defined() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   static var x;
 }
 var a = A?.x;
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 37, 2),
-    ]);
+''',
+      [error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 37, 2)],
+    );
   }
 
   test_static_definedInSuperclass() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class S {
   static int get g => 0;
 }
 class C extends S {}
 f(var p) {
   f(C.g);
-}''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 75, 1),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 75, 1)],
+    );
   }
 
   test_static_extension_InstanceAccess() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {}
 
 extension E on C {
@@ -493,42 +522,47 @@ C g(C c) => C();
 f(C c) {
   g(c).a;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 92, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 92, 1)],
+    );
   }
 
   test_static_undefined() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {}
 f(var p) {
   f(C.m);
-}''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 28, 1),
-    ]);
+}''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 28, 1)],
+    );
   }
 
   test_typeLiteral_cascadeTarget() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class T {
   static int get foo => 42;
 }
 main() {
   T..foo;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 54, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 54, 3)],
+    );
   }
 
   test_typeLiteral_conditionalAccess() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {}
 f() => A?.hashCode;
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 19, 2),
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 21, 8),
-    ]);
+''',
+      [
+        error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 19, 2),
+        error(CompileTimeErrorCode.UNDEFINED_GETTER, 21, 8),
+      ],
+    );
   }
 
   test_typeSubstitution_defined() async {

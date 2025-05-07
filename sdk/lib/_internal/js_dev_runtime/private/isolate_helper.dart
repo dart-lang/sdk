@@ -39,11 +39,11 @@ class TimerImpl implements Timer {
 
   TimerImpl(int milliseconds, void callback()) : _once = true {
     if (hasTimer()) {
-      int currentHotRestartIteration = dart.hotRestartIteration;
+      int hotRestartGenerationBefore = dart.hotRestartGeneration();
       void internalCallback() {
         _handle = null;
         _tick = 1;
-        if (currentHotRestartIteration == dart.hotRestartIteration) {
+        if (hotRestartGenerationBefore == dart.hotRestartGeneration()) {
           callback();
         }
       }
@@ -64,9 +64,9 @@ class TimerImpl implements Timer {
     : _once = false {
     if (hasTimer()) {
       int start = JS<int>('!', 'Date.now()');
-      int currentHotRestartIteration = dart.hotRestartIteration;
+      int hotRestartGenerationBefore = dart.hotRestartGeneration();
       _handle = JS<int>('!', '#.setInterval(#, #)', global, () {
-        if (currentHotRestartIteration != dart.hotRestartIteration) {
+        if (hotRestartGenerationBefore != dart.hotRestartGeneration()) {
           cancel();
           return;
         }

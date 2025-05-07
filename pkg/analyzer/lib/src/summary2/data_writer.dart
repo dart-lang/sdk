@@ -95,10 +95,7 @@ class BufferedSink {
     writeByte(e.index);
   }
 
-  void writeIf<T extends Object>(
-    bool condition,
-    void Function() ifTrue,
-  ) {
+  void writeIf<T extends Object>(bool condition, void Function() ifTrue) {
     if (condition) {
       writeBool(true);
       ifTrue();
@@ -225,8 +222,12 @@ class BufferedSink {
     } else if (value < 0x4000) {
       _addByte2((value >> 8) | 0x80, value & 0xFF);
     } else {
-      _addByte4((value >> 24) | 0xC0, (value >> 16) & 0xFF, (value >> 8) & 0xFF,
-          value & 0xFF);
+      _addByte4(
+        (value >> 24) | 0xC0,
+        (value >> 16) & 0xFF,
+        (value >> 8) & 0xFF,
+        value & 0xFF,
+      );
     }
   }
 
@@ -239,8 +240,12 @@ class BufferedSink {
   }
 
   void writeUInt32(int value) {
-    _addByte4((value >> 24) & 0xFF, (value >> 16) & 0xFF, (value >> 8) & 0xFF,
-        value & 0xFF);
+    _addByte4(
+      (value >> 24) & 0xFF,
+      (value >> 16) & 0xFF,
+      (value >> 8) & 0xFF,
+      value & 0xFF,
+    );
   }
 
   void writeUint8List(Uint8List bytes) {

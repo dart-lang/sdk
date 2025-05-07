@@ -15,12 +15,8 @@ class A {
 class B extends A {
   int foo;
   B.b1(x, this.foo) : super(x);
-  B.b2(x, y)
-      : this.foo = y,
-        super(x);
-  B.b3(x, y)
-      : this.foo = y,
-        super(x);
+  B.b2(x, y) : this.foo = y, super(x);
+  B.b3(x, y) : this.foo = y, super(x);
 
   super$foo() => super.foo;
   sum() => foo + super.foo;

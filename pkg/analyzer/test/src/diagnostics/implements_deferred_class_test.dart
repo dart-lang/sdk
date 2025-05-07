@@ -20,13 +20,14 @@ class ImplementsDeferredClassTest extends PubPackageResolutionTest {
 library lib1;
 class A {}
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 library root;
 import 'lib1.dart' deferred as a;
 class B implements a.A {}
-''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS, 67, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS, 67, 3)],
+    );
 
     var node = findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
@@ -50,13 +51,14 @@ library lib1;
 class A {}
 typedef B = A;
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 library root;
 import 'lib1.dart' deferred as a;
 class C implements a.B {}
-''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS, 67, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS, 67, 3)],
+    );
 
     var node = findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
@@ -80,15 +82,16 @@ ImplementsClause
 library lib1;
 class A {}
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 library root;
 import 'lib1.dart' deferred as a;
 class B {}
 class M {}
 class C = B with M implements a.A;
-''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS, 100, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS, 100, 3)],
+    );
 
     var node = findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
@@ -111,12 +114,13 @@ ImplementsClause
 class A {}
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart' deferred as a;
 extension type B(a.A it) implements a.A {}
-''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS, 67, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS, 67, 3)],
+    );
 
     var node = findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
@@ -139,12 +143,13 @@ ImplementsClause
 extension type A(int it) {}
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'a.dart' deferred as a;
 extension type B(int it) implements a.A {}
-''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS, 67, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS, 67, 3)],
+    );
 
     var node = findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''
@@ -163,12 +168,13 @@ ImplementsClause
   }
 
   test_mixin() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:math' deferred as math;
 mixin M implements math.Random {}
-''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS, 56, 11),
-    ]);
+''',
+      [error(CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS, 56, 11)],
+    );
 
     var node = findNode.singleImplementsClause;
     assertResolvedNodeText(node, r'''

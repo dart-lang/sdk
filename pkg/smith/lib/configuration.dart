@@ -876,6 +876,7 @@ class Compiler extends NamedEnum {
           Runtime.d8,
           Runtime.chrome,
           Runtime.firefox,
+          Runtime.safari,
         ];
       case Compiler.dart2analyzer:
         return const [Runtime.none];
@@ -962,6 +963,7 @@ class Mode extends NamedEnum {
 class Sanitizer extends NamedEnum {
   static const none = Sanitizer._('none');
   static const asan = Sanitizer._('asan');
+  static const hwasan = Sanitizer._('hwasan');
   static const lsan = Sanitizer._('lsan');
   static const msan = Sanitizer._('msan');
   static const tsan = Sanitizer._('tsan');
@@ -970,7 +972,7 @@ class Sanitizer extends NamedEnum {
   static final List<String> names = _all.keys.toList();
 
   static final _all = Map<String, Sanitizer>.fromIterable(
-      [none, asan, lsan, msan, tsan, ubsan],
+      [none, asan, hwasan, lsan, msan, tsan, ubsan],
       key: (mode) => (mode as Sanitizer).name);
 
   static Sanitizer find(String name) {

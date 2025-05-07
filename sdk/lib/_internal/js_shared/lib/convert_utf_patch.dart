@@ -126,8 +126,9 @@ class _Utf8Decoder {
     final int length = end - start;
     // Re-use a dedicated buffer to avoid allocating small buffers as this is
     // unreasonably expensive on some JavaScript engines.
-    final Uint8List bytes =
-        length <= _reusableBufferSize ? _reusableBuffer : Uint8List(length);
+    final Uint8List bytes = length <= _reusableBufferSize
+        ? _reusableBuffer
+        : Uint8List(length);
 
     for (int i = 0; i < length; i++) {
       int b = codeUnits[start + i];

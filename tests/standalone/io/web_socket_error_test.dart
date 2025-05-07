@@ -29,8 +29,10 @@ String localFile(path) => Platform.script.resolve(path).toFilePath();
 
 SecurityContext serverContext = new SecurityContext()
   ..useCertificateChain(localFile('certificates/server_chain.pem'))
-  ..usePrivateKey(localFile('certificates/server_key.pem'),
-      password: 'dartdart');
+  ..usePrivateKey(
+    localFile('certificates/server_key.pem'),
+    password: 'dartdart',
+  );
 
 SecurityContext clientContext = new SecurityContext()
   ..setTrustedCertificates(localFile('certificates/trusted_certs.pem'));
@@ -47,9 +49,10 @@ class SecurityConfiguration {
       ? HttpServer.bindSecure(HOST_NAME, 0, serverContext, backlog: backlog)
       : HttpServer.bind(HOST_NAME, 0, backlog: backlog);
 
-  Future<WebSocket> createClient(int port) =>
-      WebSocket.connect('${secure ? "wss" : "ws"}://$HOST_NAME:$port/',
-          customClient: secure ? HttpClient(context: clientContext) : null);
+  Future<WebSocket> createClient(int port) => WebSocket.connect(
+    '${secure ? "wss" : "ws"}://$HOST_NAME:$port/',
+    customClient: secure ? HttpClient(context: clientContext) : null,
+  );
 
   void testForceCloseServerEnd(int totalConnections) {
     createServer().then((server) {
@@ -73,14 +76,17 @@ class SecurityConfiguration {
       for (int i = 0; i < totalConnections; i++) {
         createClient(server.port).then((webSocket) {
           webSocket.add("Hello, world!");
-          webSocket.listen((message) {
-            Expect.fail("unexpected message");
-          }, onDone: () {
-            closeCount++;
-            if (closeCount == totalConnections) {
-              server.close();
-            }
-          });
+          webSocket.listen(
+            (message) {
+              Expect.fail("unexpected message");
+            },
+            onDone: () {
+              closeCount++;
+              if (closeCount == totalConnections) {
+                server.close();
+              }
+            },
+          );
         });
       }
     });

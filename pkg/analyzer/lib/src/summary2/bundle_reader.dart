@@ -7,7 +7,6 @@ import 'dart:typed_data';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -52,9 +51,9 @@ class BundleReader {
     Map<Uri, Uint8List> unitsInformativeBytes = const {},
     required InfoDeclarationStore infoDeclarationStore,
     required Map<Uri, LibraryManifest> libraryManifests,
-  })  : _reader = SummaryDataReader(resolutionBytes),
-        _unitsInformativeBytes = unitsInformativeBytes,
-        _infoDeclarationStore = infoDeclarationStore {
+  }) : _reader = SummaryDataReader(resolutionBytes),
+       _unitsInformativeBytes = unitsInformativeBytes,
+       _infoDeclarationStore = infoDeclarationStore {
     const bytesOfU32 = 4;
     const countOfU32 = 4;
     _reader.offset = _reader.bytes.length - bytesOfU32 * countOfU32;
@@ -99,7 +98,7 @@ class BundleReader {
   }
 }
 
-class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
+class ClassElementLinkedData extends ElementLinkedData<ClassFragmentImpl> {
   ApplyConstantOffsets? applyConstantOffsets;
   void Function()? _readMembers;
   void Function()? applyInformativeDataToMembers;
@@ -107,12 +106,12 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
   ClassElementLinkedData({
     required Reference reference,
     required LibraryReader libraryReader,
-    required CompilationUnitElementImpl unitElement,
+    required LibraryFragmentImpl unitElement,
     required int offset,
   }) : super(reference, libraryReader, unitElement, offset);
 
   @override
-  void readMembers(covariant ClassElementImpl fragment) {
+  void readMembers(covariant ClassFragmentImpl fragment) {
     // Read members of all fragments, in order.
     // So we always read a method augmentation after its target.
     for (var fragment in fragment.element.fragments) {
@@ -124,15 +123,13 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
   }
 
   @override
-  void _clearLinkedDataOnRead(ClassElementImpl element) {
+  void _clearLinkedDataOnRead(ClassFragmentImpl element) {
     // Don't clear yet, we use it to read members on demand.
   }
 
   @override
   void _read(element, reader) {
-    element.metadata = reader._readAnnotationList(
-      unitElement: unitElement,
-    );
+    element.metadata = reader._readAnnotationList(unitElement: unitElement);
     _readTypeParameters(reader, element.typeParameters);
     element.supertype = reader._readOptionalInterfaceType();
     element.mixins = reader._readInterfaceTypeList();
@@ -141,7 +138,7 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
     applyConstantOffsets?.perform();
   }
 
-  void _readSingleFragmentMembers(ClassElementImpl element) {
+  void _readSingleFragmentMembers(ClassFragmentImpl element) {
     // We might read class members before other properties.
     element.linkedData?.read(element);
     element.linkedData = null;
@@ -159,47 +156,41 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
 }
 
 class CompilationUnitElementLinkedData
-    extends ElementLinkedData<CompilationUnitElementImpl> {
+    extends ElementLinkedData<LibraryFragmentImpl> {
   ApplyConstantOffsets? applyConstantOffsets;
 
   CompilationUnitElementLinkedData({
     required Reference reference,
     required LibraryReader libraryReader,
-    required CompilationUnitElementImpl unitElement,
+    required LibraryFragmentImpl unitElement,
     required int offset,
   }) : super(reference, libraryReader, unitElement, offset);
 
   @override
-  void _clearLinkedDataOnRead(CompilationUnitElementImpl element) {
+  void _clearLinkedDataOnRead(LibraryFragmentImpl element) {
     element.linkedData = null;
   }
 
   @override
   void _read(element, reader) {
     for (var import in element.libraryImports) {
-      import.metadata = reader._readAnnotationList(
-        unitElement: unitElement,
-      );
+      import.metadata = reader._readAnnotationList(unitElement: unitElement);
       var uri = import.uri;
       if (uri is DirectiveUriWithLibraryImpl) {
-        uri.library = reader.libraryOfUri(uri.source.uri);
+        uri.library2 = reader.libraryOfUri(uri.source.uri);
       }
     }
 
     for (var export in element.libraryExports) {
-      export.metadata = reader._readAnnotationList(
-        unitElement: unitElement,
-      );
+      export.metadata = reader._readAnnotationList(unitElement: unitElement);
       var uri = export.uri;
       if (uri is DirectiveUriWithLibraryImpl) {
-        uri.library = reader.libraryOfUri(uri.source.uri);
+        uri.library2 = reader.libraryOfUri(uri.source.uri);
       }
     }
 
     for (var part in element.parts) {
-      part.metadata = reader._readAnnotationList(
-        unitElement: unitElement,
-      );
+      part.metadata = reader._readAnnotationList(unitElement: unitElement);
     }
 
     applyConstantOffsets?.perform();
@@ -207,18 +198,18 @@ class CompilationUnitElementLinkedData
 }
 
 class ConstructorElementLinkedData
-    extends ElementLinkedData<ConstructorElementImpl> {
+    extends ElementLinkedData<ConstructorFragmentImpl> {
   ApplyConstantOffsets? applyConstantOffsets;
 
   ConstructorElementLinkedData({
     required Reference reference,
     required LibraryReader libraryReader,
-    required CompilationUnitElementImpl unitElement,
+    required LibraryFragmentImpl unitElement,
     required int offset,
   }) : super(reference, libraryReader, unitElement, offset);
 
   @override
-  void _clearLinkedDataOnRead(ConstructorElementImpl element) {
+  void _clearLinkedDataOnRead(ConstructorFragmentImpl element) {
     element.linkedData = null;
   }
 
@@ -226,9 +217,7 @@ class ConstructorElementLinkedData
   void _read(element, reader) {
     _addEnclosingElementTypeParameters(reader, element);
 
-    element.metadata = reader._readAnnotationList(
-      unitElement: unitElement,
-    );
+    element.metadata = reader._readAnnotationList(unitElement: unitElement);
     reader._addFormalParameters(element.parameters);
     _readFormalParameters(reader, element.parameters);
     element.superConstructor = reader.readElement() as ConstructorElementMixin?;
@@ -240,10 +229,10 @@ class ConstructorElementLinkedData
 }
 
 /// Lazy reader of resolution information.
-abstract class ElementLinkedData<E extends ElementImpl> {
+abstract class ElementLinkedData<E extends FragmentImpl> {
   final Reference reference;
   final LibraryReader _libraryReader;
-  final CompilationUnitElementImpl unitElement;
+  final LibraryFragmentImpl unitElement;
 
   /// When this object is created, this offset is the offset of the resolution
   /// information in the [_libraryReader]. After reading is done, this offset
@@ -251,11 +240,14 @@ abstract class ElementLinkedData<E extends ElementImpl> {
   int _offset;
 
   ElementLinkedData(
-      this.reference, LibraryReader libraryReader, this.unitElement, int offset)
-      : _libraryReader = libraryReader,
-        _offset = offset;
+    this.reference,
+    LibraryReader libraryReader,
+    this.unitElement,
+    int offset,
+  ) : _libraryReader = libraryReader,
+      _offset = offset;
 
-  void read(ElementImpl element) {
+  void read(FragmentImpl element) {
     _clearLinkedDataOnRead(element as E);
     if (_offset == -1) {
       return;
@@ -274,26 +266,26 @@ abstract class ElementLinkedData<E extends ElementImpl> {
   }
 
   /// Ensure that all members of the [element] are available. This includes
-  /// being able to ask them for example using [ClassElement2.methods2], and
+  /// being able to ask them for example using [ClassElement.methods2], and
   /// as well access them through their [Reference]s. For a class declaration
   /// this means reading them, for a named mixin application this means
   /// computing constructors.
-  void readMembers(InstanceElementImpl element) {}
+  void readMembers(InstanceFragmentImpl element) {}
 
   void _addEnclosingElementTypeParameters(
     ResolutionReader reader,
-    ElementImpl element,
+    FragmentImpl element,
   ) {
     var enclosing = element.enclosingElement3;
-    if (enclosing is InstanceElementImpl) {
+    if (enclosing is InstanceFragmentImpl) {
       reader._addTypeParameters(enclosing.typeParameters);
-    } else if (enclosing is CompilationUnitElementImpl) {
+    } else if (enclosing is LibraryFragmentImpl) {
       // Nothing.
-    } else if (enclosing is EnumElementImpl) {
+    } else if (enclosing is EnumFragmentImpl) {
       reader._addTypeParameters(enclosing.typeParameters);
-    } else if (enclosing is ExtensionElementImpl) {
+    } else if (enclosing is ExtensionFragmentImpl) {
       reader._addTypeParameters(enclosing.typeParameters);
-    } else if (enclosing is MixinElementImpl) {
+    } else if (enclosing is MixinFragmentImpl) {
       reader._addTypeParameters(enclosing.typeParameters);
     } else {
       throw UnimplementedError('${enclosing.runtimeType}');
@@ -306,12 +298,10 @@ abstract class ElementLinkedData<E extends ElementImpl> {
 
   void _readFormalParameters(
     ResolutionReader reader,
-    List<ParameterElementImpl> parameters,
+    List<FormalParameterFragmentImpl> parameters,
   ) {
     for (var parameter in parameters) {
-      parameter.metadata = reader._readAnnotationList(
-        unitElement: unitElement,
-      );
+      parameter.metadata = reader._readAnnotationList(unitElement: unitElement);
       _readTypeParameters(reader, parameter.typeParameters);
       _readFormalParameters(reader, parameter.parameters);
       parameter.type = reader.readRequiredType();
@@ -322,15 +312,15 @@ abstract class ElementLinkedData<E extends ElementImpl> {
           defaultParameter.constantInitializer = initializer;
         }
       }
-      if (parameter is FieldFormalParameterElementImpl) {
-        parameter.field = reader.readElement() as FieldElementImpl?;
+      if (parameter is FieldFormalParameterFragmentImpl) {
+        parameter.field = reader.readElement() as FieldFragmentImpl?;
       }
     }
   }
 
   void _readTypeParameters(
     ResolutionReader reader,
-    List<TypeParameterElementImpl> typeParameters,
+    List<TypeParameterFragmentImpl> typeParameters,
   ) {
     reader._addTypeParameters(typeParameters);
     for (var typeParameter in typeParameters) {
@@ -343,18 +333,18 @@ abstract class ElementLinkedData<E extends ElementImpl> {
   }
 }
 
-class EnumElementLinkedData extends ElementLinkedData<EnumElementImpl> {
+class EnumElementLinkedData extends ElementLinkedData<EnumFragmentImpl> {
   ApplyConstantOffsets? applyConstantOffsets;
 
   EnumElementLinkedData({
     required Reference reference,
     required LibraryReader libraryReader,
-    required CompilationUnitElementImpl unitElement,
+    required LibraryFragmentImpl unitElement,
     required int offset,
   }) : super(reference, libraryReader, unitElement, offset);
 
   @override
-  void _clearLinkedDataOnRead(EnumElementImpl element) {
+  void _clearLinkedDataOnRead(EnumFragmentImpl element) {
     element.linkedData = null;
   }
 
@@ -372,18 +362,18 @@ class EnumElementLinkedData extends ElementLinkedData<EnumElementImpl> {
 }
 
 class ExtensionElementLinkedData
-    extends ElementLinkedData<ExtensionElementImpl> {
+    extends ElementLinkedData<ExtensionFragmentImpl> {
   ApplyConstantOffsets? applyConstantOffsets;
 
   ExtensionElementLinkedData({
     required Reference reference,
     required LibraryReader libraryReader,
-    required CompilationUnitElementImpl unitElement,
+    required LibraryFragmentImpl unitElement,
     required int offset,
   }) : super(reference, libraryReader, unitElement, offset);
 
   @override
-  void _clearLinkedDataOnRead(ExtensionElementImpl element) {
+  void _clearLinkedDataOnRead(ExtensionFragmentImpl element) {
     element.linkedData = null;
   }
 
@@ -402,18 +392,18 @@ class ExtensionElementLinkedData
 }
 
 class ExtensionTypeElementLinkedData
-    extends ElementLinkedData<ExtensionTypeElementImpl> {
+    extends ElementLinkedData<ExtensionTypeFragmentImpl> {
   ApplyConstantOffsets? applyConstantOffsets;
 
   ExtensionTypeElementLinkedData({
     required Reference reference,
     required LibraryReader libraryReader,
-    required CompilationUnitElementImpl unitElement,
+    required LibraryFragmentImpl unitElement,
     required int offset,
   }) : super(reference, libraryReader, unitElement, offset);
 
   @override
-  void _clearLinkedDataOnRead(ExtensionTypeElementImpl element) {
+  void _clearLinkedDataOnRead(ExtensionTypeFragmentImpl element) {
     element.linkedData = null;
   }
 
@@ -429,30 +419,28 @@ class ExtensionTypeElementLinkedData
   }
 }
 
-class FieldElementLinkedData extends ElementLinkedData<FieldElementImpl> {
+class FieldElementLinkedData extends ElementLinkedData<FieldFragmentImpl> {
   ApplyConstantOffsets? applyConstantOffsets;
 
   FieldElementLinkedData({
     required Reference reference,
     required LibraryReader libraryReader,
-    required CompilationUnitElementImpl unitElement,
+    required LibraryFragmentImpl unitElement,
     required int offset,
   }) : super(reference, libraryReader, unitElement, offset);
 
   @override
-  void _clearLinkedDataOnRead(FieldElementImpl element) {
+  void _clearLinkedDataOnRead(FieldFragmentImpl element) {
     element.linkedData = null;
   }
 
   @override
   void _read(element, reader) {
     _addEnclosingElementTypeParameters(reader, element);
-    element.metadata = reader._readAnnotationList(
-      unitElement: unitElement,
-    );
+    element.metadata = reader._readAnnotationList(unitElement: unitElement);
     element.type = reader.readRequiredType();
 
-    if (element is ConstFieldElementImpl) {
+    if (element is ConstFieldFragmentImpl) {
       var initializer = reader._readOptionalExpression();
       if (initializer != null) {
         element.constantInitializer = initializer;
@@ -463,26 +451,25 @@ class FieldElementLinkedData extends ElementLinkedData<FieldElementImpl> {
   }
 }
 
-class FunctionElementLinkedData extends ElementLinkedData<FunctionElementImpl> {
+class FunctionElementLinkedData
+    extends ElementLinkedData<FunctionFragmentImpl> {
   ApplyConstantOffsets? applyConstantOffsets;
 
   FunctionElementLinkedData({
     required Reference reference,
     required LibraryReader libraryReader,
-    required CompilationUnitElementImpl unitElement,
+    required LibraryFragmentImpl unitElement,
     required int offset,
   }) : super(reference, libraryReader, unitElement, offset);
 
   @override
-  void _clearLinkedDataOnRead(FunctionElementImpl element) {
+  void _clearLinkedDataOnRead(FunctionFragmentImpl element) {
     element.linkedData = null;
   }
 
   @override
   void _read(element, reader) {
-    element.metadata = reader._readAnnotationList(
-      unitElement: unitElement,
-    );
+    element.metadata = reader._readAnnotationList(unitElement: unitElement);
     _readTypeParameters(reader, element.typeParameters);
     element.returnType = reader.readRequiredType();
     _readFormalParameters(reader, element.parameters);
@@ -495,9 +482,7 @@ class LibraryAugmentationElementLinkedData {
   final int offset;
   ApplyConstantOffsets? applyConstantOffsets;
 
-  LibraryAugmentationElementLinkedData({
-    required this.offset,
-  });
+  LibraryAugmentationElementLinkedData({required this.offset});
 }
 
 class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
@@ -509,7 +494,7 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
   LibraryElementLinkedData({
     required Reference reference,
     required LibraryReader libraryReader,
-    required CompilationUnitElementImpl unitElement,
+    required LibraryFragmentImpl unitElement,
     required int offset,
   }) : super(reference, libraryReader, unitElement, offset);
 
@@ -523,7 +508,7 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
   }
 
   @override
-  void read(ElementImpl element) {
+  void read(FragmentImpl element) {
     if (!_isLocked) {
       super.read(element);
     }
@@ -541,14 +526,13 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
 
   @override
   void _read(element, reader) {
-    element.metadata = reader._readAnnotationList(
-      unitElement: unitElement,
-    );
+    element.metadata = reader._readAnnotationList(unitElement: unitElement);
 
     element.entryPoint2 = reader.readElement2() as TopLevelFunctionElementImpl?;
 
-    element.fieldNameNonPromotabilityInfo =
-        _readFieldNameNonPromotabilityInfo(reader);
+    element.fieldNameNonPromotabilityInfo = _readFieldNameNonPromotabilityInfo(
+      reader,
+    );
 
     element.exportNamespace = elementFactory.buildExportNamespace(
       element.source.uri,
@@ -559,7 +543,7 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
   }
 
   Map<String, FieldNameNonPromotabilityInfo>?
-      _readFieldNameNonPromotabilityInfo(ResolutionReader reader) {
+  _readFieldNameNonPromotabilityInfo(ResolutionReader reader) {
     return reader.readOptionalObject(() {
       return reader.readMap(
         readKey: () => reader.readStringReference(),
@@ -604,15 +588,15 @@ class LibraryReader {
     required Uint32List classMembersLengths,
     required InfoDeclarationStore infoDeclarationStore,
     required this.manifest,
-  })  : _elementFactory = elementFactory,
-        _reader = reader,
-        _unitsInformativeBytes = unitsInformativeBytes,
-        _baseResolutionOffset = baseResolutionOffset,
-        _referenceReader = referenceReader,
-        _reference = reference,
-        _offset = offset,
-        _classMembersLengths = classMembersLengths,
-        _deserializedDataStore = infoDeclarationStore;
+  }) : _elementFactory = elementFactory,
+       _reader = reader,
+       _unitsInformativeBytes = unitsInformativeBytes,
+       _baseResolutionOffset = baseResolutionOffset,
+       _referenceReader = referenceReader,
+       _reference = reference,
+       _offset = offset,
+       _classMembersLengths = classMembersLengths,
+       _deserializedDataStore = infoDeclarationStore;
 
   LibraryElementImpl readElement({required Source librarySource}) {
     var analysisContext = _elementFactory.analysisContext;
@@ -631,8 +615,15 @@ class LibraryReader {
 
     // Create the library, link to the reference.
     _libraryElement = LibraryElementImpl(
-        analysisContext, analysisSession, name, -1, 0, featureSet);
+      analysisContext,
+      analysisSession,
+      name,
+      -1,
+      0,
+      featureSet,
+    );
     _reference.element = _libraryElement;
+    _reference.element2 = _libraryElement;
     _libraryElement.reference = _reference;
 
     // Read the rest of non-resolution data for the library.
@@ -643,9 +634,7 @@ class LibraryReader {
       _readExportedReference,
     );
 
-    _libraryElement.nameUnion = ElementNameUnion.read(
-      _reader.readUInt30List(),
-    );
+    _libraryElement.nameUnion = ElementNameUnion.read(_reader.readUInt30List());
 
     _libraryElement.manifest = manifest;
 
@@ -671,8 +660,10 @@ class LibraryReader {
     _declareDartCoreDynamicNever();
 
     InformativeDataApplier(
-            _elementFactory, _unitsInformativeBytes, _deserializedDataStore)
-        .applyTo(_libraryElement);
+      _elementFactory,
+      _unitsInformativeBytes,
+      _deserializedDataStore,
+    ).applyTo(_libraryElement);
 
     return _libraryElement;
   }
@@ -680,13 +671,13 @@ class LibraryReader {
   /// These elements are implicitly declared in `dart:core`.
   void _declareDartCoreDynamicNever() {
     if (_reference.name == 'dart:core') {
-      _reference.getChild('dynamic').element = DynamicElementImpl.instance;
-      _reference.getChild('Never').element = NeverElementImpl.instance;
+      _reference.getChild('dynamic').element = DynamicFragmentImpl.instance;
+      _reference.getChild('Never').element = NeverFragmentImpl.instance;
     }
   }
 
-  ClassElementImpl _readClassElement(
-    CompilationUnitElementImpl unitElement,
+  ClassFragmentImpl _readClassElement(
+    LibraryFragmentImpl unitElement,
     Reference unitReference,
   ) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
@@ -698,7 +689,7 @@ class LibraryReader {
     var fragmentName = _readFragmentName();
     var name = fragmentName ?? '';
 
-    var fragment = ClassElementImpl(name, -1);
+    var fragment = ClassFragmentImpl(name, -1);
     fragment.name2 = fragmentName;
 
     if (reference2.element2 case ClassElementImpl2 element?) {
@@ -732,16 +723,22 @@ class LibraryReader {
   }
 
   void _readClassElementMembers(
-    ClassElementImpl fragment,
+    ClassFragmentImpl fragment,
     Reference reference,
   ) {
     var unitElement = fragment.enclosingElement3;
 
-    var accessors = <PropertyAccessorElementImpl>[];
-    var fields = <FieldElementImpl>[];
+    var accessors = <PropertyAccessorFragmentImpl>[];
+    var fields = <FieldFragmentImpl>[];
     _readFields(unitElement, fragment, reference, accessors, fields);
     _readPropertyAccessors(
-        unitElement, fragment, reference, accessors, fields, '@field');
+      unitElement,
+      fragment,
+      reference,
+      accessors,
+      fields,
+      '@field',
+    );
     fragment.fields = fields.toFixedList();
     fragment.accessors = accessors.toFixedList();
 
@@ -749,25 +746,22 @@ class LibraryReader {
     fragment.methods = _readMethods(unitElement, fragment, reference);
   }
 
-  void _readClasses(
-    CompilationUnitElementImpl unitElement,
-    Reference unitReference,
-  ) {
+  void _readClasses(LibraryFragmentImpl unitElement, Reference unitReference) {
     unitElement.classes = _reader.readTypedList(() {
       return _readClassElement(unitElement, unitReference);
     });
   }
 
-  List<ConstructorElementImpl> _readConstructors(
-    CompilationUnitElementImpl unitElement,
-    InterfaceElementImpl classElement,
+  List<ConstructorFragmentImpl> _readConstructors(
+    LibraryFragmentImpl unitElement,
+    InterfaceFragmentImpl classElement,
     Reference classReference,
   ) {
     return _reader.readTypedList(() {
       var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
       var reference = _readReference();
       var name = reference.elementName.ifEqualThen('new', '');
-      var element = ConstructorElementImpl(name, -1);
+      var element = ConstructorFragmentImpl(name, -1);
       element.typeName = _reader.readOptionalStringReference();
       element.name2 = _reader.readStringReference();
       var linkedData = ConstructorElementLinkedData(
@@ -784,7 +778,7 @@ class LibraryReader {
   }
 
   DirectiveUriImpl _readDirectiveUri({
-    required CompilationUnitElementImpl containerUnit,
+    required LibraryFragmentImpl containerUnit,
   }) {
     DirectiveUriWithRelativeUriStringImpl readWithRelativeUriString() {
       var relativeUriString = _reader.readStringReference();
@@ -841,7 +835,7 @@ class LibraryReader {
         return DirectiveUriWithUnitImpl(
           relativeUriString: parent.relativeUriString,
           relativeUri: parent.relativeUri,
-          unit: unitElement,
+          libraryFragment: unitElement,
         );
       case DirectiveUriKind.withSource:
         return readWithSource();
@@ -854,8 +848,8 @@ class LibraryReader {
     }
   }
 
-  EnumElementImpl _readEnumElement(
-    CompilationUnitElementImpl unitElement,
+  EnumFragmentImpl _readEnumElement(
+    LibraryFragmentImpl unitElement,
     Reference unitReference,
   ) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
@@ -866,7 +860,7 @@ class LibraryReader {
     var fragmentName = _readFragmentName();
     var name = fragmentName ?? '';
 
-    var fragment = EnumElementImpl(name, -1);
+    var fragment = EnumFragmentImpl(name, -1);
     fragment.name2 = fragmentName;
 
     if (reference2.element2 case EnumElementImpl2 element?) {
@@ -887,12 +881,18 @@ class LibraryReader {
     EnumElementFlags.read(_reader, fragment);
     fragment.typeParameters = _readTypeParameters();
 
-    var accessors = <PropertyAccessorElementImpl>[];
-    var fields = <FieldElementImpl>[];
+    var accessors = <PropertyAccessorFragmentImpl>[];
+    var fields = <FieldFragmentImpl>[];
 
     _readFields(unitElement, fragment, reference, accessors, fields);
     _readPropertyAccessors(
-        unitElement, fragment, reference, accessors, fields, '@field');
+      unitElement,
+      fragment,
+      reference,
+      accessors,
+      fields,
+      '@field',
+    );
     fragment.fields = fields.toFixedList();
     fragment.accessors = accessors.toFixedList();
 
@@ -902,10 +902,7 @@ class LibraryReader {
     return fragment;
   }
 
-  void _readEnums(
-    CompilationUnitElementImpl unitElement,
-    Reference unitReference,
-  ) {
+  void _readEnums(LibraryFragmentImpl unitElement, Reference unitReference) {
     unitElement.enums = _reader.readTypedList(() {
       return _readEnumElement(unitElement, unitReference);
     });
@@ -916,9 +913,7 @@ class LibraryReader {
     if (kind == 0) {
       var index = _reader.readUInt30();
       var reference = _referenceReader.referenceOfIndex(index);
-      return ExportedReferenceDeclared(
-        reference: reference,
-      );
+      return ExportedReferenceDeclared(reference: reference);
     } else if (kind == 1) {
       var index = _reader.readUInt30();
       var reference = _referenceReader.referenceOfIndex(index);
@@ -932,14 +927,12 @@ class LibraryReader {
   }
 
   LibraryExportElementImpl _readExportElement({
-    required CompilationUnitElementImpl containerUnit,
+    required LibraryFragmentImpl containerUnit,
   }) {
     return LibraryExportElementImpl(
       combinators: _reader.readTypedList(_readNamespaceCombinator),
       exportKeywordOffset: -1,
-      uri: _readDirectiveUri(
-        containerUnit: containerUnit,
-      ),
+      uri: _readDirectiveUri(containerUnit: containerUnit),
     );
   }
 
@@ -950,8 +943,8 @@ class LibraryReader {
     );
   }
 
-  ExtensionElementImpl _readExtensionElement(
-    CompilationUnitElementImpl unitElement,
+  ExtensionFragmentImpl _readExtensionElement(
+    LibraryFragmentImpl unitElement,
     Reference unitReference,
   ) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
@@ -963,7 +956,7 @@ class LibraryReader {
     var fragmentName = _readFragmentName();
     var name = fragmentName;
 
-    var fragment = ExtensionElementImpl(name, -1);
+    var fragment = ExtensionFragmentImpl(name, -1);
     fragment.name2 = fragmentName;
 
     if (reference2.element2 case ExtensionElementImpl2 element?) {
@@ -986,10 +979,16 @@ class LibraryReader {
     ExtensionElementFlags.read(_reader, fragment);
     fragment.typeParameters = _readTypeParameters();
 
-    var accessors = <PropertyAccessorElementImpl>[];
-    var fields = <FieldElementImpl>[];
+    var accessors = <PropertyAccessorFragmentImpl>[];
+    var fields = <FieldFragmentImpl>[];
     _readPropertyAccessors(
-        unitElement, fragment, reference, accessors, fields, '@field');
+      unitElement,
+      fragment,
+      reference,
+      accessors,
+      fields,
+      '@field',
+    );
     _readFields(unitElement, fragment, reference, accessors, fields);
     fragment.accessors = accessors;
     fragment.fields = fields;
@@ -1000,7 +999,7 @@ class LibraryReader {
   }
 
   void _readExtensions(
-    CompilationUnitElementImpl unitElement,
+    LibraryFragmentImpl unitElement,
     Reference unitReference,
   ) {
     unitElement.extensions = _reader.readTypedList(() {
@@ -1008,8 +1007,8 @@ class LibraryReader {
     });
   }
 
-  ExtensionTypeElementImpl _readExtensionTypeElement(
-    CompilationUnitElementImpl unitElement,
+  ExtensionTypeFragmentImpl _readExtensionTypeElement(
+    LibraryFragmentImpl unitElement,
     Reference unitReference,
   ) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
@@ -1020,7 +1019,7 @@ class LibraryReader {
     var fragmentName = _readFragmentName();
     var name = fragmentName ?? '';
 
-    var fragment = ExtensionTypeElementImpl(name, -1);
+    var fragment = ExtensionTypeFragmentImpl(name, -1);
     fragment.name2 = fragmentName;
 
     if (reference2.element2 case ExtensionTypeElementImpl2 element?) {
@@ -1043,11 +1042,17 @@ class LibraryReader {
     ExtensionTypeElementFlags.read(_reader, fragment);
     fragment.typeParameters = _readTypeParameters();
 
-    var fields = <FieldElementImpl>[];
-    var accessors = <PropertyAccessorElementImpl>[];
+    var fields = <FieldFragmentImpl>[];
+    var accessors = <PropertyAccessorFragmentImpl>[];
     _readFields(unitElement, fragment, reference, accessors, fields);
     _readPropertyAccessors(
-        unitElement, fragment, reference, accessors, fields, '@field');
+      unitElement,
+      fragment,
+      reference,
+      accessors,
+      fields,
+      '@field',
+    );
     fragment.fields = fields;
     fragment.accessors = accessors;
 
@@ -1058,7 +1063,7 @@ class LibraryReader {
   }
 
   void _readExtensionTypes(
-    CompilationUnitElementImpl unitElement,
+    LibraryFragmentImpl unitElement,
     Reference unitReference,
   ) {
     unitElement.extensionTypes = _reader.readTypedList(() {
@@ -1071,9 +1076,9 @@ class LibraryReader {
     return ExperimentStatus.fromStorage(featureSetEncoded);
   }
 
-  FieldElementImpl _readFieldElement(
-    CompilationUnitElementImpl unitElement,
-    ElementImpl classElement,
+  FieldFragmentImpl _readFieldElement(
+    LibraryFragmentImpl unitElement,
+    FragmentImpl classElement,
     Reference classReference,
   ) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
@@ -1087,11 +1092,11 @@ class LibraryReader {
     var name = _reader.readStringReference();
     var isConstElement = _reader.readBool();
 
-    FieldElementImpl element;
+    FieldFragmentImpl element;
     if (isConstElement) {
-      element = ConstFieldElementImpl(name, -1);
+      element = ConstFieldFragmentImpl(name, -1);
     } else {
-      element = FieldElementImpl(name, -1);
+      element = FieldFragmentImpl(name, -1);
     }
     element.name2 = fragmentName;
 
@@ -1108,10 +1113,14 @@ class LibraryReader {
 
     if (!element.isAugmentation) {
       if (getterReference != null) {
-        element.createImplicitGetter(getterReference);
+        var getter = element.createImplicitGetter(getterReference);
+        getter.hasEnclosingTypeParameterReference =
+            element.hasEnclosingTypeParameterReference;
       }
       if (element.hasSetter && setterReference != null) {
-        element.createImplicitSetter(setterReference);
+        var setter = element.createImplicitSetter(setterReference);
+        setter.hasEnclosingTypeParameterReference =
+            element.hasEnclosingTypeParameterReference;
       }
     }
 
@@ -1119,17 +1128,20 @@ class LibraryReader {
   }
 
   void _readFields(
-    CompilationUnitElementImpl unitElement,
-    ElementImpl classElement,
+    LibraryFragmentImpl unitElement,
+    FragmentImpl classElement,
     Reference classReference,
-    List<PropertyAccessorElementImpl> accessors,
-    List<FieldElementImpl> variables,
+    List<PropertyAccessorFragmentImpl> accessors,
+    List<FieldFragmentImpl> variables,
   ) {
-    var createdElements = <FieldElementImpl>[];
+    var createdElements = <FieldFragmentImpl>[];
     var variableElementCount = _reader.readUInt30();
     for (var i = 0; i < variableElementCount; i++) {
-      var variable =
-          _readFieldElement(unitElement, classElement, classReference);
+      var variable = _readFieldElement(
+        unitElement,
+        classElement,
+        classReference,
+      );
       createdElements.add(variable);
       variables.add(variable);
 
@@ -1150,7 +1162,7 @@ class LibraryReader {
   }
 
   void _readFunctions(
-    CompilationUnitElementImpl unitElement,
+    LibraryFragmentImpl unitElement,
     Reference unitReference,
   ) {
     unitElement.functions = _reader.readTypedList(() {
@@ -1187,58 +1199,16 @@ class LibraryReader {
   }
 
   LibraryImportElementImpl _readImportElement({
-    required CompilationUnitElementImpl containerUnit,
+    required LibraryFragmentImpl containerUnit,
   }) {
     var element = LibraryImportElementImpl(
       combinators: _reader.readTypedList(_readNamespaceCombinator),
       importKeywordOffset: -1,
-      prefix: _readImportElementPrefix(
-        containerUnit: containerUnit,
-      ),
-      prefix2: _readLibraryImportPrefixFragment(
-        libraryFragment: containerUnit,
-      ),
-      uri: _readDirectiveUri(
-        containerUnit: containerUnit,
-      ),
+      prefix2: _readLibraryImportPrefixFragment(libraryFragment: containerUnit),
+      uri: _readDirectiveUri(containerUnit: containerUnit),
     );
     LibraryImportElementFlags.read(_reader, element);
     return element;
-  }
-
-  ImportElementPrefixImpl? _readImportElementPrefix({
-    required CompilationUnitElementImpl containerUnit,
-  }) {
-    PrefixElementImpl buildElement(String name, Reference reference) {
-      // TODO(scheglov): Make reference required.
-      var existing = reference.element;
-      if (existing is PrefixElementImpl) {
-        return existing;
-      } else {
-        var result = PrefixElementImpl(name, -1, reference: reference);
-        result.enclosingElement3 = containerUnit;
-        return result;
-      }
-    }
-
-    var kindIndex = _reader.readByte();
-    var kind = ImportElementPrefixKind.values[kindIndex];
-    switch (kind) {
-      case ImportElementPrefixKind.isDeferred:
-        var name = _reader.readStringReference();
-        var reference = _readReference();
-        return DeferredImportElementPrefixImpl(
-          element: buildElement(name, reference),
-        );
-      case ImportElementPrefixKind.isNotDeferred:
-        var name = _reader.readStringReference();
-        var reference = _readReference();
-        return ImportElementPrefixImpl(
-          element: buildElement(name, reference),
-        );
-      case ImportElementPrefixKind.isNull:
-        return null;
-    }
   }
 
   LibraryLanguageVersion _readLanguageVersion() {
@@ -1257,7 +1227,7 @@ class LibraryReader {
   }
 
   PrefixFragmentImpl? _readLibraryImportPrefixFragment({
-    required CompilationUnitElementImpl libraryFragment,
+    required LibraryFragmentImpl libraryFragment,
   }) {
     return _reader.readOptionalObject(() {
       var fragmentName = _readFragmentName();
@@ -1285,9 +1255,9 @@ class LibraryReader {
     });
   }
 
-  List<MethodElementImpl> _readMethods(
-    CompilationUnitElementImpl unitElement,
-    ElementImpl enclosingElement,
+  List<MethodFragmentImpl> _readMethods(
+    LibraryFragmentImpl unitElement,
+    FragmentImpl enclosingElement,
     Reference enclosingReference,
   ) {
     return _reader.readTypedList(() {
@@ -1296,7 +1266,7 @@ class LibraryReader {
       var fragmentName = _readFragmentName();
       // TODO(scheglov): we do this only because MethodElement2 uses this name.
       var name = _reader.readStringReference();
-      var fragment = MethodElementImpl(name, -1);
+      var fragment = MethodFragmentImpl(name, -1);
       fragment.name2 = fragmentName;
 
       var linkedData = MethodElementLinkedData(
@@ -1314,8 +1284,8 @@ class LibraryReader {
     });
   }
 
-  MixinElementImpl _readMixinElement(
-    CompilationUnitElementImpl unitElement,
+  MixinFragmentImpl _readMixinElement(
+    LibraryFragmentImpl unitElement,
     Reference unitReference,
   ) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
@@ -1326,7 +1296,7 @@ class LibraryReader {
     var fragmentName = _readFragmentName();
     var name = fragmentName ?? '';
 
-    var fragment = MixinElementImpl(name, -1);
+    var fragment = MixinFragmentImpl(name, -1);
     fragment.name2 = fragmentName;
 
     if (reference2.element2 case MixinElementImpl2 element?) {
@@ -1347,11 +1317,17 @@ class LibraryReader {
     MixinElementFlags.read(_reader, fragment);
     fragment.typeParameters = _readTypeParameters();
 
-    var fields = <FieldElementImpl>[];
-    var accessors = <PropertyAccessorElementImpl>[];
+    var fields = <FieldFragmentImpl>[];
+    var accessors = <PropertyAccessorFragmentImpl>[];
     _readFields(unitElement, fragment, reference, accessors, fields);
     _readPropertyAccessors(
-        unitElement, fragment, reference, accessors, fields, '@field');
+      unitElement,
+      fragment,
+      reference,
+      accessors,
+      fields,
+      '@field',
+    );
     fragment.fields = fields.toFixedList();
     fragment.accessors = accessors.toFixedList();
 
@@ -1362,10 +1338,7 @@ class LibraryReader {
     return fragment;
   }
 
-  void _readMixins(
-    CompilationUnitElementImpl unitElement,
-    Reference unitReference,
-  ) {
+  void _readMixins(LibraryFragmentImpl unitElement, Reference unitReference) {
     unitElement.mixins = _reader.readTypedList(() {
       return _readMixinElement(unitElement, unitReference);
     });
@@ -1392,7 +1365,7 @@ class LibraryReader {
   }
 
   // TODO(scheglov): Deduplicate parameter reading implementation.
-  List<ParameterElementImpl> _readParameters() {
+  List<FormalParameterFragmentImpl> _readParameters() {
     return _reader.readTypedList(() {
       var fragmentName = _readFragmentName();
       var name = _reader.readStringReference();
@@ -1404,10 +1377,10 @@ class LibraryReader {
       var kindIndex = _reader.readByte();
       var kind = ResolutionReader._formalParameterKind(kindIndex);
 
-      ParameterElementImpl element;
+      FormalParameterFragmentImpl element;
       if (!isDefault) {
         if (isInitializingFormal) {
-          element = FieldFormalParameterElementImpl(
+          element = FieldFormalParameterFragmentImpl(
             name: name,
             nameOffset: -1,
             name2: name.nullIfEmpty,
@@ -1415,7 +1388,7 @@ class LibraryReader {
             parameterKind: kind,
           );
         } else if (isSuperFormal) {
-          element = SuperFormalParameterElementImpl(
+          element = SuperFormalParameterFragmentImpl(
             name: name,
             nameOffset: -1,
             name2: name.nullIfEmpty,
@@ -1423,7 +1396,7 @@ class LibraryReader {
             parameterKind: kind,
           );
         } else {
-          element = ParameterElementImpl(
+          element = FormalParameterFragmentImpl(
             name: name,
             nameOffset: -1,
             name2: name.nullIfEmpty,
@@ -1449,7 +1422,7 @@ class LibraryReader {
             parameterKind: kind,
           );
         } else {
-          element = DefaultParameterElementImpl(
+          element = DefaultParameterFragmentImpl(
             name: name,
             nameOffset: -1,
             name2: name.nullIfEmpty,
@@ -1471,20 +1444,16 @@ class LibraryReader {
   }
 
   PartElementImpl _readPartElement({
-    required CompilationUnitElementImpl containerUnit,
+    required LibraryFragmentImpl containerUnit,
   }) {
-    var uri = _readDirectiveUri(
-      containerUnit: containerUnit,
-    );
+    var uri = _readDirectiveUri(containerUnit: containerUnit);
 
-    return PartElementImpl(
-      uri: uri,
-    );
+    return PartElementImpl(uri: uri);
   }
 
-  PropertyAccessorElementImpl _readPropertyAccessorElement(
-    CompilationUnitElementImpl unitElement,
-    ElementImpl classElement,
+  PropertyAccessorFragmentImpl _readPropertyAccessorElement(
+    LibraryFragmentImpl unitElement,
+    FragmentImpl classElement,
     Reference classReference,
   ) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
@@ -1494,9 +1463,10 @@ class LibraryReader {
     var name = reference.elementName;
     var flags = _reader.readUInt30();
 
-    var fragment = PropertyAccessorElementFlags.isGetter(flags)
-        ? GetterFragmentImpl(name, -1)
-        : SetterFragmentImpl(name, -1);
+    var fragment =
+        PropertyAccessorElementFlags.isGetter(flags)
+            ? GetterFragmentImpl(name, -1)
+            : SetterFragmentImpl(name, -1);
     fragment.name2 = fragmentName;
 
     var linkedData = PropertyAccessorElementLinkedData(
@@ -1513,10 +1483,10 @@ class LibraryReader {
   }
 
   void _readPropertyAccessors(
-    CompilationUnitElementImpl unitElement,
-    ElementImpl enclosingElement,
+    LibraryFragmentImpl unitElement,
+    FragmentImpl enclosingElement,
     Reference enclosingReference,
-    List<PropertyAccessorElementImpl> accessorFragments,
+    List<PropertyAccessorFragmentImpl> accessorFragments,
     List<PropertyInducingElementImpl> propertyFragments,
     String containerRefName, {
     List<TopLevelVariableElementImpl2>? variables2,
@@ -1548,16 +1518,17 @@ class LibraryReader {
 
       PropertyInducingElementImpl propertyFragment;
       var existing = propertyFragmentReference.element;
-      if (enclosingElement is CompilationUnitElementImpl) {
-        if (existing is TopLevelVariableElementImpl &&
+      if (enclosingElement is LibraryFragmentImpl) {
+        if (existing is TopLevelVariableFragmentImpl &&
             canUseExisting(existing)) {
           propertyFragment = existing;
         } else {
-          var variableFragment = TopLevelVariableElementImpl(name, -1)
-            ..enclosingElement3 = enclosingElement
-            ..reference = propertyFragmentReference
-            ..isSynthetic = true
-            ..name2 = accessor.name2;
+          var variableFragment =
+              TopLevelVariableFragmentImpl(name, -1)
+                ..enclosingElement3 = enclosingElement
+                ..reference = propertyFragmentReference
+                ..isSynthetic = true
+                ..name2 = accessor.name2;
           propertyFragment = variableFragment;
           propertyFragmentReference.element ??= propertyFragment;
           propertyFragments.add(variableFragment);
@@ -1572,16 +1543,19 @@ class LibraryReader {
         }
       } else {
         var isPromotable = _reader.readBool();
-        if (existing is FieldElementImpl && canUseExisting(existing)) {
+        if (existing is FieldFragmentImpl && canUseExisting(existing)) {
           propertyFragment = existing;
         } else {
-          propertyFragment = FieldElementImpl(name, -1)
-            ..enclosingElement3 = enclosingElement
-            ..reference = propertyFragmentReference
-            ..name2 = accessor.name2
-            ..isStatic = accessor.isStatic
-            ..isSynthetic = true
-            ..isPromotable = isPromotable;
+          propertyFragment =
+              FieldFragmentImpl(name, -1)
+                ..enclosingElement3 = enclosingElement
+                ..reference = propertyFragmentReference
+                ..name2 = accessor.name2
+                ..isStatic = accessor.isStatic
+                ..isSynthetic = true
+                ..isPromotable = isPromotable
+                ..hasEnclosingTypeParameterReference =
+                    accessor.hasEnclosingTypeParameterReference;
           propertyFragmentReference.element ??= propertyFragment;
           propertyFragments.add(propertyFragment);
         }
@@ -1618,8 +1592,8 @@ class LibraryReader {
     );
   }
 
-  TopLevelVariableElementImpl _readTopLevelVariableElement(
-    CompilationUnitElementImpl unitElement,
+  TopLevelVariableFragmentImpl _readTopLevelVariableElement(
+    LibraryFragmentImpl unitElement,
     Reference unitReference,
   ) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
@@ -1634,11 +1608,11 @@ class LibraryReader {
     var name = _reader.readStringReference();
     var isConst = _reader.readBool();
 
-    TopLevelVariableElementImpl fragment;
+    TopLevelVariableFragmentImpl fragment;
     if (isConst) {
-      fragment = ConstTopLevelVariableElementImpl(name, -1);
+      fragment = ConstTopLevelVariableFragmentImpl(name, -1);
     } else {
-      fragment = TopLevelVariableElementImpl(name, -1);
+      fragment = TopLevelVariableFragmentImpl(name, -1);
     }
     fragment.name2 = fragmentName;
 
@@ -1662,20 +1636,22 @@ class LibraryReader {
     fragment.typeInferenceError = _readTopLevelInferenceError();
 
     if (getterReference != null) {
-      fragment.createImplicitGetter(getterReference);
+      var getter = fragment.createImplicitGetter(getterReference);
+      getter.hasEnclosingTypeParameterReference = false;
     }
     if (fragment.hasSetter && setterReference != null) {
-      fragment.createImplicitSetter(setterReference);
+      var getter = fragment.createImplicitSetter(setterReference);
+      getter.hasEnclosingTypeParameterReference = false;
     }
 
     return fragment;
   }
 
   void _readTopLevelVariables(
-    CompilationUnitElementImpl unitElement,
+    LibraryFragmentImpl unitElement,
     Reference unitReference,
-    List<PropertyAccessorElementImpl> accessors,
-    List<TopLevelVariableElementImpl> variables,
+    List<PropertyAccessorFragmentImpl> accessors,
+    List<TopLevelVariableFragmentImpl> variables,
   ) {
     var variableElementCount = _reader.readUInt30();
     for (var i = 0; i < variableElementCount; i++) {
@@ -1694,8 +1670,8 @@ class LibraryReader {
     }
   }
 
-  TypeAliasElementImpl _readTypeAliasElement(
-    CompilationUnitElementImpl unitElement,
+  TypeAliasFragmentImpl _readTypeAliasElement(
+    LibraryFragmentImpl unitElement,
     Reference unitReference,
   ) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
@@ -1706,12 +1682,12 @@ class LibraryReader {
 
     var isFunctionTypeAliasBased = _reader.readBool();
 
-    TypeAliasElementImpl fragment;
+    TypeAliasFragmentImpl fragment;
     if (isFunctionTypeAliasBased) {
-      fragment = TypeAliasElementImpl(name, -1);
+      fragment = TypeAliasFragmentImpl(name, -1);
       fragment.isFunctionTypeAliasBased = true;
     } else {
-      fragment = TypeAliasElementImpl(name, -1);
+      fragment = TypeAliasFragmentImpl(name, -1);
     }
     fragment.name2 = fragmentName;
 
@@ -1739,7 +1715,7 @@ class LibraryReader {
   }
 
   void _readTypeAliases(
-    CompilationUnitElementImpl unitElement,
+    LibraryFragmentImpl unitElement,
     Reference unitReference,
   ) {
     unitElement.typeAliases = _reader.readTypedList(() {
@@ -1747,33 +1723,34 @@ class LibraryReader {
     });
   }
 
-  List<TypeParameterElementImpl> _readTypeParameters() {
+  List<TypeParameterFragmentImpl> _readTypeParameters() {
     return _reader.readTypedList(() {
       var name = _reader.readStringReference();
       var fragmentName = _readFragmentName();
       var varianceEncoding = _reader.readByte();
       var variance = _decodeVariance(varianceEncoding);
-      var element = TypeParameterElementImpl(name, -1);
+      var element = TypeParameterFragmentImpl(name, -1);
       element.name2 = fragmentName;
       element.variance = variance;
       return element;
     });
   }
 
-  CompilationUnitElementImpl _readUnitElement({
-    required CompilationUnitElementImpl? containerUnit,
+  LibraryFragmentImpl _readUnitElement({
+    required LibraryFragmentImpl? containerUnit,
     required Source unitSource,
   }) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
 
-    var unitElement = CompilationUnitElementImpl(
+    var unitElement = LibraryFragmentImpl(
       library: _libraryElement,
       source: unitSource,
       lineInfo: LineInfo([0]),
     );
 
-    var unitReference =
-        _reference.getChild('@fragment').getChild('${unitSource.uri}');
+    var unitReference = _reference
+        .getChild('@fragment')
+        .getChild('${unitSource.uri}');
     unitElement.setLinkedData(
       unitReference,
       CompilationUnitElementLinkedData(
@@ -1784,19 +1761,14 @@ class LibraryReader {
       ),
     );
 
-    unitElement.uri = _reader.readOptionalStringReference();
     unitElement.isSynthetic = _reader.readBool();
 
     unitElement.libraryImports = _reader.readTypedList(() {
-      return _readImportElement(
-        containerUnit: unitElement,
-      );
+      return _readImportElement(containerUnit: unitElement);
     });
 
     unitElement.libraryExports = _reader.readTypedList(() {
-      return _readExportElement(
-        containerUnit: unitElement,
-      );
+      return _readExportElement(containerUnit: unitElement);
     });
 
     _readClasses(unitElement, unitReference);
@@ -1807,10 +1779,14 @@ class LibraryReader {
     _readMixins(unitElement, unitReference);
     _readTypeAliases(unitElement, unitReference);
 
-    var accessorFragments = <PropertyAccessorElementImpl>[];
-    var variableFragments = <TopLevelVariableElementImpl>[];
+    var accessorFragments = <PropertyAccessorFragmentImpl>[];
+    var variableFragments = <TopLevelVariableFragmentImpl>[];
     _readTopLevelVariables(
-        unitElement, unitReference, accessorFragments, variableFragments);
+      unitElement,
+      unitReference,
+      accessorFragments,
+      variableFragments,
+    );
     _readPropertyAccessors(
       unitElement,
       unitElement,
@@ -1824,9 +1800,7 @@ class LibraryReader {
     unitElement.topLevelVariables = variableFragments.toFixedList();
 
     unitElement.parts = _reader.readTypedList(() {
-      return _readPartElement(
-        containerUnit: unitElement,
-      );
+      return _readPartElement(containerUnit: unitElement);
     });
 
     return unitElement;
@@ -1849,27 +1823,25 @@ class LibraryReader {
   }
 }
 
-class MethodElementLinkedData extends ElementLinkedData<MethodElementImpl> {
+class MethodElementLinkedData extends ElementLinkedData<MethodFragmentImpl> {
   ApplyConstantOffsets? applyConstantOffsets;
 
   MethodElementLinkedData({
     required Reference reference,
     required LibraryReader libraryReader,
-    required CompilationUnitElementImpl unitElement,
+    required LibraryFragmentImpl unitElement,
     required int offset,
   }) : super(reference, libraryReader, unitElement, offset);
 
   @override
-  void _clearLinkedDataOnRead(MethodElementImpl element) {
+  void _clearLinkedDataOnRead(MethodFragmentImpl element) {
     element.linkedData = null;
   }
 
   @override
   void _read(element, reader) {
     _addEnclosingElementTypeParameters(reader, element);
-    element.metadata = reader._readAnnotationList(
-      unitElement: unitElement,
-    );
+    element.metadata = reader._readAnnotationList(unitElement: unitElement);
     _readTypeParameters(reader, element.typeParameters);
     _readFormalParameters(reader, element.parameters);
     element.returnType = reader.readRequiredType();
@@ -1877,18 +1849,18 @@ class MethodElementLinkedData extends ElementLinkedData<MethodElementImpl> {
   }
 }
 
-class MixinElementLinkedData extends ElementLinkedData<MixinElementImpl> {
+class MixinElementLinkedData extends ElementLinkedData<MixinFragmentImpl> {
   ApplyConstantOffsets? applyConstantOffsets;
 
   MixinElementLinkedData({
     required Reference reference,
     required LibraryReader libraryReader,
-    required CompilationUnitElementImpl unitElement,
+    required LibraryFragmentImpl unitElement,
     required int offset,
   }) : super(reference, libraryReader, unitElement, offset);
 
   @override
-  void _clearLinkedDataOnRead(MixinElementImpl element) {
+  void _clearLinkedDataOnRead(MixinFragmentImpl element) {
     element.linkedData = null;
   }
 
@@ -1909,18 +1881,18 @@ class MixinElementLinkedData extends ElementLinkedData<MixinElementImpl> {
 }
 
 class PropertyAccessorElementLinkedData
-    extends ElementLinkedData<PropertyAccessorElementImpl> {
+    extends ElementLinkedData<PropertyAccessorFragmentImpl> {
   ApplyConstantOffsets? applyConstantOffsets;
 
   PropertyAccessorElementLinkedData({
     required Reference reference,
     required LibraryReader libraryReader,
-    required CompilationUnitElementImpl unitElement,
+    required LibraryFragmentImpl unitElement,
     required int offset,
   }) : super(reference, libraryReader, unitElement, offset);
 
   @override
-  void _clearLinkedDataOnRead(PropertyAccessorElementImpl element) {
+  void _clearLinkedDataOnRead(PropertyAccessorFragmentImpl element) {
     element.linkedData = null;
   }
 
@@ -1928,9 +1900,7 @@ class PropertyAccessorElementLinkedData
   void _read(element, reader) {
     _addEnclosingElementTypeParameters(reader, element);
 
-    element.metadata = reader._readAnnotationList(
-      unitElement: unitElement,
-    );
+    element.metadata = reader._readAnnotationList(unitElement: unitElement);
 
     element.returnType = reader.readRequiredType();
     _readFormalParameters(reader, element.parameters);
@@ -1945,18 +1915,14 @@ class ResolutionReader {
   final _ReferenceReader _referenceReader;
   final SummaryDataReader _reader;
 
-  /// The stack of [TypeParameterElementImpl]s and [ParameterElementImpl] that are
+  /// The stack of [TypeParameterFragmentImpl]s and [FormalParameterFragmentImpl] that are
   /// available in the scope of [readElement] and [readType].
   ///
   /// This stack is shared with the client of the reader, and update mostly
   /// by the client. However it is also updated during [_readFunctionType].
-  final List<ElementImpl> _localElements = [];
+  final List<FragmentImpl> _localElements = [];
 
-  ResolutionReader(
-    this._elementFactory,
-    this._referenceReader,
-    this._reader,
-  );
+  ResolutionReader(this._elementFactory, this._referenceReader, this._reader);
 
   LibraryElementImpl libraryOfUri(Uri uri) {
     return _elementFactory.libraryOfUri2(uri);
@@ -1987,7 +1953,7 @@ class ResolutionReader {
     }
 
     if (memberFlags == Tag.MemberWithTypeArguments) {
-      var enclosing = element.enclosingElement3 as InstanceElementImpl;
+      var enclosing = element.enclosingElement3 as InstanceFragmentImpl;
 
       var firstFragment = enclosing.element.firstFragment;
       var declarationTypeParameters =
@@ -2002,10 +1968,10 @@ class ResolutionReader {
         );
       }
 
-      if (element is ExecutableElementImpl) {
+      if (element is ExecutableFragmentImpl) {
         return ExecutableMember.from2(element, substitution);
       } else {
-        element as FieldElementImpl;
+        element as FieldFragmentImpl;
         return FieldMember.from2(element, substitution);
       }
     }
@@ -2013,12 +1979,14 @@ class ResolutionReader {
     throw UnimplementedError('memberFlags: $memberFlags');
   }
 
-  Element2? readElement2() {
+  Element? readElement2() {
     var element = readElement();
     switch (element) {
       case null:
         return null;
-      case ElementImpl():
+      case PrefixElementImpl():
+        return element.element2;
+      case FragmentImpl():
         return element.asElement2;
       case ExecutableMember():
         return element;
@@ -2027,7 +1995,7 @@ class ResolutionReader {
     }
   }
 
-  List<T> readElementList2<T extends Element2>() {
+  List<T> readElementList2<T extends Element>() {
     return _reader.readTypedListCast<T>(readElement2);
   }
 
@@ -2039,10 +2007,7 @@ class ResolutionReader {
     required K Function() readKey,
     required V Function() readValue,
   }) {
-    return _reader.readMap(
-      readKey: readKey,
-      readValue: readValue,
-    );
+    return _reader.readMap(readKey: readKey, readValue: readValue);
   }
 
   FunctionTypeImpl? readOptionalFunctionType() {
@@ -2091,7 +2056,7 @@ class ResolutionReader {
       var type = _readFunctionType();
       return _readAliasElementArguments(type);
     } else if (tag == Tag.InterfaceType) {
-      var element = readElement() as InterfaceElementImpl;
+      var element = readElement() as InterfaceFragmentImpl;
       var typeArguments = _readTypeList();
       var nullability = _readNullability();
       var type = InterfaceTypeImpl(
@@ -2101,12 +2066,14 @@ class ResolutionReader {
       );
       return _readAliasElementArguments(type);
     } else if (tag == Tag.InterfaceType_noTypeArguments_none) {
-      var element = readElement() as InterfaceElementImpl;
+      var element = readElement() as InterfaceFragmentImpl;
       var type = element.instantiateImpl(
-          typeArguments: const [], nullabilitySuffix: NullabilitySuffix.none);
+        typeArguments: const [],
+        nullabilitySuffix: NullabilitySuffix.none,
+      );
       return _readAliasElementArguments(type);
     } else if (tag == Tag.InterfaceType_noTypeArguments_question) {
-      var element = readElement() as InterfaceElementImpl;
+      var element = readElement() as InterfaceFragmentImpl;
       var type = element.instantiateImpl(
         typeArguments: const [],
         nullabilitySuffix: NullabilitySuffix.question,
@@ -2123,7 +2090,7 @@ class ResolutionReader {
       var type = _readRecordType();
       return _readAliasElementArguments(type);
     } else if (tag == Tag.TypeParameterType) {
-      var element = readElement() as TypeParameterElementImpl;
+      var element = readElement() as TypeParameterFragmentImpl;
       var nullability = _readNullability();
       var type = TypeParameterTypeImpl(
         element3: element.asElement2,
@@ -2154,19 +2121,19 @@ class ResolutionReader {
     _reader.offset = offset;
   }
 
-  void _addFormalParameters(List<ParameterElementImpl> parameters) {
+  void _addFormalParameters(List<FormalParameterFragmentImpl> parameters) {
     for (var parameter in parameters) {
       _localElements.add(parameter);
     }
   }
 
-  void _addTypeParameters(List<TypeParameterElementImpl> typeParameters) {
+  void _addTypeParameters(List<TypeParameterFragmentImpl> typeParameters) {
     for (var typeParameter in typeParameters) {
       _localElements.add(typeParameter);
     }
   }
 
-  ElementImpl? _readAliasedElement(CompilationUnitElementImpl unitElement) {
+  FragmentImpl? _readAliasedElement(LibraryFragmentImpl unitElement) {
     var tag = _reader.readByte();
     if (tag == AliasedElementTag.nothing) {
       return null;
@@ -2177,7 +2144,7 @@ class ResolutionReader {
 
       _localElements.length -= typeParameters.length;
 
-      return GenericFunctionTypeElementImpl.forOffset(-1)
+      return GenericFunctionTypeFragmentImpl.forOffset(-1)
         ..typeParameters = typeParameters
         ..parameters = formalParameters
         ..returnType = returnType;
@@ -2188,7 +2155,7 @@ class ResolutionReader {
 
   TypeImpl _readAliasElementArguments(TypeImpl type) {
     var aliasElement = _readRawElement();
-    if (aliasElement is TypeAliasElementImpl) {
+    if (aliasElement is TypeAliasFragmentImpl) {
       var aliasArguments = _readTypeList();
       if (type is DynamicTypeImpl) {
         // TODO(scheglov): add support for `dynamic` aliasing
@@ -2244,7 +2211,7 @@ class ResolutionReader {
   }
 
   List<ElementAnnotationImpl> _readAnnotationList({
-    required CompilationUnitElementImpl unitElement,
+    required LibraryFragmentImpl unitElement,
   }) {
     return readTypedList(() {
       var ast = _readRequiredNode() as AnnotationImpl;
@@ -2254,8 +2221,8 @@ class ResolutionReader {
     });
   }
 
-  List<ParameterElementImpl> _readFormalParameters(
-    CompilationUnitElementImpl? unitElement,
+  List<FormalParameterFragmentImpl> _readFormalParameters(
+    LibraryFragmentImpl? unitElement,
   ) {
     return readTypedList(() {
       var kindIndex = _reader.readByte();
@@ -2267,9 +2234,9 @@ class ResolutionReader {
       var type = readRequiredType();
       var name = readStringReference();
       if (!isDefault) {
-        ParameterElementImpl element;
+        FormalParameterFragmentImpl element;
         if (isInitializingFormal) {
-          element = FieldFormalParameterElementImpl(
+          element = FieldFormalParameterFragmentImpl(
             name: name,
             nameOffset: -1,
             name2: name.nullIfEmpty,
@@ -2277,7 +2244,7 @@ class ResolutionReader {
             parameterKind: kind,
           )..type = type;
         } else {
-          element = ParameterElementImpl(
+          element = FormalParameterFragmentImpl(
             name: name,
             nameOffset: -1,
             name2: name.nullIfEmpty,
@@ -2295,7 +2262,7 @@ class ResolutionReader {
         }
         return element;
       } else {
-        var element = DefaultParameterElementImpl(
+        var element = DefaultParameterFragmentImpl(
           name: name,
           nameOffset: -1,
           name2: name.nullIfEmpty,
@@ -2365,7 +2332,7 @@ class ResolutionReader {
     return readType() as InterfaceType?;
   }
 
-  ElementImpl? _readRawElement() {
+  FragmentImpl? _readRawElement() {
     var index = _reader.readUInt30();
 
     if ((index & 0x1) == 0x1) {
@@ -2380,9 +2347,7 @@ class ResolutionReader {
 
   RecordTypeImpl _readRecordType() {
     var positionalFields = readTypedList(() {
-      return RecordTypePositionalFieldImpl(
-        type: readRequiredType(),
-      );
+      return RecordTypePositionalFieldImpl(type: readRequiredType());
     });
 
     var namedFields = readTypedList(() {
@@ -2412,12 +2377,12 @@ class ResolutionReader {
     });
   }
 
-  List<TypeParameterElementImpl> _readTypeParameters(
-    CompilationUnitElementImpl? unitElement,
+  List<TypeParameterFragmentImpl> _readTypeParameters(
+    LibraryFragmentImpl? unitElement,
   ) {
     var typeParameters = readTypedList(() {
       var name = readStringReference();
-      var typeParameter = TypeParameterElementImpl(name, -1);
+      var typeParameter = TypeParameterFragmentImpl(name, -1);
       _localElements.add(typeParameter);
       return typeParameter;
     });
@@ -2447,29 +2412,27 @@ class ResolutionReader {
 }
 
 class TopLevelVariableElementLinkedData
-    extends ElementLinkedData<TopLevelVariableElementImpl> {
+    extends ElementLinkedData<TopLevelVariableFragmentImpl> {
   ApplyConstantOffsets? applyConstantOffsets;
 
   TopLevelVariableElementLinkedData({
     required Reference reference,
     required LibraryReader libraryReader,
-    required CompilationUnitElementImpl unitElement,
+    required LibraryFragmentImpl unitElement,
     required int offset,
   }) : super(reference, libraryReader, unitElement, offset);
 
   @override
-  void _clearLinkedDataOnRead(TopLevelVariableElementImpl element) {
+  void _clearLinkedDataOnRead(TopLevelVariableFragmentImpl element) {
     element.linkedData = null;
   }
 
   @override
   void _read(element, reader) {
-    element.metadata = reader._readAnnotationList(
-      unitElement: unitElement,
-    );
+    element.metadata = reader._readAnnotationList(unitElement: unitElement);
     element.type = reader.readRequiredType();
 
-    if (element is ConstTopLevelVariableElementImpl) {
+    if (element is ConstTopLevelVariableFragmentImpl) {
       var initializer = reader._readOptionalExpression();
       if (initializer != null) {
         element.constantInitializer = initializer;
@@ -2481,26 +2444,24 @@ class TopLevelVariableElementLinkedData
 }
 
 class TypeAliasElementLinkedData
-    extends ElementLinkedData<TypeAliasElementImpl> {
+    extends ElementLinkedData<TypeAliasFragmentImpl> {
   ApplyConstantOffsets? applyConstantOffsets;
 
   TypeAliasElementLinkedData({
     required Reference reference,
     required LibraryReader libraryReader,
-    required CompilationUnitElementImpl unitElement,
+    required LibraryFragmentImpl unitElement,
     required int offset,
   }) : super(reference, libraryReader, unitElement, offset);
 
   @override
-  void _clearLinkedDataOnRead(TypeAliasElementImpl element) {
+  void _clearLinkedDataOnRead(TypeAliasFragmentImpl element) {
     element.linkedData = null;
   }
 
   @override
   void _read(element, reader) {
-    element.metadata = reader._readAnnotationList(
-      unitElement: unitElement,
-    );
+    element.metadata = reader._readAnnotationList(unitElement: unitElement);
     _readTypeParameters(reader, element.typeParameters);
     element.aliasedElement = reader._readAliasedElement(unitElement);
     element.aliasedType = reader.readRequiredType();

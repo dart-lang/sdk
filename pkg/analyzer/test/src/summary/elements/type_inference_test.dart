@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer_utilities/testing/test_support.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../dart/resolution/context_collection_resolution.dart';
 import '../../dart/resolution/node_text_expectations.dart';
 import '../elements_base.dart';
 
@@ -47,12 +47,15 @@ library
   getters
     synthetic static get f
       firstFragment: <testLibraryFragment>::@getter::f
+      returnType: V Function<U, V>(U, V)
 ''');
   }
 
   test_closure_in_variable_declaration_in_part() async {
-    newFile('$testPackageLibPath/a.dart',
-        'part of lib; final f = (int i) => i.toDouble();');
+    newFile(
+      '$testPackageLibPath/a.dart',
+      'part of lib; final f = (int i) => i.toDouble();',
+    );
     var library = await buildLibrary('''
 library lib;
 part "a.dart";
@@ -62,9 +65,13 @@ library
   reference: <testLibrary>
   name: lib
   fragments
-    <testLibraryFragment>
+    <testLibraryFragment> (offset=8)
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      parts
+        part_0
+          uri: package:test/a.dart
+          unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       enclosingFragment: <testLibraryFragment>
@@ -87,6 +94,7 @@ library
   getters
     synthetic static get f
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@getter::f
+      returnType: double Function(int)
 ''');
   }
 
@@ -140,6 +148,7 @@ library
       getters
         synthetic get f
           firstFragment: <testLibraryFragment>::@class::C::@getter::f
+          returnType: InvalidType
 ''');
   }
 
@@ -273,6 +282,7 @@ library
   getters
     synthetic static get x
       firstFragment: <testLibraryFragment>::@getter::x
+      returnType: C<int>
   functions
     f
       reference: <testLibrary>::@function::f
@@ -396,6 +406,7 @@ library
   getters
     synthetic static get x
       firstFragment: <testLibraryFragment>::@getter::x
+      returnType: C
   functions
     f
       reference: <testLibrary>::@function::f
@@ -510,12 +521,14 @@ library
   getters
     synthetic static get s
       firstFragment: <testLibraryFragment>::@getter::s
+      returnType: S<B>
   setters
     synthetic static set s
       firstFragment: <testLibraryFragment>::@setter::s
       formalParameters
         requiredPositional _s
           type: S<B>
+      returnType: void
 ''');
   }
 
@@ -653,12 +666,14 @@ library
       getters
         synthetic get b
           firstFragment: <testLibraryFragment>::@class::A::@getter::b
+          returnType: B
       setters
         synthetic set b
           firstFragment: <testLibraryFragment>::@class::A::@setter::b
           formalParameters
             requiredPositional _b
               type: B
+          returnType: void
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -674,12 +689,14 @@ library
       getters
         get c
           firstFragment: <testLibraryFragment>::@class::B::@getter::c
+          returnType: C
       setters
         set c
           firstFragment: <testLibraryFragment>::@class::B::@setter::c
           formalParameters
             requiredPositional value
               type: C
+          returnType: void
     class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
@@ -710,19 +727,23 @@ library
   getters
     synthetic static get a
       firstFragment: <testLibraryFragment>::@getter::a
+      returnType: A
     synthetic static get x
       firstFragment: <testLibraryFragment>::@getter::x
+      returnType: C
   setters
     synthetic static set a
       firstFragment: <testLibraryFragment>::@setter::a
       formalParameters
         requiredPositional _a
           type: A
+      returnType: void
     synthetic static set x
       firstFragment: <testLibraryFragment>::@setter::x
       formalParameters
         requiredPositional _x
           type: C
+      returnType: void
 ''');
   }
 
@@ -806,26 +827,32 @@ library
   getters
     synthetic static get x
       firstFragment: <testLibraryFragment>::@getter::x
+      returnType: Iterable<String>
     synthetic static get y
       firstFragment: <testLibraryFragment>::@getter::y
+      returnType: List<int>
     synthetic static get z
       firstFragment: <testLibraryFragment>::@getter::z
+      returnType: List<String>
   setters
     synthetic static set x
       firstFragment: <testLibraryFragment>::@setter::x
       formalParameters
         requiredPositional _x
           type: Iterable<String>
+      returnType: void
     synthetic static set y
       firstFragment: <testLibraryFragment>::@setter::y
       formalParameters
         requiredPositional _y
           type: List<int>
+      returnType: void
     synthetic static set z
       firstFragment: <testLibraryFragment>::@setter::z
       formalParameters
         requiredPositional _z
           type: List<String>
+      returnType: void
 ''');
   }
 
@@ -916,12 +943,14 @@ library
       getters
         synthetic get p
           firstFragment: <testLibraryFragment>::@class::C::@getter::p
+          returnType: int
       setters
         synthetic set p
           firstFragment: <testLibraryFragment>::@class::C::@setter::p
           formalParameters
             requiredPositional _p
               type: int
+          returnType: void
   topLevelVariables
     hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -938,19 +967,23 @@ library
   getters
     synthetic static get x
       firstFragment: <testLibraryFragment>::@getter::x
+      returnType: List<C>
     synthetic static get y
       firstFragment: <testLibraryFragment>::@getter::y
+      returnType: Iterable<int>
   setters
     synthetic static set x
       firstFragment: <testLibraryFragment>::@setter::x
       formalParameters
         requiredPositional _x
           type: List<C>
+      returnType: void
     synthetic static set y
       firstFragment: <testLibraryFragment>::@setter::y
       formalParameters
         requiredPositional _y
           type: Iterable<int>
+      returnType: void
 ''');
   }
 
@@ -1045,6 +1078,7 @@ library
       getters
         synthetic get x
           firstFragment: <testLibraryFragment>::@class::C::@getter::x
+          returnType: dynamic
 ''');
   }
 
@@ -1103,6 +1137,7 @@ library
       getters
         get x
           firstFragment: <testLibraryFragment>::@class::C::@getter::x
+          returnType: dynamic
 ''');
   }
 
@@ -1159,6 +1194,7 @@ library
           typeParameters
             U
             V
+          returnType: dynamic
 ''');
   }
 
@@ -1225,6 +1261,7 @@ library
           formalParameters
             requiredPositional hasImplicitType value
               type: dynamic
+          returnType: void
 ''');
   }
 
@@ -1369,12 +1406,14 @@ library
   getters
     synthetic static get c
       firstFragment: <testLibraryFragment>::@getter::c
+      returnType: C<num>
   setters
     synthetic static set c
       firstFragment: <testLibraryFragment>::@setter::c
       formalParameters
         requiredPositional _c
           type: C<num>
+      returnType: void
 ''');
   }
 
@@ -1441,11 +1480,14 @@ library
       getters
         synthetic static get foo
           firstFragment: <testLibraryFragment>::@class::A::@getter::foo
+          returnType: int
         synthetic static get bar
           firstFragment: <testLibraryFragment>::@class::A::@getter::bar
+          returnType: int Function(double)
       methods
         static baz
           firstFragment: <testLibraryFragment>::@class::A::@method::baz
+          returnType: int Function(double)
 ''');
   }
 
@@ -1497,12 +1539,14 @@ library
   getters
     synthetic static get x
       firstFragment: <testLibraryFragment>::@getter::x
+      returnType: int
   setters
     synthetic static set x
       firstFragment: <testLibraryFragment>::@setter::x
       formalParameters
         requiredPositional _x
           type: int
+      returnType: void
   functions
     m
       reference: <testLibrary>::@function::m
@@ -1595,26 +1639,32 @@ library
   getters
     synthetic static get m
       firstFragment: <testLibraryFragment>::@getter::m
+      returnType: int Function<T>()?
     synthetic static get n
       firstFragment: <testLibraryFragment>::@getter::n
+      returnType: int Function<T>()
     synthetic static get x
       firstFragment: <testLibraryFragment>::@getter::x
+      returnType: int
   setters
     synthetic static set m
       firstFragment: <testLibraryFragment>::@setter::m
       formalParameters
         requiredPositional _m
           type: int Function<T>()?
+      returnType: void
     synthetic static set n
       firstFragment: <testLibraryFragment>::@setter::n
       formalParameters
         requiredPositional _n
           type: int Function<T>()
+      returnType: void
     synthetic static set x
       firstFragment: <testLibraryFragment>::@setter::x
       formalParameters
         requiredPositional _x
           type: int
+      returnType: void
 ''');
   }
 
@@ -1661,12 +1711,14 @@ library
   getters
     synthetic static get m
       firstFragment: <testLibraryFragment>::@getter::m
+      returnType: HashMap<dynamic, dynamic>
   setters
     synthetic static set m
       firstFragment: <testLibraryFragment>::@setter::m
       formalParameters
         requiredPositional _m
           type: HashMap<dynamic, dynamic>
+      returnType: void
 ''');
   }
 
@@ -1770,40 +1822,50 @@ library
   getters
     synthetic static get a
       firstFragment: <testLibraryFragment>::@getter::a
+      returnType: dynamic
     synthetic static get b
       firstFragment: <testLibraryFragment>::@getter::b
+      returnType: dynamic
     synthetic static get c
       firstFragment: <testLibraryFragment>::@getter::c
+      returnType: dynamic
     synthetic static get d
       firstFragment: <testLibraryFragment>::@getter::d
+      returnType: int
   setters
     synthetic static set a
       firstFragment: <testLibraryFragment>::@setter::a
       formalParameters
         requiredPositional _a
           type: dynamic
+      returnType: void
     synthetic static set b
       firstFragment: <testLibraryFragment>::@setter::b
       formalParameters
         requiredPositional _b
           type: dynamic
+      returnType: void
     synthetic static set c
       firstFragment: <testLibraryFragment>::@setter::c
       formalParameters
         requiredPositional _c
           type: dynamic
+      returnType: void
     synthetic static set d
       firstFragment: <testLibraryFragment>::@setter::d
       formalParameters
         requiredPositional _d
           type: int
+      returnType: void
 ''');
   }
 
   test_inferred_type_is_typedef() async {
-    var library = await buildLibrary('typedef int F(String s);'
-        ' class C extends D { var v; }'
-        ' abstract class D { F get v; }');
+    var library = await buildLibrary(
+      'typedef int F(String s);'
+      ' class C extends D { var v; }'
+      ' abstract class D { F get v; }',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1876,6 +1938,8 @@ library
       getters
         synthetic get v
           firstFragment: <testLibraryFragment>::@class::C::@getter::v
+          returnType: int Function(String)
+            alias: <testLibrary>::@typeAlias::F
       setters
         synthetic set v
           firstFragment: <testLibraryFragment>::@class::C::@setter::v
@@ -1883,6 +1947,7 @@ library
             requiredPositional _v
               type: int Function(String)
                 alias: <testLibrary>::@typeAlias::F
+          returnType: void
     abstract class D
       reference: <testLibrary>::@class::D
       firstFragment: <testLibraryFragment>::@class::D
@@ -1898,6 +1963,8 @@ library
       getters
         abstract get v
           firstFragment: <testLibraryFragment>::@class::D::@getter::v
+          returnType: int Function(String)
+            alias: <testLibrary>::@typeAlias::F
   typeAliases
     F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -1946,12 +2013,14 @@ library
   getters
     synthetic static get x
       firstFragment: <testLibraryFragment>::@getter::x
+      returnType: int
   setters
     synthetic static set x
       firstFragment: <testLibraryFragment>::@setter::x
       formalParameters
         requiredPositional _x
           type: int
+      returnType: void
 ''');
   }
 
@@ -1996,12 +2065,14 @@ library
   getters
     synthetic static get x
       firstFragment: <testLibraryFragment>::@getter::x
+      returnType: int?
   setters
     synthetic static set x
       firstFragment: <testLibraryFragment>::@setter::x
       formalParameters
         requiredPositional _x
           type: int?
+      returnType: void
 ''');
   }
 
@@ -2046,12 +2117,14 @@ library
   getters
     synthetic static get x
       firstFragment: <testLibraryFragment>::@getter::x
+      returnType: void Function()
   setters
     synthetic static set x
       firstFragment: <testLibraryFragment>::@setter::x
       formalParameters
         requiredPositional _x
           type: void Function()
+      returnType: void
 ''');
   }
 
@@ -2096,12 +2169,14 @@ library
   getters
     synthetic static get x
       firstFragment: <testLibraryFragment>::@getter::x
+      returnType: void Function()?
   setters
     synthetic static set x
       firstFragment: <testLibraryFragment>::@setter::x
       formalParameters
         requiredPositional _x
           type: void Function()?
+      returnType: void
 ''');
   }
 
@@ -2181,6 +2256,7 @@ library
       fields
         v
           firstFragment: <testLibraryFragment>::@class::C::@field::v
+          hasEnclosingTypeParameterReference: true
           type: Map<T, int>
           getter: <testLibraryFragment>::@class::C::@getter::v#element
           setter: <testLibraryFragment>::@class::C::@setter::v#element
@@ -2191,12 +2267,16 @@ library
       getters
         synthetic get v
           firstFragment: <testLibraryFragment>::@class::C::@getter::v
+          hasEnclosingTypeParameterReference: true
+          returnType: Map<T, int>
       setters
         synthetic set v
           firstFragment: <testLibraryFragment>::@class::C::@setter::v
+          hasEnclosingTypeParameterReference: true
           formalParameters
             requiredPositional _v
               type: Map<T, int>
+          returnType: void
     abstract class D
       reference: <testLibrary>::@class::D
       firstFragment: <testLibraryFragment>::@class::D
@@ -2206,6 +2286,7 @@ library
       fields
         synthetic v
           firstFragment: <testLibraryFragment>::@class::D::@field::v
+          hasEnclosingTypeParameterReference: true
           type: Map<V, U>
           getter: <testLibraryFragment>::@class::D::@getter::v#element
       constructors
@@ -2214,6 +2295,8 @@ library
       getters
         abstract get v
           firstFragment: <testLibraryFragment>::@class::D::@getter::v
+          hasEnclosingTypeParameterReference: true
+          returnType: Map<V, U>
 ''');
   }
 
@@ -2271,12 +2354,14 @@ library
   getters
     synthetic static get v
       firstFragment: <testLibraryFragment>::@getter::v
+      returnType: dynamic
   setters
     synthetic static set v
       firstFragment: <testLibraryFragment>::@setter::v
       formalParameters
         requiredPositional _v
           type: dynamic
+      returnType: void
   functions
     h
       reference: <testLibrary>::@function::h
@@ -2363,11 +2448,13 @@ library
       methods
         f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
+          hasEnclosingTypeParameterReference: true
           formalParameters
             requiredPositional x
               type: int
             requiredPositional hasImplicitType g
               type: int Function(U)
+          returnType: void
     abstract class D
       reference: <testLibrary>::@class::D
       firstFragment: <testLibraryFragment>::@class::D
@@ -2380,6 +2467,7 @@ library
       methods
         abstract f
           firstFragment: <testLibraryFragment>::@class::D::@method::f
+          hasEnclosingTypeParameterReference: true
           formalParameters
             requiredPositional x
               type: int
@@ -2388,6 +2476,7 @@ library
               formalParameters
                 requiredPositional s
                   type: V
+          returnType: void
 ''');
   }
 
@@ -2450,12 +2539,15 @@ library
               type: int
             requiredPositional hasImplicitType g
               type: int Function(String)
+          returnType: void
 ''');
   }
 
   test_inferred_type_refers_to_method_function_typed_parameter_type() async {
-    var library = await buildLibrary('class C extends D { void f(int x, g) {} }'
-        ' abstract class D { void f(int x, int g(String s)); }');
+    var library = await buildLibrary(
+      'class C extends D { void f(int x, g) {} }'
+      ' abstract class D { void f(int x, int g(String s)); }',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2514,6 +2606,7 @@ library
               type: int
             requiredPositional hasImplicitType g
               type: int Function(String)
+          returnType: void
     abstract class D
       reference: <testLibrary>::@class::D
       firstFragment: <testLibraryFragment>::@class::D
@@ -2531,6 +2624,7 @@ library
               formalParameters
                 requiredPositional s
                   type: String
+          returnType: void
 ''');
   }
 
@@ -2579,12 +2673,14 @@ library
   getters
     synthetic static get v
       firstFragment: <testLibraryFragment>::@getter::v
+      returnType: dynamic
   setters
     synthetic static set v
       firstFragment: <testLibraryFragment>::@setter::v
       formalParameters
         requiredPositional _v
           type: dynamic
+      returnType: void
   functions
     f
       reference: <testLibrary>::@function::f
@@ -2647,12 +2743,14 @@ library
   getters
     synthetic static get v
       firstFragment: <testLibraryFragment>::@getter::v
+      returnType: dynamic
   setters
     synthetic static set v
       firstFragment: <testLibraryFragment>::@setter::v
       formalParameters
         requiredPositional _v
           type: dynamic
+      returnType: void
   functions
     f
       reference: <testLibrary>::@function::f
@@ -2671,8 +2769,10 @@ library
   }
 
   test_inferred_type_refers_to_setter_function_typed_parameter_type() async {
-    var library = await buildLibrary('class C extends D { void set f(g) {} }'
-        ' abstract class D { void set f(int g(String s)); }');
+    var library = await buildLibrary(
+      'class C extends D { void set f(g) {} }'
+      ' abstract class D { void set f(int g(String s)); }',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2740,6 +2840,7 @@ library
           formalParameters
             requiredPositional hasImplicitType g
               type: int Function(String)
+          returnType: void
     abstract class D
       reference: <testLibrary>::@class::D
       firstFragment: <testLibraryFragment>::@class::D
@@ -2760,6 +2861,7 @@ library
               formalParameters
                 requiredPositional s
                   type: String
+          returnType: void
 ''');
   }
 
@@ -2815,6 +2917,7 @@ library
           formalParameters
             requiredPositional hasImplicitType p
               type: Stream<dynamic>
+          returnType: dynamic
 ''');
     var b = library.classes[0];
     var p = b.methods2[0].formalParameters[0];
@@ -2915,19 +3018,23 @@ library
   getters
     synthetic static get a1
       firstFragment: <testLibraryFragment>::@getter::a1
+      returnType: A
     synthetic static get a2
       firstFragment: <testLibraryFragment>::@getter::a2
+      returnType: A
   setters
     synthetic static set a1
       firstFragment: <testLibraryFragment>::@setter::a1
       formalParameters
         requiredPositional _a1
           type: A
+      returnType: void
     synthetic static set a2
       firstFragment: <testLibraryFragment>::@setter::a2
       formalParameters
         requiredPositional _a2
           type: A
+      returnType: void
 ''');
   }
 
@@ -3001,19 +3108,23 @@ library
   getters
     synthetic static get a1
       firstFragment: <testLibraryFragment>::@getter::a1
+      returnType: A
     synthetic static get a2
       firstFragment: <testLibraryFragment>::@getter::a2
+      returnType: A
   setters
     synthetic static set a1
       firstFragment: <testLibraryFragment>::@setter::a1
       formalParameters
         requiredPositional _a1
           type: A
+      returnType: void
     synthetic static set a2
       firstFragment: <testLibraryFragment>::@setter::a2
       formalParameters
         requiredPositional _a2
           type: A
+      returnType: void
 ''');
   }
 
@@ -3071,12 +3182,14 @@ library
   getters
     synthetic static get v
       firstFragment: <testLibraryFragment>::@getter::v
+      returnType: List<Object Function(int Function(String))>
   setters
     synthetic static set v
       firstFragment: <testLibraryFragment>::@setter::v
       formalParameters
         requiredPositional _v
           type: List<Object Function(int Function(String))>
+      returnType: void
   functions
     f
       reference: <testLibrary>::@function::f
@@ -3191,6 +3304,7 @@ library
       methods
         abstract m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
+          returnType: int
     abstract class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -3200,6 +3314,7 @@ library
       methods
         abstract m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
+          returnType: String
     abstract class C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
@@ -3226,12 +3341,14 @@ library
       getters
         synthetic get f
           firstFragment: <testLibraryFragment>::@class::D::@getter::f
+          returnType: dynamic
       setters
         synthetic set f
           firstFragment: <testLibraryFragment>::@class::D::@setter::f
           formalParameters
             requiredPositional _f
               type: dynamic
+          returnType: void
 ''');
   }
 
@@ -3316,6 +3433,7 @@ library
       methods
         call
           firstFragment: <testLibraryFragment>::@class::A::@method::call
+          returnType: double
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -3331,12 +3449,14 @@ library
       getters
         synthetic get a
           firstFragment: <testLibraryFragment>::@class::B::@getter::a
+          returnType: A
       setters
         synthetic set a
           firstFragment: <testLibraryFragment>::@class::B::@setter::a
           formalParameters
             requiredPositional _a
               type: A
+          returnType: void
   topLevelVariables
     hasInitializer c
       reference: <testLibrary>::@topLevelVariable::c
@@ -3347,12 +3467,14 @@ library
   getters
     synthetic static get c
       firstFragment: <testLibraryFragment>::@getter::c
+      returnType: double
   setters
     synthetic static set c
       firstFragment: <testLibraryFragment>::@setter::c
       formalParameters
         requiredPositional _c
           type: double
+      returnType: void
 ''');
   }
 
@@ -3417,19 +3539,23 @@ library
   getters
     synthetic static get a
       firstFragment: <testLibraryFragment>::@getter::a
+      returnType: int Function()
     synthetic static get b
       firstFragment: <testLibraryFragment>::@getter::b
+      returnType: int
   setters
     synthetic static set a
       firstFragment: <testLibraryFragment>::@setter::a
       formalParameters
         requiredPositional _a
           type: int Function()
+      returnType: void
     synthetic static set b
       firstFragment: <testLibraryFragment>::@setter::b
       formalParameters
         requiredPositional _b
           type: int
+      returnType: void
 ''');
   }
 
@@ -3477,12 +3603,14 @@ library
   getters
     synthetic static get x
       firstFragment: <testLibraryFragment>::@getter::x
+      returnType: Future<dynamic> Function()
   setters
     synthetic static set x
       firstFragment: <testLibraryFragment>::@setter::x
       formalParameters
         requiredPositional _x
           type: Future<dynamic> Function()
+      returnType: void
 ''');
   }
 
@@ -3523,12 +3651,14 @@ library
   getters
     synthetic static get x
       firstFragment: <testLibraryFragment>::@getter::x
+      returnType: int Function(int Function(String))
   setters
     synthetic static set x
       firstFragment: <testLibraryFragment>::@setter::x
       formalParameters
         requiredPositional _x
           type: int Function(int Function(String))
+      returnType: void
 ''');
   }
 
@@ -3569,12 +3699,14 @@ library
   getters
     synthetic static get x
       firstFragment: <testLibraryFragment>::@getter::x
+      returnType: int Function(int Function(String))
   setters
     synthetic static set x
       firstFragment: <testLibraryFragment>::@setter::x
       formalParameters
         requiredPositional _x
           type: int Function(int Function(String))
+      returnType: void
 ''');
   }
 
@@ -3620,12 +3752,14 @@ library
   getters
     synthetic static get y
       firstFragment: <testLibraryFragment>::@getter::y
+      returnType: int
   setters
     synthetic static set y
       firstFragment: <testLibraryFragment>::@setter::y
       formalParameters
         requiredPositional _y
           type: int
+      returnType: void
 ''');
   }
 
@@ -3686,8 +3820,10 @@ library
       getters
         synthetic static get x
           firstFragment: <testLibraryFragment>::@class::A::@getter::x
+          returnType: dynamic
         synthetic static get y
           firstFragment: <testLibraryFragment>::@class::A::@getter::y
+          returnType: dynamic
 ''');
   }
 
@@ -3760,10 +3896,13 @@ library
       getters
         synthetic static get a
           firstFragment: <testLibraryFragment>::@class::A::@getter::a
+          returnType: dynamic
         synthetic static get b
           firstFragment: <testLibraryFragment>::@class::A::@getter::b
+          returnType: A
         synthetic get c
           firstFragment: <testLibraryFragment>::@class::A::@getter::c
+          returnType: dynamic
 ''');
   }
 
@@ -3852,6 +3991,7 @@ library
       fields
         value
           firstFragment: <testLibraryFragment>::@class::A::@field::value
+          hasEnclosingTypeParameterReference: true
           type: T
           getter: <testLibraryFragment>::@class::A::@getter::value#element
           setter: <testLibraryFragment>::@class::A::@setter::value#element
@@ -3864,12 +4004,16 @@ library
       getters
         synthetic get value
           firstFragment: <testLibraryFragment>::@class::A::@getter::value
+          hasEnclosingTypeParameterReference: true
+          returnType: T
       setters
         synthetic set value
           firstFragment: <testLibraryFragment>::@class::A::@setter::value
+          hasEnclosingTypeParameterReference: true
           formalParameters
             requiredPositional _value
               type: T
+          returnType: void
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -3885,12 +4029,14 @@ library
       getters
         synthetic get a
           firstFragment: <testLibraryFragment>::@class::B::@getter::a
+          returnType: A<String>
       setters
         synthetic set a
           firstFragment: <testLibraryFragment>::@class::B::@setter::a
           formalParameters
             requiredPositional _a
               type: A<String>
+          returnType: void
 ''');
   }
 
@@ -3961,7 +4107,7 @@ library
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
               formalParameters
-                value
+                value (offset=-1)
                   element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::value#element
         class C @78
           reference: <testLibraryFragment>::@class::C
@@ -4001,6 +4147,7 @@ library
       fields
         value
           firstFragment: <testLibraryFragment>::@class::A::@field::value
+          hasEnclosingTypeParameterReference: true
           type: T
           getter: <testLibraryFragment>::@class::A::@getter::value#element
           setter: <testLibraryFragment>::@class::A::@setter::value#element
@@ -4013,12 +4160,16 @@ library
       getters
         synthetic get value
           firstFragment: <testLibraryFragment>::@class::A::@getter::value
+          hasEnclosingTypeParameterReference: true
+          returnType: T
       setters
         synthetic set value
           firstFragment: <testLibraryFragment>::@class::A::@setter::value
+          hasEnclosingTypeParameterReference: true
           formalParameters
             requiredPositional _value
               type: T
+          returnType: void
     class alias B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -4061,12 +4212,14 @@ library
       getters
         synthetic get a
           firstFragment: <testLibraryFragment>::@class::C::@getter::a
+          returnType: B<int>
       setters
         synthetic set a
           firstFragment: <testLibraryFragment>::@class::C::@setter::a
           formalParameters
             requiredPositional _a
               type: B<int>
+          returnType: void
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
@@ -4143,12 +4296,14 @@ library
       getters
         synthetic get f
           firstFragment: <testLibraryFragment>::@class::A::@getter::f
+          returnType: int
       setters
         synthetic set f
           firstFragment: <testLibraryFragment>::@class::A::@setter::f
           formalParameters
             requiredPositional _f
               type: int
+          returnType: void
 ''');
   }
 
@@ -4219,8 +4374,10 @@ library
   getters
     synthetic static get a
       firstFragment: <testLibraryFragment>::@getter::a
+      returnType: dynamic
     synthetic static get b
       firstFragment: <testLibraryFragment>::@getter::b
+      returnType: dynamic
 ''');
   }
 
@@ -4268,12 +4425,14 @@ library
   getters
     synthetic static get v
       firstFragment: <testLibraryFragment>::@getter::v
+      returnType: InvalidType
   setters
     synthetic static set v
       firstFragment: <testLibraryFragment>::@setter::v
       formalParameters
         requiredPositional _v
           type: InvalidType
+      returnType: void
 ''');
   }
 
@@ -4314,12 +4473,14 @@ library
   getters
     synthetic static get x
       firstFragment: <testLibraryFragment>::@getter::x
+      returnType: dynamic Function(dynamic) Function(dynamic)
   setters
     synthetic static set x
       firstFragment: <testLibraryFragment>::@setter::x
       formalParameters
         requiredPositional _x
           type: dynamic Function(dynamic) Function(dynamic)
+      returnType: void
 ''');
   }
 
@@ -4360,12 +4521,14 @@ library
   getters
     synthetic static get x
       firstFragment: <testLibraryFragment>::@getter::x
+      returnType: int Function(int) Function(int)
   setters
     synthetic static set x
       firstFragment: <testLibraryFragment>::@setter::x
       formalParameters
         requiredPositional _x
           type: int Function(int) Function(int)
+      returnType: void
 ''');
   }
 
@@ -4406,12 +4569,14 @@ library
   getters
     synthetic static get x
       firstFragment: <testLibraryFragment>::@getter::x
+      returnType: dynamic Function([dynamic])
   setters
     synthetic static set x
       firstFragment: <testLibraryFragment>::@setter::x
       formalParameters
         requiredPositional _x
           type: dynamic Function([dynamic])
+      returnType: void
 ''');
   }
 
@@ -4470,10 +4635,13 @@ library
   getters
     synthetic static get a
       firstFragment: <testLibraryFragment>::@getter::a
+      returnType: dynamic
     synthetic static get b
       firstFragment: <testLibraryFragment>::@getter::b
+      returnType: dynamic
     synthetic static get c
       firstFragment: <testLibraryFragment>::@getter::c
+      returnType: dynamic
 ''');
   }
 
@@ -4532,10 +4700,13 @@ library
   getters
     synthetic static get a
       firstFragment: <testLibraryFragment>::@getter::a
+      returnType: dynamic
     synthetic static get b
       firstFragment: <testLibraryFragment>::@getter::b
+      returnType: dynamic
     synthetic static get c
       firstFragment: <testLibraryFragment>::@getter::c
+      returnType: dynamic
 ''');
   }
 
@@ -4608,12 +4779,16 @@ library
   getters
     synthetic static get a
       firstFragment: <testLibraryFragment>::@getter::a
+      returnType: dynamic
     synthetic static get b
       firstFragment: <testLibraryFragment>::@getter::b
+      returnType: dynamic
     synthetic static get c
       firstFragment: <testLibraryFragment>::@getter::c
+      returnType: dynamic
     synthetic static get d
       firstFragment: <testLibraryFragment>::@getter::d
+      returnType: dynamic
 ''');
   }
 
@@ -4678,10 +4853,13 @@ library
   getters
     synthetic static get a
       firstFragment: <testLibraryFragment>::@getter::a
+      returnType: dynamic
     synthetic static get b
       firstFragment: <testLibraryFragment>::@getter::b
+      returnType: dynamic
     synthetic static get c
       firstFragment: <testLibraryFragment>::@getter::c
+      returnType: dynamic
 ''');
   }
 
@@ -4786,6 +4964,7 @@ library
       fields
         final f
           firstFragment: <testLibraryFragment>::@class::C::@field::f
+          hasEnclosingTypeParameterReference: true
           type: T
           getter: <testLibraryFragment>::@class::C::@getter::f#element
       constructors
@@ -4797,6 +4976,8 @@ library
       getters
         synthetic get f
           firstFragment: <testLibraryFragment>::@class::C::@getter::f
+          hasEnclosingTypeParameterReference: true
+          returnType: T
   topLevelVariables
     final hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
@@ -4811,8 +4992,10 @@ library
   getters
     synthetic static get b
       firstFragment: <testLibraryFragment>::@getter::b
+      returnType: B
     synthetic static get c
       firstFragment: <testLibraryFragment>::@getter::c
+      returnType: C<B>
 ''');
   }
 
@@ -4830,7 +5013,7 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       extensions
-        extension <null-name>
+        extension <null-name> (offset=0)
           reference: <testLibraryFragment>::@extension::0
           element: <testLibrary>::@extension::0
           fields
@@ -4871,6 +5054,7 @@ library
       getters
         get foo
           firstFragment: <testLibraryFragment>::@extension::0::@getter::foo
+          returnType: int
   topLevelVariables
     hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
@@ -4881,12 +5065,14 @@ library
   getters
     synthetic static get v
       firstFragment: <testLibraryFragment>::@getter::v
+      returnType: int
   setters
     synthetic static set v
       firstFragment: <testLibraryFragment>::@setter::v
       formalParameters
         requiredPositional _v
           type: int
+      returnType: void
 ''');
   }
 
@@ -4988,19 +5174,23 @@ library
   getters
     synthetic static get V2
       firstFragment: <testLibraryFragment>::@getter::V2
+      returnType: dynamic
     synthetic static get V
       firstFragment: <testLibraryFragment>::@getter::V
+      returnType: int
   setters
     synthetic static set V2
       firstFragment: <testLibraryFragment>::@setter::V2
       formalParameters
         requiredPositional _V2
           type: dynamic
+      returnType: void
     synthetic static set V
       firstFragment: <testLibraryFragment>::@setter::V
       formalParameters
         requiredPositional _V
           type: int
+      returnType: void
   functions
     f
       reference: <testLibrary>::@function::f
@@ -5070,19 +5260,23 @@ library
   getters
     synthetic static get V
       firstFragment: <testLibraryFragment>::@getter::V
+      returnType: dynamic
     synthetic static get V2
       firstFragment: <testLibraryFragment>::@getter::V2
+      returnType: List<dynamic>
   setters
     synthetic static set V
       firstFragment: <testLibraryFragment>::@setter::V
       formalParameters
         requiredPositional _V
           type: dynamic
+      returnType: void
     synthetic static set V2
       firstFragment: <testLibraryFragment>::@setter::V2
       formalParameters
         requiredPositional _V2
           type: List<dynamic>
+      returnType: void
 ''');
   }
 
@@ -5132,6 +5326,7 @@ library
           formalParameters
             requiredPositional p
               type: InvalidType
+          returnType: dynamic
 ''');
   }
 
@@ -5172,12 +5367,14 @@ library
   getters
     synthetic static get v
       firstFragment: <testLibraryFragment>::@getter::v
+      returnType: InvalidType
   setters
     synthetic static set v
       firstFragment: <testLibraryFragment>::@setter::v
       formalParameters
         requiredPositional _v
           type: InvalidType
+      returnType: void
 ''');
   }
 
@@ -5216,12 +5413,14 @@ library
   getters
     synthetic static get d
       firstFragment: <testLibraryFragment>::@getter::d
+      returnType: Never
   setters
     synthetic static set d
       firstFragment: <testLibraryFragment>::@setter::d
       formalParameters
         requiredPositional _d
           type: Never
+      returnType: void
 ''');
   }
 
@@ -5275,6 +5474,7 @@ library
       fields
         t
           firstFragment: <testLibraryFragment>::@class::C::@field::t
+          hasEnclosingTypeParameterReference: true
           type: T
           getter: <testLibraryFragment>::@class::C::@getter::t#element
           setter: <testLibraryFragment>::@class::C::@setter::t#element
@@ -5284,12 +5484,16 @@ library
       getters
         synthetic get t
           firstFragment: <testLibraryFragment>::@class::C::@getter::t
+          hasEnclosingTypeParameterReference: true
+          returnType: T
       setters
         synthetic set t
           firstFragment: <testLibraryFragment>::@class::C::@setter::t
+          hasEnclosingTypeParameterReference: true
           formalParameters
             requiredPositional _t
               type: T
+          returnType: void
 ''');
   }
 
@@ -5343,6 +5547,7 @@ library
       fields
         t
           firstFragment: <testLibraryFragment>::@class::C::@field::t
+          hasEnclosingTypeParameterReference: true
           type: T?
           getter: <testLibraryFragment>::@class::C::@getter::t#element
           setter: <testLibraryFragment>::@class::C::@setter::t#element
@@ -5352,12 +5557,16 @@ library
       getters
         synthetic get t
           firstFragment: <testLibraryFragment>::@class::C::@getter::t
+          hasEnclosingTypeParameterReference: true
+          returnType: T?
       setters
         synthetic set t
           firstFragment: <testLibraryFragment>::@class::C::@setter::t
+          hasEnclosingTypeParameterReference: true
           formalParameters
             requiredPositional _t
               type: T?
+          returnType: void
 ''');
   }
 
@@ -5513,8 +5722,10 @@ library
       getters
         synthetic static get v
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+          returnType: E
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E>
   typeAliases
     F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -5542,43 +5753,57 @@ library
   getters
     synthetic static get c
       firstFragment: <testLibraryFragment>::@getter::c
+      returnType: C
     synthetic static get e
       firstFragment: <testLibraryFragment>::@getter::e
+      returnType: E
     synthetic static get f
       firstFragment: <testLibraryFragment>::@getter::f
+      returnType: dynamic Function()
+        alias: <testLibrary>::@typeAlias::F
   setters
     synthetic static set c
       firstFragment: <testLibraryFragment>::@setter::c
       formalParameters
         requiredPositional _c
           type: C
+      returnType: void
     synthetic static set e
       firstFragment: <testLibraryFragment>::@setter::e
       formalParameters
         requiredPositional _e
           type: E
+      returnType: void
     synthetic static set f
       firstFragment: <testLibraryFragment>::@setter::f
       formalParameters
         requiredPositional _f
           type: dynamic Function()
             alias: <testLibrary>::@typeAlias::F
+      returnType: void
 ''');
   }
 
   test_type_reference_lib_to_part() async {
-    newFile('$testPackageLibPath/a.dart',
-        'part of l; class C {} enum E { v } typedef F();');
-    var library =
-        await buildLibrary('library l; part "a.dart"; C c; E e; F f;');
+    newFile(
+      '$testPackageLibPath/a.dart',
+      'part of l; class C {} enum E { v } typedef F();',
+    );
+    var library = await buildLibrary(
+      'library l; part "a.dart"; C c; E e; F f;',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
   name: l
   fragments
-    <testLibraryFragment>
+    <testLibraryFragment> (offset=8)
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      parts
+        part_0
+          uri: package:test/a.dart
+          unit: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
         c @28
           reference: <testLibraryFragment>::@topLevelVariable::c
@@ -5721,8 +5946,10 @@ library
       getters
         synthetic static get v
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::v
+          returnType: E
         synthetic static get values
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::values
+          returnType: List<E>
   typeAliases
     F
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@typeAlias::F
@@ -5750,42 +5977,54 @@ library
   getters
     synthetic static get c
       firstFragment: <testLibraryFragment>::@getter::c
+      returnType: C
     synthetic static get e
       firstFragment: <testLibraryFragment>::@getter::e
+      returnType: E
     synthetic static get f
       firstFragment: <testLibraryFragment>::@getter::f
+      returnType: dynamic Function()
+        alias: <testLibrary>::@typeAlias::F
   setters
     synthetic static set c
       firstFragment: <testLibraryFragment>::@setter::c
       formalParameters
         requiredPositional _c
           type: C
+      returnType: void
     synthetic static set e
       firstFragment: <testLibraryFragment>::@setter::e
       formalParameters
         requiredPositional _e
           type: E
+      returnType: void
     synthetic static set f
       firstFragment: <testLibraryFragment>::@setter::f
       formalParameters
         requiredPositional _f
           type: dynamic Function()
             alias: <testLibrary>::@typeAlias::F
+      returnType: void
 ''');
   }
 
   test_type_reference_part_to_lib() async {
     newFile('$testPackageLibPath/a.dart', 'part of l; C c; E e; F f;');
     var library = await buildLibrary(
-        'library l; part "a.dart"; class C {} enum E { v } typedef F();');
+      'library l; part "a.dart"; class C {} enum E { v } typedef F();',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
   name: l
   fragments
-    <testLibraryFragment>
+    <testLibraryFragment> (offset=8)
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      parts
+        part_0
+          uri: package:test/a.dart
+          unit: <testLibrary>::@fragment::package:test/a.dart
       classes
         class C @32
           reference: <testLibraryFragment>::@class::C
@@ -5928,8 +6167,10 @@ library
       getters
         synthetic static get v
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+          returnType: E
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E>
   typeAliases
     F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -5957,44 +6198,61 @@ library
   getters
     synthetic static get c
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@getter::c
+      returnType: C
     synthetic static get e
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@getter::e
+      returnType: E
     synthetic static get f
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@getter::f
+      returnType: dynamic Function()
+        alias: <testLibrary>::@typeAlias::F
   setters
     synthetic static set c
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@setter::c
       formalParameters
         requiredPositional _c
           type: C
+      returnType: void
     synthetic static set e
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@setter::e
       formalParameters
         requiredPositional _e
           type: E
+      returnType: void
     synthetic static set f
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@setter::f
       formalParameters
         requiredPositional _f
           type: dynamic Function()
             alias: <testLibrary>::@typeAlias::F
+      returnType: void
 ''');
   }
 
   test_type_reference_part_to_other_part() async {
-    newFile('$testPackageLibPath/a.dart',
-        'part of l; class C {} enum E { v } typedef F();');
+    newFile(
+      '$testPackageLibPath/a.dart',
+      'part of l; class C {} enum E { v } typedef F();',
+    );
     newFile('$testPackageLibPath/b.dart', 'part of l; C c; E e; F f;');
-    var library =
-        await buildLibrary('library l; part "a.dart"; part "b.dart";');
+    var library = await buildLibrary(
+      'library l; part "a.dart"; part "b.dart";',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
   name: l
   fragments
-    <testLibraryFragment>
+    <testLibraryFragment> (offset=8)
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      parts
+        part_0
+          uri: package:test/a.dart
+          unit: <testLibrary>::@fragment::package:test/a.dart
+        part_1
+          uri: package:test/b.dart
+          unit: <testLibrary>::@fragment::package:test/b.dart
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       enclosingFragment: <testLibraryFragment>
@@ -6142,8 +6400,10 @@ library
       getters
         synthetic static get v
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::v
+          returnType: E
         synthetic static get values
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::values
+          returnType: List<E>
   typeAliases
     F
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@typeAlias::F
@@ -6171,42 +6431,55 @@ library
   getters
     synthetic static get c
       firstFragment: <testLibrary>::@fragment::package:test/b.dart::@getter::c
+      returnType: C
     synthetic static get e
       firstFragment: <testLibrary>::@fragment::package:test/b.dart::@getter::e
+      returnType: E
     synthetic static get f
       firstFragment: <testLibrary>::@fragment::package:test/b.dart::@getter::f
+      returnType: dynamic Function()
+        alias: <testLibrary>::@typeAlias::F
   setters
     synthetic static set c
       firstFragment: <testLibrary>::@fragment::package:test/b.dart::@setter::c
       formalParameters
         requiredPositional _c
           type: C
+      returnType: void
     synthetic static set e
       firstFragment: <testLibrary>::@fragment::package:test/b.dart::@setter::e
       formalParameters
         requiredPositional _e
           type: E
+      returnType: void
     synthetic static set f
       firstFragment: <testLibrary>::@fragment::package:test/b.dart::@setter::f
       formalParameters
         requiredPositional _f
           type: dynamic Function()
             alias: <testLibrary>::@typeAlias::F
+      returnType: void
 ''');
   }
 
   test_type_reference_part_to_part() async {
-    newFile('$testPackageLibPath/a.dart',
-        'part of l; class C {} enum E { v } typedef F(); C c; E e; F f;');
+    newFile(
+      '$testPackageLibPath/a.dart',
+      'part of l; class C {} enum E { v } typedef F(); C c; E e; F f;',
+    );
     var library = await buildLibrary('library l; part "a.dart";');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
   name: l
   fragments
-    <testLibraryFragment>
+    <testLibraryFragment> (offset=8)
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
+      parts
+        part_0
+          uri: package:test/a.dart
+          unit: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       enclosingFragment: <testLibraryFragment>
@@ -6349,8 +6622,10 @@ library
       getters
         synthetic static get v
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::v
+          returnType: E
         synthetic static get values
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::values
+          returnType: List<E>
   typeAliases
     F
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@typeAlias::F
@@ -6378,27 +6653,34 @@ library
   getters
     synthetic static get c
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@getter::c
+      returnType: C
     synthetic static get e
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@getter::e
+      returnType: E
     synthetic static get f
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@getter::f
+      returnType: dynamic Function()
+        alias: <testLibrary>::@typeAlias::F
   setters
     synthetic static set c
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@setter::c
       formalParameters
         requiredPositional _c
           type: C
+      returnType: void
     synthetic static set e
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@setter::e
       formalParameters
         requiredPositional _e
           type: E
+      returnType: void
     synthetic static set f
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@setter::f
       formalParameters
         requiredPositional _f
           type: dynamic Function()
             alias: <testLibrary>::@typeAlias::F
+      returnType: void
 ''');
   }
 
@@ -6453,12 +6735,14 @@ library
   getters
     synthetic static get c
       firstFragment: <testLibraryFragment>::@getter::c
+      returnType: C
   setters
     synthetic static set c
       firstFragment: <testLibraryFragment>::@setter::c
       formalParameters
         requiredPositional _c
           type: C
+      returnType: void
 ''');
   }
 
@@ -6521,12 +6805,14 @@ library
   getters
     synthetic static get c
       firstFragment: <testLibraryFragment>::@getter::c
+      returnType: C<int, String>
   setters
     synthetic static set c
       firstFragment: <testLibraryFragment>::@setter::c
       formalParameters
         requiredPositional _c
           type: C<int, String>
+      returnType: void
 ''');
   }
 
@@ -6589,12 +6875,14 @@ library
   getters
     synthetic static get c
       firstFragment: <testLibraryFragment>::@getter::c
+      returnType: C<dynamic, dynamic>
   setters
     synthetic static set c
       firstFragment: <testLibraryFragment>::@setter::c
       formalParameters
         requiredPositional _c
           type: C<dynamic, dynamic>
+      returnType: void
 ''');
   }
 
@@ -6696,8 +6984,10 @@ library
       getters
         synthetic static get v
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
+          returnType: E
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          returnType: List<E>
   topLevelVariables
     e
       reference: <testLibrary>::@topLevelVariable::e
@@ -6708,18 +6998,22 @@ library
   getters
     synthetic static get e
       firstFragment: <testLibraryFragment>::@getter::e
+      returnType: E
   setters
     synthetic static set e
       firstFragment: <testLibraryFragment>::@setter::e
       formalParameters
         requiredPositional _e
           type: E
+      returnType: void
 ''');
   }
 
   test_type_reference_to_import() async {
     newFile(
-        '$testPackageLibPath/a.dart', 'class C {} enum E { v } typedef F();');
+      '$testPackageLibPath/a.dart',
+      'class C {} enum E { v } typedef F();',
+    );
     var library = await buildLibrary('import "a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
 library
@@ -6797,34 +7091,43 @@ library
   getters
     synthetic static get c
       firstFragment: <testLibraryFragment>::@getter::c
+      returnType: C
     synthetic static get e
       firstFragment: <testLibraryFragment>::@getter::e
+      returnType: E
     synthetic static get f
       firstFragment: <testLibraryFragment>::@getter::f
+      returnType: dynamic Function()
+        alias: package:test/a.dart::@typeAlias::F
   setters
     synthetic static set c
       firstFragment: <testLibraryFragment>::@setter::c
       formalParameters
         requiredPositional _c
           type: C
+      returnType: void
     synthetic static set e
       firstFragment: <testLibraryFragment>::@setter::e
       formalParameters
         requiredPositional _e
           type: E
+      returnType: void
     synthetic static set f
       firstFragment: <testLibraryFragment>::@setter::f
       formalParameters
         requiredPositional _f
           type: dynamic Function()
             alias: package:test/a.dart::@typeAlias::F
+      returnType: void
 ''');
   }
 
   test_type_reference_to_import_export() async {
     newFile('$testPackageLibPath/a.dart', 'export "b.dart";');
     newFile(
-        '$testPackageLibPath/b.dart', 'class C {} enum E { v } typedef F();');
+      '$testPackageLibPath/b.dart',
+      'class C {} enum E { v } typedef F();',
+    );
     var library = await buildLibrary('import "a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
 library
@@ -6902,27 +7205,34 @@ library
   getters
     synthetic static get c
       firstFragment: <testLibraryFragment>::@getter::c
+      returnType: C
     synthetic static get e
       firstFragment: <testLibraryFragment>::@getter::e
+      returnType: E
     synthetic static get f
       firstFragment: <testLibraryFragment>::@getter::f
+      returnType: dynamic Function()
+        alias: package:test/b.dart::@typeAlias::F
   setters
     synthetic static set c
       firstFragment: <testLibraryFragment>::@setter::c
       formalParameters
         requiredPositional _c
           type: C
+      returnType: void
     synthetic static set e
       firstFragment: <testLibraryFragment>::@setter::e
       formalParameters
         requiredPositional _e
           type: E
+      returnType: void
     synthetic static set f
       firstFragment: <testLibraryFragment>::@setter::f
       formalParameters
         requiredPositional _f
           type: dynamic Function()
             alias: package:test/b.dart::@typeAlias::F
+      returnType: void
 ''');
   }
 
@@ -6930,7 +7240,9 @@ library
     newFile('$testPackageLibPath/a.dart', 'export "b.dart";');
     newFile('$testPackageLibPath/b.dart', 'export "c.dart";');
     newFile(
-        '$testPackageLibPath/c.dart', 'class C {} enum E { v } typedef F();');
+      '$testPackageLibPath/c.dart',
+      'class C {} enum E { v } typedef F();',
+    );
     var library = await buildLibrary('import "a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
 library
@@ -7008,35 +7320,44 @@ library
   getters
     synthetic static get c
       firstFragment: <testLibraryFragment>::@getter::c
+      returnType: C
     synthetic static get e
       firstFragment: <testLibraryFragment>::@getter::e
+      returnType: E
     synthetic static get f
       firstFragment: <testLibraryFragment>::@getter::f
+      returnType: dynamic Function()
+        alias: package:test/c.dart::@typeAlias::F
   setters
     synthetic static set c
       firstFragment: <testLibraryFragment>::@setter::c
       formalParameters
         requiredPositional _c
           type: C
+      returnType: void
     synthetic static set e
       firstFragment: <testLibraryFragment>::@setter::e
       formalParameters
         requiredPositional _e
           type: E
+      returnType: void
     synthetic static set f
       firstFragment: <testLibraryFragment>::@setter::f
       formalParameters
         requiredPositional _f
           type: dynamic Function()
             alias: package:test/c.dart::@typeAlias::F
+      returnType: void
 ''');
   }
 
   test_type_reference_to_import_export_export_in_subdirs() async {
     newFile('$testPackageLibPath/a/a.dart', 'export "b/b.dart";');
     newFile('$testPackageLibPath/a/b/b.dart', 'export "../c/c.dart";');
-    newFile('$testPackageLibPath/a/c/c.dart',
-        'class C {} enum E { v } typedef F();');
+    newFile(
+      '$testPackageLibPath/a/c/c.dart',
+      'class C {} enum E { v } typedef F();',
+    );
     var library = await buildLibrary('import "a/a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
 library
@@ -7114,34 +7435,43 @@ library
   getters
     synthetic static get c
       firstFragment: <testLibraryFragment>::@getter::c
+      returnType: C
     synthetic static get e
       firstFragment: <testLibraryFragment>::@getter::e
+      returnType: E
     synthetic static get f
       firstFragment: <testLibraryFragment>::@getter::f
+      returnType: dynamic Function()
+        alias: package:test/a/c/c.dart::@typeAlias::F
   setters
     synthetic static set c
       firstFragment: <testLibraryFragment>::@setter::c
       formalParameters
         requiredPositional _c
           type: C
+      returnType: void
     synthetic static set e
       firstFragment: <testLibraryFragment>::@setter::e
       formalParameters
         requiredPositional _e
           type: E
+      returnType: void
     synthetic static set f
       firstFragment: <testLibraryFragment>::@setter::f
       formalParameters
         requiredPositional _f
           type: dynamic Function()
             alias: package:test/a/c/c.dart::@typeAlias::F
+      returnType: void
 ''');
   }
 
   test_type_reference_to_import_export_in_subdirs() async {
     newFile('$testPackageLibPath/a/a.dart', 'export "b/b.dart";');
-    newFile('$testPackageLibPath/a/b/b.dart',
-        'class C {} enum E { v } typedef F();');
+    newFile(
+      '$testPackageLibPath/a/b/b.dart',
+      'class C {} enum E { v } typedef F();',
+    );
     var library = await buildLibrary('import "a/a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
 library
@@ -7219,34 +7549,43 @@ library
   getters
     synthetic static get c
       firstFragment: <testLibraryFragment>::@getter::c
+      returnType: C
     synthetic static get e
       firstFragment: <testLibraryFragment>::@getter::e
+      returnType: E
     synthetic static get f
       firstFragment: <testLibraryFragment>::@getter::f
+      returnType: dynamic Function()
+        alias: package:test/a/b/b.dart::@typeAlias::F
   setters
     synthetic static set c
       firstFragment: <testLibraryFragment>::@setter::c
       formalParameters
         requiredPositional _c
           type: C
+      returnType: void
     synthetic static set e
       firstFragment: <testLibraryFragment>::@setter::e
       formalParameters
         requiredPositional _e
           type: E
+      returnType: void
     synthetic static set f
       firstFragment: <testLibraryFragment>::@setter::f
       formalParameters
         requiredPositional _f
           type: dynamic Function()
             alias: package:test/a/b/b.dart::@typeAlias::F
+      returnType: void
 ''');
   }
 
   test_type_reference_to_import_part() async {
     newFile('$testPackageLibPath/a.dart', 'library l; part "b.dart";');
-    newFile('$testPackageLibPath/b.dart',
-        'part of l; class C {} enum E { v } typedef F();');
+    newFile(
+      '$testPackageLibPath/b.dart',
+      'part of l; class C {} enum E { v } typedef F();',
+    );
     var library = await buildLibrary('import "a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
 library
@@ -7324,33 +7663,42 @@ library
   getters
     synthetic static get c
       firstFragment: <testLibraryFragment>::@getter::c
+      returnType: C
     synthetic static get e
       firstFragment: <testLibraryFragment>::@getter::e
+      returnType: E
     synthetic static get f
       firstFragment: <testLibraryFragment>::@getter::f
+      returnType: dynamic Function()
+        alias: package:test/a.dart::@typeAlias::F
   setters
     synthetic static set c
       firstFragment: <testLibraryFragment>::@setter::c
       formalParameters
         requiredPositional _c
           type: C
+      returnType: void
     synthetic static set e
       firstFragment: <testLibraryFragment>::@setter::e
       formalParameters
         requiredPositional _e
           type: E
+      returnType: void
     synthetic static set f
       firstFragment: <testLibraryFragment>::@setter::f
       formalParameters
         requiredPositional _f
           type: dynamic Function()
             alias: package:test/a.dart::@typeAlias::F
+      returnType: void
 ''');
   }
 
   test_type_reference_to_import_part2() async {
-    newFile('$testPackageLibPath/a.dart',
-        'library l; part "p1.dart"; part "p2.dart";');
+    newFile(
+      '$testPackageLibPath/a.dart',
+      'library l; part "p1.dart"; part "p2.dart";',
+    );
     newFile('$testPackageLibPath/p1.dart', 'part of l; class C1 {}');
     newFile('$testPackageLibPath/p2.dart', 'part of l; class C2 {}');
     var library = await buildLibrary('import "a.dart"; C1 c1; C2 c2;');
@@ -7409,26 +7757,32 @@ library
   getters
     synthetic static get c1
       firstFragment: <testLibraryFragment>::@getter::c1
+      returnType: C1
     synthetic static get c2
       firstFragment: <testLibraryFragment>::@getter::c2
+      returnType: C2
   setters
     synthetic static set c1
       firstFragment: <testLibraryFragment>::@setter::c1
       formalParameters
         requiredPositional _c1
           type: C1
+      returnType: void
     synthetic static set c2
       firstFragment: <testLibraryFragment>::@setter::c2
       formalParameters
         requiredPositional _c2
           type: C2
+      returnType: void
 ''');
   }
 
   test_type_reference_to_import_part_in_subdir() async {
     newFile('$testPackageLibPath/a/b.dart', 'library l; part "c.dart";');
-    newFile('$testPackageLibPath/a/c.dart',
-        'part of l; class C {} enum E { v } typedef F();');
+    newFile(
+      '$testPackageLibPath/a/c.dart',
+      'part of l; class C {} enum E { v } typedef F();',
+    );
     var library = await buildLibrary('import "a/b.dart"; C c; E e; F f;');
     checkElementText(library, r'''
 library
@@ -7506,33 +7860,42 @@ library
   getters
     synthetic static get c
       firstFragment: <testLibraryFragment>::@getter::c
+      returnType: C
     synthetic static get e
       firstFragment: <testLibraryFragment>::@getter::e
+      returnType: E
     synthetic static get f
       firstFragment: <testLibraryFragment>::@getter::f
+      returnType: dynamic Function()
+        alias: package:test/a/b.dart::@typeAlias::F
   setters
     synthetic static set c
       firstFragment: <testLibraryFragment>::@setter::c
       formalParameters
         requiredPositional _c
           type: C
+      returnType: void
     synthetic static set e
       firstFragment: <testLibraryFragment>::@setter::e
       formalParameters
         requiredPositional _e
           type: E
+      returnType: void
     synthetic static set f
       firstFragment: <testLibraryFragment>::@setter::f
       formalParameters
         requiredPositional _f
           type: dynamic Function()
             alias: package:test/a/b.dart::@typeAlias::F
+      returnType: void
 ''');
   }
 
   test_type_reference_to_import_relative() async {
     newFile(
-        '$testPackageLibPath/a.dart', 'class C {} enum E { v } typedef F();');
+      '$testPackageLibPath/a.dart',
+      'class C {} enum E { v } typedef F();',
+    );
     var library = await buildLibrary('import "a.dart"; C c; E e; F f;');
     checkElementText(library, r'''
 library
@@ -7610,27 +7973,34 @@ library
   getters
     synthetic static get c
       firstFragment: <testLibraryFragment>::@getter::c
+      returnType: C
     synthetic static get e
       firstFragment: <testLibraryFragment>::@getter::e
+      returnType: E
     synthetic static get f
       firstFragment: <testLibraryFragment>::@getter::f
+      returnType: dynamic Function()
+        alias: package:test/a.dart::@typeAlias::F
   setters
     synthetic static set c
       firstFragment: <testLibraryFragment>::@setter::c
       formalParameters
         requiredPositional _c
           type: C
+      returnType: void
     synthetic static set e
       firstFragment: <testLibraryFragment>::@setter::e
       formalParameters
         requiredPositional _e
           type: E
+      returnType: void
     synthetic static set f
       firstFragment: <testLibraryFragment>::@setter::f
       formalParameters
         requiredPositional _f
           type: dynamic Function()
             alias: package:test/a.dart::@typeAlias::F
+      returnType: void
 ''');
   }
 
@@ -7678,6 +8048,8 @@ library
   getters
     synthetic static get f
       firstFragment: <testLibraryFragment>::@getter::f
+      returnType: dynamic Function()
+        alias: <testLibrary>::@typeAlias::F
   setters
     synthetic static set f
       firstFragment: <testLibraryFragment>::@setter::f
@@ -7685,12 +8057,14 @@ library
         requiredPositional _f
           type: dynamic Function()
             alias: <testLibrary>::@typeAlias::F
+      returnType: void
 ''');
   }
 
   test_type_reference_to_typedef_with_type_arguments() async {
-    var library =
-        await buildLibrary('typedef U F<T, U>(T t); F<int, String> f;');
+    var library = await buildLibrary(
+      'typedef U F<T, U>(T t); F<int, String> f;',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -7744,6 +8118,11 @@ library
   getters
     synthetic static get f
       firstFragment: <testLibraryFragment>::@getter::f
+      returnType: String Function(int)
+        alias: <testLibrary>::@typeAlias::F
+          typeArguments
+            int
+            String
   setters
     synthetic static set f
       firstFragment: <testLibraryFragment>::@setter::f
@@ -7754,6 +8133,7 @@ library
               typeArguments
                 int
                 String
+      returnType: void
 ''');
   }
 
@@ -7812,6 +8192,11 @@ library
   getters
     synthetic static get f
       firstFragment: <testLibraryFragment>::@getter::f
+      returnType: dynamic Function(dynamic)
+        alias: <testLibrary>::@typeAlias::F
+          typeArguments
+            dynamic
+            dynamic
   setters
     synthetic static set f
       firstFragment: <testLibraryFragment>::@setter::f
@@ -7822,6 +8207,7 @@ library
               typeArguments
                 dynamic
                 dynamic
+      returnType: void
 ''');
   }
 }

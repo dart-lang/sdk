@@ -191,26 +191,30 @@ dynamic testSwitch(int x) {
           }
         case 39:
           notEver(x); // Type Never implies not completing.
-        case 40: {
-          notEver(x);
-        }
-        case 41: {
+        case 40:
           {
             notEver(x);
           }
-        }
-        case 42: {
-          do {
-            notEver(x);
-          } while (true);
-        }
-        case 43: {
-          if (x.isEven) {
-            notEver(x);
-          } else {
-            notEver(-x);
+        case 41:
+          {
+            {
+              notEver(x);
+            }
           }
-        }
+        case 42:
+          {
+            do {
+              notEver(x);
+            } while (true);
+          }
+        case 43:
+          {
+            if (x.isEven) {
+              notEver(x);
+            } else {
+              notEver(-x);
+            }
+          }
         case 44:
           nop(x.isEven ? notEver(x) : notEver(-x));
         LAST:

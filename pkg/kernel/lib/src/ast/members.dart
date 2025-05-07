@@ -149,6 +149,9 @@ sealed class Member extends NamedNode implements Annotatable, FileUriNode {
   /// fields added for the late lowering.
   bool get isInternalImplementation => false;
 
+  /// If `true` some compile-time errors were emitted for the member.
+  bool get isErroneous => false;
+
   /// The function signature and body of the procedure or constructor, or `null`
   /// if this is a field.
   FunctionNode? get function => null;
@@ -368,6 +371,7 @@ class Field extends Member {
   static const int FlagInternalImplementation = 1 << 7;
   static const int FlagEnumElement = 1 << 8;
   static const int FlagExtensionTypeMember = 1 << 9;
+  static const int FlagErroneous = 1 << 10;
 
   /// Whether the field is declared with the `covariant` keyword.
   bool get isCovariantByDeclaration => flags & FlagCovariant != 0;
@@ -384,6 +388,9 @@ class Field extends Member {
 
   @override
   bool get isExtensionTypeMember => flags & FlagExtensionTypeMember != 0;
+
+  @override
+  bool get isErroneous => flags & FlagErroneous != 0;
 
   /// Indicates whether the implicit setter associated with this field needs to
   /// contain a runtime type check to deal with generic covariance.
@@ -459,6 +466,10 @@ class Field extends Member {
     flags = value
         ? (flags | FlagExtensionTypeMember)
         : (flags & ~FlagExtensionTypeMember);
+  }
+
+  void set isErroneous(bool value) {
+    flags = value ? (flags | FlagErroneous) : (flags & ~FlagErroneous);
   }
 
   @override
@@ -588,12 +599,16 @@ class Constructor extends Member {
   static const int FlagConst = 1 << 0; // Must match serialized bit positions.
   static const int FlagExternal = 1 << 1;
   static const int FlagSynthetic = 1 << 2;
+  static const int FlagErroneous = 1 << 3;
 
   @override
   bool get isConst => flags & FlagConst != 0;
 
   @override
   bool get isExternal => flags & FlagExternal != 0;
+
+  @override
+  bool get isErroneous => flags & FlagErroneous != 0;
 
   /// True if this is a synthetic constructor inserted in a class that
   /// does not otherwise declare any constructors.
@@ -609,6 +624,10 @@ class Constructor extends Member {
 
   void set isSynthetic(bool value) {
     flags = value ? (flags | FlagSynthetic) : (flags & ~FlagSynthetic);
+  }
+
+  void set isErroneous(bool value) {
+    flags = value ? (flags | FlagErroneous) : (flags & ~FlagErroneous);
   }
 
   @override
@@ -1036,6 +1055,7 @@ class Procedure extends Member implements GenericFunction {
   static const int FlagInternalImplementation = 1 << 6;
   static const int FlagExtensionTypeMember = 1 << 7;
   static const int FlagHasWeakTearoffReferencePragma = 1 << 8;
+  static const int FlagErroneous = 1 << 9;
 
   bool get isStatic => flags & FlagStatic != 0;
 
@@ -1184,6 +1204,13 @@ class Procedure extends Member implements GenericFunction {
     flags = value
         ? (flags | FlagHasWeakTearoffReferencePragma)
         : (flags & ~FlagHasWeakTearoffReferencePragma);
+  }
+
+  @override
+  bool get isErroneous => flags & FlagErroneous != 0;
+
+  void set isErroneous(bool value) {
+    flags = value ? (flags | FlagErroneous) : (flags & ~FlagErroneous);
   }
 
   /// Computes the interface member signature type of the procedure.

@@ -14,6 +14,7 @@ class Server {
   bool passwordChanged = false;
 
   Future<Server> start() {
+    asyncStart();
     var completer = new Completer<Server>();
     HttpServer.bind("127.0.0.1", 0).then((s) {
       server = s;
@@ -79,7 +80,9 @@ class Server {
   }
 
   void shutdown() {
-    server.close();
+    server.close().then((_) {
+      asyncEnd();
+    });
   }
 
   int get port => server.port;
@@ -362,6 +365,8 @@ void testLocalServerDigest() {
 }
 
 main() {
+  asyncStart();
+
   testUrlUserInfo();
   testBasicNoCredentials();
   testBasicCredentials();
@@ -374,4 +379,6 @@ main() {
   //testLocalServerBasic();
   //testLocalServerBearer();
   //testLocalServerDigest();
+
+  asyncEnd();
 }

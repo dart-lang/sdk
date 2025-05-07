@@ -16,7 +16,11 @@ List restoredStackTrace = [];
 List events = [];
 
 ZoneCallback<R> debugZoneRegisterCallback<R>(
-    Zone self, ZoneDelegate parent, Zone origin, R f()) {
+  Zone self,
+  ZoneDelegate parent,
+  Zone origin,
+  R f(),
+) {
   List savedTrace = [stackTrace]..addAll(restoredStackTrace);
   return parent.registerCallback(origin, () {
     restoredStackTrace = savedTrace;
@@ -25,7 +29,11 @@ ZoneCallback<R> debugZoneRegisterCallback<R>(
 }
 
 ZoneUnaryCallback<R, T> debugZoneRegisterUnaryCallback<R, T>(
-    Zone self, ZoneDelegate parent, Zone origin, R f(T arg)) {
+  Zone self,
+  ZoneDelegate parent,
+  Zone origin,
+  R f(T arg),
+) {
   List savedTrace = [stackTrace]..addAll(restoredStackTrace);
   return parent.registerUnaryCallback(origin, (arg) {
     restoredStackTrace = savedTrace;
@@ -40,7 +48,12 @@ T debugZoneRun<T>(Zone self, ZoneDelegate parent, Zone origin, T f()) {
 }
 
 R debugZoneRunUnary<R, T>(
-    Zone self, ZoneDelegate parent, Zone origin, R f(T arg), T arg) {
+  Zone self,
+  ZoneDelegate parent,
+  Zone origin,
+  R f(T arg),
+  T arg,
+) {
   stackTrace++;
   restoredStackTrace = [];
   return parent.runUnary(origin, f, arg);
@@ -48,19 +61,25 @@ R debugZoneRunUnary<R, T>(
 
 late List expectedDebugTrace;
 
-void debugUncaughtHandler(Zone self, ZoneDelegate parent, Zone origin, error,
-    StackTrace? stackTrace) {
+void debugUncaughtHandler(
+  Zone self,
+  ZoneDelegate parent,
+  Zone origin,
+  error,
+  StackTrace? stackTrace,
+) {
   events.add("handling uncaught error $error");
   Expect.listEquals(expectedDebugTrace, restoredStackTrace);
   // Suppress the error and don't propagate to parent.
 }
 
 const DEBUG_SPECIFICATION = const ZoneSpecification(
-    registerCallback: debugZoneRegisterCallback,
-    registerUnaryCallback: debugZoneRegisterUnaryCallback,
-    run: debugZoneRun,
-    runUnary: debugZoneRunUnary,
-    handleUncaughtError: debugUncaughtHandler);
+  registerCallback: debugZoneRegisterCallback,
+  registerUnaryCallback: debugZoneRegisterUnaryCallback,
+  run: debugZoneRun,
+  runUnary: debugZoneRunUnary,
+  handleUncaughtError: debugUncaughtHandler,
+);
 
 main() {
   Completer done = new Completer();
@@ -128,7 +147,7 @@ main() {
     Expect.listEquals([
       "handling uncaught error bar",
       "handling uncaught error foo",
-      "handling uncaught error gee"
+      "handling uncaught error gee",
     ], events);
     asyncEnd();
   });

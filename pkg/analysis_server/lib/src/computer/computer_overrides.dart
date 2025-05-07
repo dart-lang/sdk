@@ -6,15 +6,15 @@ import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/protocol_server.dart' as proto;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:collection/collection.dart';
 
 /// Return the elements that the given [element] overrides.
-OverriddenElements findOverriddenElements(Element2 element) {
-  if (element.enclosingElement2 is InterfaceElement2) {
+OverriddenElements findOverriddenElements(Element element) {
+  if (element.enclosingElement2 is InterfaceElement) {
     return _OverriddenElementsFinder(element).find();
   }
-  return OverriddenElements(element, <Element2>[], <Element2>[]);
+  return OverriddenElements(element, <Element>[], <Element>[]);
 }
 
 /// A computer for class member overrides in a Dart [CompilationUnit].
@@ -42,7 +42,7 @@ class DartUnitOverridesComputer {
 
   /// Add a new [proto.Override] for the declaration with the given name
   /// [token].
-  void _addOverride(Token token, Element2? element) {
+  void _addOverride(Token token, Element? element) {
     if (element != null) {
       var overridesResult = _OverriddenElementsFinder(element).find();
       var superElements = overridesResult.superElements;
@@ -98,38 +98,38 @@ class DartUnitOverridesComputer {
 /// The container with elements that a class member overrides.
 class OverriddenElements {
   /// The element that overrides other class members.
-  final Element2 element;
+  final Element element;
 
   /// The elements that [element] overrides and which is defined in a class that
   /// is a superclass of the class that defines [element].
-  final List<Element2> superElements;
+  final List<Element> superElements;
 
   /// The elements that [element] overrides and which is defined in a class that
   /// which is implemented by the class that defines [element].
-  final List<Element2> interfaceElements;
+  final List<Element> interfaceElements;
 
   OverriddenElements(this.element, this.superElements, this.interfaceElements);
 }
 
 class _OverriddenElementsFinder {
-  Element2 _seed;
-  LibraryElement2 _library;
-  InterfaceElement2 _class;
+  Element _seed;
+  LibraryElement _library;
+  InterfaceElement _class;
   String _name;
   List<ElementKind> _kinds;
 
-  final List<Element2> _superElements = <Element2>[];
-  final List<Element2> _interfaceElements = <Element2>[];
-  final Set<InterfaceElement2> _visited = {};
+  final List<Element> _superElements = <Element>[];
+  final List<Element> _interfaceElements = <Element>[];
+  final Set<InterfaceElement> _visited = {};
 
-  factory _OverriddenElementsFinder(Element2 seed) {
-    var class_ = seed.enclosingElement2 as InterfaceElement2;
+  factory _OverriddenElementsFinder(Element seed) {
+    var class_ = seed.enclosingElement2 as InterfaceElement;
     var library = class_.library2;
     var name = seed.displayName;
     List<ElementKind> kinds;
-    if (seed is FieldElement2) {
+    if (seed is FieldElement) {
       kinds = [ElementKind.GETTER, if (!seed.isFinal) ElementKind.SETTER];
-    } else if (seed is MethodElement2) {
+    } else if (seed is MethodElement) {
       kinds = const [ElementKind.METHOD];
     } else if (seed is GetterElement) {
       kinds = const [ElementKind.GETTER];
@@ -159,7 +159,7 @@ class _OverriddenElementsFinder {
     return OverriddenElements(_seed, _superElements, _interfaceElements);
   }
 
-  void _addInterfaceOverrides(InterfaceElement2? class_, bool checkType) {
+  void _addInterfaceOverrides(InterfaceElement? class_, bool checkType) {
     if (class_ == null) {
       return;
     }
@@ -179,7 +179,7 @@ class _OverriddenElementsFinder {
     }
     // super
     _addInterfaceOverrides(class_.supertype?.element3, checkType);
-    if (class_ is MixinElement2) {
+    if (class_ is MixinElement) {
       for (var constraint in class_.superclassConstraints) {
         _addInterfaceOverrides(constraint.element3, true);
       }
@@ -187,7 +187,7 @@ class _OverriddenElementsFinder {
   }
 
   void _addSuperOverrides(
-    InterfaceElement2? class_, {
+    InterfaceElement? class_, {
     bool withThisType = true,
   }) {
     if (class_ == null) {
@@ -208,16 +208,16 @@ class _OverriddenElementsFinder {
     for (var mixin_ in class_.mixins) {
       _addSuperOverrides(mixin_.element3);
     }
-    if (class_ is MixinElement2) {
+    if (class_ is MixinElement) {
       for (var constraint in class_.superclassConstraints) {
         _addSuperOverrides(constraint.element3);
       }
     }
   }
 
-  Element2? _lookupMember(InterfaceElement2 classElement) {
-    Element2? findMatchingElement(Iterable<Element2> elements) {
-      return elements.firstWhereOrNull((Element2 element) {
+  Element? _lookupMember(InterfaceElement classElement) {
+    Element? findMatchingElement(Iterable<Element> elements) {
+      return elements.firstWhereOrNull((Element element) {
         if (!identical(element.library2, _library) && _name.startsWith('_')) {
           return false;
         }

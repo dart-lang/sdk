@@ -100,7 +100,6 @@ class ObjectPointerVisitor;
   V(EqualOperator, "==")                                                       \
   V(Error, "Error")                                                            \
   V(EvalSourceUri, "evaluate:source")                                          \
-  V(EvaluateAssertion, "_evaluateAssertion")                                   \
   V(ExceptionHandlers, "ExceptionHandlers")                                    \
   V(ExceptionVar, ":exception_var")                                            \
   V(Expando, "Expando")                                                        \

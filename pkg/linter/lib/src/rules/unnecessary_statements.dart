@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
@@ -108,7 +108,7 @@ class _ReportNoClearEffectVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitNode(AstNode expression) {
-    rule.reportLint(expression);
+    rule.reportAtNode(expression);
   }
 
   @override
@@ -190,7 +190,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitCascadeExpression(CascadeExpression node) {
     for (var section in node.cascadeSections) {
       if (section is PropertyAccess && section.staticType is FunctionType) {
-        reportNoClearEffect.rule.reportLint(section);
+        reportNoClearEffect.rule.reportAtNode(section);
       }
     }
   }

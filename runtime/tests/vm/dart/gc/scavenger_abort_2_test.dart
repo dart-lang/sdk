@@ -258,14 +258,15 @@ main(List<String> argsIn) async {
   }
 
   var exec = Platform.executable;
-  var args = Platform.executableArguments +
+  var args =
+      Platform.executableArguments +
       [
         "--new_gen_semi_max_size=4" /*MB*/,
         "--old_gen_heap_size=15" /*MB*/,
         "--verbose_gc",
         "--verify_store_buffer",
         Platform.script.toFilePath(),
-        "--testee"
+        "--testee",
       ];
   print("+ $exec ${args.join(' ')}");
 
@@ -275,14 +276,20 @@ main(List<String> argsIn) async {
   print("Command stderr:");
   print(result.stderr);
 
-  Expect.equals(255, result.exitCode,
-      "Should see runtime exception error code, not SEGV");
+  Expect.equals(
+    255,
+    result.exitCode,
+    "Should see runtime exception error code, not SEGV",
+  );
 
   Expect.isTrue(
-      result.stderr.contains("Unhandled exception:\nOut of Memory") ||
-          result.stderr.contains("Unhandled exception:\r\nOut of Memory"),
-      "Should see the Dart OutOfMemoryError");
+    result.stderr.contains("Unhandled exception:\nOut of Memory") ||
+        result.stderr.contains("Unhandled exception:\r\nOut of Memory"),
+    "Should see the Dart OutOfMemoryError",
+  );
 
-  Expect.isFalse(result.stderr.contains("error: Out of memory"),
-      "Should not see the C++ OUT_OF_MEMORY()");
+  Expect.isFalse(
+    result.stderr.contains("error: Out of memory"),
+    "Should not see the C++ OUT_OF_MEMORY()",
+  );
 }

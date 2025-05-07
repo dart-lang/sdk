@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 
@@ -44,7 +44,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         constructorElement.enclosingElement2.hasDeprecated &&
         !constructorElement.hasDeprecated) {
       var nodeToAnnotate = node.name ?? node.returnType;
-      rule.reportLintForOffset(
+      rule.reportAtOffset(
         nodeToAnnotate.offset,
         nodeToAnnotate.length,
         errorCode: LinterLintCode.deprecated_consistency_constructor,
@@ -55,13 +55,13 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
     var declaredElement = node.declaredFragment?.element;
-    if (declaredElement is! FieldFormalParameterElement2) return;
+    if (declaredElement is! FieldFormalParameterElement) return;
 
     var field = declaredElement.field2;
     if (field == null) return;
 
     if (field.hasDeprecated && !declaredElement.hasDeprecated) {
-      rule.reportLint(
+      rule.reportAtNode(
         node,
         errorCode: LinterLintCode.deprecated_consistency_field,
       );
@@ -72,7 +72,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (nameOffset == null) return;
       var nameLength = fieldFragment.name2?.length;
       if (nameLength == null) return;
-      rule.reportLintForOffset(
+      rule.reportAtOffset(
         nameOffset,
         nameLength,
         errorCode: LinterLintCode.deprecated_consistency_parameter,

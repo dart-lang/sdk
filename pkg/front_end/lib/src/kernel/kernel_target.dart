@@ -5,6 +5,7 @@
 import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'package:front_end/src/builder/property_builder.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
@@ -48,10 +49,10 @@ import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
+import '../builder/method_builder.dart';
 import '../builder/name_iterator.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
-import '../builder/procedure_builder.dart';
 import '../builder/type_builder.dart';
 import '../dill/dill_target.dart' show DillTarget;
 import '../source/class_declaration.dart';
@@ -63,7 +64,6 @@ import '../source/source_extension_type_declaration_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../source/source_loader.dart'
     show CompilationPhaseForProblemReporting, SourceLoader;
-import '../source/source_method_builder.dart';
 import '../source/source_property_builder.dart';
 import '../type_inference/type_schema.dart';
 import 'benchmarker.dart' show BenchmarkPhases, Benchmarker;
@@ -766,17 +766,14 @@ class KernelTarget {
     if (firstRoot != null) {
       // TODO(sigmund): do only for full program
       Builder? declaration =
-          firstRoot.exportNameSpace.lookupLocalMember("main", setter: false);
+          firstRoot.exportNameSpace.lookupLocalMember("main")?.getable;
       if (declaration is AmbiguousBuilder) {
         // Coverage-ignore-block(suite): Not run.
         AmbiguousBuilder problem = declaration;
         declaration = problem.getFirstDeclaration();
       }
-      // TODO(johnniwinther): Add a [MethodBuilder] interface to handle this.
-      if (declaration is ProcedureBuilder) {
-        mainReference = declaration.procedure.reference;
-      } else if (declaration is SourceMethodBuilder) {
-        mainReference = declaration.invokeTarget.reference;
+      if (declaration is MethodBuilder) {
+        mainReference = declaration.invokeTargetReference;
       }
     }
     component.setMainMethodAndMode(mainReference, true);
@@ -797,7 +794,7 @@ class KernelTarget {
     Class objectClass = this.objectClass;
     for (SourceClassBuilder builder in builders) {
       if (builder.cls != objectClass) {
-        if (builder.isMixinDeclaration || builder.isExtension) {
+        if (builder.isMixinDeclaration) {
           continue;
         }
         if (builder.isMixinApplication) {
@@ -826,7 +823,6 @@ class KernelTarget {
   /// If [builder] doesn't have a constructors, install the defaults.
   void installDefaultConstructor(SourceClassBuilder builder) {
     assert(!builder.isMixinApplication);
-    assert(!builder.isExtension);
     // TODO(askesc): Make this check light-weight in the absence of
     //  augmentations.
     if (builder.cls.constructors.isNotEmpty) return;
@@ -1313,10 +1309,7 @@ class KernelTarget {
         classDeclaration.fullMemberIterator<SourcePropertyBuilder>();
     while (fieldIterator.moveNext()) {
       SourcePropertyBuilder fieldBuilder = fieldIterator.current;
-      if (!fieldBuilder.isField) {
-        continue;
-      }
-      if (fieldBuilder.isAbstract || fieldBuilder.isExternal) {
+      if (!fieldBuilder.hasConcreteField) {
         // Skip abstract and external fields. These are abstract/external
         // getters/setters and have no initialization.
         continue;
@@ -1433,6 +1426,7 @@ class KernelTarget {
         in constructorInitializedFields.entries) {
       ConstructorDeclarationBuilder constructorBuilder = entry.key;
       Set<SourcePropertyBuilder> fieldBuilders = entry.value;
+      bool hasReportedErrors = false;
       for (SourcePropertyBuilder fieldBuilder
           in initializedFieldBuilders!.difference(fieldBuilders)) {
         if (fieldBuilder.isExtensionTypeDeclaredInstanceField) continue;
@@ -1440,18 +1434,24 @@ class KernelTarget {
           Initializer initializer = fieldBuilder.buildImplicitInitializer();
           constructorBuilder.prependInitializer(initializer);
           if (fieldBuilder.isFinal) {
-            libraryBuilder.addProblem(
-                templateFinalFieldNotInitializedByConstructor
-                    .withArguments(fieldBuilder.name),
-                constructorBuilder.fileOffset,
-                constructorBuilder.name.length,
-                constructorBuilder.fileUri,
-                context: [
-                  templateMissingImplementationCause
-                      .withArguments(fieldBuilder.name)
-                      .withLocation(fieldBuilder.fileUri,
-                          fieldBuilder.fileOffset, fieldBuilder.name.length)
-                ]);
+            // Avoid cascading error if the constructor is known to be
+            // erroneous: such constructors don't initialize the final fields
+            // properly.
+            if (!constructorBuilder.invokeTarget.isErroneous) {
+              libraryBuilder.addProblem(
+                  templateFinalFieldNotInitializedByConstructor
+                      .withArguments(fieldBuilder.name),
+                  constructorBuilder.fileOffset,
+                  constructorBuilder.name.length,
+                  constructorBuilder.fileUri,
+                  context: [
+                    templateMissingImplementationCause
+                        .withArguments(fieldBuilder.name)
+                        .withLocation(fieldBuilder.fileUri,
+                            fieldBuilder.fileOffset, fieldBuilder.name.length)
+                  ]);
+              hasReportedErrors = true;
+            }
           } else if (fieldBuilder.fieldType is! InvalidType &&
               !fieldBuilder.isLate &&
               fieldBuilder.fieldType.isPotentiallyNonNullable) {
@@ -1467,8 +1467,13 @@ class KernelTarget {
                       .withLocation(fieldBuilder.fileUri,
                           fieldBuilder.fileOffset, fieldBuilder.name.length)
                 ]);
+            hasReportedErrors = true;
           }
         }
+      }
+
+      if (hasReportedErrors) {
+        constructorBuilder.markAsErroneous();
       }
     }
   }
@@ -1484,6 +1489,7 @@ class KernelTarget {
             dynamicInterfaceSpecification,
             dynamicInterfaceSpecificationUri,
             component!,
+            loader.coreTypes,
             loader.hierarchy,
             loader.libraries,
             loader);

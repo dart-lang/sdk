@@ -170,6 +170,21 @@
 //   print(C8());
 //         ^
 //
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:129:9: Error: Cannot use extension type 'ExtType1' in a dynamic module.
+// Try removing the reference to extension type 'ExtType1' or update the dynamic interface to list extension type 'ExtType1' as callable.
+//   print(ExtType1);
+//         ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:130:9: Error: Cannot invoke member 'ExtType1.new' from a dynamic module.
+// Try removing the call or update the dynamic interface to list member 'ExtType1.new' as callable.
+//   print(ExtType1(42));
+//         ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:131:12: Error: Cannot invoke member 'Ext1.isPositive' from a dynamic module.
+// Try removing the call or update the dynamic interface to list member 'Ext1.isPositive' as callable.
+//   print(42.isPositive);
+//            ^
+//
 library;
 import self as self;
 import "main_lib1.dart" as mai;
@@ -255,7 +270,7 @@ abstract class _Impl2&Object&Mixin = core::Object with mai::Mixin /*isAnonymousM
   const synthetic constructor •() → self::_Impl2&Object&Mixin
     : super core::Object::•()
     ;
-  mixin-super-stub method foo() → void
+  synthetic mixin-super-stub method foo() → void
     return super.{mai::Mixin::foo}();
 }
 static field dynamic x;
@@ -317,9 +332,15 @@ static method test() → void {
   mai::field2 = 42;
   core::print(new mai::C8::_());
   core::print(new mai::C9::_());
+  core::print(#C13);
+  core::print(mai::ExtType1|constructor#(42));
+  core::print(mai::Ext1|get#isPositive(42));
   core::print(new mai2::Lib3Class::•());
   mai2::lib3Method();
   mai2::lib3Field = 42;
+  core::print(#C13);
+  core::print(mai2::Lib3ExtType|constructor#(42));
+  core::print(mai2::Lib3Ext|get#lib3IsPositive(42));
 }
 static method main() → void {}
 
@@ -336,6 +357,7 @@ constants  {
   #C10 = constructor-tearoff mai::C2::•
   #C11 = static-tearoff mai::method1
   #C12 = static-tearoff mai::method2
+  #C13 = TypeLiteralConstant(core::int)
 }
 
 

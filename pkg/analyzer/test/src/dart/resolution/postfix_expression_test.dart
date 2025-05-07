@@ -21,10 +21,7 @@ main() {
 class InferenceUpdate4Test extends PubPackageResolutionTest {
   @override
   List<String> get experiments {
-    return [
-      ...super.experiments,
-      Feature.inference_update_4.enableString,
-    ];
+    return [...super.experiments, Feature.inference_update_4.enableString];
   }
 
   test_isExpression_notPromoted() async {
@@ -74,13 +71,14 @@ PostfixExpression
   }
 
   test_formalParameter_inc_inc() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int x) {
   x ++ ++;
 }
-''', [
-      error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 23, 2),
-    ]);
+''',
+      [error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 23, 2)],
+    );
 
     var node = findNode.postfix('++;');
     assertResolvedNodeText(node, r'''
@@ -108,15 +106,16 @@ PostfixExpression
   }
 
   test_formalParameter_incUnresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 
 void f(A a) {
   a++;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 29, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 29, 2)],
+    );
 
     var node = findNode.postfix('++;');
     assertResolvedNodeText(node, r'''
@@ -160,13 +159,14 @@ PostfixExpression
   }
 
   test_inc_formalParameter_inc() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(int x) {
   ++x++;
 }
-''', [
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 21, 2),
-    ]);
+''',
+      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 21, 2)],
+    );
 
     var node = findNode.prefix('++x');
     assertResolvedNodeText(node, r'''
@@ -308,13 +308,14 @@ PostfixExpression
   }
 
   test_inc_notLValue_parenthesized() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   (0)++;
 }
-''', [
-      error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 16, 2),
-    ]);
+''',
+      [error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 16, 2)],
+    );
 
     var node = findNode.postfix('(0)++');
     assertResolvedNodeText(node, r'''
@@ -337,13 +338,14 @@ PostfixExpression
   }
 
   test_inc_notLValue_simpleIdentifier_typeLiteral() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   int++;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 13, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 13, 3)],
+    );
 
     var node = findNode.postfix('int++');
     assertResolvedNodeText(node, r'''
@@ -363,13 +365,14 @@ PostfixExpression
   }
 
   test_inc_notLValue_simpleIdentifier_typeLiteral_typeParameter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f<T>() {
   T++;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 16, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 16, 1)],
+    );
 
     var node = findNode.postfix('T++');
     assertResolvedNodeText(node, r'''
@@ -843,15 +846,16 @@ PostfixExpression
   }
 
   test_inc_super() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void f() {
     super++;
   }
 }
-''', [
-      error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 32, 2),
-    ]);
+''',
+      [error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 32, 2)],
+    );
 
     var node = findNode.singlePostfixExpression;
     assertResolvedNodeText(node, r'''
@@ -870,15 +874,16 @@ PostfixExpression
   }
 
   test_inc_switchExpression() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   (switch (x) {
     _ => 0,
   }++);
 }
-''', [
-      error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 51, 2),
-    ]);
+''',
+      [error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 51, 2)],
+    );
 
     var node = findNode.postfix('++');
     assertResolvedNodeText(node, r'''
@@ -915,13 +920,14 @@ PostfixExpression
   }
 
   test_inc_unresolvedIdentifier() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   x++;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 13, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 13, 1)],
+    );
 
     var node = findNode.singlePostfixExpression;
     assertResolvedNodeText(node, r'''
@@ -1037,13 +1043,14 @@ PostfixExpression
   }
 
   test_nullCheck_null() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(Null x) {
   x!;
 }
-''', [
-      error(WarningCode.NULL_CHECK_ALWAYS_FAILS, 19, 2),
-    ]);
+''',
+      [error(WarningCode.NULL_CHECK_ALWAYS_FAILS, 19, 2)],
+    );
 
     assertType(findNode.postfix('x!'), 'Never');
   }
@@ -1085,7 +1092,8 @@ PostfixExpression
 
   /// See https://github.com/dart-lang/language/issues/1163
   test_nullCheck_participatesNullShorting() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   int zero;
   int? zeroOrNull;
@@ -1120,10 +1128,12 @@ void test7(Foo? foo, int a) => foo?.bar![a];
 void test8(Foo? foo, int? a) => foo?[a]!;
 void test9(Foo? foo, int? a) => foo?[a]!.baz;
 void test10(Foo? foo, int? a, int b) => foo?[a]![b];
-''', [
-      error(StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION, 107, 1),
-      error(StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION, 173, 1),
-    ]);
+''',
+      [
+        error(StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION, 107, 1),
+        error(StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION, 173, 1),
+      ],
+    );
 
     void assertTestType(int index, String expected) {
       var function = findNode.functionDeclaration('test$index(');
@@ -1169,7 +1179,8 @@ PostfixExpression
   }
 
   test_nullCheck_superExpression() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int foo() => 0;
 }
@@ -1179,9 +1190,9 @@ class B extends A {
     super!.foo();
   }
 }
-''', [
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 70, 6),
-    ]);
+''',
+      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 70, 6)],
+    );
 
     var node = findNode.methodInvocation('foo();');
     assertResolvedNodeText(node, r'''

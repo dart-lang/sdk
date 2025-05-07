@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/builder/property_builder.dart';
 import 'package:kernel/ast.dart' show LibraryDependency;
 
 import '../base/combinator.dart';
+import '../base/lookup_result.dart';
 import '../base/messages.dart';
 import '../base/name_space.dart';
 import '../base/scope.dart';
@@ -16,7 +18,7 @@ import 'builder.dart';
 import 'declaration_builders.dart';
 import 'library_builder.dart';
 
-class PrefixBuilder extends BuilderImpl {
+class PrefixBuilder extends BuilderImpl implements LookupResult {
   final String name;
 
   final NameSpace _prefixNameSpace = new NameSpaceImpl();
@@ -62,8 +64,8 @@ class PrefixBuilder extends BuilderImpl {
   LibraryDependency? get dependency => loadLibraryBuilder?.importDependency;
 
   /// Lookup a member with [name] in the export scope.
-  Builder? lookup(String name, int charOffset, Uri fileUri) {
-    return _prefixScope.lookupGetable(name, charOffset, fileUri);
+  LookupResult? lookup(String name, int charOffset, Uri fileUri) {
+    return _prefixScope.lookup(name, charOffset, fileUri);
   }
 
   void addToPrefixScope(String name, Builder member,
@@ -73,8 +75,11 @@ class PrefixBuilder extends BuilderImpl {
           importOffset, noLength, fileUri);
     }
 
+    bool isSetter = isMappedAsSetter(member);
+
+    LookupResult? existingResult = _prefixNameSpace.lookupLocalMember(name);
     Builder? existing =
-        _prefixNameSpace.lookupLocalMember(name, setter: member.isSetter);
+        isSetter ? existingResult?.setable : existingResult?.getable;
     Builder result;
     if (existing != null) {
       result = computeAmbiguousDeclarationForImport(
@@ -83,7 +88,7 @@ class PrefixBuilder extends BuilderImpl {
     } else {
       result = member;
     }
-    _prefixNameSpace.addLocalMember(name, result, setter: member.isSetter);
+    _prefixNameSpace.addLocalMember(name, result, setter: isSetter);
     if (member is ExtensionBuilder) {
       _prefixNameSpace.addExtension(member);
     }
@@ -92,6 +97,12 @@ class PrefixBuilder extends BuilderImpl {
   @override
   // Coverage-ignore(suite): Not run.
   String get fullNameForErrors => name;
+
+  @override
+  Builder get getable => this;
+
+  @override
+  Builder? get setable => null;
 }
 
 class PrefixFragment {

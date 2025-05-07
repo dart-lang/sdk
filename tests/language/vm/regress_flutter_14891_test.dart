@@ -10,6 +10,7 @@ import "package:expect/expect.dart";
 class _ClassOnlyUsedAsTypeLiteral {}
 
 void main() {
-  Expect
-      .isTrue((const [_ClassOnlyUsedAsTypeLiteral]).toString().startsWith('['));
+  Expect.isTrue(
+    (const [_ClassOnlyUsedAsTypeLiteral]).toString().startsWith('['),
+  );
 }

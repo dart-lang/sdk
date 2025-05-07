@@ -16,13 +16,14 @@ main() {
 @reflectiveTest
 class InvocationOfExtensionWithoutCallTest extends PubPackageResolutionTest {
   test_instance_differentKind() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on Object {}
 f() {
   E(0)();
 }
-''', [
-      error(CompileTimeErrorCode.INVOCATION_OF_EXTENSION_WITHOUT_CALL, 33, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVOCATION_OF_EXTENSION_WITHOUT_CALL, 33, 4)],
+    );
   }
 }

@@ -27,7 +27,8 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 part of 'a.dart';
 
 augment class A {
@@ -35,11 +36,16 @@ augment class A {
     int augmented;
   }
 }
-''', [
-      error(ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION, 66,
-          9),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 66, 9),
-    ]);
+''',
+      [
+        error(
+          ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION,
+          66,
+          9,
+        ),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 66, 9),
+      ],
+    );
   }
 
   test_insideFunctionAugmentation_declaredVariablePattern_assignment() async {
@@ -49,17 +55,23 @@ part 'test.dart';
 void f() {}
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 part of 'a.dart';
 
 augment void f() {
   var (augmented,) = (0,);
 }
-''', [
-      error(ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION, 45,
-          9),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 45, 9),
-    ]);
+''',
+      [
+        error(
+          ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION,
+          45,
+          9,
+        ),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 45, 9),
+      ],
+    );
   }
 
   test_insideFunctionAugmentation_declaredVariablePattern_match() async {
@@ -69,17 +81,23 @@ part 'test.dart';
 void f() {}
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 part of 'a.dart';
 
 augment void f() {
   if ((0,) case (var augmented,)) {}
 }
-''', [
-      error(ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION, 59,
-          9),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 59, 9),
-    ]);
+''',
+      [
+        error(
+          ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION,
+          59,
+          9,
+        ),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 59, 9),
+      ],
+    );
   }
 
   test_insideFunctionAugmentation_formalParameter() async {
@@ -89,14 +107,20 @@ part 'test.dart';
 void f(int a) {}
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 part of 'a.dart';
 
 augment void f(int augmented) {}
-''', [
-      error(ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION, 38,
-          9),
-    ]);
+''',
+      [
+        error(
+          ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION,
+          38,
+          9,
+        ),
+      ],
+    );
   }
 
   test_insideFunctionAugmentation_localFunction() async {
@@ -106,17 +130,23 @@ part 'test.dart';
 void f() {}
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 part of 'a.dart';
 
 augment void f() {
   void augmented() {}
 }
-''', [
-      error(ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION, 45,
-          9),
-      error(WarningCode.UNUSED_ELEMENT, 45, 9),
-    ]);
+''',
+      [
+        error(
+          ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION,
+          45,
+          9,
+        ),
+        error(WarningCode.UNUSED_ELEMENT, 45, 9),
+      ],
+    );
   }
 
   test_insideFunctionAugmentation_localVariable_noInitializer() async {
@@ -126,17 +156,23 @@ part 'test.dart';
 void f() {}
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 part of 'a.dart';
 
 augment void f() {
   int augmented;
 }
-''', [
-      error(ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION, 44,
-          9),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 44, 9),
-    ]);
+''',
+      [
+        error(
+          ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION,
+          44,
+          9,
+        ),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 44, 9),
+      ],
+    );
   }
 
   test_insideFunctionAugmentation_localVariable_withInitializer() async {
@@ -146,16 +182,22 @@ part 'test.dart';
 void f() {}
 ''');
 
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 part of 'a.dart';
 
 augment void f() {
   var augmented = 0;
 }
-''', [
-      error(ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION, 44,
-          9),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 44, 9),
-    ]);
+''',
+      [
+        error(
+          ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION,
+          44,
+          9,
+        ),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 44, 9),
+      ],
+    );
   }
 }

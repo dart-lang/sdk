@@ -42,7 +42,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (expression.methodName.name == 'toList' &&
         target != null &&
         target.staticType.implementsInterface('Iterable', 'dart.core')) {
-      rule.reportLint(expression.methodName);
+      rule.reportAtNode(expression.methodName);
     }
   }
 }

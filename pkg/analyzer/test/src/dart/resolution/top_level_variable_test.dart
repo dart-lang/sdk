@@ -18,15 +18,21 @@ main() {
 class TopLevelVariableResolutionTest extends PubPackageResolutionTest {
   /// See https://github.com/dart-lang/sdk/issues/51137
   test_initializer_contextType_dontUseInferredType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 // @dart=2.17
 T? f<T>(T Function() a, int Function(T) b) => null;
 String g() => '';
 final x = f(g, (z) => z.length);
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          108, 6),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          108,
+          6,
+        ),
+      ],
+    );
     var node = findNode.variableDeclaration('x =');
     assertResolvedNodeText(node, r'''
 VariableDeclaration

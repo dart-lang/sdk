@@ -24,8 +24,12 @@ extension on Methods {
   String nonExternal() => 'nonExternal';
   @JS('_rename')
   external String rename();
-  external String optionalConcat(String foo, String bar,
-      [String boo, String? baz]);
+  external String optionalConcat(
+    String foo,
+    String bar, [
+    String boo,
+    String? baz,
+  ]);
 }
 
 @JSExport()
@@ -141,8 +145,10 @@ class ParamsImpl<S extends JSObject, T extends JSObject, U extends Supertype> {
 }
 
 void test([Object? proto]) {
-  var jsMethods =
-      createStaticInteropMock<Methods, MethodsDart>(MethodsDart(), proto);
+  var jsMethods = createStaticInteropMock<Methods, MethodsDart>(
+    MethodsDart(),
+    proto,
+  );
   expect(jsMethods.concat('a', 'b'), 'ab');
   expect(jsMethods.nonExternal(), 'nonExternal');
   expect(jsMethods.rename(), 'initialized');

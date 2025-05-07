@@ -5,19 +5,19 @@
 // Test that we are analyzing field parameters correctly.
 
 class A {
-  /*member: A.dynamicField:Union([exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)*/
+  /*member: A.dynamicField:Union([exact=JSString|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I})*/
   final dynamicField;
 
-  /*member: A.:[exact=A|powerset=0]*/
+  /*member: A.:[exact=A|powerset={N}]*/
   A() : dynamicField = 42;
 
-  /*member: A.bar:[exact=A|powerset=0]*/
+  /*member: A.bar:[exact=A|powerset={N}]*/
   A.bar(
-    this. /*Value([exact=JSString|powerset=0], value: "foo", powerset: 0)*/ dynamicField,
+    this. /*Value([exact=JSString|powerset={I}], value: "foo", powerset: {I})*/ dynamicField,
   );
 }
 
-/*member: main:[null|powerset=1]*/
+/*member: main:[null|powerset={null}]*/
 main() {
   A();
   A.bar('foo');

@@ -37,13 +37,16 @@ main() {
   Future<Isolate> remote = Isolate.spawn(logMessages, receivePort.sendPort);
   var msg = <int>[0, 1, 2, 3, 4];
   StreamIterator iterator = new StreamIterator(receivePort);
-  iterator.moveNext().then((b) {
-    SendPort sendPort = iterator.current;
-    sendPort.send(msg);
-    return iterator.moveNext();
-  }).then((b) {
-    Expect.equals(1, iterator.current);
-    receivePort.close();
-    asyncEnd();
-  });
+  iterator
+      .moveNext()
+      .then((b) {
+        SendPort sendPort = iterator.current;
+        sendPort.send(msg);
+        return iterator.moveNext();
+      })
+      .then((b) {
+        Expect.equals(1, iterator.current);
+        receivePort.close();
+        asyncEnd();
+      });
 }

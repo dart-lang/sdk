@@ -4,7 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     show Variance;
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -25,10 +25,10 @@ class SubtypeHelper {
   final InterfaceTypeImpl _objectQuestion;
 
   SubtypeHelper(this._typeSystem)
-      : _typeProvider = _typeSystem.typeProvider,
-        _nullNone = _typeSystem.nullNone,
-        _objectNone = _typeSystem.objectNone,
-        _objectQuestion = _typeSystem.objectQuestion;
+    : _typeProvider = _typeSystem.typeProvider,
+      _nullNone = _typeSystem.nullNone,
+      _objectNone = _typeSystem.objectNone,
+      _objectQuestion = _typeSystem.objectQuestion;
 
   /// Return `true` if [T0] is a subtype of [T1].
   bool isSubtypeOf(TypeImpl T0, TypeImpl T1) {
@@ -109,7 +109,7 @@ class SubtypeHelper {
         return false;
       }
       // Extension types require explicit `Object` implementation.
-      if (T0 is InterfaceTypeImpl && T0.element3 is ExtensionTypeElement2) {
+      if (T0 is InterfaceTypeImpl && T0.element3 is ExtensionTypeElement) {
         for (var interface in T0.interfaces) {
           if (isSubtypeOf(interface, T1)) {
             return true;
@@ -341,8 +341,10 @@ class SubtypeHelper {
 
   /// Check that [f] is a subtype of [g].
   bool _isFunctionSubtypeOf(FunctionTypeImpl f, FunctionTypeImpl g) {
-    var fresh =
-        _typeSystem.relateTypeParameters2(f.typeParameters, g.typeParameters);
+    var fresh = _typeSystem.relateTypeParameters2(
+      f.typeParameters,
+      g.typeParameters,
+    );
     if (fresh == null) {
       return false;
     }

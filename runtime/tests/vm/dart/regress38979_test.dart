@@ -28,22 +28,29 @@ class X0 {
         int loc0 = 0;
         do {
           var31 = {
-            (String.fromCharCode(((true ? true : true)
-                    ? (var14 ? 33 : var16)
-                    : (-(foo1(var3,
-                        {(false ? false : var14): (true ? 20 : var3[27])})))))):
-                ((((var16 > (-((-(loc0))))) ? Duration() : Duration()) +
-                        (var14 ? (true ? var15 : par1) : Duration())) <
-                    Duration()),
+            (String.fromCharCode(
+              ((true ? true : true)
+                  ? (var14 ? 33 : var16)
+                  : (-(foo1(var3, {
+                      (false ? false : var14): (true ? 20 : var3[27]),
+                    })))),
+            )): ((((var16 > (-((-(loc0))))) ? Duration() : Duration()) +
+                    (var14 ? (true ? var15 : par1) : Duration())) <
+                Duration()),
             (((var30[(Int32x4.yzxw as int)])!.toUpperCase()) +
-                (Uri.encodeComponent(('2' ??
-                    (var25[true]!
-                        ? (String.fromEnvironment(''))
-                        : var18))))): (!(var14)),
+                    (Uri.encodeComponent(
+                      ('2' ??
+                          (var25[true]!
+                              ? (String.fromEnvironment(''))
+                              : var18)),
+                    ))):
+                (!(var14)),
             (var31['MgOdzM']!
                     ? var30[15]!
                     : (('D9q6Ma').substring(
-                        (~((--var16))), foo1(var3, (false ? {} : var26))))):
+                        (~((--var16))),
+                        foo1(var3, (false ? {} : var26)),
+                      ))):
                 (!(false)),
           };
         } while (++loc0 < 39);
@@ -53,6 +60,8 @@ class X0 {
 }
 
 main() {
-  Expect.throws(() => X0().foo0_0(Duration(), {true, false}),
-      (e) => e is NoSuchMethodError || e is TypeError);
+  Expect.throws(
+    () => X0().foo0_0(Duration(), {true, false}),
+    (e) => e is NoSuchMethodError || e is TypeError,
+  );
 }

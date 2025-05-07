@@ -95,23 +95,27 @@ main() {
 
     // runZoned executes the function synchronously, but we don't want to
     // rely on this. We therefore wrap it into an expectAsync.
-    runZoned(expectAsync0(() {
-      var zone = Zone.current;
-      Expect.notEquals(zone, Zone.root);
+    runZoned(
+      expectAsync0(() {
+        var zone = Zone.current;
+        Expect.notEquals(zone, Zone.root);
 
-      StreamSubscription<Event>? sub;
+        StreamSubscription<Event>? sub;
 
-      void handler(Event e) {
-        expect(Zone.current, equals(zone));
-
-        scheduleMicrotask(expectAsync0(() {
+        void handler(Event e) {
           expect(Zone.current, equals(zone));
-          sub!.cancel();
-        }));
-      }
 
-      sub = element.on['test'].listen(expectAsync1(handler));
-    }));
+          scheduleMicrotask(
+            expectAsync0(() {
+              expect(Zone.current, equals(zone));
+              sub!.cancel();
+            }),
+          );
+        }
+
+        sub = element.on['test'].listen(expectAsync1(handler));
+      }),
+    );
     element.dispatchEvent(new Event('test'));
   });
 }

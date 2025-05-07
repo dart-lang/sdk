@@ -41,8 +41,10 @@ Future<void> main(List<String> args) async {
 
   await withTempDir('unobfuscated-static-symbols-test', (String tempDir) async {
     final cwDir = path.dirname(Platform.script.toFilePath());
-    final script =
-        path.join(cwDir, 'use_save_debugging_info_flag_program.dart');
+    final script = path.join(
+      cwDir,
+      'use_save_debugging_info_flag_program.dart',
+    );
     final scriptDill = path.join(tempDir, 'flag_program.dill');
 
     // Compile script to Kernel IR.
@@ -77,10 +79,14 @@ Future<void> checkElf(String tempDir, String scriptDill) async {
     scriptDill,
   ]);
   final unobfuscatedCase = TestCase(
-      scriptUnobfuscatedSnapshot, Elf.fromFile(scriptUnobfuscatedSnapshot)!);
+    scriptUnobfuscatedSnapshot,
+    Elf.fromFile(scriptUnobfuscatedSnapshot)!,
+  );
 
-  final scriptObfuscatedOnlySnapshot =
-      path.join(tempDir, 'obfuscated-only-elf.so');
+  final scriptObfuscatedOnlySnapshot = path.join(
+    tempDir,
+    'obfuscated-only-elf.so',
+  );
   await run(genSnapshot, <String>[
     ...commonGenSnapshotArgs,
     '--obfuscate',
@@ -88,8 +94,10 @@ Future<void> checkElf(String tempDir, String scriptDill) async {
     '--elf=$scriptObfuscatedOnlySnapshot',
     scriptDill,
   ]);
-  final obfuscatedOnlyCase = TestCase(scriptObfuscatedOnlySnapshot,
-      Elf.fromFile(scriptObfuscatedOnlySnapshot)!);
+  final obfuscatedOnlyCase = TestCase(
+    scriptObfuscatedOnlySnapshot,
+    Elf.fromFile(scriptObfuscatedOnlySnapshot)!,
+  );
 
   final scriptObfuscatedSnapshot = path.join(tempDir, 'obfuscated-elf.so');
   final scriptDebuggingInfo = path.join(tempDir, 'obfuscated-debug-elf.so');
@@ -102,14 +110,19 @@ Future<void> checkElf(String tempDir, String scriptDill) async {
     scriptDill,
   ]);
   final obfuscatedCase = TestCase(
-      scriptObfuscatedSnapshot,
-      Elf.fromFile(scriptObfuscatedSnapshot)!,
-      Elf.fromFile(scriptDebuggingInfo)!);
+    scriptObfuscatedSnapshot,
+    Elf.fromFile(scriptObfuscatedSnapshot)!,
+    Elf.fromFile(scriptDebuggingInfo)!,
+  );
 
-  final scriptStrippedSnapshot =
-      path.join(tempDir, 'obfuscated-stripped-elf.so');
-  final scriptSeparateDebuggingInfo =
-      path.join(tempDir, 'obfuscated-separate-debug-elf.so');
+  final scriptStrippedSnapshot = path.join(
+    tempDir,
+    'obfuscated-stripped-elf.so',
+  );
+  final scriptSeparateDebuggingInfo = path.join(
+    tempDir,
+    'obfuscated-separate-debug-elf.so',
+  );
   await run(genSnapshot, <String>[
     ...commonGenSnapshotArgs,
     '--strip',
@@ -120,9 +133,10 @@ Future<void> checkElf(String tempDir, String scriptDill) async {
     scriptDill,
   ]);
   final strippedCase = TestCase(
-      scriptStrippedSnapshot,
-      /*container=*/ null, // No static symbols in stripped snapshot.
-      Elf.fromFile(scriptSeparateDebuggingInfo)!);
+    scriptStrippedSnapshot,
+    /*container=*/ null, // No static symbols in stripped snapshot.
+    Elf.fromFile(scriptSeparateDebuggingInfo)!,
+  );
 
   await checkCases(unobfuscatedCase, <TestCase>[
     obfuscatedOnlyCase,
@@ -140,10 +154,14 @@ Future<void> checkAssembly(String tempDir, String scriptDill) async {
   // Run the AOT compiler without Dwarf stack trace, once without obfuscation,
   // once with obfuscation, and once with obfuscation and saving debugging
   // information.
-  final scriptUnobfuscatedAssembly =
-      path.join(tempDir, 'unobfuscated-assembly.S');
-  final scriptUnobfuscatedSnapshot =
-      path.join(tempDir, 'unobfuscated-assembly.so');
+  final scriptUnobfuscatedAssembly = path.join(
+    tempDir,
+    'unobfuscated-assembly.S',
+  );
+  final scriptUnobfuscatedSnapshot = path.join(
+    tempDir,
+    'unobfuscated-assembly.so',
+  );
   await run(genSnapshot, <String>[
     ...commonGenSnapshotArgs,
     '--snapshot-kind=app-aot-assembly',
@@ -151,17 +169,24 @@ Future<void> checkAssembly(String tempDir, String scriptDill) async {
     scriptDill,
   ]);
   await assembleSnapshot(
-      scriptUnobfuscatedAssembly, scriptUnobfuscatedSnapshot);
+    scriptUnobfuscatedAssembly,
+    scriptUnobfuscatedSnapshot,
+  );
   final unobfuscatedCase = TestCase(
-      scriptUnobfuscatedSnapshot,
-      Platform.isMacOS
-          ? MachO.fromFile(scriptUnobfuscatedSnapshot)!
-          : Elf.fromFile(scriptUnobfuscatedSnapshot)!);
+    scriptUnobfuscatedSnapshot,
+    Platform.isMacOS
+        ? MachO.fromFile(scriptUnobfuscatedSnapshot)!
+        : Elf.fromFile(scriptUnobfuscatedSnapshot)!,
+  );
 
-  final scriptObfuscatedOnlyAssembly =
-      path.join(tempDir, 'obfuscated-only-assembly.S');
-  final scriptObfuscatedOnlySnapshot =
-      path.join(tempDir, 'obfuscated-only-assembly.so');
+  final scriptObfuscatedOnlyAssembly = path.join(
+    tempDir,
+    'obfuscated-only-assembly.S',
+  );
+  final scriptObfuscatedOnlySnapshot = path.join(
+    tempDir,
+    'obfuscated-only-assembly.so',
+  );
   await run(genSnapshot, <String>[
     ...commonGenSnapshotArgs,
     '--obfuscate',
@@ -170,16 +195,17 @@ Future<void> checkAssembly(String tempDir, String scriptDill) async {
     scriptDill,
   ]);
   await assembleSnapshot(
-      scriptObfuscatedOnlyAssembly, scriptObfuscatedOnlySnapshot);
+    scriptObfuscatedOnlyAssembly,
+    scriptObfuscatedOnlySnapshot,
+  );
   final obfuscatedOnlyCase = TestCase(
-      scriptObfuscatedOnlySnapshot,
-      Platform.isMacOS
-          ? MachO.fromFile(scriptObfuscatedOnlySnapshot)!
-          : Elf.fromFile(scriptObfuscatedOnlySnapshot)!);
+    scriptObfuscatedOnlySnapshot,
+    Platform.isMacOS
+        ? MachO.fromFile(scriptObfuscatedOnlySnapshot)!
+        : Elf.fromFile(scriptObfuscatedOnlySnapshot)!,
+  );
 
-  await checkCases(unobfuscatedCase, <TestCase>[
-    obfuscatedOnlyCase,
-  ]);
+  await checkCases(unobfuscatedCase, <TestCase>[obfuscatedOnlyCase]);
 }
 
 class TestCase {
@@ -191,13 +217,17 @@ class TestCase {
 }
 
 Future<void> checkCases(
-    TestCase unobfuscated, List<TestCase> obfuscateds) async {
+  TestCase unobfuscated,
+  List<TestCase> obfuscateds,
+) async {
   checkStaticSymbolTables(unobfuscated, obfuscateds);
   await checkTraces(unobfuscated, obfuscateds);
 }
 
 Future<void> checkTraces(
-    TestCase unobfuscated, List<TestCase> obfuscateds) async {
+  TestCase unobfuscated,
+  List<TestCase> obfuscateds,
+) async {
   // Run the resulting scripts, saving the stack traces.
   final expectedTrace = await runError(dartPrecompiledRuntime, <String>[
     unobfuscated.snapshotPath,
@@ -209,9 +239,11 @@ Future<void> checkTraces(
 
   final obfuscatedTraces = <List<String>>[];
   for (int i = 0; i < obfuscateds.length; i++) {
-    obfuscatedTraces.add(await runError(dartPrecompiledRuntime, <String>[
-      obfuscateds[i].snapshotPath,
-    ]));
+    obfuscatedTraces.add(
+      await runError(dartPrecompiledRuntime, <String>[
+        obfuscateds[i].snapshotPath,
+      ]),
+    );
 
     print('');
     print("Obfuscated stack trace ${i + 1}:");
@@ -235,29 +267,35 @@ Future<void> checkTraces(
     }
   }
   Expect.isTrue(
-      differs, 'The obfuscated traces are identical to the unobfuscated trace');
+    differs,
+    'The obfuscated traces are identical to the unobfuscated trace',
+  );
 }
 
 void checkStaticSymbolTables(TestCase expected, List<TestCase> cases) {
-  final expectedSymbolNames =
-      expected.container!.staticSymbols.map((o) => o.name).toSet();
+  final expectedSymbolNames = expected.container!.staticSymbols
+      .map((o) => o.name)
+      .toSet();
 
   if (expected.debuggingInfoContainer != null) {
     expectSimilarStaticSymbols(
-        expectedSymbolNames,
-        expected.debuggingInfoContainer!.staticSymbols
-            .map((o) => o.name)
-            .toSet());
+      expectedSymbolNames,
+      expected.debuggingInfoContainer!.staticSymbols.map((o) => o.name).toSet(),
+    );
   }
 
   for (final got in cases) {
     if (got.container != null) {
-      expectSimilarStaticSymbols(expectedSymbolNames,
-          got.container!.staticSymbols.map((o) => o.name).toSet());
+      expectSimilarStaticSymbols(
+        expectedSymbolNames,
+        got.container!.staticSymbols.map((o) => o.name).toSet(),
+      );
     }
     if (got.debuggingInfoContainer != null) {
-      expectSimilarStaticSymbols(expectedSymbolNames,
-          got.debuggingInfoContainer!.staticSymbols.map((o) => o.name).toSet());
+      expectSimilarStaticSymbols(
+        expectedSymbolNames,
+        got.debuggingInfoContainer!.staticSymbols.map((o) => o.name).toSet(),
+      );
     }
   }
 }
@@ -265,8 +303,8 @@ void checkStaticSymbolTables(TestCase expected, List<TestCase> cases) {
 const kMaxPercentAllowedDifferences = 0.01;
 
 void expectSimilarStaticSymbols(Set<String> expected, Set<String> got) {
-  final allowedDifferences =
-      (expected.length * kMaxPercentAllowedDifferences).floor();
+  final allowedDifferences = (expected.length * kMaxPercentAllowedDifferences)
+      .floor();
   // There are cases where we cannot assume that we have the exact same symbols
   // in both snapshots (e.g., because we're using an assembler that adds
   // symbols with randomly generated names). Instead, we compare them manually,
@@ -295,7 +333,8 @@ void expectSimilarStaticSymbols(Set<String> expected, Set<String> got) {
 
   final differences = onlyExpected.length + onlyGot.length;
   Expect.isTrue(
-      differences <= allowedDifferences,
-      'Got $differences different symbols, which is '
-      'more than $allowedDifferences.');
+    differences <= allowedDifferences,
+    'Got $differences different symbols, which is '
+    'more than $allowedDifferences.',
+  );
 }

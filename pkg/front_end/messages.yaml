@@ -312,6 +312,10 @@ MemberShouldBeListedAsCallableInDynamicInterface:
   problemMessage: "Cannot invoke member '#name' from a dynamic module."
   correctionMessage: "Try removing the call or update the dynamic interface to list member '#name' as callable."
 
+ExtensionTypeShouldBeListedAsCallableInDynamicInterface:
+  problemMessage: "Cannot use extension type '#name' in a dynamic module."
+  correctionMessage: "Try removing the reference to extension type '#name' or update the dynamic interface to list extension type '#name' as callable."
+
 ClassShouldBeListedAsCallableInDynamicInterface:
   problemMessage: "Cannot use class '#name' in a dynamic module."
   correctionMessage: "Try removing the reference to class '#name' or update the dynamic interface to list class '#name' as callable."
@@ -7464,3 +7468,10 @@ DotShorthandsUndefinedInvocation:
     void main() {
       C c = .foo();
     }
+
+ConstEvalNullAwareAccess:
+  problemMessage: "Null-aware property access can't be used in a constant expression."
+  analyzerCode: CONST_EVAL_NULL_AWARE_ACCESS
+  script: |
+    const String? s = null;
+    const c = s?.length;

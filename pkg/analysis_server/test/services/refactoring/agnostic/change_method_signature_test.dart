@@ -12,7 +12,7 @@ import 'package:analysis_server/src/services/refactoring/framework/write_invocat
     show ArgumentsTrailingComma;
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -38,6 +38,12 @@ class AbstractChangeMethodSignatureTest extends AbstractContextTest {
   late final AbstractRefactoringContext refactoringContext;
   late final SelectionState selectionState;
   late final ValidSelectionState validSelectionState;
+
+  @override
+  void setUp() {
+    useLineEndingsForPlatform = false;
+    super.setUp();
+  }
 
   /// Create [testFile] with [rawCode], analyze availability in it.
   Future<Availability> _analyzeAvailability(String rawCode) async {
@@ -108,11 +114,11 @@ class AbstractChangeMethodSignatureTest extends AbstractContextTest {
     );
   }
 
-  String _elementToReferenceString(Element2 element) {
+  String _elementToReferenceString(Element element) {
     var enclosingElement = element.enclosingElement2;
     var reference = switch (element) {
       ElementImpl2() =>
-        element.reference ?? (element.firstFragment as ElementImpl).reference,
+        element.reference ?? (element.firstFragment as FragmentImpl).reference,
       _ => null,
     };
     if (reference != null) {
@@ -157,6 +163,12 @@ class AbstractChangeMethodSignatureTest extends AbstractContextTest {
 @reflectiveTest
 class ChangeMethodSignatureTest_analyzeSelection
     extends AbstractChangeMethodSignatureTest {
+  @override
+  void setUp() {
+    useLineEndingsForPlatform = false;
+    super.setUp();
+  }
+
   Future<void> test_classConstructor_fieldFormal_explicitType() async {
     await _analyzeSelection(r'''
 class A {

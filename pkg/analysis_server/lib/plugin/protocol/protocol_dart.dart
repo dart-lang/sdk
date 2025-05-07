@@ -7,13 +7,13 @@
 library;
 
 import 'package:analysis_server/src/protocol_server.dart';
-import 'package:analyzer/dart/element/element2.dart' as engine;
+import 'package:analyzer/dart/element/element.dart' as engine;
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:path/path.dart' as path;
 
-Element convertElement(engine.Element2 element) {
+Element convertElement(engine.Element element) {
   var kind = convertElementToElementKind(element);
   var name = getElementDisplayName(element);
   var elementTypeParameters = _getTypeParametersString(element);
@@ -120,32 +120,32 @@ ElementKind convertElementKind(engine.ElementKind kind) {
   return ElementKind.UNKNOWN;
 }
 
-/// Return an [ElementKind] corresponding to the given [engine.Element2].
-ElementKind convertElementToElementKind(engine.Element2 element) {
-  if (element is engine.EnumElement2) {
+/// Return an [ElementKind] corresponding to the given [engine.Element].
+ElementKind convertElementToElementKind(engine.Element element) {
+  if (element is engine.EnumElement) {
     return ElementKind.ENUM;
-  } else if (element is engine.MixinElement2) {
+  } else if (element is engine.MixinElement) {
     return ElementKind.MIXIN;
   }
-  if (element is engine.FieldElement2 && element.isEnumConstant) {
+  if (element is engine.FieldElement && element.isEnumConstant) {
     return ElementKind.ENUM_CONSTANT;
   }
   return convertElementKind(element.kind);
 }
 
-Element convertLibraryFragment(CompilationUnitElementImpl fragment) {
+Element convertLibraryFragment(LibraryFragmentImpl fragment) {
   return Element(
     ElementKind.COMPILATION_UNIT,
     path.basename(fragment.source.fullName),
     Element.makeFlags(
       isPrivate: fragment.isPrivate,
-      isDeprecated: fragment.hasDeprecated,
+      isDeprecated: fragment.library.metadata2.hasDeprecated,
     ),
     location: newLocation_fromFragment(fragment),
   );
 }
 
-String getElementDisplayName(engine.Element2 element) {
+String getElementDisplayName(engine.Element element) {
   if (element is engine.LibraryFragment) {
     return path.basename((element as engine.LibraryFragment).source.fullName);
   } else {
@@ -153,17 +153,17 @@ String getElementDisplayName(engine.Element2 element) {
   }
 }
 
-String? getParametersString(engine.Element2 element) {
+String? getParametersString(engine.Element element) {
   // TODO(scheglov): expose the corresponding feature from ExecutableElement
   List<engine.FormalParameterElement> parameters;
-  if (element is engine.ExecutableElement2) {
+  if (element is engine.ExecutableElement) {
     // valid getters don't have parameters
     if (element.kind == engine.ElementKind.GETTER &&
         element.formalParameters.isEmpty) {
       return null;
     }
     parameters = element.formalParameters.toList();
-  } else if (element is engine.TypeAliasElement2) {
+  } else if (element is engine.TypeAliasElement) {
     var aliasedType = element.aliasedType;
     if (aliasedType is FunctionType) {
       parameters = aliasedType.formalParameters.toList();
@@ -202,11 +202,11 @@ String? getParametersString(engine.Element2 element) {
   return '($sb)';
 }
 
-String? _getTypeParametersString(engine.Element2 element) {
-  List<engine.TypeParameterElement2>? typeParameters;
-  if (element is engine.InterfaceElement2) {
+String? _getTypeParametersString(engine.Element element) {
+  List<engine.TypeParameterElement>? typeParameters;
+  if (element is engine.InterfaceElement) {
     typeParameters = element.typeParameters2;
-  } else if (element is engine.TypeAliasElement2) {
+  } else if (element is engine.TypeAliasElement) {
     typeParameters = element.typeParameters2;
   }
   if (typeParameters == null || typeParameters.isEmpty) {
@@ -215,41 +215,41 @@ String? _getTypeParametersString(engine.Element2 element) {
   return '<${typeParameters.join(', ')}>';
 }
 
-bool _isAbstract(engine.Element2 element) {
-  if (element is engine.ClassElement2) {
+bool _isAbstract(engine.Element element) {
+  if (element is engine.ClassElement) {
     return element.isAbstract;
   }
-  if (element is engine.MethodElement2) {
+  if (element is engine.MethodElement) {
     return element.isAbstract;
   }
-  if (element is engine.MixinElement2) {
+  if (element is engine.MixinElement) {
     return true;
   }
   return false;
 }
 
-bool _isConst(engine.Element2 element) {
-  if (element is engine.ConstructorElement2) {
+bool _isConst(engine.Element element) {
+  if (element is engine.ConstructorElement) {
     return element.isConst;
   }
-  if (element is engine.VariableElement2) {
+  if (element is engine.VariableElement) {
     return element.isConst;
   }
   return false;
 }
 
-bool _isFinal(engine.Element2 element) {
-  if (element is engine.VariableElement2) {
+bool _isFinal(engine.Element element) {
+  if (element is engine.VariableElement) {
     return element.isFinal;
   }
   return false;
 }
 
-bool _isStatic(engine.Element2 element) {
-  if (element is engine.ExecutableElement2) {
+bool _isStatic(engine.Element element) {
+  if (element is engine.ExecutableElement) {
     return element.isStatic;
   }
-  if (element is engine.PropertyInducingElement2) {
+  if (element is engine.PropertyInducingElement) {
     return element.isStatic;
   }
   return false;

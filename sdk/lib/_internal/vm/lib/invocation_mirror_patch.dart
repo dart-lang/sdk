@@ -78,8 +78,9 @@ class _InvocationMirror implements Invocation {
       _type |= _SETTER;
       _memberName = internal.Symbol.unvalidated(funcName.substring(4) + "=");
     } else {
-      _type |=
-          _isSuperInvocation ? (_SUPER << _LEVEL_SHIFT) | _METHOD : _METHOD;
+      _type |= _isSuperInvocation
+          ? (_SUPER << _LEVEL_SHIFT) | _METHOD
+          : _METHOD;
       _memberName = internal.Symbol.unvalidated(funcName);
     }
   }

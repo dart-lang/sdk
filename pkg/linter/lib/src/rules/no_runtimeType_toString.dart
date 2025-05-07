@@ -5,7 +5,7 @@
 // ignore_for_file: file_names
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
@@ -40,7 +40,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!_isRuntimeTypeAccess(node.expression)) return;
     if (_canSkip(node)) return;
 
-    rule.reportLint(node.expression);
+    rule.reportAtNode(node.expression);
   }
 
   @override
@@ -49,7 +49,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!_isRuntimeTypeAccess(node.realTarget)) return;
     if (_canSkip(node)) return;
 
-    rule.reportLint(node.methodName);
+    rule.reportAtNode(node.methodName);
   }
 
   bool _canSkip(AstNode node) =>
@@ -65,7 +65,7 @@ class _Visitor extends SimpleAstVisitor<void> {
             var extendedType = declaredElement.extendedType;
             if (extendedType is InterfaceType) {
               var extendedElement = extendedType.element3;
-              return !(extendedElement is ClassElement2 &&
+              return !(extendedElement is ClassElement &&
                   !extendedElement.isAbstract);
             }
           }

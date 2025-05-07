@@ -39,8 +39,9 @@ main() {
 
   // Test that nested runZonedScheduleMicrotask go to the next outer zone.
   var result = runZonedScheduleMicrotask(
-      () => runZonedScheduleMicrotask(body, onScheduleMicrotask: handler2),
-      onScheduleMicrotask: handler);
+    () => runZonedScheduleMicrotask(body, onScheduleMicrotask: handler2),
+    onScheduleMicrotask: handler,
+  );
   events.add("after");
   Timer.run(() {
     Expect.listEquals([
@@ -55,7 +56,7 @@ main() {
       "handler",
       "handler done",
       "handler2 done",
-      "run nested body"
+      "run nested body",
     ], events);
     asyncEnd();
   });

@@ -481,9 +481,7 @@ class TypeCheckingVisitor
   @override
   DartType visitLet(Let node) {
     DartType value = visitExpression(node.variable.initializer!);
-    if (node.variable.type is DynamicType) {
-      node.variable.type = value;
-    }
+    checkAssignable(node, value, node.variable.type);
     return visitExpression(node.body);
   }
 

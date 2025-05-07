@@ -28,13 +28,19 @@ final class Bar implements Foo {}
 final class Foo {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'foo.dart';
 final class Bar implements Foo {}
-''', [
-      error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 46,
-          3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          46,
+          3,
+        ),
+      ],
+    );
   }
 
   test_class_outside_viaLanguage219AndCore() async {
@@ -50,16 +56,22 @@ class A implements MapEntry<int, int> {
     await resolveFile2(a);
     assertNoErrorsInResult();
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart';
 final class B implements A {
   int get key => 0;
   int get value => 1;
 }
-''', [
-      error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 42,
-          1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          42,
+          1,
+        ),
+      ],
+    );
   }
 
   test_class_outside_viaTypedef_inside() async {
@@ -68,13 +80,19 @@ final class Foo {}
 typedef FooTypedef = Foo;
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'foo.dart';
 final class Bar implements FooTypedef {}
-''', [
-      error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 46,
-          10),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          46,
+          10,
+        ),
+      ],
+    );
   }
 
   test_class_outside_viaTypedef_outside() async {
@@ -82,14 +100,20 @@ final class Bar implements FooTypedef {}
 final class Foo {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'foo.dart';
 typedef FooTypedef = Foo;
 final class Bar implements FooTypedef {}
-''', [
-      error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 72,
-          10),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          72,
+          10,
+        ),
+      ],
+    );
   }
 
   test_enum_inside() async {
@@ -104,13 +128,19 @@ enum Bar implements Foo { bar }
 final class Foo {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'foo.dart';
 enum Bar implements Foo { bar }
-''', [
-      error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 39,
-          3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          39,
+          3,
+        ),
+      ],
+    );
   }
 
   test_enum_outside_viaTypedef_inside() async {
@@ -119,13 +149,19 @@ final class Foo {}
 typedef FooTypedef = Foo;
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'foo.dart';
 enum Bar implements FooTypedef { bar }
-''', [
-      error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 39,
-          10),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          39,
+          10,
+        ),
+      ],
+    );
   }
 
   test_enum_outside_viaTypedef_outside() async {
@@ -133,14 +169,20 @@ enum Bar implements FooTypedef { bar }
 final class Foo {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'foo.dart';
 typedef FooTypedef = Foo;
 enum Bar implements FooTypedef { bar }
-''', [
-      error(CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY, 65,
-          10),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          65,
+          10,
+        ),
+      ],
+    );
   }
 
   test_enum_subtypeOfFinal_outside() async {

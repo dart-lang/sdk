@@ -270,8 +270,9 @@ class ConstantEvaluatorTest extends ParseBase {
   }
 
   void test_literal_map() {
-    var value = _getConstantValue("{'a' : 'm', 'b' : 'n', 'c' : 'o'}")
-        as Map<Object, Object>;
+    var value =
+        _getConstantValue("{'a' : 'm', 'b' : 'n', 'c' : 'o'}")
+            as Map<Object, Object>;
     expect(value.length, 3);
     expect(value["a"], "m");
     expect(value["b"], "n");

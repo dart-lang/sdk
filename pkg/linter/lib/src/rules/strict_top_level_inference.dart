@@ -6,7 +6,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:collection/collection.dart';
@@ -80,7 +80,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       } else {
         _checkSetter(node, element);
       }
-    } else if (fragment is MethodElementImpl) {
+    } else if (fragment is MethodFragmentImpl) {
       _checkMethod(node, fragment);
     }
   }
@@ -117,7 +117,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           variable.declaredFragment?.element,
         );
         if (overriddenMember == null) {
-          rule.reportLintForToken(
+          rule.reportAtToken(
             variable.name,
             errorCode: LinterLintCode.strict_top_level_inference_split_to_types,
           );
@@ -128,14 +128,13 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void _checkFormalParameters(
     List<FormalParameter> parameters, {
-    ExecutableElement2? overriddenMember,
+    ExecutableElement? overriddenMember,
   }) {
     for (var i = 0; i < parameters.length; i++) {
       var parameter = parameters[i];
       var parameterName = parameter.name;
-      if (parameterName != null && isWildcardIdentifier(parameterName.lexeme)) {
-        continue;
-      }
+      if (parameterName == null) continue;
+      if (isWildcardIdentifier(parameterName.lexeme)) continue;
 
       if (parameter is DefaultFormalParameter) {
         parameter = parameter.parameter;
@@ -174,18 +173,18 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  void _checkGetter(MethodDeclaration node, PropertyAccessorElement2 element) {
+  void _checkGetter(MethodDeclaration node, PropertyAccessorElement element) {
     if (node.returnType != null) return;
 
     if (!_isOverride(node, element)) {
-      rule.reportLintForToken(
+      rule.reportAtToken(
         node.name,
         errorCode: LinterLintCode.strict_top_level_inference_add_type,
       );
     }
   }
 
-  void _checkMethod(MethodDeclaration node, MethodElementImpl element) {
+  void _checkMethod(MethodDeclaration node, MethodFragmentImpl element) {
     if (element.typeInferenceError != null) {
       // Inferring the return type and/or one or more parameter types resulted
       // in a type inference error. Do not report lint in this case.
@@ -195,12 +194,12 @@ class _Visitor extends SimpleAstVisitor<void> {
     var container = element.enclosingFragment!.element;
     var noOverride =
         node.isStatic ||
-        container is ExtensionElement2 ||
-        container is ExtensionTypeElement2;
+        container is ExtensionElement ||
+        container is ExtensionTypeElement;
 
     if (noOverride) {
       if (node.returnType == null) {
-        rule.reportLintForToken(
+        rule.reportAtToken(
           node.name,
           errorCode: LinterLintCode.strict_top_level_inference_add_type,
         );
@@ -228,39 +227,39 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  void _checkSetter(MethodDeclaration node, PropertyAccessorElement2 element) {
+  void _checkSetter(MethodDeclaration node, PropertyAccessorElement element) {
     var parameter = node.parameters?.parameters.firstOrNull;
     if (parameter == null) return;
     if (parameter is! SimpleFormalParameter) return;
     if (parameter.type != null) return;
 
     if (!_isOverride(node, element)) {
-      rule.reportLintForToken(
+      rule.reportAtToken(
         node.name,
         errorCode: LinterLintCode.strict_top_level_inference_add_type,
       );
     }
   }
 
-  bool _isOverride(MethodDeclaration node, PropertyAccessorElement2 element) {
+  bool _isOverride(MethodDeclaration node, PropertyAccessorElement element) {
     var container = element.enclosingElement2;
     if (node.isStatic) return false;
-    if (container is ExtensionElement2) return false;
-    if (container is ExtensionTypeElement2) return false;
+    if (container is ExtensionElement) return false;
+    if (container is ExtensionTypeElement) return false;
     var overriddenMember = context.inheritanceManager.overriddenMember(
       node.declaredFragment?.element,
     );
     return overriddenMember != null;
   }
 
-  void _report(Token? errorToken, {Token? keyword}) {
+  void _report(Token errorToken, {Token? keyword}) {
     if (keyword == null || keyword.type == Keyword.FINAL) {
-      rule.reportLintForToken(
+      rule.reportAtToken(
         errorToken,
         errorCode: LinterLintCode.strict_top_level_inference_add_type,
       );
     } else if (keyword.type == Keyword.VAR) {
-      rule.reportLintForToken(
+      rule.reportAtToken(
         errorToken,
         arguments: [keyword.lexeme],
         errorCode: LinterLintCode.strict_top_level_inference_replace_keyword,

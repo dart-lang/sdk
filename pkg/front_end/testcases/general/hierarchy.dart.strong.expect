@@ -118,9 +118,9 @@ abstract class A4 = self::A1 with self::A2 {
   synthetic constructor •() → self::A4
     : super self::A1::•()
     ;
-  mixin-super-stub method mixedInClassMember() → void
+  synthetic mixin-super-stub method mixedInClassMember() → void
     return super.{self::A2::mixedInClassMember}();
-  abstract mixin-stub method mixedInInterfaceMember() → void; -> self::A2::mixedInInterfaceMember
+  abstract synthetic mixin-stub method mixedInInterfaceMember() → void; -> self::A2::mixedInInterfaceMember
 }
 abstract class A5 extends core::Object implements self::A1 {
   synthetic constructor •() → self::A5
@@ -196,24 +196,24 @@ abstract class _A3&A1&A2 = self::A1 with self::A2 /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_A3&A1&A2
     : super self::A1::•()
     ;
-  mixin-super-stub method mixedInClassMember() → void
+  synthetic mixin-super-stub method mixedInClassMember() → void
     return super.{self::A2::mixedInClassMember}();
-  abstract mixin-stub method mixedInInterfaceMember() → void; -> self::A2::mixedInInterfaceMember
+  abstract synthetic mixin-stub method mixedInInterfaceMember() → void; -> self::A2::mixedInInterfaceMember
 }
 abstract class _C3&Object&C1 = core::Object with self::C1 /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_C3&Object&C1
     : super core::Object::•()
     ;
-  mixin-super-stub method mixedInAndImplementedClassMember() → void
+  synthetic mixin-super-stub method mixedInAndImplementedClassMember() → void
     return super.{self::C1::mixedInAndImplementedClassMember}();
-  abstract mixin-stub method mixedInAndImplementedInterfaceMember() → void; -> self::C1::mixedInAndImplementedInterfaceMember
+  abstract synthetic mixin-stub method mixedInAndImplementedInterfaceMember() → void; -> self::C1::mixedInAndImplementedInterfaceMember
 }
 abstract class _C5&Object&C1 = core::Object with self::C1 /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_C5&Object&C1
     : super core::Object::•()
     ;
-  mixin-super-stub method mixedInAndImplementedClassMember() → void
+  synthetic mixin-super-stub method mixedInAndImplementedClassMember() → void
     return super.{self::C1::mixedInAndImplementedClassMember}();
-  abstract mixin-stub method mixedInAndImplementedInterfaceMember() → void; -> self::C1::mixedInAndImplementedInterfaceMember
+  abstract synthetic mixin-stub method mixedInAndImplementedInterfaceMember() → void; -> self::C1::mixedInAndImplementedInterfaceMember
 }
 static method main() → dynamic {}

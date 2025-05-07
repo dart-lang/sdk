@@ -77,10 +77,7 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
       libraryContext: libraryContext,
       configuration: analyzerStatePrinterConfiguration,
       resourceProvider: resourceProvider,
-      sink: TreeStringSink(
-        sink: buffer,
-        indent: '',
-      ),
+      sink: TreeStringSink(sink: buffer, indent: ''),
       withKeysGetPut: true,
     ).writeFileResolver(testData);
     var actual = buffer.toString();
@@ -96,10 +93,7 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
   ///
   /// We do this the first time, and to test reusing results from [byteStore].
   void createFileResolver() {
-    var workspace = BlazeWorkspace.find(
-      resourceProvider,
-      testFile.path,
-    )!;
+    var workspace = BlazeWorkspace.find(resourceProvider, testFile.path)!;
 
     fileResolver = FileResolver(
       logger: logger,
@@ -126,10 +120,9 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
     File file, {
     OperationPerformanceImpl? performance,
   }) async {
-    result = await fileResolver.resolve(
-      path: file.path,
-      performance: performance,
-    ) as ResolvedUnitResultImpl;
+    result =
+        await fileResolver.resolve(path: file.path, performance: performance)
+            as ResolvedUnitResultImpl;
     return result;
   }
 
@@ -144,10 +137,7 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
     registerLintRules();
 
     logger = PerformanceLog(logBuffer);
-    createMockSdk(
-      resourceProvider: resourceProvider,
-      root: sdkRoot,
-    );
+    createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
 
     newFile('/workspace/${file_paths.blazeWorkspaceMarker}', '');
     newFile('/workspace/dart/test/BUILD', '');

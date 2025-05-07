@@ -16,16 +16,17 @@ main() {
 @reflectiveTest
 class MapPatternResolutionTest extends PubPackageResolutionTest {
   test_matchDynamic_noTypeArguments_variable_typed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(x) {
   switch (x) {
     case {0: String a}:
       break;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 1)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
@@ -52,16 +53,17 @@ MapPattern
   }
 
   test_matchDynamic_noTypeArguments_variable_untyped() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(x) {
   switch (x) {
     case {0: var a}:
       break;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 44, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 44, 1)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
@@ -85,16 +87,17 @@ MapPattern
   }
 
   test_matchDynamic_withTypeArguments_variable_untyped() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(x) {
   switch (x) {
     case <int, String>{0: var a}:
       break;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 57, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 57, 1)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
@@ -130,13 +133,14 @@ MapPattern
   }
 
   test_matchMap_noTypeArguments_empty() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Map<int, String> x) {
   if (x case {}) {}
 }
-''', [
-      error(CompileTimeErrorCode.EMPTY_MAP_PATTERN, 42, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.EMPTY_MAP_PATTERN, 42, 2)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
@@ -148,13 +152,14 @@ MapPattern
   }
 
   test_matchMap_noTypeArguments_restElement_first() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Map<int, String> x) {
   if (x case {..., 0: ''}) {}
 }
-''', [
-      error(CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN, 43, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN, 43, 3)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
@@ -178,13 +183,14 @@ MapPattern
   }
 
   test_matchMap_noTypeArguments_restElement_last() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Map<int, String> x) {
   if (x case {0: '', ...}) {}
 }
-''', [
-      error(CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN, 50, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN, 50, 3)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
@@ -208,14 +214,17 @@ MapPattern
   }
 
   test_matchMap_noTypeArguments_restElement_multiple() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Map<int, String> x) {
   if (x case {..., 0: '', ...}) {}
 }
-''', [
-      error(CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN, 43, 3),
-      error(CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN, 55, 3),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN, 43, 3),
+        error(CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN, 55, 3),
+      ],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
@@ -241,14 +250,17 @@ MapPattern
   }
 
   test_matchMap_noTypeArguments_restElement_withPattern() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Map<int, String> x) {
   if (x case {0: '', ...var rest}) {}
 }
-''', [
-      error(CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN, 50, 11),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 57, 4),
-    ]);
+''',
+      [
+        error(CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN, 50, 11),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 57, 4),
+      ],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
@@ -278,13 +290,14 @@ MapPattern
   }
 
   test_matchMap_noTypeArguments_variable_untyped() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Map<int, String> x) {
   if (x case {0: var a}) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 50, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 50, 1)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
@@ -308,13 +321,14 @@ MapPattern
   }
 
   test_matchMap_withTypeArguments_variable_untyped() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Map<bool, num> x) {
   if (x case <bool, int>{true: var a}) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 62, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 62, 1)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
@@ -377,13 +391,14 @@ MapPattern
   }
 
   test_matchObject_noTypeArguments_empty() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object x) {
   if (x case {}) {}
 }
-''', [
-      error(CompileTimeErrorCode.EMPTY_MAP_PATTERN, 32, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.EMPTY_MAP_PATTERN, 32, 2)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
@@ -395,13 +410,14 @@ MapPattern
   }
 
   test_matchObject_noTypeArguments_variable_typed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object x) {
   if (x case {true: int a}) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 43, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 43, 1)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
@@ -428,13 +444,14 @@ MapPattern
   }
 
   test_matchObject_noTypeArguments_variable_untyped() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object x) {
   if (x case {true: var a}) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 43, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 43, 1)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
@@ -497,13 +514,14 @@ MapPattern
   }
 
   test_matchObject_withTypeArguments_variable_untyped() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object x) {
   if (x case <bool, int>{true: var a}) {}
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 54, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 54, 1)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
@@ -539,13 +557,14 @@ MapPattern
   }
 
   test_rewrite_key() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(x, bool Function() a) {
   if (x case {a(): 0}) {}
 }
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_MAP_PATTERN_KEY, 45, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NON_CONSTANT_MAP_PATTERN_KEY, 45, 3)],
+    );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
@@ -576,13 +595,14 @@ MapPattern
   }
 
   test_variableDeclaration_inferredType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Map<bool, int> x) {
   var {true: a} = x;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 40, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 40, 1)],
+    );
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration
@@ -613,15 +633,16 @@ PatternVariableDeclaration
   }
 
   test_variableDeclaration_typeSchema_withTypeArguments() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   var <bool, int>{true: a} = g();
 }
 
 T g<T>() => throw 0;
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 35, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 35, 1)],
+    );
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration
@@ -672,15 +693,16 @@ PatternVariableDeclaration
   }
 
   test_variableDeclaration_typeSchema_withVariableType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   var {true: int a} = g();
 }
 
 T g<T>() => throw 0;
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 28, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 28, 1)],
+    );
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration

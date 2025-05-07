@@ -6,13 +6,13 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
 import 'package:analyzer_plugin/utilities/navigation/document_links.dart';
@@ -82,7 +82,7 @@ AstNode _getNavigationTargetNode(AstNode node) {
 }
 
 AstNode? _getNodeForRange(CompilationUnit unit, int offset, int length) {
-  var node = NodeLocator(offset, offset + length).searchWithin(unit);
+  var node = unit.nodeCovering(offset: offset, length: length);
   for (var n = node; n != null; n = n.parent) {
     if (n is Directive) {
       return n;
@@ -126,7 +126,7 @@ class _DartNavigationCollector {
     );
   }
 
-  void _addRegionForElement(SyntacticEntity? nodeOrToken, Element2? element) {
+  void _addRegionForElement(SyntacticEntity? nodeOrToken, Element? element) {
     _addRegionForFragment(nodeOrToken, element?.nonSynthetic2.firstFragment);
   }
 
@@ -152,7 +152,7 @@ class _DartNavigationCollector {
     if (fragment.element == DynamicElementImpl2.instance) {
       return;
     }
-    if (fragment.element is MultiplyDefinedElement2) {
+    if (fragment.element is MultiplyDefinedElement) {
       return;
     }
 
@@ -231,14 +231,14 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitAnnotation(Annotation node) {
     var element = node.element2;
-    if (element is ConstructorElement2 && element.isSynthetic) {
+    if (element is ConstructorElement && element.isSynthetic) {
       element = element.enclosingElement2;
     }
     var name = node.name;
     if (name is PrefixedIdentifier) {
       // use constructor in: @PrefixClass.constructorName
       var prefixElement = name.prefix.element;
-      if (prefixElement is ClassElement2) {
+      if (prefixElement is ClassElement) {
         prefixElement = element;
       }
       computer._addRegionForElement(name.prefix, prefixElement);
@@ -335,7 +335,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitConstructorName(ConstructorName node) {
-    Element2? element = node.element;
+    Element? element = node.element;
     if (element == null) {
       return;
     }
@@ -376,7 +376,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
-    if (node.declaredElement2 case BindPatternVariableElement2(:var join2?)) {
+    if (node.declaredElement2 case BindPatternVariableElement(:var join2?)) {
       for (var variable in join2.variables2) {
         computer._addRegionForElement(node.name, variable);
       }
@@ -545,7 +545,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   void visitRedirectingConstructorInvocation(
     RedirectingConstructorInvocation node,
   ) {
-    Element2? element = node.element;
+    Element? element = node.element;
     if (element != null && element.isSynthetic) {
       element = element.enclosingElement2;
     }
@@ -579,7 +579,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     var element = node.writeOrReadElement2;
-    if (element case PrefixElement2(:var fragments, :var name3)) {
+    if (element case PrefixElement(:var fragments, :var name3)) {
       for (var fragment in fragments) {
         computer._addRegionForFragmentRange(
           node.offset,
@@ -587,7 +587,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
           fragment,
         );
       }
-    } else if (element case JoinPatternVariableElement2(:var variables2)) {
+    } else if (element case JoinPatternVariableElement(:var variables2)) {
       for (var variable in variables2) {
         computer._addRegionForElement(node, variable);
       }
@@ -598,7 +598,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
-    Element2? element = node.element;
+    Element? element = node.element;
     if (element != null && element.isSynthetic) {
       element = element.enclosingElement2;
     }
@@ -640,7 +640,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     /// Return the element for the type inferred for each of the variables in
     /// the given list of [variables], or `null` if not all variable have the
     /// same inferred type.
-    Element2? getCommonElement(List<VariableDeclaration> variables) {
+    Element? getCommonElement(List<VariableDeclaration> variables) {
       var firstType = variables[0].declaredFragment?.element.type;
       if (firstType is! InterfaceType) {
         return null;

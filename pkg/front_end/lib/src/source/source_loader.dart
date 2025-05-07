@@ -39,12 +39,14 @@ import '../base/import_chains.dart';
 import '../base/instrumentation.dart' show Instrumentation;
 import '../base/loader.dart' show Loader, untranslatableUriScheme;
 import '../base/local_scope.dart';
+import '../base/lookup_result.dart';
 import '../base/problems.dart' show internalProblem;
 import '../base/scope.dart';
 import '../base/ticker.dart' show Ticker;
 import '../base/uri_offset.dart';
 import '../base/uris.dart';
 import '../builder/builder.dart';
+import '../builder/constructor_builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
@@ -882,7 +884,7 @@ severity: $severity
     Arguments arguments =
         new Arguments(<Expression>[new StringLiteral(nativeMethodName)]);
     Expression annotation;
-    if (constructor.isConstructor) {
+    if (constructor is ConstructorBuilder) {
       annotation = new ConstructorInvocation(
           constructor.invokeTarget as Constructor, arguments)
         ..isConst = true;
@@ -1265,8 +1267,9 @@ severity: $severity
 
     DeclarationBuilder? declarationBuilder;
     if (enclosingClassOrExtension != null) {
-      Builder? builder = memberScope.lookupGetable(
-          enclosingClassOrExtension, -1, libraryBuilder.fileUri);
+      Builder? builder = memberScope
+          .lookup(enclosingClassOrExtension, -1, libraryBuilder.fileUri)
+          ?.getable;
       if (builder is TypeDeclarationBuilder) {
         switch (builder) {
           case ClassBuilder():
@@ -1719,7 +1722,7 @@ severity: $severity
         builder.nameSpace.filteredConstructorIterator(includeDuplicates: false);
     while (iterator.moveNext()) {
       MemberBuilder constructor = iterator.current;
-      if (constructor.isConstructor && !constructor.isSynthetic) {
+      if (constructor is ConstructorBuilder && !constructor.isSynthetic) {
         cls.addProblem(
             templateIllegalMixinDueToConstructors
                 .withArguments(builder.fullNameForErrors),
@@ -2546,7 +2549,8 @@ severity: $severity
       if (redirectingFactoryBuilders != null) {
         for (SourceFactoryBuilder redirectingFactoryBuilder
             in redirectingFactoryBuilders) {
-          if (redirectingFactoryBuilder.parent.isExtension) {
+          if (redirectingFactoryBuilder.declarationBuilder
+              is ExtensionBuilder) {
             // Extensions don't build their redirecting factories so we can't
             // process them. Once they are added in
             // [DeclarationNameSpaceBuilder.buildNameSpace] this skipping can
@@ -2582,16 +2586,16 @@ severity: $severity
 
   void _checkMainMethods(
       SourceLibraryBuilder libraryBuilder, DartType listOfString) {
-    Builder? mainBuilder =
-        libraryBuilder.exportNameSpace.lookupLocalMember('main', setter: false);
-    mainBuilder ??=
-        libraryBuilder.exportNameSpace.lookupLocalMember('main', setter: true);
+    LookupResult? result =
+        libraryBuilder.exportNameSpace.lookupLocalMember('main');
+    Builder? mainBuilder = result?.getable;
+    mainBuilder ??= result?.setable;
     if (mainBuilder is MemberBuilder) {
       if (mainBuilder is InvalidTypeDeclarationBuilder) {
         // This is an ambiguous export, skip the check.
         return;
       }
-      if (mainBuilder.isField || mainBuilder.isGetter || mainBuilder.isSetter) {
+      if (mainBuilder.isProperty) {
         if (mainBuilder.libraryBuilder != libraryBuilder) {
           libraryBuilder.addProblem(messageMainNotFunctionDeclarationExported,
               libraryBuilder.fileOffset, noLength, libraryBuilder.fileUri,

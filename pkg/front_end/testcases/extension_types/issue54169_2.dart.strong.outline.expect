@@ -20,9 +20,9 @@ extension type ET2(invalid-type it) {
 }
 static extension-type-member method ET1|constructor#(self::ET2% /* erasure=invalid-type, declared=! */ it) → self::ET1% /* erasure=invalid-type, declared=! */
   ;
-static extension-type-member method ET1|constructor#_#new#tearOff(self::ET2% /* erasure=invalid-type, declared=! */ it) → self::ET1% /* erasure=invalid-type, declared=! */
+static extension-type-member synthetic method ET1|constructor#_#new#tearOff(self::ET2% /* erasure=invalid-type, declared=! */ it) → self::ET1% /* erasure=invalid-type, declared=! */
   return self::ET1|constructor#(it);
 static extension-type-member method ET2|constructor#(self::ET2% /* erasure=invalid-type, declared=! */ it) → self::ET2% /* erasure=invalid-type, declared=! */
   ;
-static extension-type-member method ET2|constructor#_#new#tearOff(self::ET2% /* erasure=invalid-type, declared=! */ it) → self::ET2% /* erasure=invalid-type, declared=! */
+static extension-type-member synthetic method ET2|constructor#_#new#tearOff(self::ET2% /* erasure=invalid-type, declared=! */ it) → self::ET2% /* erasure=invalid-type, declared=! */
   return self::ET2|constructor#(it);

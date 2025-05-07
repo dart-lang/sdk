@@ -10,26 +10,32 @@ import 'package:expect/expect.dart';
 import 'other_library.dart';
 
 main() {
-  LibraryMirror thisLibrary =
-      currentMirrorSystem().findLibrary(#test.invoke_import_test);
+  LibraryMirror thisLibrary = currentMirrorSystem().findLibrary(
+    #test.invoke_import_test,
+  );
 
   Expect.throwsNoSuchMethodError(
-      () => thisLibrary.invoke(#topLevelMethod, []),
-      'Should not invoke imported method #topLevelMethod');
+    () => thisLibrary.invoke(#topLevelMethod, []),
+    'Should not invoke imported method #topLevelMethod',
+  );
 
   Expect.throwsNoSuchMethodError(
-      () => thisLibrary.getField(#topLevelGetter),
-      'Should not invoke imported getter #topLevelGetter');
+    () => thisLibrary.getField(#topLevelGetter),
+    'Should not invoke imported getter #topLevelGetter',
+  );
 
   Expect.throwsNoSuchMethodError(
-      () => thisLibrary.getField(#topLevelField),
-      'Should not invoke imported field #topLevelField');
+    () => thisLibrary.getField(#topLevelField),
+    'Should not invoke imported field #topLevelField',
+  );
 
   Expect.throwsNoSuchMethodError(
-      () => thisLibrary.setField(#topLevelSetter, 23),
-      'Should not invoke imported setter #topLevelSetter');
+    () => thisLibrary.setField(#topLevelSetter, 23),
+    'Should not invoke imported setter #topLevelSetter',
+  );
 
   Expect.throwsNoSuchMethodError(
-      () => thisLibrary.setField(#topLevelField, 23),
-      'Should not invoke imported field #topLevelField');
+    () => thisLibrary.setField(#topLevelField, 23),
+    'Should not invoke imported field #topLevelField',
+  );
 }

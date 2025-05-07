@@ -12,8 +12,12 @@ serializationTest(name, value) {
   test(name, () {
     // To check how value is serialized and deserialized, we create a
     // MessageEvent.
-    final event =
-        new MessageEvent('', data: value, origin: '', lastEventId: '');
+    final event = new MessageEvent(
+      '',
+      data: value,
+      origin: '',
+      lastEventId: '',
+    );
     verifyGraph(value, event.data);
   });
 }
@@ -42,8 +46,9 @@ main() {
 
   serializationTest('datetime', [new DateTime.now()]);
 
-  var blob = new Blob(
-      ['Indescribable... Indestructible! Nothing can stop it!'], 'text/plain');
+  var blob = new Blob([
+    'Indescribable... Indestructible! Nothing can stop it!',
+  ], 'text/plain');
   serializationTest('blob', [blob]);
 
   var canvas = new CanvasElement();

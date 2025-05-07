@@ -5,11 +5,13 @@
 library service_test_common;
 
 import 'dart:async';
+import 'dart:collection' show HashMap;
 import 'dart:typed_data';
 
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
+import 'package:vm_service_protos/vm_service_protos.dart' show DebugAnnotation;
 
 typedef IsolateTest = Future<void> Function(
   VmService service,
@@ -913,4 +915,20 @@ IsolateTest testExpressionEvaluationAndAvailableVariables(
       expect(result.valueAsString, equals(expectedResult));
     }
   };
+}
+
+Map<String, String> mapFromListOfDebugAnnotations(
+  List<DebugAnnotation> debugAnnotations,
+) {
+  return HashMap.fromEntries(
+    debugAnnotations.map((a) {
+      if (a.hasStringValue()) {
+        return MapEntry(a.name, a.stringValue);
+      } else if (a.hasLegacyJsonValue()) {
+        return MapEntry(a.name, a.legacyJsonValue);
+      } else {
+        throw 'We should not be writing annotations without values';
+      }
+    }),
+  );
 }

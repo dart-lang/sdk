@@ -67,7 +67,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     if (literal.canBeConst) {
-      rule.reportLint(literal);
+      rule.reportAtNode(literal);
     }
   }
 

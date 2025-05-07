@@ -525,7 +525,7 @@ ObjectPtr KernelLoader::LoadProgram(bool process_pending_classes) {
         "not allowed");
   }
 
-  LongJumpScope jump;
+  LongJumpScope jump(thread_);
   if (DART_SETJMP(*jump.Set()) == 0) {
     // Note that `problemsAsJson` on Component is implicitly skipped.
     const intptr_t length = program_->library_count();
@@ -565,7 +565,7 @@ ObjectPtr KernelLoader::LoadProgram(bool process_pending_classes) {
 
   // Either class finalization failed or we caught a compile error.
   // In both cases sticky error would be set.
-  return Thread::Current()->StealStickyError();
+  return thread_->StealStickyError();
 }
 
 void KernelLoader::LoadLibrary(const Library& library) {
@@ -650,14 +650,15 @@ void KernelLoader::FindModifiedLibraries(Program* program,
                                          bool* is_empty_program,
                                          intptr_t* p_num_classes,
                                          intptr_t* p_num_procedures) {
-  LongJumpScope jump;
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  LongJumpScope jump(thread);
   if (DART_SETJMP(*jump.Set()) == 0) {
+    Zone* zone = thread->zone();
     if (force_reload) {
       // If a reload is being forced we mark all libraries as having
       // been modified.
       const auto& libs = GrowableObjectArray::Handle(
-          isolate_group->object_store()->libraries());
+          zone, isolate_group->object_store()->libraries());
       intptr_t num_libs = libs.Length();
       Library& lib = dart::Library::Handle(zone);
       for (intptr_t i = 0; i < num_libs; i++) {
@@ -697,7 +698,7 @@ void KernelLoader::FindModifiedLibraries(Program* program,
       intptr_t subprogram_start = subprogram_file_starts.At(i);
       intptr_t subprogram_end = subprogram_file_starts.At(i + 1);
       const auto& component = TypedDataBase::Handle(
-          program->binary().ViewFromTo(subprogram_start, subprogram_end));
+          zone, program->binary().ViewFromTo(subprogram_start, subprogram_end));
       Reader reader(component);
       const char* error = nullptr;
       std::unique_ptr<Program> subprogram = Program::ReadFrom(&reader, &error);
@@ -790,6 +791,7 @@ void KernelLoader::CheckForInitializer(const Field& field) {
 }
 
 LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
+  HANDLESCOPE(thread_);
   if (!program_->is_single_program()) {
     FATAL(
         "Trying to load a concatenated dill file at a time where that is "

@@ -47,21 +47,10 @@ main() {
   Expect.equals(Object, Object().runtimeType);
   Expect.equals(C, new C().runtimeType);
 
-
   // runtimeType on type is idempotent.
   Expect.equals((D).runtimeType, (D).runtimeType.runtimeType);
 
   // Test that operator calls on class literals go to Type.
-
-
-
-
-
-
-
-
-
-
 
   Expect.equals((dynamic).toString(), 'dynamic');
 }

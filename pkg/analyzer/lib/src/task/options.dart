@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/formatter_options.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/error_processor.dart';
@@ -22,18 +23,19 @@ import 'package:pub_semver/pub_semver.dart';
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 
-List<AnalysisError> analyzeAnalysisOptions(
+List<Diagnostic> analyzeAnalysisOptions(
   Source source,
   String content,
   SourceFactory sourceFactory,
   String contextRoot,
   VersionConstraint? sdkVersionConstraint,
 ) {
-  List<AnalysisError> errors = [];
+  List<Diagnostic> errors = [];
   Source initialSource = source;
   SourceSpan? initialIncludeSpan;
-  AnalysisOptionsProvider optionsProvider =
-      AnalysisOptionsProvider(sourceFactory);
+  AnalysisOptionsProvider optionsProvider = AnalysisOptionsProvider(
+    sourceFactory,
+  );
   String? firstPluginName;
   Map<Source, SourceSpan> includeChain = {};
 
@@ -41,12 +43,14 @@ List<AnalysisError> analyzeAnalysisOptions(
   // functions, and should be refactored to a class maintaining state, with less
   // variable shadowing.
   void addDirectErrorOrIncludedError(
-      List<AnalysisError> validationErrors, Source source,
-      {required bool sourceIsOptionsForContextRoot}) {
+    List<Diagnostic> validationErrors,
+    Source source, {
+    required bool sourceIsOptionsForContextRoot,
+  }) {
     if (!sourceIsOptionsForContextRoot) {
       // [source] is an included file, and we should only report errors in
       // [initialSource], noting that the included file has warnings.
-      for (AnalysisError error in validationErrors) {
+      for (Diagnostic error in validationErrors) {
         var args = [
           source.fullName,
           error.offset.toString(),
@@ -54,7 +58,7 @@ List<AnalysisError> analyzeAnalysisOptions(
           error.message,
         ];
         errors.add(
-          AnalysisError.tmp(
+          Diagnostic.tmp(
             source: initialSource,
             offset: initialIncludeSpan!.start.offset,
             length: initialIncludeSpan!.length,
@@ -78,16 +82,21 @@ List<AnalysisError> analyzeAnalysisOptions(
       sdkVersionConstraint: sdkVersionConstraint,
       sourceIsOptionsForContextRoot: sourceIsOptionsForContextRoot,
     ).validate(options);
-    addDirectErrorOrIncludedError(validationErrors, source,
-        sourceIsOptionsForContextRoot: sourceIsOptionsForContextRoot);
+    addDirectErrorOrIncludedError(
+      validationErrors,
+      source,
+      sourceIsOptionsForContextRoot: sourceIsOptionsForContextRoot,
+    );
 
     var includeNode = options.valueAt(AnalysisOptionsFile.include);
     if (includeNode == null) {
       // Validate the 'plugins' option in [options], understanding that no other
       // options are included.
       addDirectErrorOrIncludedError(
-          _validateLegacyPluginsOption(source, options: options), source,
-          sourceIsOptionsForContextRoot: sourceIsOptionsForContextRoot);
+        _validateLegacyPluginsOption(source, options: options),
+        source,
+        sourceIsOptionsForContextRoot: sourceIsOptionsForContextRoot,
+      );
       return;
     }
 
@@ -96,18 +105,19 @@ List<AnalysisError> analyzeAnalysisOptions(
       initialIncludeSpan ??= includeSpan;
       var includeUri = includeSpan.text;
       var (first, last) = (
-          includeUri.codeUnits.firstOrNull,
-          includeUri.codeUnits.lastOrNull);
+        includeUri.codeUnits.firstOrNull,
+        includeUri.codeUnits.lastOrNull,
+      );
       if ((first == 0x0022 || first == 0x0027) && first == last) {
-            // The URI begins and ends with either a double quote or single quote
-            // i.e. the value of the "include" field is quoted.
-            includeUri = includeUri.substring(1, includeUri.length - 1);
+        // The URI begins and ends with either a double quote or single quote
+        // i.e. the value of the "include" field is quoted.
+        includeUri = includeUri.substring(1, includeUri.length - 1);
       }
 
       var includedSource = sourceFactory.resolveUri(source, includeUri);
       if (includedSource == initialSource) {
         errors.add(
-          AnalysisError.tmp(
+          Diagnostic.tmp(
             source: initialSource,
             offset: initialIncludeSpan!.start.offset,
             length: initialIncludeSpan!.length,
@@ -119,7 +129,7 @@ List<AnalysisError> analyzeAnalysisOptions(
       }
       if (includedSource == null || !includedSource.exists()) {
         errors.add(
-          AnalysisError.tmp(
+          Diagnostic.tmp(
             source: initialSource,
             offset: initialIncludeSpan!.start.offset,
             length: initialIncludeSpan!.length,
@@ -132,7 +142,7 @@ List<AnalysisError> analyzeAnalysisOptions(
       var spanInChain = includeChain[includedSource];
       if (spanInChain != null) {
         errors.add(
-          AnalysisError.tmp(
+          Diagnostic.tmp(
             source: initialSource,
             offset: initialIncludeSpan!.start.offset,
             length: initialIncludeSpan!.length,
@@ -150,15 +160,19 @@ List<AnalysisError> analyzeAnalysisOptions(
       includeChain[includedSource] = includeSpan;
 
       try {
-        var includedOptions =
-            optionsProvider.getOptionsFromString(includedSource.contents.data);
+        var includedOptions = optionsProvider.getOptionsFromString(
+          includedSource.contents.data,
+        );
         validate(includedSource, includedOptions);
         firstPluginName ??= _firstPluginName(includedOptions);
         // Validate the 'plugins' option in [options], taking into account any
         // plugins enabled by [includedOptions].
         addDirectErrorOrIncludedError(
-          _validateLegacyPluginsOption(source,
-              options: options, firstEnabledPluginName: firstPluginName),
+          _validateLegacyPluginsOption(
+            source,
+            options: options,
+            firstEnabledPluginName: firstPluginName,
+          ),
           source,
           sourceIsOptionsForContextRoot: sourceIsOptionsForContextRoot,
         );
@@ -172,7 +186,7 @@ List<AnalysisError> analyzeAnalysisOptions(
         // Report errors for included option files on the `include` directive
         // located in the initial options file.
         errors.add(
-          AnalysisError.tmp(
+          Diagnostic.tmp(
             source: initialSource,
             offset: initialIncludeSpan!.start.offset,
             length: initialIncludeSpan!.length,
@@ -200,7 +214,7 @@ List<AnalysisError> analyzeAnalysisOptions(
   } on OptionsFormatException catch (e) {
     SourceSpan span = e.span!;
     errors.add(
-      AnalysisError.tmp(
+      Diagnostic.tmp(
         source: source,
         offset: span.start.offset,
         length: span.length,
@@ -233,15 +247,16 @@ String? _firstPluginName(YamlMap options) {
 
 /// Validates the legacy 'plugins' options in [options], given
 /// [firstEnabledPluginName].
-List<AnalysisError> _validateLegacyPluginsOption(
+List<Diagnostic> _validateLegacyPluginsOption(
   Source source, {
   required YamlMap options,
   String? firstEnabledPluginName,
 }) {
   RecordingErrorListener recorder = RecordingErrorListener();
   ErrorReporter reporter = ErrorReporter(recorder, source);
-  _LegacyPluginsOptionValidator(firstEnabledPluginName)
-      .validate(reporter, options);
+  _LegacyPluginsOptionValidator(
+    firstEnabledPluginName,
+  ).validate(reporter, options);
   return recorder.errors;
 }
 
@@ -304,11 +319,7 @@ final class AnalysisOptionsFile {
   static const String version = 'version';
 
   /// Supported 'plugins' options.
-  static const Set<String> _pluginsOptions = {
-    diagnostics,
-    path,
-    version,
-  };
+  static const Set<String> _pluginsOptions = {diagnostics, path, version};
 
   static const String propagateLinterExceptions = 'propagate-linter-exceptions';
 
@@ -344,9 +355,7 @@ final class AnalysisOptionsFile {
   };
 
   /// Supported 'linter' options.
-  static const Set<String> _linterOptions = {
-    rules,
-  };
+  static const Set<String> _linterOptions = {rules};
 
   /// Supported 'analyzer' optional checks options.
   static const Set<String> _optionalChecksOptions = {
@@ -362,15 +371,15 @@ final class AnalysisOptionsFile {
 /// Validates `analyzer` options.
 class AnalyzerOptionsValidator extends _CompositeValidator {
   AnalyzerOptionsValidator()
-      : super([
-          _AnalyzerTopLevelOptionsValidator(),
-          _StrongModeOptionValueValidator(),
-          _ErrorFilterOptionValidator(),
-          _EnabledExperimentsValidator(),
-          _LanguageOptionValidator(),
-          _OptionalChecksValueValidator(),
-          _CannotIgnoreOptionValidator(),
-        ]);
+    : super([
+        _AnalyzerTopLevelOptionsValidator(),
+        _StrongModeOptionValueValidator(),
+        _ErrorFilterOptionValidator(),
+        _EnabledExperimentsValidator(),
+        _LanguageOptionValidator(),
+        _OptionalChecksValueValidator(),
+        _CannotIgnoreOptionValidator(),
+      ]);
 }
 
 /// Validates options defined in an analysis options file.
@@ -386,18 +395,18 @@ class OptionsFileValidator {
     VersionConstraint? sdkVersionConstraint,
     required bool sourceIsOptionsForContextRoot,
   }) : _validators = [
-          AnalyzerOptionsValidator(),
-          _CodeStyleOptionsValidator(),
-          _FormatterOptionsValidator(),
-          _LinterTopLevelOptionsValidator(),
-          LinterRuleOptionsValidator(
-            sdkVersionConstraint: sdkVersionConstraint,
-            sourceIsOptionsForContextRoot: sourceIsOptionsForContextRoot,
-          ),
-          _PluginsOptionsValidator(),
-        ];
+         AnalyzerOptionsValidator(),
+         _CodeStyleOptionsValidator(),
+         _FormatterOptionsValidator(),
+         _LinterTopLevelOptionsValidator(),
+         LinterRuleOptionsValidator(
+           sdkVersionConstraint: sdkVersionConstraint,
+           sourceIsOptionsForContextRoot: sourceIsOptionsForContextRoot,
+         ),
+         _PluginsOptionsValidator(),
+       ];
 
-  List<AnalysisError> validate(YamlMap options) {
+  List<Diagnostic> validate(YamlMap options) {
     RecordingErrorListener recorder = RecordingErrorListener();
     ErrorReporter reporter = ErrorReporter(recorder, _source);
     for (var validator in _validators) {
@@ -410,8 +419,7 @@ class OptionsFileValidator {
 /// Validates `analyzer` top-level options.
 class _AnalyzerTopLevelOptionsValidator extends _TopLevelOptionValidator {
   _AnalyzerTopLevelOptionsValidator()
-      : super(
-            AnalysisOptionsFile.analyzer, AnalysisOptionsFile._analyzerOptions);
+    : super(AnalysisOptionsFile.analyzer, AnalysisOptionsFile._analyzerOptions);
 }
 
 /// Validates the `analyzer` `cannot-ignore` option.
@@ -426,14 +434,13 @@ class _CannotIgnoreOptionValidator extends OptionsValidator {
   /// The error code names that existed, but were removed.
   /// We don't want to report these, this breaks clients.
   // TODO(scheglov): https://github.com/flutter/flutter/issues/141576
-  static const Set<String> _removedErrorCodes = {
-    'MISSING_RETURN',
-  };
+  static const Set<String> _removedErrorCodes = {'MISSING_RETURN'};
 
   /// Lazily populated set of lint codes.
-  late final Set<String> _lintCodes = Registry.ruleRegistry.rules
-      .map((rule) => rule.name.toUpperCase())
-      .toSet();
+  late final Set<String> _lintCodes =
+      Registry.ruleRegistry.rules
+          .map((rule) => rule.name.toUpperCase())
+          .toSet();
 
   @override
   void validate(ErrorReporter reporter, YamlMap options) {
@@ -532,7 +539,7 @@ class _CodeStyleOptionsValidator extends OptionsValidator {
           arguments: [
             AnalysisOptionsFile.format,
             format.valueOrThrow,
-            AnalysisOptionsFile._trueOrFalseProposal
+            AnalysisOptionsFile._trueOrFalseProposal,
           ],
         );
       }
@@ -566,8 +573,9 @@ class _EnabledExperimentsValidator extends OptionsValidator {
   void validate(ErrorReporter reporter, YamlMap options) {
     var analyzer = options.valueAt(AnalysisOptionsFile.analyzer);
     if (analyzer is YamlMap) {
-      var experimentNames =
-          analyzer.valueAt(AnalysisOptionsFile.enableExperiment);
+      var experimentNames = analyzer.valueAt(
+        AnalysisOptionsFile.enableExperiment,
+      );
       if (experimentNames is YamlList) {
         var flags =
             experimentNames.nodes.map((node) => node.toString()).toList();
@@ -580,7 +588,7 @@ class _EnabledExperimentsValidator extends OptionsValidator {
               AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES,
               arguments: [
                 AnalysisOptionsFile.enableExperiment,
-                flags[flagIndex]
+                flags[flagIndex],
               ],
             );
           } else {
@@ -589,7 +597,7 @@ class _EnabledExperimentsValidator extends OptionsValidator {
               AnalysisOptionsWarningCode.INVALID_OPTION,
               arguments: [
                 AnalysisOptionsFile.enableExperiment,
-                validationResult.message
+                validationResult.message,
               ],
             );
           }
@@ -632,10 +640,7 @@ class _ErrorBuilder {
     }
   }
 
-  _ErrorBuilder._({
-    required this.proposal,
-    required this.code,
-  });
+  _ErrorBuilder._({required this.proposal, required this.code});
 
   /// Report an unsupported [node] value, defined in the given [scopeName].
   void reportError(ErrorReporter reporter, String scopeName, YamlNode node) {
@@ -675,14 +680,13 @@ class _ErrorFilterOptionValidator extends OptionsValidator {
   /// The error code names that existed, but were removed.
   /// We don't want to report these, this breaks clients.
   // TODO(scheglov): https://github.com/flutter/flutter/issues/141576
-  static const Set<String> _removedErrorCodes = {
-    'MISSING_RETURN',
-  };
+  static const Set<String> _removedErrorCodes = {'MISSING_RETURN'};
 
   /// Lazily populated set of lint codes.
-  late final Set<String> _lintCodes = Registry.ruleRegistry.rules
-      .map((rule) => rule.name.toUpperCase())
-      .toSet();
+  late final Set<String> _lintCodes =
+      Registry.ruleRegistry.rules
+          .map((rule) => rule.name.toUpperCase())
+          .toSet();
 
   @override
   void validate(ErrorReporter reporter, YamlMap options) {
@@ -713,7 +717,7 @@ class _ErrorFilterOptionValidator extends OptionsValidator {
                 arguments: [
                   AnalysisOptionsFile.errors,
                   v.value.toString(),
-                  legalValueString
+                  legalValueString,
                 ],
               );
             }
@@ -756,10 +760,7 @@ class _FormatterOptionsValidator extends OptionsValidator {
           reporter.atSourceSpan(
             keyNode.span,
             AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES,
-            arguments: [
-              AnalysisOptionsFile.formatter,
-              keyNode.toString(),
-            ],
+            arguments: [AnalysisOptionsFile.formatter, keyNode.toString()],
           );
         }
       }
@@ -773,7 +774,10 @@ class _FormatterOptionsValidator extends OptionsValidator {
   }
 
   void _validatePageWidth(
-      YamlNode keyNode, YamlNode valueNode, ErrorReporter reporter) {
+    YamlNode keyNode,
+    YamlNode valueNode,
+    ErrorReporter reporter,
+  ) {
     var value = valueNode.value;
     if (value is! int || value <= 0) {
       reporter.atSourceSpan(
@@ -809,8 +813,9 @@ class _FormatterOptionsValidator extends OptionsValidator {
 
 /// Validates `analyzer` language configuration options.
 class _LanguageOptionValidator extends OptionsValidator {
-  final _ErrorBuilder _builder =
-      _ErrorBuilder(AnalysisOptionsFile._languageOptions);
+  final _ErrorBuilder _builder = _ErrorBuilder(
+    AnalysisOptionsFile._languageOptions,
+  );
 
   @override
   void validate(ErrorReporter reporter, YamlMap options) {
@@ -841,7 +846,7 @@ class _LanguageOptionValidator extends OptionsValidator {
                 arguments: [
                   key!,
                   v.valueOrThrow,
-                  AnalysisOptionsFile._trueOrFalseProposal
+                  AnalysisOptionsFile._trueOrFalseProposal,
                 ],
               );
             }
@@ -964,13 +969,14 @@ class _LegacyPluginsOptionValidator extends OptionsValidator {
 /// Validates `linter` top-level options.
 class _LinterTopLevelOptionsValidator extends _TopLevelOptionValidator {
   _LinterTopLevelOptionsValidator()
-      : super(AnalysisOptionsFile.linter, AnalysisOptionsFile._linterOptions);
+    : super(AnalysisOptionsFile.linter, AnalysisOptionsFile._linterOptions);
 }
 
 /// Validates `analyzer` optional-checks value configuration options.
 class _OptionalChecksValueValidator extends OptionsValidator {
-  final _ErrorBuilder _builder =
-      _ErrorBuilder(AnalysisOptionsFile._optionalChecksOptions);
+  final _ErrorBuilder _builder = _ErrorBuilder(
+    AnalysisOptionsFile._optionalChecksOptions,
+  );
 
   @override
   void validate(ErrorReporter reporter, YamlMap options) {
@@ -981,7 +987,10 @@ class _OptionalChecksValueValidator extends OptionsValidator {
         var value = toLowerCase(v.value);
         if (value != AnalysisOptionsFile.chromeOsManifestChecks) {
           _builder.reportError(
-              reporter, AnalysisOptionsFile.chromeOsManifestChecks, v);
+            reporter,
+            AnalysisOptionsFile.chromeOsManifestChecks,
+            v,
+          );
         }
       } else if (v is YamlMap) {
         v.nodes.forEach((k, v) {
@@ -990,7 +999,10 @@ class _OptionalChecksValueValidator extends OptionsValidator {
             key = k.value?.toString();
             if (key != AnalysisOptionsFile.chromeOsManifestChecks) {
               _builder.reportError(
-                  reporter, AnalysisOptionsFile.chromeOsManifestChecks, k);
+                reporter,
+                AnalysisOptionsFile.chromeOsManifestChecks,
+                k,
+              );
             } else {
               value = toLowerCase(v.value);
               if (!AnalysisOptionsFile._trueOrFalse.contains(value)) {
@@ -1000,7 +1012,7 @@ class _OptionalChecksValueValidator extends OptionsValidator {
                   arguments: [
                     key!,
                     v.valueOrThrow,
-                    AnalysisOptionsFile._trueOrFalseProposal
+                    AnalysisOptionsFile._trueOrFalseProposal,
                   ],
                 );
               }
@@ -1020,8 +1032,9 @@ class _OptionalChecksValueValidator extends OptionsValidator {
 
 /// Validates options for each `plugins` map value.
 class _PluginsOptionsValidator extends OptionsValidator {
-  final _ErrorBuilder _builder =
-      _ErrorBuilder(AnalysisOptionsFile._pluginsOptions);
+  final _ErrorBuilder _builder = _ErrorBuilder(
+    AnalysisOptionsFile._pluginsOptions,
+  );
 
   @override
   void validate(ErrorReporter reporter, YamlMap options) {
@@ -1065,12 +1078,18 @@ class _PluginsOptionsValidator extends OptionsValidator {
   }
 
   void _validatePluginMap(
-      ErrorReporter reporter, String pluginName, YamlMap pluginValue) {
+    ErrorReporter reporter,
+    String pluginName,
+    YamlMap pluginValue,
+  ) {
     pluginValue.nodes.forEach((pluginMapKeyNode, pluginMapValueNode) {
       if (pluginMapKeyNode case YamlScalar(value: String pluginMapKey)) {
         if (!AnalysisOptionsFile._pluginsOptions.contains(pluginMapKey)) {
-          _builder.reportError(reporter,
-              '${AnalysisOptionsFile.plugins}/$pluginName', pluginMapKeyNode);
+          _builder.reportError(
+            reporter,
+            '${AnalysisOptionsFile.plugins}/$pluginName',
+            pluginMapKeyNode,
+          );
         }
       }
       // TODO(srawlins): Validate 'path' is a YamlScalar.
@@ -1082,8 +1101,9 @@ class _PluginsOptionsValidator extends OptionsValidator {
 
 /// Validates `analyzer` strong-mode value configuration options.
 class _StrongModeOptionValueValidator extends OptionsValidator {
-  final _ErrorBuilder _builder =
-      _ErrorBuilder(AnalysisOptionsFile._strongModeOptions);
+  final _ErrorBuilder _builder = _ErrorBuilder(
+    AnalysisOptionsFile._strongModeOptions,
+  );
 
   @override
   void validate(ErrorReporter reporter, YamlMap options) {
@@ -1103,7 +1123,9 @@ class _StrongModeOptionValueValidator extends OptionsValidator {
   }
 
   void _validateStrongModeAsMap(
-      ErrorReporter reporter, YamlMap strongModeNode) {
+    ErrorReporter reporter,
+    YamlMap strongModeNode,
+  ) {
     strongModeNode.nodes.forEach((k, v) {
       if (k is YamlScalar) {
         var key = k.value?.toString();
@@ -1116,7 +1138,7 @@ class _StrongModeOptionValueValidator extends OptionsValidator {
             arguments: [
               AnalysisOptionsFile.strongMode,
               v.valueOrThrow,
-              AnalysisOptionsFile._trueOrFalseProposal
+              AnalysisOptionsFile._trueOrFalseProposal,
             ],
           );
         } else {
@@ -1130,7 +1152,7 @@ class _StrongModeOptionValueValidator extends OptionsValidator {
                 arguments: [
                   key!,
                   v.valueOrThrow,
-                  AnalysisOptionsFile._trueOrFalseProposal
+                  AnalysisOptionsFile._trueOrFalseProposal,
                 ],
               );
             }
@@ -1154,11 +1176,12 @@ class _TopLevelOptionValidator extends OptionsValidator {
   final AnalysisOptionsWarningCode _warningCode;
 
   _TopLevelOptionValidator(this.pluginName, this.supportedOptions)
-      : assert(supportedOptions.isNotEmpty),
-        _valueProposal = supportedOptions.quotedAndCommaSeparatedWithAnd,
-        _warningCode = supportedOptions.length == 1
-            ? AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE
-            : AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES;
+    : assert(supportedOptions.isNotEmpty),
+      _valueProposal = supportedOptions.quotedAndCommaSeparatedWithAnd,
+      _warningCode =
+          supportedOptions.length == 1
+              ? AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE
+              : AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES;
 
   @override
   void validate(ErrorReporter reporter, YamlMap options) {

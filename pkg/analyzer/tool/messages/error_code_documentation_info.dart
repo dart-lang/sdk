@@ -9,7 +9,9 @@ import 'dart:convert';
 /// user-publishable documentation about the given [errorCode], along with code
 /// blocks illustrating when the error occurs and how to fix it.
 List<ErrorCodeDocumentationPart>? parseErrorCodeDocumentation(
-    String errorCode, String? documentation) {
+  String errorCode,
+  String? documentation,
+) {
   if (documentation == null) {
     return null;
   }
@@ -57,12 +59,14 @@ class ErrorCodeDocumentationBlock extends ErrorCodeDocumentationPart {
   /// the file.
   final String? uri;
 
-  ErrorCodeDocumentationBlock(this.text,
-      {required this.containingSection,
-      this.experiments = const [],
-      required this.fileType,
-      this.languageVersion,
-      this.uri});
+  ErrorCodeDocumentationBlock(
+    this.text, {
+    required this.containingSection,
+    this.experiments = const [],
+    required this.fileType,
+    this.languageVersion,
+    this.uri,
+  });
 }
 
 /// A portion of an error code's documentation.  This could be free form
@@ -178,12 +182,16 @@ class _ErrorCodeDocumentationParser {
         ++currentLineNumber;
         if (containingSection != null) {
           // Ignore code blocks where they're allowed but aren't checked.
-          result.add(ErrorCodeDocumentationBlock(codeLines.join('\n'),
+          result.add(
+            ErrorCodeDocumentationBlock(
+              codeLines.join('\n'),
               containingSection: containingSection,
               experiments: experiments ?? const [],
               fileType: fileType,
               languageVersion: languageVersion,
-              uri: uri));
+              uri: uri,
+            ),
+          );
         }
         return;
       } else if (line.startsWith('%')) {
@@ -204,11 +212,12 @@ class _ErrorCodeDocumentationParser {
           if (experiments != null) {
             problem('Multiple experiments directives');
           }
-          experiments = line
-              .substring(experimentsPrefix.length)
-              .split(',')
-              .map((e) => e.trim())
-              .toList();
+          experiments =
+              line
+                  .substring(experimentsPrefix.length)
+                  .split(',')
+                  .map((e) => e.trim())
+                  .toList();
         } else {
           problem('Unrecognized directive ${json.encode(line)}');
         }

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -37,7 +37,7 @@ class ExpectedLocation {
 
 @reflectiveTest
 class IndexTest extends PubPackageResolutionTest with _IndexMixin {
-  void assertElementIndexText(Element2 element, String expected) {
+  void assertElementIndexText(Element element, String expected) {
     var actual = _getRelationsText(element);
     if (actual != expected) {
       print(actual);
@@ -47,7 +47,9 @@ class IndexTest extends PubPackageResolutionTest with _IndexMixin {
   }
 
   void assertLibraryFragmentIndexText(
-      CompilationUnitElementImpl fragment, String expected) {
+    LibraryFragmentImpl fragment,
+    String expected,
+  ) {
     var actual = _getLibraryFragmentReferenceText(fragment);
     if (actual != expected) {
       print(actual);
@@ -1872,7 +1874,7 @@ void f() {
 
     var importFind = findElement2.importFind('package:test/foo.dart');
     var importedFragment = importFind.importedLibrary.firstFragment;
-    importedFragment as CompilationUnitElementImpl;
+    importedFragment as LibraryFragmentImpl;
     assertLibraryFragmentIndexText(importedFragment, r'''
 7 1:8 |"foo.dart"|
 ''');
@@ -2502,12 +2504,13 @@ class Z implements E, D {
     expect(index.subtypes, hasLength(6));
 
     _assertSubtype(0, 'dart:core;dart:core;Object', 'Y', ['methodY']);
-    _assertSubtype(
-      1,
-      '$libP;A',
-      'X',
-      ['field1', 'field2', 'getter1', 'method1', 'setter1'],
-    );
+    _assertSubtype(1, '$libP;A', 'X', [
+      'field1',
+      'field2',
+      'getter1',
+      'method1',
+      'setter1',
+    ]);
     _assertSubtype(2, '$libP;B', 'Y', ['methodY']);
     _assertSubtype(3, '$libP;C', 'Y', ['methodY']);
     _assertSubtype(4, '$libP;D', 'Z', ['methodZ']);
@@ -2740,7 +2743,7 @@ void f() {
       ..isUsed('x();', IndexRelationKind.IS_INVOKED_BY);
   }
 
-  String _getLibraryFragmentReferenceText(CompilationUnitElementImpl target) {
+  String _getLibraryFragmentReferenceText(LibraryFragmentImpl target) {
     var lineInfo = result.lineInfo;
     var targetId = index.getLibraryFragmentId(target);
 
@@ -2774,7 +2777,7 @@ void f() {
     return buffer.toString();
   }
 
-  String _getRelationsText(Element2 element) {
+  String _getRelationsText(Element element) {
     var lineInfo = result.lineInfo;
     var elementId = _findElementId(element);
 
@@ -2869,15 +2872,23 @@ mixin _IndexMixin on PubPackageResolutionTest {
   }
 
   void _assertSubtype(
-      int i, String superEncoded, String subName, List<String> members) {
+    int i,
+    String superEncoded,
+    String subName,
+    List<String> members,
+  ) {
     expect(index.strings[index.supertypes[i]], superEncoded);
     var subtype = index.subtypes[i];
     expect(index.strings[subtype.name], subName);
     expect(_decodeStringList(subtype.members), members);
   }
 
-  void _assertUsedName(String name, IndexRelationKind kind,
-      ExpectedLocation expectedLocation, bool isNot) {
+  void _assertUsedName(
+    String name,
+    IndexRelationKind kind,
+    ExpectedLocation expectedLocation,
+    bool isNot,
+  ) {
     int nameId = index.getStringId(name);
     for (int i = 0; i < index.usedNames.length; i++) {
       if (index.usedNames[i] == nameId &&
@@ -2900,8 +2911,11 @@ mixin _IndexMixin on PubPackageResolutionTest {
     return stringIds.map((i) => index.strings[i]).toList();
   }
 
-  ExpectedLocation _expectedLocation(String search, bool isQualified,
-      {int? length}) {
+  ExpectedLocation _expectedLocation(
+    String search,
+    bool isQualified, {
+    int? length,
+  }) {
     int offset = findNode.offset(search);
     length ??= findNode.simple(search).length;
     return ExpectedLocation(offset, length, isQualified);
@@ -2925,7 +2939,7 @@ mixin _IndexMixin on PubPackageResolutionTest {
   }
 
   /// Return the [element] identifier in [index] or fail.
-  int _findElementId(Element2 element) {
+  int _findElementId(Element element) {
     var unitId = _getUnitId(element);
 
     // Prepare the element that was put into the index.
@@ -2939,9 +2953,11 @@ mixin _IndexMixin on PubPackageResolutionTest {
     var parameterId = index.getStringId(components.parameterName);
 
     // Find the element's id.
-    for (int elementId = 0;
-        elementId < index.elementUnits.length;
-        elementId++) {
+    for (
+      int elementId = 0;
+      elementId < index.elementUnits.length;
+      elementId++
+    ) {
       if (index.elementUnits[elementId] == unitId &&
           index.elementNameUnitMemberIds[elementId] == unitMemberId &&
           index.elementNameClassMemberIds[elementId] == classMemberId &&
@@ -2954,7 +2970,7 @@ mixin _IndexMixin on PubPackageResolutionTest {
     return 0;
   }
 
-  int _getUnitId(Element2 element) {
+  int _getUnitId(Element element) {
     var unitElement = getUnitElement(element);
     return index.getLibraryFragmentId(unitElement);
   }
@@ -2976,22 +2992,38 @@ class _NameIndexAssert {
 
   void isNotUsed(String search, IndexRelationKind kind) {
     test._assertUsedName(
-        name, kind, test._expectedLocation(search, false), true);
+      name,
+      kind,
+      test._expectedLocation(search, false),
+      true,
+    );
   }
 
   void isNotUsedQ(String search, IndexRelationKind kind) {
     test._assertUsedName(
-        name, kind, test._expectedLocation(search, true), true);
+      name,
+      kind,
+      test._expectedLocation(search, true),
+      true,
+    );
   }
 
   void isUsed(String search, IndexRelationKind kind) {
     test._assertUsedName(
-        name, kind, test._expectedLocation(search, false), false);
+      name,
+      kind,
+      test._expectedLocation(search, false),
+      false,
+    );
   }
 
   void isUsedQ(String search, IndexRelationKind kind) {
     test._assertUsedName(
-        name, kind, test._expectedLocation(search, true), false);
+      name,
+      kind,
+      test._expectedLocation(search, true),
+      false,
+    );
   }
 }
 

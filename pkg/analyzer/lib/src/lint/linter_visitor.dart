@@ -15,10 +15,8 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
   /// Whether exceptions should be propagated (by rethrowing them).
   final bool _shouldPropagateExceptions;
 
-  AnalysisRuleVisitor(
-    this._registry, {
-    bool shouldPropagateExceptions = false,
-  }) : _shouldPropagateExceptions = shouldPropagateExceptions;
+  AnalysisRuleVisitor(this._registry, {bool shouldPropagateExceptions = false})
+    : _shouldPropagateExceptions = shouldPropagateExceptions;
 
   void afterLibrary() {
     _runAfterLibrarySubscriptions(_registry._afterLibrary);
@@ -255,6 +253,14 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
   @override
   void visitDoStatement(DoStatement node) {
     _runSubscriptions(node, _registry._forDoStatement);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) {
+    _runSubscriptions(node, _registry._forDotShorthandConstructorInvocation);
     node.visitChildren(this);
   }
 
@@ -758,7 +764,8 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
 
   @override
   void visitPatternVariableDeclarationStatement(
-      PatternVariableDeclarationStatement node) {
+    PatternVariableDeclarationStatement node,
+  ) {
     _runSubscriptions(node, _registry._forPatternVariableDeclarationStatement);
     node.visitChildren(this);
   }
@@ -807,28 +814,32 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
 
   @override
   void visitRecordTypeAnnotationNamedField(
-      RecordTypeAnnotationNamedField node) {
+    RecordTypeAnnotationNamedField node,
+  ) {
     _runSubscriptions(node, _registry._forRecordTypeAnnotationNamedField);
     node.visitChildren(this);
   }
 
   @override
   void visitRecordTypeAnnotationNamedFields(
-      RecordTypeAnnotationNamedFields node) {
+    RecordTypeAnnotationNamedFields node,
+  ) {
     _runSubscriptions(node, _registry._forRecordTypeAnnotationNamedFields);
     node.visitChildren(this);
   }
 
   @override
   void visitRecordTypeAnnotationPositionalField(
-      RecordTypeAnnotationPositionalField node) {
+    RecordTypeAnnotationPositionalField node,
+  ) {
     _runSubscriptions(node, _registry._forRecordTypeAnnotationPositionalField);
     node.visitChildren(this);
   }
 
   @override
   void visitRedirectingConstructorInvocation(
-      RedirectingConstructorInvocation node) {
+    RedirectingConstructorInvocation node,
+  ) {
     _runSubscriptions(node, _registry._forRedirectingConstructorInvocation);
     node.visitChildren(this);
   }
@@ -1074,8 +1085,12 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
   }
 
   /// Handles exceptions that occur during the execution of an [AnalysisRule].
-  void _logException(AstNode node, AnalysisRule visitor, Object exception,
-      StackTrace stackTrace) {
+  void _logException(
+    AstNode node,
+    AnalysisRule visitor,
+    Object exception,
+    StackTrace stackTrace,
+  ) {
     var buffer = StringBuffer();
     buffer.write('Exception while using a ${visitor.runtimeType} to visit a ');
     AstNode? currentNode = node;
@@ -1091,11 +1106,13 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
     }
     // TODO(39284): should this exception be silent?
     AnalysisEngine.instance.instrumentationService.logException(
-        SilentException(buffer.toString(), exception, stackTrace));
+      SilentException(buffer.toString(), exception, stackTrace),
+    );
   }
 
   void _runAfterLibrarySubscriptions(
-      List<_AfterLibrarySubscription> subscriptions) {
+    List<_AfterLibrarySubscription> subscriptions,
+  ) {
     for (var subscription in subscriptions) {
       var timer = subscription.timer;
       timer?.start();
@@ -1105,7 +1122,9 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
   }
 
   void _runSubscriptions<T extends AstNode>(
-      T node, List<_Subscription<T>> subscriptions) {
+    T node,
+    List<_Subscription<T>> subscriptions,
+  ) {
     for (var subscription in subscriptions) {
       var timer = subscription.timer;
       timer?.start();
@@ -1133,7 +1152,7 @@ class NodeLintRegistry {
   final List<_Subscription<AssertInitializer>> _forAssertInitializer = [];
   final List<_Subscription<AssertStatement>> _forAssertStatement = [];
   final List<_Subscription<AssignedVariablePattern>>
-      _forAssignedVariablePattern = [];
+  _forAssignedVariablePattern = [];
   final List<_Subscription<AssignmentExpression>> _forAssignmentExpression = [];
   final List<_Subscription<AugmentedExpression>> _forAugmentedExpression = [];
   final List<_Subscription<AugmentedInvocation>> _forAugmentedInvocation = [];
@@ -1160,21 +1179,23 @@ class NodeLintRegistry {
   final List<_Subscription<ConstructorDeclaration>> _forConstructorDeclaration =
       [];
   final List<_Subscription<ConstructorFieldInitializer>>
-      _forConstructorFieldInitializer = [];
+  _forConstructorFieldInitializer = [];
   final List<_Subscription<ConstructorName>> _forConstructorName = [];
   final List<_Subscription<ConstructorReference>> _forConstructorReference = [];
   final List<_Subscription<ConstructorSelector>> _forConstructorSelector = [];
   final List<_Subscription<ContinueStatement>> _forContinueStatement = [];
   final List<_Subscription<DeclaredIdentifier>> _forDeclaredIdentifier = [];
   final List<_Subscription<DeclaredVariablePattern>>
-      _forDeclaredVariablePattern = [];
+  _forDeclaredVariablePattern = [];
   final List<_Subscription<DefaultFormalParameter>> _forDefaultFormalParameter =
       [];
   final List<_Subscription<DoStatement>> _forDoStatement = [];
+  final List<_Subscription<DotShorthandConstructorInvocation>>
+  _forDotShorthandConstructorInvocation = [];
   final List<_Subscription<DotShorthandInvocation>> _forDotShorthandInvocation =
       [];
   final List<_Subscription<DotShorthandPropertyAccess>>
-      _forDotShorthandPropertyAccess = [];
+  _forDotShorthandPropertyAccess = [];
   final List<_Subscription<DottedName>> _forDottedName = [];
   final List<_Subscription<DoubleLiteral>> _forDoubleLiteral = [];
   final List<_Subscription<EmptyFunctionBody>> _forEmptyFunctionBody = [];
@@ -1182,7 +1203,7 @@ class NodeLintRegistry {
   final List<_Subscription<EnumConstantArguments>> _forEnumConstantArguments =
       [];
   final List<_Subscription<EnumConstantDeclaration>>
-      _forEnumConstantDeclaration = [];
+  _forEnumConstantDeclaration = [];
   final List<_Subscription<EnumDeclaration>> _forEnumDeclaration = [];
   final List<_Subscription<ExportDirective>> _forExportDirective = [];
   final List<_Subscription<ExpressionFunctionBody>> _forExpressionFunctionBody =
@@ -1191,36 +1212,36 @@ class NodeLintRegistry {
   final List<_Subscription<ExtendsClause>> _forExtendsClause = [];
   final List<_Subscription<ExtensionDeclaration>> _forExtensionDeclaration = [];
   final List<_Subscription<ExtensionTypeDeclaration>>
-      _forExtensionTypeDeclaration = [];
+  _forExtensionTypeDeclaration = [];
   final List<_Subscription<ExtensionOnClause>> _forExtensionOnClause = [];
   final List<_Subscription<ExtensionOverride>> _forExtensionOverride = [];
   final List<_Subscription<ObjectPattern>> _forObjectPattern = [];
   final List<_Subscription<FieldDeclaration>> _forFieldDeclaration = [];
   final List<_Subscription<FieldFormalParameter>> _forFieldFormalParameter = [];
   final List<_Subscription<ForEachPartsWithDeclaration>>
-      _forForEachPartsWithDeclaration = [];
+  _forForEachPartsWithDeclaration = [];
   final List<_Subscription<ForEachPartsWithIdentifier>>
-      _forForEachPartsWithIdentifier = [];
+  _forForEachPartsWithIdentifier = [];
   final List<_Subscription<ForEachPartsWithPattern>>
-      _forForEachPartsWithPattern = [];
+  _forForEachPartsWithPattern = [];
   final List<_Subscription<ForElement>> _forForElement = [];
   final List<_Subscription<FormalParameterList>> _forFormalParameterList = [];
   final List<_Subscription<ForPartsWithDeclarations>>
-      _forForPartsWithDeclarations = [];
+  _forForPartsWithDeclarations = [];
   final List<_Subscription<ForPartsWithExpression>> _forForPartsWithExpression =
       [];
   final List<_Subscription<ForPartsWithPattern>> _forForPartsWithPattern = [];
   final List<_Subscription<ForStatement>> _forForStatement = [];
   final List<_Subscription<FunctionDeclaration>> _forFunctionDeclaration = [];
   final List<_Subscription<FunctionDeclarationStatement>>
-      _forFunctionDeclarationStatement = [];
+  _forFunctionDeclarationStatement = [];
   final List<_Subscription<FunctionExpression>> _forFunctionExpression = [];
   final List<_Subscription<FunctionExpressionInvocation>>
-      _forFunctionExpressionInvocation = [];
+  _forFunctionExpressionInvocation = [];
   final List<_Subscription<FunctionReference>> _forFunctionReference = [];
   final List<_Subscription<FunctionTypeAlias>> _forFunctionTypeAlias = [];
   final List<_Subscription<FunctionTypedFormalParameter>>
-      _forFunctionTypedFormalParameter = [];
+  _forFunctionTypedFormalParameter = [];
   final List<_Subscription<GenericFunctionType>> _forGenericFunctionType = [];
   final List<_Subscription<GenericTypeAlias>> _forGenericTypeAlias = [];
   final List<_Subscription<GuardedPattern>> _forGuardedPattern = [];
@@ -1235,10 +1256,10 @@ class NodeLintRegistry {
       [];
   final List<_Subscription<IndexExpression>> _forIndexExpression = [];
   final List<_Subscription<InstanceCreationExpression>>
-      _forInstanceCreationExpression = [];
+  _forInstanceCreationExpression = [];
   final List<_Subscription<IntegerLiteral>> _forIntegerLiteral = [];
   final List<_Subscription<InterpolationExpression>>
-      _forInterpolationExpression = [];
+  _forInterpolationExpression = [];
   final List<_Subscription<InterpolationString>> _forInterpolationString = [];
   final List<_Subscription<IsExpression>> _forIsExpression = [];
   final List<_Subscription<Label>> _forLabel = [];
@@ -1265,7 +1286,7 @@ class NodeLintRegistry {
   final List<_Subscription<NullCheckPattern>> _forNullCheckPattern = [];
   final List<_Subscription<NullLiteral>> _forNullLiteral = [];
   final List<_Subscription<ParenthesizedExpression>>
-      _forParenthesizedExpression = [];
+  _forParenthesizedExpression = [];
   final List<_Subscription<ParenthesizedPattern>> _forParenthesizedPattern = [];
   final List<_Subscription<PartDirective>> _forPartDirective = [];
   final List<_Subscription<PartOfDirective>> _forPartOfDirective = [];
@@ -1273,9 +1294,9 @@ class NodeLintRegistry {
   final List<_Subscription<PatternField>> _forPatternField = [];
   final List<_Subscription<PatternFieldName>> _forPatternFieldName = [];
   final List<_Subscription<PatternVariableDeclaration>>
-      _forPatternVariableDeclaration = [];
+  _forPatternVariableDeclaration = [];
   final List<_Subscription<PatternVariableDeclarationStatement>>
-      _forPatternVariableDeclarationStatement = [];
+  _forPatternVariableDeclarationStatement = [];
   final List<_Subscription<PostfixExpression>> _forPostfixExpression = [];
   final List<_Subscription<PrefixedIdentifier>> _forPrefixedIdentifier = [];
   final List<_Subscription<PrefixExpression>> _forPrefixExpression = [];
@@ -1284,21 +1305,21 @@ class NodeLintRegistry {
   final List<_Subscription<RecordPattern>> _forRecordPattern = [];
   final List<_Subscription<RecordTypeAnnotation>> _forRecordTypeAnnotation = [];
   final List<_Subscription<RecordTypeAnnotationNamedField>>
-      _forRecordTypeAnnotationNamedField = [];
+  _forRecordTypeAnnotationNamedField = [];
   final List<_Subscription<RecordTypeAnnotationNamedFields>>
-      _forRecordTypeAnnotationNamedFields = [];
+  _forRecordTypeAnnotationNamedFields = [];
   final List<_Subscription<RecordTypeAnnotationPositionalField>>
-      _forRecordTypeAnnotationPositionalField = [];
+  _forRecordTypeAnnotationPositionalField = [];
   final List<_Subscription<RedirectingConstructorInvocation>>
-      _forRedirectingConstructorInvocation = [];
+  _forRedirectingConstructorInvocation = [];
   final List<_Subscription<RelationalPattern>> _forRelationalPattern = [];
   final List<_Subscription<RestPatternElement>> _forRestPatternElement = [];
   final List<_Subscription<RethrowExpression>> _forRethrowExpression = [];
   final List<_Subscription<ReturnStatement>> _forReturnStatement = [];
   final List<_Subscription<RepresentationConstructorName>>
-      _forRepresentationConstructorName = [];
+  _forRepresentationConstructorName = [];
   final List<_Subscription<RepresentationDeclaration>>
-      _forRepresentationDeclaration = [];
+  _forRepresentationDeclaration = [];
   final List<_Subscription<ScriptTag>> _forScriptTag = [];
   final List<_Subscription<SetOrMapLiteral>> _forSetOrMapLiteral = [];
   final List<_Subscription<ShowCombinator>> _forShowCombinator = [];
@@ -1309,7 +1330,7 @@ class NodeLintRegistry {
   final List<_Subscription<SpreadElement>> _forSpreadElement = [];
   final List<_Subscription<StringInterpolation>> _forStringInterpolation = [];
   final List<_Subscription<SuperConstructorInvocation>>
-      _forSuperConstructorInvocation = [];
+  _forSuperConstructorInvocation = [];
   final List<_Subscription<SuperExpression>> _forSuperExpression = [];
   final List<_Subscription<SuperFormalParameter>> _forSuperFormalParameter = [];
   final List<_Subscription<SwitchCase>> _forSwitchCase = [];
@@ -1322,7 +1343,7 @@ class NodeLintRegistry {
   final List<_Subscription<ThisExpression>> _forThisExpression = [];
   final List<_Subscription<ThrowExpression>> _forThrowExpression = [];
   final List<_Subscription<TopLevelVariableDeclaration>>
-      _forTopLevelVariableDeclaration = [];
+  _forTopLevelVariableDeclaration = [];
   final List<_Subscription<TryStatement>> _forTryStatement = [];
   final List<_Subscription<TypeArgumentList>> _forTypeArgumentList = [];
   final List<_Subscription<TypeLiteral>> _forTypeLiteral = [];
@@ -1330,9 +1351,9 @@ class NodeLintRegistry {
   final List<_Subscription<TypeParameterList>> _forTypeParameterList = [];
   final List<_Subscription<VariableDeclaration>> _forVariableDeclaration = [];
   final List<_Subscription<VariableDeclarationList>>
-      _forVariableDeclarationList = [];
+  _forVariableDeclarationList = [];
   final List<_Subscription<VariableDeclarationStatement>>
-      _forVariableDeclarationStatement = [];
+  _forVariableDeclarationStatement = [];
   final List<_Subscription<WhenClause>> _forWhenClause = [];
   final List<_Subscription<WhileStatement>> _forWhileStatement = [];
   final List<_Subscription<WildcardPattern>> _forWildcardPattern = [];
@@ -1366,8 +1387,9 @@ class NodeLintRegistry {
   }
 
   void addAssignedVariablePattern(AnalysisRule rule, AstVisitor visitor) {
-    _forAssignedVariablePattern
-        .add(_Subscription(rule, visitor, _getTimer(rule)));
+    _forAssignedVariablePattern.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
   }
 
   void addAssignmentExpression(AnalysisRule rule, AstVisitor visitor) {
@@ -1447,8 +1469,9 @@ class NodeLintRegistry {
   }
 
   void addConditionalExpression(AnalysisRule rule, AstVisitor visitor) {
-    _forConditionalExpression
-        .add(_Subscription(rule, visitor, _getTimer(rule)));
+    _forConditionalExpression.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
   }
 
   void addConfiguration(AnalysisRule rule, AstVisitor visitor) {
@@ -1460,13 +1483,15 @@ class NodeLintRegistry {
   }
 
   void addConstructorDeclaration(AnalysisRule rule, AstVisitor visitor) {
-    _forConstructorDeclaration
-        .add(_Subscription(rule, visitor, _getTimer(rule)));
+    _forConstructorDeclaration.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
   }
 
   void addConstructorFieldInitializer(AnalysisRule rule, AstVisitor visitor) {
-    _forConstructorFieldInitializer
-        .add(_Subscription(rule, visitor, _getTimer(rule)));
+    _forConstructorFieldInitializer.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
   }
 
   void addConstructorName(AnalysisRule rule, AstVisitor visitor) {
@@ -1490,27 +1515,40 @@ class NodeLintRegistry {
   }
 
   void addDeclaredVariablePattern(AnalysisRule rule, AstVisitor visitor) {
-    _forDeclaredVariablePattern
-        .add(_Subscription(rule, visitor, _getTimer(rule)));
+    _forDeclaredVariablePattern.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
   }
 
   void addDefaultFormalParameter(AnalysisRule rule, AstVisitor visitor) {
-    _forDefaultFormalParameter
-        .add(_Subscription(rule, visitor, _getTimer(rule)));
+    _forDefaultFormalParameter.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
   }
 
   void addDoStatement(AnalysisRule rule, AstVisitor visitor) {
     _forDoStatement.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  void addDotShorthandConstructorInvocation(
+    AnalysisRule rule,
+    AstVisitor visitor,
+  ) {
+    _forDotShorthandConstructorInvocation.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
+  }
+
   void addDotShorthandInvocation(AnalysisRule rule, AstVisitor visitor) {
-    _forDotShorthandInvocation
-        .add(_Subscription(rule, visitor, _getTimer(rule)));
+    _forDotShorthandInvocation.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
   }
 
   void addDotShorthandPropertyAccess(AnalysisRule rule, AstVisitor visitor) {
-    _forDotShorthandInvocation
-        .add(_Subscription(rule, visitor, _getTimer(rule)));
+    _forDotShorthandInvocation.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
   }
 
   void addDottedName(AnalysisRule rule, AstVisitor visitor) {
@@ -1530,13 +1568,15 @@ class NodeLintRegistry {
   }
 
   void addEnumConstantArguments(AnalysisRule rule, AstVisitor visitor) {
-    _forEnumConstantArguments
-        .add(_Subscription(rule, visitor, _getTimer(rule)));
+    _forEnumConstantArguments.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
   }
 
   void addEnumConstantDeclaration(AnalysisRule rule, AstVisitor visitor) {
-    _forEnumConstantDeclaration
-        .add(_Subscription(rule, visitor, _getTimer(rule)));
+    _forEnumConstantDeclaration.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
   }
 
   void addEnumDeclaration(AnalysisRule rule, AstVisitor visitor) {
@@ -1548,8 +1588,9 @@ class NodeLintRegistry {
   }
 
   void addExpressionFunctionBody(AnalysisRule rule, AstVisitor visitor) {
-    _forExpressionFunctionBody
-        .add(_Subscription(rule, visitor, _getTimer(rule)));
+    _forExpressionFunctionBody.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
   }
 
   void addExpressionStatement(AnalysisRule rule, AstVisitor visitor) {
@@ -1573,8 +1614,9 @@ class NodeLintRegistry {
   }
 
   void addExtensionTypeDeclaration(AnalysisRule rule, AstVisitor visitor) {
-    _forExtensionTypeDeclaration
-        .add(_Subscription(rule, visitor, _getTimer(rule)));
+    _forExtensionTypeDeclaration.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
   }
 
   void addFieldDeclaration(AnalysisRule rule, AstVisitor visitor) {
@@ -1586,18 +1628,21 @@ class NodeLintRegistry {
   }
 
   void addForEachPartsWithDeclaration(AnalysisRule rule, AstVisitor visitor) {
-    _forForEachPartsWithDeclaration
-        .add(_Subscription(rule, visitor, _getTimer(rule)));
+    _forForEachPartsWithDeclaration.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
   }
 
   void addForEachPartsWithIdentifier(AnalysisRule rule, AstVisitor visitor) {
-    _forForEachPartsWithIdentifier
-        .add(_Subscription(rule, visitor, _getTimer(rule)));
+    _forForEachPartsWithIdentifier.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
   }
 
   void addForEachPartsWithPattern(AnalysisRule rule, AstVisitor visitor) {
-    _forForEachPartsWithPattern
-        .add(_Subscription(rule, visitor, _getTimer(rule)));
+    _forForEachPartsWithPattern.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
   }
 
   void addForElement(AnalysisRule rule, AstVisitor visitor) {
@@ -1609,13 +1654,15 @@ class NodeLintRegistry {
   }
 
   void addForPartsWithDeclarations(AnalysisRule rule, AstVisitor visitor) {
-    _forForPartsWithDeclarations
-        .add(_Subscription(rule, visitor, _getTimer(rule)));
+    _forForPartsWithDeclarations.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
   }
 
   void addForPartsWithExpression(AnalysisRule rule, AstVisitor visitor) {
-    _forForPartsWithExpression
-        .add(_Subscription(rule, visitor, _getTimer(rule)));
+    _forForPartsWithExpression.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
   }
 
   void addForPartsWithPattern(AnalysisRule rule, AstVisitor visitor) {
@@ -1631,8 +1678,9 @@ class NodeLintRegistry {
   }
 
   void addFunctionDeclarationStatement(AnalysisRule rule, AstVisitor visitor) {
-    _forFunctionDeclarationStatement
-        .add(_Subscription(rule, visitor, _getTimer(rule)));
+    _forFunctionDeclarationStatement.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
   }
 
   void addFunctionExpression(AnalysisRule rule, AstVisitor visitor) {
@@ -1640,8 +1688,9 @@ class NodeLintRegistry {
   }
 
   void addFunctionExpressionInvocation(AnalysisRule rule, AstVisitor visitor) {
-    _forFunctionExpressionInvocation
-        .add(_Subscription(rule, visitor, _getTimer(rule)));
+    _forFunctionExpressionInvocation.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
   }
 
   void addFunctionReference(AnalysisRule rule, AstVisitor visitor) {
@@ -1653,8 +1702,9 @@ class NodeLintRegistry {
   }
 
   void addFunctionTypedFormalParameter(AnalysisRule rule, AstVisitor visitor) {
-    _forFunctionTypedFormalParameter
-        .add(_Subscription(rule, visitor, _getTimer(rule)));
+    _forFunctionTypedFormalParameter.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
   }
 
   void addGenericFunctionType(AnalysisRule rule, AstVisitor visitor) {
@@ -1686,8 +1736,9 @@ class NodeLintRegistry {
   }
 
   void addImplicitCallReference(AnalysisRule rule, AstVisitor visitor) {
-    _forImplicitCallReference
-        .add(_Subscription(rule, visitor, _getTimer(rule)));
+    _forImplicitCallReference.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
   }
 
   void addImportDirective(AnalysisRule rule, AstVisitor visitor) {
@@ -1695,8 +1746,9 @@ class NodeLintRegistry {
   }
 
   void addImportPrefixReference(AnalysisRule rule, AstVisitor visitor) {
-    _forImportPrefixReference
-        .add(_Subscription(rule, visitor, _getTimer(rule)));
+    _forImportPrefixReference.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
   }
 
   void addIndexExpression(AnalysisRule rule, AstVisitor visitor) {
@@ -1704,8 +1756,9 @@ class NodeLintRegistry {
   }
 
   void addInstanceCreationExpression(AnalysisRule rule, AstVisitor visitor) {
-    _forInstanceCreationExpression
-        .add(_Subscription(rule, visitor, _getTimer(rule)));
+    _forInstanceCreationExpression.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
   }
 
   void addIntegerLiteral(AnalysisRule rule, AstVisitor visitor) {
@@ -1713,8 +1766,9 @@ class NodeLintRegistry {
   }
 
   void addInterpolationExpression(AnalysisRule rule, AstVisitor visitor) {
-    _forInterpolationExpression
-        .add(_Subscription(rule, visitor, _getTimer(rule)));
+    _forInterpolationExpression.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
   }
 
   void addInterpolationString(AnalysisRule rule, AstVisitor visitor) {
@@ -1818,8 +1872,9 @@ class NodeLintRegistry {
   }
 
   void addParenthesizedExpression(AnalysisRule rule, AstVisitor visitor) {
-    _forParenthesizedExpression
-        .add(_Subscription(rule, visitor, _getTimer(rule)));
+    _forParenthesizedExpression.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
   }
 
   void addParenthesizedPattern(AnalysisRule rule, AstVisitor visitor) {
@@ -1847,14 +1902,18 @@ class NodeLintRegistry {
   }
 
   void addPatternVariableDeclaration(AnalysisRule rule, AstVisitor visitor) {
-    _forPatternVariableDeclaration
-        .add(_Subscription(rule, visitor, _getTimer(rule)));
+    _forPatternVariableDeclaration.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
   }
 
   void addPatternVariableDeclarationStatement(
-      AnalysisRule rule, AstVisitor visitor) {
-    _forPatternVariableDeclarationStatement
-        .add(_Subscription(rule, visitor, _getTimer(rule)));
+    AnalysisRule rule,
+    AstVisitor visitor,
+  ) {
+    _forPatternVariableDeclarationStatement.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
   }
 
   void addPostfixExpression(AnalysisRule rule, AstVisitor visitor) {
@@ -1886,9 +1945,12 @@ class NodeLintRegistry {
   }
 
   void addRedirectingConstructorInvocation(
-      AnalysisRule rule, AstVisitor visitor) {
-    _forRedirectingConstructorInvocation
-        .add(_Subscription(rule, visitor, _getTimer(rule)));
+    AnalysisRule rule,
+    AstVisitor visitor,
+  ) {
+    _forRedirectingConstructorInvocation.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
   }
 
   void addRelationalPattern(AnalysisRule rule, AstVisitor visitor) {
@@ -1896,13 +1958,15 @@ class NodeLintRegistry {
   }
 
   void addRepresentationConstructorName(AnalysisRule rule, AstVisitor visitor) {
-    _forRepresentationConstructorName
-        .add(_Subscription(rule, visitor, _getTimer(rule)));
+    _forRepresentationConstructorName.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
   }
 
   void addRepresentationDeclaration(AnalysisRule rule, AstVisitor visitor) {
-    _forRepresentationDeclaration
-        .add(_Subscription(rule, visitor, _getTimer(rule)));
+    _forRepresentationDeclaration.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
   }
 
   void addRestPatternElement(AnalysisRule rule, AstVisitor visitor) {
@@ -1930,8 +1994,9 @@ class NodeLintRegistry {
   }
 
   void addSimpleFormalParameter(AnalysisRule rule, AstVisitor visitor) {
-    _forSimpleFormalParameter
-        .add(_Subscription(rule, visitor, _getTimer(rule)));
+    _forSimpleFormalParameter.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
   }
 
   void addSimpleIdentifier(AnalysisRule rule, AstVisitor visitor) {
@@ -1951,8 +2016,9 @@ class NodeLintRegistry {
   }
 
   void addSuperConstructorInvocation(AnalysisRule rule, AstVisitor visitor) {
-    _forSuperConstructorInvocation
-        .add(_Subscription(rule, visitor, _getTimer(rule)));
+    _forSuperConstructorInvocation.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
   }
 
   void addSuperExpression(AnalysisRule rule, AstVisitor visitor) {
@@ -2000,8 +2066,9 @@ class NodeLintRegistry {
   }
 
   void addTopLevelVariableDeclaration(AnalysisRule rule, AstVisitor visitor) {
-    _forTopLevelVariableDeclaration
-        .add(_Subscription(rule, visitor, _getTimer(rule)));
+    _forTopLevelVariableDeclaration.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
   }
 
   void addTryStatement(AnalysisRule rule, AstVisitor visitor) {
@@ -2029,13 +2096,15 @@ class NodeLintRegistry {
   }
 
   void addVariableDeclarationList(AnalysisRule rule, AstVisitor visitor) {
-    _forVariableDeclarationList
-        .add(_Subscription(rule, visitor, _getTimer(rule)));
+    _forVariableDeclarationList.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
   }
 
   void addVariableDeclarationStatement(AnalysisRule rule, AstVisitor visitor) {
-    _forVariableDeclarationStatement
-        .add(_Subscription(rule, visitor, _getTimer(rule)));
+    _forVariableDeclarationStatement.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
   }
 
   void addWhenClause(AnalysisRule rule, AstVisitor visitor) {
@@ -2044,6 +2113,10 @@ class NodeLintRegistry {
 
   void addWhileStatement(AnalysisRule rule, AstVisitor visitor) {
     _forWhileStatement.add(_Subscription(rule, visitor, _getTimer(rule)));
+  }
+
+  void addWildcardPattern(AnalysisRule rule, AstVisitor visitor) {
+    _forWildcardPattern.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
   void addWithClause(AnalysisRule rule, AstVisitor visitor) {
@@ -2055,8 +2128,9 @@ class NodeLintRegistry {
   }
 
   void afterLibrary(AnalysisRule rule, void Function() callback) {
-    _afterLibrary
-        .add(_AfterLibrarySubscription(rule, callback, _getTimer(rule)));
+    _afterLibrary.add(
+      _AfterLibrarySubscription(rule, callback, _getTimer(rule)),
+    );
   }
 
   /// Get the timer associated with the given [rule].

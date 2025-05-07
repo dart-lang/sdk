@@ -13,7 +13,7 @@ main() {
       .transform(utf8.decoder)
       .transform(new LineSplitter())
       .listen((String line) {
-    // Unsubscribe after the first line.
-    subscription.cancel();
-  });
+        // Unsubscribe after the first line.
+        subscription.cancel();
+      });
 }

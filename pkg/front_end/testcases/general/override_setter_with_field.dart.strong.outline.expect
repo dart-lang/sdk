@@ -19,7 +19,7 @@ abstract class A extends core::Object {
   abstract set x(core::Object? y) → void;
 }
 class B extends core::Object implements self::A {
-  field core::int? x;
+  erroneous field core::int? x;
   synthetic constructor •() → self::B
     ;
 }

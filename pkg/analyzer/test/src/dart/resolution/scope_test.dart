@@ -18,11 +18,12 @@ main() {
 @reflectiveTest
 class PrefixedNamespaceTest extends PubPackageResolutionTest {
   Future<PrefixedNamespace> get _dartMath async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:math' as prefix;
-''', [
-      error(WarningCode.UNUSED_IMPORT, 7, 11),
-    ]);
+''',
+      [error(WarningCode.UNUSED_IMPORT, 7, 11)],
+    );
     var namespace = findElement2.import('dart:math').namespace;
     return namespace as PrefixedNamespace;
   }

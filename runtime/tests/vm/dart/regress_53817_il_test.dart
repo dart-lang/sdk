@@ -34,32 +34,34 @@ void matchIL$createAndIterate(FlowGraph graph) {
     match.block('Target'),
     'loop' <<
         match.block(
-            'Join',
-            // We want to make sure that `e as A` and all iterator
-            // related code was entirely eliminated - thus no wildcards
-            // when matching.
-            [
-              'i' << match.Phi('i+1', match.any),
-              match.CheckStackOverflow(),
-              match.Branch(match.RelationalOp('i', match.any, kind: '>='),
-                  ifTrue: 'loop_exit', ifFalse: 'loop_body'),
-            ].withoutWildcards),
-    'loop_exit' <<
-        match.block('Target', [
-          match.DartReturn(match.any),
-        ]),
+          'Join',
+          // We want to make sure that `e as A` and all iterator
+          // related code was entirely eliminated - thus no wildcards
+          // when matching.
+          [
+            'i' << match.Phi('i+1', match.any),
+            match.CheckStackOverflow(),
+            match.Branch(
+              match.RelationalOp('i', match.any, kind: '>='),
+              ifTrue: 'loop_exit',
+              ifFalse: 'loop_body',
+            ),
+          ].withoutWildcards,
+        ),
+    'loop_exit' << match.block('Target', [match.DartReturn(match.any)]),
     'loop_body' <<
         match.block(
-            'Target',
-            // We want to make sure that `e as A` and all iterator
-            // related code was entirely eliminated - thus no wildcards
-            // when matching.
-            [
-              if (is32BitConfiguration)
-                'i+1' << match.BinaryInt32Op('i', match.any)
-              else
-                'i+1' << match.BinaryInt64Op('i', match.any),
-              match.Goto('loop'),
-            ].withoutWildcards),
+          'Target',
+          // We want to make sure that `e as A` and all iterator
+          // related code was entirely eliminated - thus no wildcards
+          // when matching.
+          [
+            if (is32BitConfiguration)
+              'i+1' << match.BinaryInt32Op('i', match.any)
+            else
+              'i+1' << match.BinaryInt64Op('i', match.any),
+            match.Goto('loop'),
+          ].withoutWildcards,
+        ),
   ]);
 }

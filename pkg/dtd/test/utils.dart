@@ -28,7 +28,7 @@ class ToolingDaemonTestProcess {
     );
     process!.handle(
       stdoutLines: (line) {
-        stdout.write('DTD stdout: $line');
+        print('DTD stdout: $line');
         try {
           final json = jsonDecode(line) as Map<String, Object?>;
           final toolingDaemonDetails =

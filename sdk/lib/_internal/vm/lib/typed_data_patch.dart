@@ -260,8 +260,9 @@ base mixin _IntListMixin on _TypedListBase implements TypedDataList<int> {
   }
 
   int lastIndexWhere(bool test(int element), [int? start]) {
-    int startIndex =
-        (start == null || start >= this.length) ? this.length - 1 : start;
+    int startIndex = (start == null || start >= this.length)
+        ? this.length - 1
+        : start;
     for (int i = startIndex; i >= 0; i--) {
       if (test(this[i])) return i;
     }
@@ -445,8 +446,9 @@ base mixin _IntListMixin on _TypedListBase implements TypedDataList<int> {
   }
 
   int lastIndexOf(int element, [int? start]) {
-    int startIndex =
-        (start == null || start >= this.length) ? this.length - 1 : start;
+    int startIndex = (start == null || start >= this.length)
+        ? this.length - 1
+        : start;
     for (int i = startIndex; i >= 0; i--) {
       if (this[i] == element) return i;
     }
@@ -594,8 +596,9 @@ base mixin _DoubleListMixin on _TypedListBase implements TypedDataList<double> {
   }
 
   int lastIndexWhere(bool test(double element), [int? start]) {
-    int startIndex =
-        (start == null || start >= this.length) ? this.length - 1 : start;
+    int startIndex = (start == null || start >= this.length)
+        ? this.length - 1
+        : start;
     for (int i = startIndex; i >= 0; i--) {
       if (test(this[i])) return i;
     }
@@ -780,8 +783,9 @@ base mixin _DoubleListMixin on _TypedListBase implements TypedDataList<double> {
   }
 
   int lastIndexOf(double element, [int? start]) {
-    int startIndex =
-        (start == null || start >= this.length) ? this.length - 1 : start;
+    int startIndex = (start == null || start >= this.length)
+        ? this.length - 1
+        : start;
     for (int i = startIndex; i >= 0; i--) {
       if (this[i] == element) return i;
     }
@@ -938,8 +942,9 @@ base mixin _Float32x4ListMixin on _TypedListBase
   }
 
   int lastIndexWhere(bool test(Float32x4 element), [int? start]) {
-    int startIndex =
-        (start == null || start >= this.length) ? this.length - 1 : start;
+    int startIndex = (start == null || start >= this.length)
+        ? this.length - 1
+        : start;
     for (int i = startIndex; i >= 0; i--) {
       if (test(this[i])) return i;
     }
@@ -1173,8 +1178,9 @@ base mixin _Float32x4ListMixin on _TypedListBase
   }
 
   int lastIndexOf(Float32x4 element, [int? start]) {
-    int startIndex =
-        (start == null || start >= this.length) ? this.length - 1 : start;
+    int startIndex = (start == null || start >= this.length)
+        ? this.length - 1
+        : start;
     for (int i = startIndex; i >= 0; i--) {
       if (this[i] == element) return i;
     }
@@ -1279,8 +1285,9 @@ base mixin _Int32x4ListMixin on _TypedListBase
   }
 
   int lastIndexWhere(bool test(Int32x4 element), [int? start]) {
-    int startIndex =
-        (start == null || start >= this.length) ? this.length - 1 : start;
+    int startIndex = (start == null || start >= this.length)
+        ? this.length - 1
+        : start;
     for (int i = startIndex; i >= 0; i--) {
       if (test(this[i])) return i;
     }
@@ -1514,8 +1521,9 @@ base mixin _Int32x4ListMixin on _TypedListBase
   }
 
   int lastIndexOf(Int32x4 element, [int? start]) {
-    int startIndex =
-        (start == null || start >= this.length) ? this.length - 1 : start;
+    int startIndex = (start == null || start >= this.length)
+        ? this.length - 1
+        : start;
     for (int i = startIndex; i >= 0; i--) {
       if (this[i] == element) return i;
     }
@@ -1620,8 +1628,9 @@ base mixin _Float64x2ListMixin on _TypedListBase
   }
 
   int lastIndexWhere(bool test(Float64x2 element), [int? start]) {
-    int startIndex =
-        (start == null || start >= this.length) ? this.length - 1 : start;
+    int startIndex = (start == null || start >= this.length)
+        ? this.length - 1
+        : start;
     for (int i = startIndex; i >= 0; i--) {
       if (test(this[i])) return i;
     }
@@ -1855,8 +1864,9 @@ base mixin _Float64x2ListMixin on _TypedListBase
   }
 
   int lastIndexOf(Float64x2 element, [int? start]) {
-    int startIndex =
-        (start == null || start >= this.length) ? this.length - 1 : start;
+    int startIndex = (start == null || start >= this.length)
+        ? this.length - 1
+        : start;
     for (int i = startIndex; i >= 0; i--) {
       if (this[i] == element) return i;
     }
@@ -2507,10 +2517,9 @@ final class _Uint8ClampedList extends _TypedList
     int count,
     _TypedListBase from,
     int skipCount,
-  ) =>
-      from._containsUnsignedBytes
-          ? _memMove1(start, count, from, skipCount)
-          : _setClampedRange(start, count, from, skipCount);
+  ) => from._containsUnsignedBytes
+      ? _memMove1(start, count, from, skipCount)
+      : _setClampedRange(start, count, from, skipCount);
 }
 
 @patch
@@ -3293,10 +3302,9 @@ final class _ExternalUint8ClampedArray extends _TypedList
     int count,
     _TypedListBase from,
     int skipCount,
-  ) =>
-      from._containsUnsignedBytes
-          ? _memMove1(start, count, from, skipCount)
-          : _setClampedRange(start, count, from, skipCount);
+  ) => from._containsUnsignedBytes
+      ? _memMove1(start, count, from, skipCount)
+      : _setClampedRange(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
@@ -4447,10 +4455,9 @@ final class _Uint8ClampedArrayView extends _TypedListView
     int count,
     _TypedListBase from,
     int skipCount,
-  ) =>
-      from._containsUnsignedBytes
-          ? _memMove1(start, count, from, skipCount)
-          : _setClampedRange(start, count, from, skipCount);
+  ) => from._containsUnsignedBytes
+      ? _memMove1(start, count, from, skipCount)
+      : _setClampedRange(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")

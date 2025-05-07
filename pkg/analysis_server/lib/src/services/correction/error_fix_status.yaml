@@ -58,19 +58,19 @@ AnalysisOptionsErrorCode.PARSE_ERROR:
   notes: |-
     Because of the way the YAML parser works, there isn't enough information to
     be able to provide a fix.
-AnalysisOptionsHintCode.DEPRECATED_LINT:
-  status: hasFix
-AnalysisOptionsHintCode.DEPRECATED_LINT_WITH_REPLACEMENT:
-  status: needsFix
-  notes: |-
-    We should be able to replace the deprecated lint rule with its replacement.
-AnalysisOptionsHintCode.DUPLICATE_RULE:
-  status: hasFix
 AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED:
   status: needsFix
   notes: |-
     The fix is to remove the deprecated option.
 AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT:
+  status: hasFix
+AnalysisOptionsWarningCode.DEPRECATED_LINT:
+  status: hasFix
+AnalysisOptionsWarningCode.DEPRECATED_LINT_WITH_REPLACEMENT:
+  status: needsFix
+  notes: |-
+    We should be able to replace the deprecated lint rule with its replacement.
+AnalysisOptionsWarningCode.DUPLICATE_RULE:
   status: hasFix
 AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND:
   status: noFix
@@ -426,6 +426,8 @@ CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT:
   status: needsEvaluation
 CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION:
   status: needsEvaluation
+CompileTimeErrorCode.CONST_EVAL_NULL_AWARE_ACCESS:
+  status: needsEvaluation
 CompileTimeErrorCode.CONST_EVAL_PRIMITIVE_EQUALITY:
   status: needsEvaluation
 CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS:
@@ -514,6 +516,12 @@ CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE:
 CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION:
   status: needsFix
   since: 2.15
+CompileTimeErrorCode.DOT_SHORTHAND_MISSING_CONTEXT:
+  status: needsEvaluation
+CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_GETTER:
+  status: needsEvaluation
+CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_INVOCATION:
+  status: needsEvaluation
 CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT:
   status: noFix
   notes: |-
@@ -1981,7 +1989,11 @@ LintCode.avoid_type_to_string:
   notes: |-
     Theoretically we could replace some uses with `is` checks, but it's probably
     uncommon enough to not be worth the cost.
-LintCode.avoid_types_as_parameter_names:
+LintCode.avoid_types_as_parameter_names_type_parameter:
+  status: noFix
+  notes: |-
+    The type variable needs to be renamed, but that's a refactoring.
+LintCode.avoid_types_as_parameter_names_formal_parameter:
   status: hasFix
 LintCode.avoid_types_on_closure_parameters:
   status: hasFix
@@ -2279,9 +2291,7 @@ LintCode.prefer_final_parameters:
 LintCode.prefer_for_elements_to_map_fromIterable:
   status: hasFix
 LintCode.prefer_foreach:
-  status: needsFix
-  notes: |-
-    The fix is to rewrite the loop.
+  status: hasFix
 LintCode.prefer_function_declarations_over_variables:
   status: hasFix
 LintCode.prefer_generic_function_type_aliases:
@@ -2470,6 +2480,10 @@ LintCode.unnecessary_this:
   status: hasFix
 LintCode.unnecessary_to_list_in_spreads:
   status: hasFix
+LintCode.unnecessary_unawaited:
+  status: needsFix
+  notes: |-
+    A fix can be made to remove the 'unawaited' call.
 LintCode.unnecessary_underscores:
   status: hasFix  
 LintCode.unreachable_from_main:
@@ -2503,7 +2517,7 @@ LintCode.use_full_hex_values_for_flutter_colors:
 LintCode.use_function_type_syntax_for_parameters:
   status: hasFix
 LintCode.use_if_null_to_convert_nulls_to_bools:
-  status: needsFix
+  status: hasFix
 LintCode.use_is_even_rather_than_modulo:
   status: needsFix
 LintCode.use_key_in_widget_constructors:
@@ -3542,6 +3556,8 @@ WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER:
   status: noFix
 WarningCode.INVALID_ANNOTATION_TARGET:
   status: hasFix
+WarningCode.INVALID_AWAIT_NOT_REQUIRED_ANNOTATION:
+  status: needsFix
 WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT:
   status: needsFix
   notes: |-
@@ -3622,7 +3638,7 @@ WarningCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM:
   status: hasFix
 WarningCode.INVALID_REQUIRED_POSITIONAL_PARAM:
   status: hasFix
-WarningCode.invalid_use_of_do_not_submit_member:
+WarningCode.INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER:
   status: needsEvaluation
 WarningCode.INVALID_USE_OF_INTERNAL_MEMBER:
   status: noFix
@@ -3635,6 +3651,10 @@ WarningCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER:
   status: noFix
 WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER:
   status: noFix
+WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION:
+  status: needsEvaluation
+WarningCode.INVALID_WIDGET_PREVIEW_PRIVATE_ARGUMENT:
+  status: needsEvaluation
 WarningCode.INVALID_VISIBILITY_ANNOTATION:
   status: hasFix
 WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION:

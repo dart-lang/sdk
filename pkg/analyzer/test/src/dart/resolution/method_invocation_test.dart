@@ -21,7 +21,8 @@ main() {
 @reflectiveTest
 class MethodInvocationResolutionTest extends PubPackageResolutionTest {
   test_arguments_super() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void f() {
     g(super);
@@ -29,9 +30,9 @@ class A {
 }
 
 void g(Object a) {}
-''', [
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 29, 5),
-    ]);
+''',
+      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 29, 5)],
+    );
 
     var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
@@ -53,16 +54,19 @@ MethodInvocation
   }
 
   test_arguments_synthetics() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   g(,,);
 }
 
 void g(int a, int b) {}
-''', [
-      error(ParserErrorCode.MISSING_IDENTIFIER, 15, 1),
-      error(ParserErrorCode.MISSING_IDENTIFIER, 16, 1),
-    ]);
+''',
+      [
+        error(ParserErrorCode.MISSING_IDENTIFIER, 15, 1),
+        error(ParserErrorCode.MISSING_IDENTIFIER, 16, 1),
+      ],
+    );
 
     var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
@@ -205,15 +209,16 @@ MethodInvocation
   }
 
   test_clamp_double_context_int() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 T f<T>() => throw Error();
 g(double a) {
   h(a.clamp(f(), f()));
 }
 h(int x) {}
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 45, 17),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 45, 17)],
+    );
 
     var node = findNode.methodInvocation('h(a');
     assertResolvedNodeText(node, r'''
@@ -482,15 +487,16 @@ MethodInvocation
   }
 
   test_clamp_int_context_double() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 T f<T>() => throw Error();
 g(int a) {
   h(a.clamp(f(), f()));
 }
 h(double x) {}
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 42, 17),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 42, 17)],
+    );
 
     var node = findNode.methodInvocation('h(a');
     assertResolvedNodeText(node, r'''
@@ -1102,13 +1108,14 @@ MethodInvocation
   }
 
   test_clamp_int_never_int() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f(int a, Never b, int c) {
   a.clamp(b, c);
 }
-''', [
-      error(WarningCode.DEAD_CODE, 40, 3),
-    ]);
+''',
+      [error(WarningCode.DEAD_CODE, 40, 3)],
+    );
 
     var node = findNode.methodInvocation('clamp');
     assertResolvedNodeText(node, r'''
@@ -1142,14 +1149,17 @@ MethodInvocation
   }
 
   test_clamp_never_int_int() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 f(Never a, int b, int c) {
   a.clamp(b, c);
 }
-''', [
-      error(WarningCode.RECEIVER_OF_TYPE_NEVER, 29, 1),
-      error(WarningCode.DEAD_CODE, 36, 7),
-    ]);
+''',
+      [
+        error(WarningCode.RECEIVER_OF_TYPE_NEVER, 29, 1),
+        error(WarningCode.DEAD_CODE, 36, 7),
+      ],
+    );
 
     var node = findNode.methodInvocation('clamp');
     assertResolvedNodeText(node, r'''
@@ -1183,7 +1193,8 @@ MethodInvocation
   }
 
   test_clamp_other_context_int() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A {
   num clamp(String x, String y);
 }
@@ -1192,9 +1203,9 @@ g(A a) {
   h(a.clamp(f(), f()));
 }
 h(int x) {}
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 94, 17),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 94, 17)],
+    );
 
     var node = findNode.methodInvocation('h(a');
     assertResolvedNodeText(node, r'''
@@ -1630,16 +1641,17 @@ void foo(int _) {}
 void foo(int _) {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart';
 import 'b.dart';
 
 main() {
   foo(0);
 }
-''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 46, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 46, 3)],
+    );
 
     var node = findNode.methodInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
@@ -1671,16 +1683,17 @@ void foo(int _) {}
 void foo(int _) {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart' as p;
 import 'b.dart' as p;
 
 main() {
   p.foo(0);
 }
-''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 58, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 58, 3)],
+    );
 
     var node = findNode.methodInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
@@ -1710,7 +1723,8 @@ MethodInvocation
   }
 
   test_error_instanceAccessToStaticMember_method() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   static void foo(int _) {}
 }
@@ -1718,9 +1732,9 @@ class A {
 void f(A a) {
   a.foo(0);
 }
-''', [
-      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 59, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 59, 3)],
+    );
 
     var node = findNode.methodInvocation('a.foo(0)');
     assertResolvedNodeText(node, r'''
@@ -1748,7 +1762,8 @@ MethodInvocation
   }
 
   test_error_invocationOfNonFunction_interface_hasCall_field() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C {
   void Function() call = throw Error();
 }
@@ -1756,9 +1771,15 @@ class C {
 void f(C c) {
   c();
 }
-''', [
-      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 69, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
+          69,
+          1,
+        ),
+      ],
+    );
 
     var node = findNode.functionExpressionInvocation('c();');
     assertResolvedNodeText(node, r'''
@@ -1935,13 +1956,20 @@ FunctionExpressionInvocation
   }
 
   test_error_invocationOfNonFunction_parameter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main(Object foo) {
   foo();
 }
-''', [
-      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 21, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
+          21,
+          3,
+        ),
+      ],
+    );
 
     var node = findNode.functionExpressionInvocation('foo();');
     assertResolvedNodeText(node, r'''
@@ -1983,7 +2011,8 @@ FunctionExpressionInvocation
   }
 
   test_error_invocationOfNonFunction_static_hasTarget() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C {
   static int foo = 0;
 }
@@ -1991,9 +2020,15 @@ class C {
 main() {
   C.foo();
 }
-''', [
-      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 46, 5),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
+          46,
+          5,
+        ),
+      ],
+    );
 
     var node = findNode.functionExpressionInvocation('foo();');
     assertResolvedNodeText(node, r'''
@@ -2019,7 +2054,8 @@ FunctionExpressionInvocation
   }
 
   test_error_invocationOfNonFunction_static_noTarget() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C {
   static int foo = 0;
 
@@ -2027,9 +2063,15 @@ class C {
     foo();
   }
 }
-''', [
-      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 48, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
+          48,
+          3,
+        ),
+      ],
+    );
 
     var node = findNode.functionExpressionInvocation('foo();');
     assertResolvedNodeText(node, r'''
@@ -2048,7 +2090,8 @@ FunctionExpressionInvocation
   }
 
   test_error_invocationOfNonFunction_super_getter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int get foo => 0;
 }
@@ -2058,9 +2101,15 @@ class B extends A {
     super.foo();
   }
 }
-''', [
-      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 68, 9),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
+          68,
+          9,
+        ),
+      ],
+    );
 
     var node = findNode.functionExpressionInvocation('foo();');
     assertResolvedNodeText(node, r'''
@@ -2089,15 +2138,22 @@ FunctionExpressionInvocation
 void foo() {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart' as prefix;
 
 main() {
   prefix?.foo();
 }
-''', [
-      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 39, 6),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+          39,
+          6,
+        ),
+      ],
+    );
 
     var node = findNode.methodInvocation('foo();');
     assertResolvedNodeText(node, r'''
@@ -2120,15 +2176,22 @@ MethodInvocation
   }
 
   test_error_prefixIdentifierNotFollowedByDot_deferred() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:math' deferred as math;
 
 main() {
   math?.loadLibrary();
 }
-''', [
-      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 49, 4),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+          49,
+          4,
+        ),
+      ],
+    );
 
     var node = findNode.methodInvocation('loadLibrary()');
     assertResolvedNodeText(node, r'''
@@ -2151,15 +2214,22 @@ MethodInvocation
   }
 
   test_error_prefixIdentifierNotFollowedByDot_invoke() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:math' as foo;
 
 main() {
   foo();
 }
-''', [
-      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 39, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+          39,
+          3,
+        ),
+      ],
+    );
 
     var node = findNode.methodInvocation('foo()');
     assertResolvedNodeText(node, r'''
@@ -2177,13 +2247,14 @@ MethodInvocation
   }
 
   test_error_undefinedFunction() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   foo(0);
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 11, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 11, 3)],
+    );
 
     var node = findNode.methodInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
@@ -2206,15 +2277,16 @@ MethodInvocation
   }
 
   test_error_undefinedFunction_hasTarget_importPrefix() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:math' as math;
 
 main() {
   math.foo(0);
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 45, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 45, 3)],
+    );
 
     var node = findNode.methodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
@@ -2242,13 +2314,14 @@ MethodInvocation
   }
 
   test_error_undefinedIdentifier_target() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   bar.foo(0);
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 11, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 11, 3)],
+    );
 
     var node = findNode.methodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
@@ -2276,14 +2349,15 @@ MethodInvocation
   }
 
   test_error_undefinedMethod_hasTarget_class() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C {}
 main() {
   C.foo(0);
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 24, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 24, 3)],
+    );
 
     var node = findNode.methodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
@@ -2311,16 +2385,17 @@ MethodInvocation
   }
 
   test_error_undefinedMethod_hasTarget_class_arguments() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C {}
 
 int x = 0;
 main() {
   C.foo(x);
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 36, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 36, 3)],
+    );
 
     var node = findNode.methodInvocation('foo(x);');
     assertResolvedNodeText(node, r'''
@@ -2349,7 +2424,8 @@ MethodInvocation
   }
 
   test_error_undefinedMethod_hasTarget_class_inSuperclass() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class S {
   static void foo(int _) {}
 }
@@ -2359,9 +2435,9 @@ class C extends S {}
 main() {
   C.foo(0);
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 76, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 76, 3)],
+    );
 
     var node = findNode.methodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
@@ -2389,15 +2465,16 @@ MethodInvocation
   }
 
   test_error_undefinedMethod_hasTarget_class_typeArguments() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C {}
 
 main() {
   C.foo<int>();
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 25, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 25, 3)],
+    );
 
     var node = findNode.methodInvocation('foo<int>();');
     assertResolvedNodeText(node, r'''
@@ -2430,13 +2507,14 @@ MethodInvocation
   }
 
   test_error_undefinedMethod_hasTarget_class_typeParameter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C<T> {
   static main() => C.T();
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 34, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 34, 1)],
+    );
 
     var node = findNode.methodInvocation('C.T();');
     assertResolvedNodeText(node, r'''
@@ -2459,13 +2537,14 @@ MethodInvocation
   }
 
   test_error_undefinedMethod_hasTarget_instance() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   42.foo(0);
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 14, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 14, 3)],
+    );
 
     var node = findNode.methodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
@@ -2492,14 +2571,15 @@ MethodInvocation
   }
 
   test_error_undefinedMethod_hasTarget_localVariable_function() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   var v = () {};
   v.foo(0);
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 30, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 30, 3)],
+    );
 
     var node = findNode.methodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
@@ -2527,15 +2607,16 @@ MethodInvocation
   }
 
   test_error_undefinedMethod_noTarget() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C {
   main() {
     foo(0);
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 25, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 25, 3)],
+    );
 
     var node = findNode.methodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
@@ -2558,13 +2639,14 @@ MethodInvocation
   }
 
   test_error_undefinedMethod_null() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   null.foo();
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 16, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 16, 3)],
+    );
 
     var node = findNode.methodInvocation('foo();');
     assertResolvedNodeText(node, r'''
@@ -2586,13 +2668,14 @@ MethodInvocation
   }
 
   test_error_undefinedMethod_object_call() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main(Object o) {
   o.call();
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 21, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 21, 4)],
+    );
   }
 
   test_error_undefinedMethod_private() async {
@@ -2601,7 +2684,8 @@ class A {
   void _foo(int _) {}
 }
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart';
 
 class B extends A {
@@ -2609,9 +2693,9 @@ class B extends A {
     _foo(0);
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 53, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 53, 4)],
+    );
 
     var node = findNode.methodInvocation('_foo(0);');
     assertResolvedNodeText(node, r'''
@@ -2634,7 +2718,8 @@ MethodInvocation
   }
 
   test_error_undefinedMethod_typeLiteral_cascadeTarget() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class C {
   static void foo() {}
 }
@@ -2642,25 +2727,29 @@ class C {
 main() {
   C..foo();
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 50, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 50, 3)],
+    );
   }
 
   test_error_undefinedMethod_typeLiteral_conditional() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 main() {
   A?.toString();
 }
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 23, 2),
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 25, 8),
-    ]);
+''',
+      [
+        error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 23, 2),
+        error(CompileTimeErrorCode.UNDEFINED_METHOD, 25, 8),
+      ],
+    );
   }
 
   test_error_unqualifiedReferenceToNonLocalStaticMember_method() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   static void foo() {}
 }
@@ -2670,13 +2759,16 @@ class B extends A {
     foo(0);
   }
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
           71,
-          3),
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 75, 1),
-    ]);
+          3,
+        ),
+        error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 75, 1),
+      ],
+    );
 
     var node = findNode.methodInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
@@ -2702,16 +2794,17 @@ MethodInvocation
   /// single error generated when the only problem is that an imported file
   /// does not exist.
   test_error_uriDoesNotExist_prefixed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'missing.dart' as p;
 
 main() {
   p.foo(1);
   p.bar(2);
 }
-''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 14),
-    ]);
+''',
+      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 14)],
+    );
 
     var node = findNode.methodInvocation('foo(1);');
     assertResolvedNodeText(node, r'''
@@ -2742,16 +2835,17 @@ MethodInvocation
   /// single error generated when the only problem is that an imported file
   /// does not exist.
   test_error_uriDoesNotExist_show() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'missing.dart' show foo, bar;
 
 main() {
   foo(1);
   bar(2);
 }
-''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 14),
-    ]);
+''',
+      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 14)],
+    );
 
     var node = findNode.methodInvocation('foo(1);');
     assertResolvedNodeText(node, r'''
@@ -2774,7 +2868,8 @@ MethodInvocation
   }
 
   test_error_useOfVoidResult_name_getter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C<T>{
   T foo;
   C(this.foo);
@@ -2783,9 +2878,9 @@ class C<T>{
 void f(C<void> c) {
   c.foo();
 }
-''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 61, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 61, 5)],
+    );
 
     var node = findNode.functionExpressionInvocation('foo();');
     assertResolvedNodeText(node, r'''
@@ -2813,14 +2908,15 @@ FunctionExpressionInvocation
   }
 
   test_error_useOfVoidResult_name_localVariable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   void foo;
   foo();
 }
-''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 23, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 23, 3)],
+    );
 
     var node = findNode.functionExpressionInvocation('foo();');
     assertResolvedNodeText(node, r'''
@@ -2839,15 +2935,16 @@ FunctionExpressionInvocation
   }
 
   test_error_useOfVoidResult_name_topFunction() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void foo() {}
 
 main() {
   foo()();
 }
-''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 26, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 26, 3)],
+    );
 
     var node = findNode.methodInvocation('foo()()');
     assertResolvedNodeText(node, r'''
@@ -2865,15 +2962,16 @@ MethodInvocation
   }
 
   test_error_useOfVoidResult_name_topVariable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void foo;
 
 main() {
   foo();
 }
-''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 22, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 22, 3)],
+    );
 
     var node = findNode.functionExpressionInvocation('foo();');
     assertResolvedNodeText(node, r'''
@@ -2892,14 +2990,15 @@ FunctionExpressionInvocation
   }
 
   test_error_useOfVoidResult_receiver() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   void foo;
   foo.toString();
 }
-''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 23, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 23, 3)],
+    );
 
     var node = findNode.methodInvocation('toString()');
     assertResolvedNodeText(node, r'''
@@ -2922,14 +3021,15 @@ MethodInvocation
   }
 
   test_error_useOfVoidResult_receiver_cascade() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   void foo;
   foo..toString();
 }
-''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 23, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 23, 3)],
+    );
 
     var node = findNode.methodInvocation('toString()');
     assertResolvedNodeText(node, r'''
@@ -2948,14 +3048,15 @@ MethodInvocation
   }
 
   test_error_useOfVoidResult_receiver_withNull() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 main() {
   void foo;
   foo?.toString();
 }
-''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 23, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 23, 3)],
+    );
 
     var node = findNode.methodInvocation('toString()');
     assertResolvedNodeText(node, r'''
@@ -2978,15 +3079,22 @@ MethodInvocation
   }
 
   test_error_wrongNumberOfTypeArgumentsMethod_01() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void foo() {}
 
 main() {
   foo<int>();
 }
-''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD, 29, 5),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
+          29,
+          5,
+        ),
+      ],
+    );
 
     var node = findNode.methodInvocation('foo<int>()');
     assertResolvedNodeText(node, r'''
@@ -3012,15 +3120,22 @@ MethodInvocation
   }
 
   test_error_wrongNumberOfTypeArgumentsMethod_21() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 Map<T, U> foo<T extends num, U>() => throw Error();
 
 main() {
   foo<int>();
 }
-''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD, 67, 5),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
+          67,
+          5,
+        ),
+      ],
+    );
 
     var node = findNode.methodInvocation('foo<int>()');
     assertResolvedNodeText(node, r'''
@@ -3332,15 +3447,16 @@ MethodInvocation
   }
 
   test_hasReceiver_deferredImportPrefix_loadLibrary() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:math' deferred as math;
 
 main() {
   math.loadLibrary();
 }
-''', [
-      error(WarningCode.UNUSED_IMPORT, 7, 11),
-    ]);
+''',
+      [error(WarningCode.UNUSED_IMPORT, 7, 11)],
+    );
 
     var node = findNode.methodInvocation('loadLibrary()');
     assertResolvedNodeText(node, r'''
@@ -3363,16 +3479,19 @@ MethodInvocation
   }
 
   test_hasReceiver_deferredImportPrefix_loadLibrary_extraArgument() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:math' deferred as math;
 
 main() {
   math.loadLibrary(1 + 2);
 }
-''', [
-      error(WarningCode.UNUSED_IMPORT, 7, 11),
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 66, 5),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_IMPORT, 7, 11),
+        error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 66, 5),
+      ],
+    );
 
     var node = findNode.methodInvocation('loadLibrary(1 + 2)');
     assertResolvedNodeText(node, r'''
@@ -4182,14 +4301,20 @@ MethodInvocation
   }
 
   test_hasReceiver_interfaceQ_Function_call_unchecked() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Function? foo) {
   foo.call();
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          30, 4),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          30,
+          4,
+        ),
+      ],
+    );
 
     var node = findNode.methodInvocation('foo.call()');
     assertResolvedNodeText(node, r'''
@@ -4508,7 +4633,8 @@ MethodInvocation
   }
 
   test_hasReceiver_interfaceType_extensionType_declared_nullableType() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type A(int it) {
   int foo() => 0;
 }
@@ -4516,10 +4642,15 @@ extension type A(int it) {
 void f(A? a) {
   a.foo();
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          67, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          67,
+          3,
+        ),
+      ],
+    );
 
     var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
@@ -4608,7 +4739,8 @@ MethodInvocation
   }
 
   test_hasReceiver_interfaceType_extensionType_notExposed() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 
 class B extends A {
@@ -4620,9 +4752,9 @@ extension type X(B it) implements A {}
 void f(X x) {
   x.foo();
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 109, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_METHOD, 109, 3)],
+    );
 
     var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
@@ -4676,6 +4808,74 @@ MethodInvocation
     rightParenthesis: )
   staticInvokeType: void Function()
   staticType: void
+''');
+  }
+
+  test_hasReceiver_interfaceType_inheritedMethod_ofGenericClass_usesTypeParameter() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  T foo() => throw 0;
+}
+
+class B extends A<int> {}
+
+void f(B b) {
+  b.foo();
+}
+''');
+
+    var node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: b
+    element: <testLibraryFragment>::@function::f::@parameter::b#element
+    staticType: B
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: MethodMember
+      baseElement: <testLibraryFragment>::@class::A::@method::foo#element
+      substitution: {T: int}
+    staticType: int Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: int Function()
+  staticType: int
+''');
+  }
+
+  test_hasReceiver_interfaceType_inheritedMethod_ofGenericClass_usesTypeParameterNot() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  double foo() => throw 0;
+}
+
+class B extends A<int> {}
+
+void f(B b) {
+  b.foo();
+}
+''');
+
+    var node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: b
+    element: <testLibraryFragment>::@function::f::@parameter::b#element
+    staticType: B
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <testLibraryFragment>::@class::A::@method::foo#element
+    staticType: double Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: double Function()
+  staticType: double
 ''');
   }
 
@@ -4880,7 +5080,8 @@ MethodInvocation
   }
 
   test_hasReceiver_interfaceTypeQ_defined() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void foo() {}
 }
@@ -4888,10 +5089,15 @@ class A {
 void f(A? a) {
   a.foo();
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          48, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          48,
+          3,
+        ),
+      ],
+    );
 
     var node = findNode.methodInvocation('a.foo()');
     assertResolvedNodeText(node, r'''
@@ -4914,7 +5120,8 @@ MethodInvocation
   }
 
   test_hasReceiver_interfaceTypeQ_defined_extension() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void foo() {}
 }
@@ -4926,10 +5133,15 @@ extension E on A {
 void f(A? a) {
   a.foo();
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          86, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          86,
+          3,
+        ),
+      ],
+    );
 
     var node = findNode.methodInvocation('a.foo()');
     assertResolvedNodeText(node, r'''
@@ -5020,16 +5232,22 @@ MethodInvocation
   }
 
   test_hasReceiver_interfaceTypeQ_notDefined() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 
 void f(A? a) {
   a.foo();
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          31, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          31,
+          3,
+        ),
+      ],
+    );
 
     var node = findNode.methodInvocation('a.foo()');
     assertResolvedNodeText(node, r'''
@@ -5052,7 +5270,8 @@ MethodInvocation
   }
 
   test_hasReceiver_interfaceTypeQ_notDefined_extension() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 
 extension E on A {
@@ -5062,10 +5281,15 @@ extension E on A {
 void f(A? a) {
   a.foo();
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          69, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          69,
+          3,
+        ),
+      ],
+    );
 
     var node = findNode.methodInvocation('a.foo()');
     assertResolvedNodeText(node, r'''
@@ -5292,7 +5516,8 @@ MethodInvocation
   }
 
   test_hasReceiver_recordQ_notDefined_extension() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension E on (int, String) {
   void foo(int a) {}
 }
@@ -5300,10 +5525,15 @@ extension E on (int, String) {
 void f((int, String)? r) {
   r.foo(0);
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          86, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          86,
+          3,
+        ),
+      ],
+    );
 
     var node = findNode.methodInvocation('r.foo(0)');
     assertResolvedNodeText(node, r'''
@@ -5763,7 +5993,8 @@ MethodInvocation
   }
 
   test_identifier_class_field() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   final foo = 0;
 
@@ -5771,9 +6002,15 @@ class A {
     foo(0);
   }
 }
-''', [
-      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 45, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
+          45,
+          3,
+        ),
+      ],
+    );
 
     var node = findNode.functionExpressionInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
@@ -5889,7 +6126,8 @@ FunctionExpressionInvocation
   }
 
   test_identifier_topLevelFunction_arguments_duplicateNamed() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 final a = 0;
 
 void foo({int? p}) {}
@@ -5897,9 +6135,9 @@ void foo({int? p}) {}
 void f() {
   foo(p: 0, p: a);
 }
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT, 60, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT, 60, 1)],
+    );
 
     var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
@@ -5941,15 +6179,22 @@ MethodInvocation
   }
 
   test_identifier_topLevelVariable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 final foo = 0;
 
 void f() {
   foo(0);
 }
-''', [
-      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 29, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
+          29,
+          3,
+        ),
+      ],
+    );
 
     var node = findNode.functionExpressionInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
@@ -6181,16 +6426,17 @@ MethodInvocation
   }
 
   test_invalidConst_class_staticMethod() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   static int foo(int _) => 0;
 }
 
 const a = 0;
 const b = A.foo(a);
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION, 66, 8),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION, 66, 8)],
+    );
 
     var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
@@ -6219,12 +6465,13 @@ MethodInvocation
   }
 
   test_invalidConst_expression_instanceMethod() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 const a = 0;
 const b = 'abc'.codeUnitAt(a);
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION, 23, 19),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION, 23, 19)],
+    );
 
     var node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
@@ -6729,15 +6976,22 @@ FunctionExpressionInvocation
   }
 
   test_noReceiver_importPrefix() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'dart:math' as math;
 
 main() {
   math();
 }
-''', [
-      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 40, 4),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+          40,
+          4,
+        ),
+      ],
+    );
 
     var node = findNode.methodInvocation('math()');
     assertResolvedNodeText(node, r'''
@@ -7417,7 +7671,8 @@ MethodInvocation
   }
 
   test_remainder_int_context_int_via_extension_explicit() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension E on int {
   String remainder(num x) => '';
 }
@@ -7426,9 +7681,9 @@ g(int a) {
   h(E(a).remainder(f()));
 }
 h(int x) {}
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 98, 19),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 98, 19)],
+    );
 
     var node = findNode.methodInvocation('f()');
     assertResolvedNodeText(node, r'''
@@ -7581,7 +7836,8 @@ MethodInvocation
   }
 
   test_remainder_other_context_int_via_extension_explicit() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {}
 extension E on A {
   String remainder(num x) => '';
@@ -7591,9 +7847,9 @@ g(A a) {
   h(E(a).remainder(f()));
 }
 h(int x) {}
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 105, 19),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 105, 19)],
+    );
 
     var node = findNode.methodInvocation('f()');
     assertResolvedNodeText(node, r'''
@@ -7614,7 +7870,8 @@ MethodInvocation
   }
 
   test_remainder_other_context_int_via_extension_implicit() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {}
 extension E on A {
   String remainder(num x) => '';
@@ -7624,9 +7881,9 @@ g(A a) {
   h(a.remainder(f()));
 }
 h(int x) {}
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 105, 16),
-    ]);
+''',
+      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 105, 16)],
+    );
 
     var node = findNode.methodInvocation('f()');
     assertResolvedNodeText(node, r'''
@@ -7796,7 +8053,8 @@ MethodInvocation
   }
 
   test_superQualifier_identifier_unresolved_inClass() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 
 class B extends A {
@@ -7804,9 +8062,9 @@ class B extends A {
     super.foo(0);
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SUPER_METHOD, 62, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SUPER_METHOD, 62, 3)],
+    );
 
     var node = findNode.methodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
@@ -7833,16 +8091,17 @@ MethodInvocation
   }
 
   test_superQualifier_identifier_unresolved_inEnum() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum E {
   v;
   void f() {
     super.foo(0);
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SUPER_METHOD, 37, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SUPER_METHOD, 37, 3)],
+    );
 
     var node = findNode.methodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
@@ -7869,7 +8128,8 @@ MethodInvocation
   }
 
   test_superQualifier_identifier_unresolved_inMixin() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 
 mixin M on A {
@@ -7877,9 +8137,9 @@ mixin M on A {
     super.foo(0);
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SUPER_METHOD, 52, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SUPER_METHOD, 52, 3)],
+    );
 
     var node = findNode.methodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
@@ -7909,14 +8169,17 @@ MethodInvocation
     // This code is invalid, and the constructor initializer has a method
     // invocation with a synthetic name. But we should still resolve the
     // invocation, and resolve all its arguments.
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   A() : B(1 + 2, [0]);
 }
-''', [
-      error(ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, 18, 1),
-      error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 13),
-    ]);
+''',
+      [
+        error(ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, 18, 1),
+        error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 18, 13),
+      ],
+    );
 
     var node = findNode.methodInvocation(');');
     assertResolvedNodeText(node, r'''
@@ -8000,15 +8263,16 @@ MethodInvocation
   }
 
   test_typeArgumentTypes_generic_inferred() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 U foo<T, U>(T a) => throw Error();
 
 main() {
   bool v = foo(0);
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 52, 1),
-    ]);
+''',
+      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 52, 1)],
+    );
 
     var node = findNode.methodInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
@@ -8130,15 +8394,16 @@ MethodInvocation
   }
 
   test_typeArgumentTypes_generic_typeArguments_notBounds() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void foo<T extends num>() {}
 
 main() {
   foo<bool>();
 }
-''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 45, 4),
-    ]);
+''',
+      [error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 45, 4)],
+    );
 
     var node = findNode.methodInvocation('foo<bool>();');
     assertResolvedNodeText(node, r'''
@@ -8166,15 +8431,22 @@ MethodInvocation
   }
 
   test_typeArgumentTypes_generic_typeArguments_wrongNumber() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void foo<T>() {}
 
 main() {
   foo<int, double>();
 }
-''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD, 32, 13),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
+          32,
+          13,
+        ),
+      ],
+    );
 
     var node = findNode.methodInvocation('foo<int, double>();');
     assertResolvedNodeText(node, r'''

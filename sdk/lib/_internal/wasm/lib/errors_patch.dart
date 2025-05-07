@@ -237,8 +237,9 @@ class _AssertionErrorImpl extends AssertionError {
     if (_fileUri != null && _conditionSource != null) {
       failureMessage += "$_fileUri:${_line}:${_column}\n$_conditionSource\n";
     }
-    failureMessage +=
-        message != null ? Error.safeToString(message) : "is not true";
+    failureMessage += message != null
+        ? Error.safeToString(message)
+        : "is not true";
 
     return "Assertion failed: $failureMessage";
   }

@@ -19,7 +19,7 @@ static extension-member method E|get#foo(lowered final self::ET? /* erasure=core
   return (core::int i) → void => self::E|foo(#this, i);
 static extension-type-member method ET|constructor#(core::int? i) → self::ET% /* erasure=core::int?, declared=! */
   ;
-static extension-type-member method ET|constructor#_#new#tearOff(core::int? i) → self::ET% /* erasure=core::int?, declared=! */
+static extension-type-member synthetic method ET|constructor#_#new#tearOff(core::int? i) → self::ET% /* erasure=core::int?, declared=! */
   return self::ET|constructor#(i);
 static extension-type-member method ET|foo(lowered final self::ET% /* erasure=core::int?, declared=! */ #this) → void
   ;

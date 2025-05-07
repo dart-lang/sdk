@@ -40,24 +40,30 @@ main() {
     var resultFuture = future.onError(onError, test: test);
 
     if (result is AsyncError) {
-      resultFuture.then((value) {
-        Expect.fail("$testName: Did not throw, value: $value");
-      }, onError: (Object error, StackTrace stackTrace) {
-        Expect.identical(result.error, error, testName);
-        if (result.stackTrace != StackTrace.empty) {
-          Expect.identical(result.stackTrace, stackTrace, testName);
-        } else {
-          Expect.notEquals(stack, stackTrace, testName);
-        }
-        asyncEnd();
-      });
+      resultFuture.then(
+        (value) {
+          Expect.fail("$testName: Did not throw, value: $value");
+        },
+        onError: (Object error, StackTrace stackTrace) {
+          Expect.identical(result.error, error, testName);
+          if (result.stackTrace != StackTrace.empty) {
+            Expect.identical(result.stackTrace, stackTrace, testName);
+          } else {
+            Expect.notEquals(stack, stackTrace, testName);
+          }
+          asyncEnd();
+        },
+      );
     } else {
-      resultFuture.then((value) {
-        Expect.equals(result, value);
-        asyncEnd();
-      }, onError: (error, stackTrace) {
-        Expect.fail("$testName: Threw $error");
-      });
+      resultFuture.then(
+        (value) {
+          Expect.equals(result, value);
+          asyncEnd();
+        },
+        onError: (error, stackTrace) {
+          Expect.fail("$testName: Threw $error");
+        },
+      );
     }
   }
 
@@ -169,8 +175,13 @@ main() {
                 var originalOnError = onError;
                 onError = (E e, StackTrace s) async => originalOnError(e, s);
               }
-              test<E, T>(testName, future as Future<T>, onError,
-                  test: testFunction, result: expectation);
+              test<E, T>(
+                testName,
+                future as Future<T>,
+                onError,
+                test: testFunction,
+                result: expectation,
+              );
             }
 
             // Find the types to use.
@@ -200,7 +211,7 @@ class NonNativeFuture<T> implements Future<T> {
   Future<T> _original;
   NonNativeFuture.value(T value) : _original = Future<T>.value(value);
   NonNativeFuture.error(Object error, [StackTrace? stack])
-      : _original = Future<T>.error(error, stack)..ignore();
+    : _original = Future<T>.error(error, stack)..ignore();
   NonNativeFuture._(this._original);
   Future<R> then<R>(FutureOr<R> Function(T) handleValue, {Function? onError}) =>
       NonNativeFuture<R>._(_original.then(handleValue, onError: onError));

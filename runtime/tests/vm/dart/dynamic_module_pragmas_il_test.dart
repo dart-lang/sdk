@@ -181,10 +181,7 @@ void matchIL$callA2(FlowGraph graph) {
           match.InstanceCall('obj'),
           match.Goto('B12'),
         ]),
-    'B12' <<
-        match.block('Join', [
-          match.DartReturn(match.any),
-        ]),
+    'B12' << match.block('Join', [match.DartReturn(match.any)]),
   ]);
 }
 
@@ -286,18 +283,13 @@ void matchIL$testCallInTryWithControlFlow(FlowGraph graph) {
           'value_length' << match.Phi('value_length1', 'value_length2'),
           'value_length_unboxed' << match.UnboxInt64('value_length'),
           match.Branch(
-              match.EqualityCompare('pos', 'value_length_unboxed', kind: '=='),
-              ifTrue: 'B3',
-              ifFalse: 'B4'),
+            match.EqualityCompare('pos', 'value_length_unboxed', kind: '=='),
+            ifTrue: 'B3',
+            ifFalse: 'B4',
+          ),
         ]),
-    'B3' <<
-        match.block('Target', [
-          match.Goto('B9'),
-        ]),
-    'B4' <<
-        match.block('Target', [
-          match.Goto('B5'),
-        ]),
+    'B3' << match.block('Target', [match.Goto('B9')]),
+    'B4' << match.block('Target', [match.Goto('B5')]),
     'B5' << match.tryBlock(tryBody: 'B6', catches: 'B8'),
     'B6' <<
         match.block('Join', [
@@ -327,17 +319,8 @@ void matchIL$testCallInTryWithControlFlow(FlowGraph graph) {
           match.StaticCall('value_substring'),
           match.Goto('B7'),
         ]),
-    'B8' <<
-        match.block('CatchBlock', [
-          match.Goto('B7'),
-        ]),
-    'B7' <<
-        match.block('Join', [
-          match.Goto('B9'),
-        ]),
-    'B9' <<
-        match.block('Join', [
-          match.DartReturn(match.any),
-        ]),
+    'B8' << match.block('CatchBlock', [match.Goto('B7')]),
+    'B7' << match.block('Join', [match.Goto('B9')]),
+    'B9' << match.block('Join', [match.DartReturn(match.any)]),
   ]);
 }

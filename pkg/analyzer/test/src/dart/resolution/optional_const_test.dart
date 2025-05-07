@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -244,8 +244,10 @@ InstanceCreationExpression
 ''');
   }
 
-  Future<InstanceCreationExpression> _resolveImplicitConst(String expr,
-      {String? prefix}) async {
+  Future<InstanceCreationExpression> _resolveImplicitConst(
+    String expr, {
+    String? prefix,
+  }) async {
     newFile('$testPackageLibPath/a.dart', '''
 class A {
   const A();
@@ -274,7 +276,7 @@ import 'b.dart';
 var v = a;
 ''');
 
-    var vg = findNode.simple('a;').element as PropertyAccessorElement2;
+    var vg = findNode.simple('a;').element as PropertyAccessorElement;
     var v = vg.variable3!.firstFragment as ConstVariableElement;
 
     var creation = v.constantInitializer as InstanceCreationExpression;

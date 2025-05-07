@@ -5,8 +5,5 @@
 import 'package:flutter/widgets.dart';
 
 class Scaffold extends StatefulWidget {
-  const Scaffold({
-    Key? key,
-    Widget body,
-  });
+  const Scaffold({Key? key, Widget body});
 }

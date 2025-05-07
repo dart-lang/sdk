@@ -1095,13 +1095,8 @@ abstract class FeatureComputerTest extends AbstractSingleUnitTest {
   bool verifyNoTestUnitErrors = false;
 
   Future<void> completeIn(String content) async {
-    cursorIndex = content.indexOf('^');
-    if (cursorIndex < 0) {
-      fail('Missing node offset marker (^) in content');
-    }
-    content =
-        content.substring(0, cursorIndex) + content.substring(cursorIndex + 1);
     await resolveTestCode(content);
+    cursorIndex = parsedTestCode.position.offset;
     completionTarget = CompletionTarget.forOffset(testUnit, cursorIndex);
   }
 }

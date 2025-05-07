@@ -67,7 +67,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       bool startWithNewLine(int index) =>
           lexeme.startsWith('\n', index) || lexeme.startsWith('\r', index);
       if (!startWithNewLine(node.isRaw ? 4 : 3)) {
-        rule.reportLint(node);
+        rule.reportAtNode(node);
       }
     }
   }

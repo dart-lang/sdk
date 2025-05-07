@@ -75,8 +75,8 @@ class ExpectedError {
   /// An empty array of error descriptors used when no errors are expected.
   static List<ExpectedError> NO_ERRORS = <ExpectedError>[];
 
-  /// The error code associated with the error.
-  final ErrorCode code;
+  /// The diagnostic code associated with the error.
+  final DiagnosticCode code;
 
   // A pattern that should be contained in the error's correction message, or
   // `null` if the correction message contents should not be checked.
@@ -100,11 +100,15 @@ class ExpectedError {
   final List<ExpectedContextMessage> expectedContextMessages;
 
   /// Initialize a newly created error description.
-  ExpectedError(this.code, this.offset, this.length,
-      {this.correctionContains,
-      this.message,
-      this.messageContains = const [],
-      this.expectedContextMessages = const <ExpectedContextMessage>[]});
+  ExpectedError(
+    this.code,
+    this.offset,
+    this.length, {
+    this.correctionContains,
+    this.message,
+    this.messageContains = const [],
+    this.expectedContextMessages = const <ExpectedContextMessage>[],
+  });
 
   /// Return `true` if the [error] matches this description of what it's
   /// expected to be.
@@ -187,8 +191,9 @@ class GatheringErrorListener implements AnalysisErrorListener {
       bool matchFound = false;
       int expectedIndex = 0;
       while (expectedIndex < unmatchedExpected.length) {
-        if (unmatchedExpected[expectedIndex]
-            .matches(unmatchedActual[actualIndex])) {
+        if (unmatchedExpected[expectedIndex].matches(
+          unmatchedActual[actualIndex],
+        )) {
           matchFound = true;
           unmatchedActual.removeAt(actualIndex);
           unmatchedExpected.removeAt(expectedIndex);
@@ -219,9 +224,11 @@ class GatheringErrorListener implements AnalysisErrorListener {
         }
         if (expected.messageContains.isNotEmpty) {
           buffer.write(', messageContains: ');
-          buffer.write(json.encode([
-            for (var pattern in expected.messageContains) pattern.toString()
-          ]));
+          buffer.write(
+            json.encode([
+              for (var pattern in expected.messageContains) pattern.toString(),
+            ]),
+          );
         }
         if (expected.correctionContains != null) {
           buffer.write(', correctionContains: ');
@@ -298,17 +305,18 @@ class GatheringErrorListener implements AnalysisErrorListener {
     }
   }
 
-  /// Assert that the number of errors that have been gathered matches the
-  /// number of [expectedErrorCodes] and that they have the expected error
-  /// codes. The order in which the errors were gathered is ignored.
-  void assertErrorsWithCodes(
-      [List<ErrorCode> expectedErrorCodes = const <ErrorCode>[]]) {
+  /// Asserts that the number of diagnostics that have been gathered matches the
+  /// number of [expectedCodes] and that they have the expected diagnostic
+  /// codes.
+  ///
+  /// The order in which the diagnostics were gathered is ignored.
+  void assertErrorsWithCodes([
+    List<DiagnosticCode> expectedCodes = const <DiagnosticCode>[],
+  ]) {
     StringBuffer buffer = StringBuffer();
-    //
-    // Compute the expected number of each type of error.
-    //
-    Map<ErrorCode, int> expectedCounts = <ErrorCode, int>{};
-    for (ErrorCode code in expectedErrorCodes) {
+    // Compute the expected number of each type of diagnostic.
+    Map<DiagnosticCode, int> expectedCounts = <DiagnosticCode, int>{};
+    for (DiagnosticCode code in expectedCodes) {
       var count = expectedCounts[code];
       if (count == null) {
         count = 1;
@@ -320,8 +328,8 @@ class GatheringErrorListener implements AnalysisErrorListener {
     //
     // Compute the actual number of each type of error.
     //
-    Map<ErrorCode, List<AnalysisError>> errorsByCode =
-        <ErrorCode, List<AnalysisError>>{};
+    Map<DiagnosticCode, List<AnalysisError>> errorsByCode =
+        <DiagnosticCode, List<AnalysisError>>{};
     for (AnalysisError error in _errors) {
       errorsByCode
           .putIfAbsent(error.errorCode, () => <AnalysisError>[])
@@ -330,7 +338,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
     //
     // Compare the expected and actual number of each type of error.
     //
-    expectedCounts.forEach((ErrorCode code, int expectedCount) {
+    expectedCounts.forEach((DiagnosticCode code, int expectedCount) {
       int actualCount;
       var list = errorsByCode.remove(code);
       if (list == null) {
@@ -355,7 +363,10 @@ class GatheringErrorListener implements AnalysisErrorListener {
     // Check that there are no more errors in the actual-errors map,
     // otherwise record message.
     //
-    errorsByCode.forEach((ErrorCode code, List<AnalysisError> actualErrors) {
+    errorsByCode.forEach((
+      DiagnosticCode code,
+      List<AnalysisError> actualErrors,
+    ) {
       int actualCount = actualErrors.length;
       if (buffer.length == 0) {
         buffer.write("Expected ");
@@ -385,11 +396,11 @@ class GatheringErrorListener implements AnalysisErrorListener {
   /// number of [expectedSeverities] and that there are the same number of
   /// errors and warnings as specified by the argument. The order in which the
   /// errors were gathered is ignored.
-  void assertErrorsWithSeverities(List<ErrorSeverity> expectedSeverities) {
+  void assertErrorsWithSeverities(List<DiagnosticSeverity> expectedSeverities) {
     int expectedErrorCount = 0;
     int expectedWarningCount = 0;
-    for (ErrorSeverity severity in expectedSeverities) {
-      if (severity == ErrorSeverity.ERROR) {
+    for (DiagnosticSeverity severity in expectedSeverities) {
+      if (severity == DiagnosticSeverity.ERROR) {
         expectedErrorCount++;
       } else {
         expectedWarningCount++;
@@ -398,7 +409,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
     int actualErrorCount = 0;
     int actualWarningCount = 0;
     for (AnalysisError error in _errors) {
-      if (error.errorCode.errorSeverity == ErrorSeverity.ERROR) {
+      if (error.errorCode.errorSeverity == DiagnosticSeverity.ERROR) {
         actualErrorCount++;
       } else {
         actualWarningCount++;
@@ -406,10 +417,12 @@ class GatheringErrorListener implements AnalysisErrorListener {
     }
     if (expectedErrorCount != actualErrorCount ||
         expectedWarningCount != actualWarningCount) {
-      fail("Expected $expectedErrorCount errors "
-          "and $expectedWarningCount warnings, "
-          "found $actualErrorCount errors "
-          "and $actualWarningCount warnings");
+      fail(
+        "Expected $expectedErrorCount errors "
+        "and $expectedWarningCount warnings, "
+        "found $actualErrorCount errors "
+        "and $actualWarningCount warnings",
+      );
     }
   }
 
@@ -421,16 +434,6 @@ class GatheringErrorListener implements AnalysisErrorListener {
   /// Return the line information associated with the given [source], or `null`
   /// if no line information has been associated with the source.
   LineInfo? getLineInfo(Source source) => _lineInfoMap[source];
-
-  /// Return `true` if an error with the given [errorCode] has been gathered.
-  bool hasError(ErrorCode errorCode) {
-    for (AnalysisError error in _errors) {
-      if (identical(error.errorCode, errorCode)) {
-        return true;
-      }
-    }
-    return false;
-  }
 
   @override
   void onError(AnalysisError error) {
@@ -455,9 +458,11 @@ class TestInstrumentor extends NoopInstrumentationService {
   }
 
   @override
-  void logException(dynamic exception,
-      [StackTrace? stackTrace,
-      List<InstrumentationServiceAttachment>? attachments]) {
+  void logException(
+    dynamic exception, [
+    StackTrace? stackTrace,
+    List<InstrumentationServiceAttachment>? attachments,
+  ]) {
     log.add("error: $exception $stackTrace");
   }
 
@@ -536,7 +541,7 @@ class TestSourceWithUri extends TestSource {
   final Uri uri;
 
   TestSourceWithUri(String path, this.uri, [String content = ''])
-      : super(path, content);
+    : super(path, content);
 
   @override
   bool operator ==(Object other) {

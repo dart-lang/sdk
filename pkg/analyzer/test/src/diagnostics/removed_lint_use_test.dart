@@ -17,11 +17,11 @@ main() {
 
 class RemovedLint extends LintRule {
   RemovedLint()
-      : super(
-          name: 'removed_lint',
-          state: State.removed(since: dart3),
-          description: '',
-        );
+    : super(
+        name: 'removed_lint',
+        state: State.removed(since: dart3),
+        description: '',
+      );
 }
 
 @reflectiveTest
@@ -40,27 +40,31 @@ class ReplacedLintUseTest extends PubPackageResolutionTest
   }
 
   @FailingTest(
-      reason: 'Diagnostic reporting disabled',
-      issue: 'https://github.com/dart-lang/sdk/issues/51214')
+    reason: 'Diagnostic reporting disabled',
+    issue: 'https://github.com/dart-lang/sdk/issues/51214',
+  )
   test_file() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // ignore_for_file: removed_lint
 
 void f() { }
-''', [
-      error(WarningCode.REMOVED_LINT_USE, 20, 12),
-    ]);
+''',
+      [error(WarningCode.REMOVED_LINT_USE, 20, 12)],
+    );
   }
 
   @FailingTest(
-      reason: 'Diagnostic reporting disabled',
-      issue: 'https://github.com/dart-lang/sdk/issues/51214')
+    reason: 'Diagnostic reporting disabled',
+    issue: 'https://github.com/dart-lang/sdk/issues/51214',
+  )
   test_line() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 // ignore: removed_lint
 void f() { }
-''', [
-      error(WarningCode.REMOVED_LINT_USE, 11, 12),
-    ]);
+''',
+      [error(WarningCode.REMOVED_LINT_USE, 11, 12)],
+    );
   }
 }

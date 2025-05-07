@@ -34,5 +34,7 @@ class A {
 
 main() {
   Expect.equals(
-      'nullnull', [new A()].last.visitInvokeDynamicMethod(new Node()));
+    'nullnull',
+    [new A()].last.visitInvokeDynamicMethod(new Node()),
+  );
 }

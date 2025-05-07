@@ -270,10 +270,9 @@ class _InternetAddress implements InternetAddress {
       if (inAddr == null) {
         return ArgumentError('Invalid internet address $address');
       }
-      InternetAddressType type =
-          inAddr.length == _IPv4AddrLength
-              ? InternetAddressType.IPv4
-              : InternetAddressType.IPv6;
+      InternetAddressType type = inAddr.length == _IPv4AddrLength
+          ? InternetAddressType.IPv4
+          : InternetAddressType.IPv6;
       if (scopeID != null && scopeID.length > 0) {
         if (type != InternetAddressType.IPv6) {
           return ArgumentError.value(
@@ -933,10 +932,9 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
         } else {
           // allow specified port without address
           if (source == null) {
-            source =
-                address_.type == InternetAddressType.IPv4
-                    ? _InternetAddress.anyIPv4
-                    : _InternetAddress.anyIPv6;
+            source = address_.type == InternetAddressType.IPv4
+                ? _InternetAddress.anyIPv4
+                : _InternetAddress.anyIPv6;
           }
           if (source.type != InternetAddressType.IPv4 &&
               source.type != InternetAddressType.IPv6) {
@@ -1045,8 +1043,9 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
       // Try again if no response (failure or success) within a duration.
       // If this occurs, the socket is still trying to connect, and might
       // succeed or fail later.
-      final duration =
-          address.isLoopback ? _retryDurationLoopback : _retryDuration;
+      final duration = address.isLoopback
+          ? _retryDurationLoopback
+          : _retryDuration;
       timer = Timer(duration, connectNext);
       connecting.add(socket);
       // Setup handlers for receiving the first write event which
@@ -2172,14 +2171,13 @@ class _RawServerSocket extends Stream<RawSocket>
       throw StateError("Stream was already listened to");
     }
     var zone = Zone.current;
-    final controller =
-        _controller = StreamController(
-          sync: true,
-          onListen: _onSubscriptionStateChange,
-          onCancel: _onSubscriptionStateChange,
-          onPause: _onPauseStateChange,
-          onResume: _onPauseStateChange,
-        );
+    final controller = _controller = StreamController(
+      sync: true,
+      onListen: _onSubscriptionStateChange,
+      onCancel: _onSubscriptionStateChange,
+      onPause: _onPauseStateChange,
+      onResume: _onPauseStateChange,
+    );
     _socket.setHandlers(
       read: zone.bindCallbackGuarded(() {
         while (_socket.connections > 0) {
@@ -3261,13 +3259,9 @@ class _ResourceHandleImpl implements ResourceHandle {
     String hostname = list[1] as String;
     Uint8List rawAddr = list[2] as Uint8List;
     int fd = list[3] as int;
-    InternetAddress internetAddress =
-        type == InternetAddressType.unix
-            ? _InternetAddress.fromString(
-              hostname,
-              type: InternetAddressType.unix,
-            )
-            : _InternetAddress(type, hostname, null, rawAddr);
+    InternetAddress internetAddress = type == InternetAddressType.unix
+        ? _InternetAddress.fromString(hostname, type: InternetAddressType.unix)
+        : _InternetAddress(type, hostname, null, rawAddr);
     final nativeSocket = _NativeSocket.normal(internetAddress);
     nativeSocket.nativeSetSocketId(fd, _NativeSocket.typeInternalSocket);
     return _RawSocket(nativeSocket);

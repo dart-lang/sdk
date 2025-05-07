@@ -37,6 +37,7 @@ import '../mocks.dart';
 import '../mocks_lsp.dart';
 import '../shared/shared_test_interface.dart';
 import '../support/configuration_files.dart';
+import '../utils/message_scheduler_test_view.dart';
 import 'change_verifier.dart';
 import 'request_helpers_mixin.dart';
 
@@ -55,6 +56,7 @@ abstract class AbstractLspAnalysisServerTest
   late MockLspServerChannel channel;
   late ErrorNotifier errorNotifier;
   late TestPluginManager pluginManager;
+  MessageSchedulerTestView? testView;
   late LspAnalysisServer server;
   late MockProcessRunner processRunner;
   late MockHttpClient httpClient;
@@ -279,6 +281,7 @@ abstract class AbstractLspAnalysisServerTest
 
     errorNotifier = ErrorNotifier();
     pluginManager = TestPluginManager();
+    testView = retainDataForTesting ? MessageSchedulerTestView() : null;
     server = LspAnalysisServer(
       channel,
       resourceProvider,
@@ -290,7 +293,7 @@ abstract class AbstractLspAnalysisServerTest
       httpClient: httpClient,
       processRunner: processRunner,
       dartFixPromptManager: dartFixPromptManager,
-      retainDataForTesting: retainDataForTesting,
+      messageSchedulerListener: testView,
     );
     errorNotifier.server = server;
     server.pluginManager = pluginManager;
@@ -314,7 +317,7 @@ abstract class AbstractLspAnalysisServerTest
     newFile(analysisOptionsPath, '''
 analyzer:
   enable-experiment:
-$experiments    
+$experiments
 ''');
 
     writeTestPackageConfig();
@@ -1035,14 +1038,7 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin, LspEditHelpersMixin
     await sendNotificationToServer(notification);
   }
 
-  Future<Object?> executeCodeAction(Either2<Command, CodeAction> codeAction) {
-    var command = codeAction.map(
-      (command) => command,
-      (codeAction) => codeAction.command!,
-    );
-    return executeCommand(command);
-  }
-
+  @override
   Future<T> executeCommand<T>(
     Command command, {
     T Function(Map<String, Object?>)? decoder,
@@ -1056,17 +1052,10 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin, LspEditHelpersMixin
         'Is it missing from serverSupportedCommands?',
       );
     }
-    var request = makeRequest(
-      Method.workspace_executeCommand,
-      ExecuteCommandParams(
-        command: command.command,
-        arguments: command.arguments,
-        workDoneToken: workDoneToken,
-      ),
-    );
-    return expectSuccessfulResponseTo<T, Map<String, Object?>>(
-      request,
-      decoder ?? (result) => result as T,
+    return super.executeCommand(
+      command,
+      decoder: decoder,
+      workDoneToken: workDoneToken,
     );
   }
 

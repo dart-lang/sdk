@@ -28,10 +28,9 @@ import 'dart:typed_data' show Endian, Uint8List, Uint16List;
 // These are the additional parts of this patch library:
 part 'bigint_patch.dart';
 
-String _symbolToString(Symbol symbol) =>
-    symbol is PrivateSymbol
-        ? PrivateSymbol.getName(symbol)
-        : _symbol_dev.Symbol.getName(symbol as _symbol_dev.Symbol);
+String _symbolToString(Symbol symbol) => symbol is PrivateSymbol
+    ? PrivateSymbol.getName(symbol)
+    : _symbol_dev.Symbol.getName(symbol as _symbol_dev.Symbol);
 
 @patch
 int identityHashCode(Object? object) {
@@ -664,13 +663,15 @@ class NoSuchMethodError {
       });
     }
     String memberName = _symbolToString(_memberName);
-    String receiverText = Error.safeToString(_receiver);
+    String receiverText = dart.isDartLibrary(_receiver)
+        ? 'Top level in '
+              '${JS('', '#[#]', _receiver, dart.libraryImportUri)}'
+        : Error.safeToString(_receiver);
     String actualParameters = '$sb';
     var invocation = _invocation;
-    var failureMessage =
-        (invocation is dart.InvocationImpl)
-            ? invocation.failureMessage
-            : 'method not found';
+    var failureMessage = (invocation is dart.InvocationImpl)
+        ? invocation.failureMessage
+        : 'method not found';
     return "NoSuchMethodError: '$memberName'\n"
         "$failureMessage\n"
         "Receiver: ${receiverText}\n"

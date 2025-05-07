@@ -32,7 +32,6 @@ final List<Function()> functionsToTest = [
   () => highAddressPointer.cast<Double>(),
   () => Pointer.fromAddress(highAddressPointer.address),
   () => highAddressPointer.address,
-  () => highAddressPointer.elementAt(1),
   () => highAddressPointer + 1,
   () => highAddressPointer.offsetBy(1),
   () => highAddressPointer.asTypedList(1),
@@ -67,10 +66,8 @@ final Pointer<Int64> highAddressPointer = Pointer.fromAddress(highAddress);
 // Dynamic library operation helpers.
 final doDlopen = () => dlopenPlatformSpecific("ffi_test_functions");
 
-final doDlsym =
-    () => ffiTestFunctions.lookupFunction<NativeNullaryOp, NullaryOpVoid>(
-      "TriggerGC",
-    );
+final doDlsym = () => ffiTestFunctions
+    .lookupFunction<NativeNullaryOp, NullaryOpVoid>("TriggerGC");
 
 // Trampoline helpers.
 typedef NativeUndenaryOp =

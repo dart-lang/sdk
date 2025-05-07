@@ -27,8 +27,13 @@ Future<void> testList() async {
   Expect.listEquals(list, [...await future12, 3, ...await future45]);
 
   // Await in null-aware spread.
-  Expect.listEquals(
-      list, [...?await nullableFuture12, 3, ...?await futureNull, 4, 5]);
+  Expect.listEquals(list, [
+    ...?await nullableFuture12,
+    3,
+    ...?await futureNull,
+    4,
+    5,
+  ]);
 }
 
 Future<void> testMap() async {
@@ -41,8 +46,13 @@ Future<void> testMap() async {
   Expect.mapEquals(map, {...await future12, 3: 3, ...await future45});
 
   // Await in null-aware spread.
-  Expect.mapEquals(map,
-      {...?await nullableFuture12, 3: 3, ...?await futureNull, 4: 4, 5: 5});
+  Expect.mapEquals(map, {
+    ...?await nullableFuture12,
+    3: 3,
+    ...?await futureNull,
+    4: 4,
+    5: 5,
+  });
 }
 
 Future<void> testSet() async {
@@ -55,6 +65,11 @@ Future<void> testSet() async {
   Expect.setEquals(set, {...await future12, 3, ...await future45});
 
   // Await in null-aware spread.
-  Expect.setEquals(
-      set, {...?await nullableFuture12, 3, ...?await futureNull, 4, 5});
+  Expect.setEquals(set, {
+    ...?await nullableFuture12,
+    3,
+    ...?await futureNull,
+    4,
+    5,
+  });
 }

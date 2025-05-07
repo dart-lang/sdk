@@ -24,21 +24,29 @@ class A {
   const A({int p});
 }
 ''');
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'a.dart';
 const a = const A();
-''', [
-      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 27, 9),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
+          27,
+          9,
+        ),
+      ],
+    );
 
-    var aLib = findElement2.import('package:test/a.dart').importedLibrary!;
-    var aConstructor = aLib.getClass('A')!.constructors.single;
-    var p = aConstructor.parameters.single as DefaultParameterElementImpl;
+    var aLib = findElement2.import('package:test/a.dart').importedLibrary2!;
+    var aConstructor = aLib.getClass2('A')!.constructors2.single;
+    var p = aConstructor.formalParameters.single;
+    var pf = p.firstFragment as DefaultParameterFragmentImpl;
 
     // To evaluate `const A()` we have to evaluate `{int p}`.
     // Even if its value is `null`.
-    expect(p.isConstantEvaluated, isTrue);
-    expect(p.computeConstantValue()!.isNull, isTrue);
+    expect(pf.isConstantEvaluated, isTrue);
+    expect(pf.computeConstantValue()!.isNull, isTrue);
   }
 
   test_constFactoryRedirection_super() async {
@@ -67,49 +75,53 @@ main() {}
   }
 
   test_constList_withNullAwareElement() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const A();
   foo() {
     return const [?A()];
   }
 }
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_ELEMENT, 51, 1),
-    ]);
+''',
+      [error(StaticWarningCode.INVALID_NULL_AWARE_ELEMENT, 51, 1)],
+    );
     assertType(findNode.listLiteral('const ['), 'List<A>');
   }
 
   test_constMap_withNullAwareKey() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const A();
   foo() {
     return const {?A(): 0};
   }
 }
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_KEY, 51, 1),
-    ]);
+''',
+      [error(StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_KEY, 51, 1)],
+    );
     assertType(findNode.setOrMapLiteral('const {'), 'Map<A, int>');
   }
 
   test_constMap_withNullAwareValue() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const A();
   foo() {
     return const {0: ?A()};
   }
 }
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_VALUE, 54, 1),
-    ]);
+''',
+      [error(StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_VALUE, 54, 1)],
+    );
     assertType(findNode.setOrMapLiteral('const {'), 'Map<int, A>');
   }
 
   test_constNotInitialized() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class B {
   const B(_);
 }
@@ -118,22 +130,23 @@ class C extends B {
   static const a;
   const C() : super(a);
 }
-''', [
-      error(CompileTimeErrorCode.CONST_NOT_INITIALIZED, 62, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONST_NOT_INITIALIZED, 62, 1)],
+    );
   }
 
   test_constSet_withNullAwareElement() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   const A();
   foo() {
     return const {?A()};
   }
 }
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_ELEMENT, 51, 1),
-    ]);
+''',
+      [error(StaticWarningCode.INVALID_NULL_AWARE_ELEMENT, 51, 1)],
+    );
     assertType(findNode.setOrMapLiteral('const {'), 'Set<A>');
   }
 

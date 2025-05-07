@@ -16,24 +16,26 @@ main() {
 @reflectiveTest
 class InvalidFactoryNameNotAClassTest extends PubPackageResolutionTest {
   test_notClassName() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 int B = 0;
 class A {
   factory B() => throw 0;
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS, 31, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS, 31, 1)],
+    );
   }
 
   test_notEnclosingClassName() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   factory B() => throw 0;
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS, 20, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS, 20, 1)],
+    );
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation

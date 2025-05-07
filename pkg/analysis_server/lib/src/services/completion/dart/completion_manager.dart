@@ -22,7 +22,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source.dart';
@@ -250,7 +250,7 @@ class DartCompletionRequest {
   final FeatureComputer featureComputer;
 
   /// The library element of the file in which completion is requested.
-  final LibraryElement2 libraryElement;
+  final LibraryElement libraryElement;
 
   /// The library fragment of the file in which completion is requested.
   final LibraryFragment libraryFragment;
@@ -543,7 +543,11 @@ class TokenData {
             (currentToken.offset == selectionOffset &&
                 !currentToken.isKeywordOrIdentifier)) &&
         !currentToken.isEof) {
-      currentToken = currentToken.previous!;
+      if (currentToken.previous case var previous?) {
+        currentToken = previous;
+      } else {
+        return null;
+      }
     }
     if (currentToken.isEof) {
       return null;

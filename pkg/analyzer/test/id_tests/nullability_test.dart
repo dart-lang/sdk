@@ -7,7 +7,7 @@ import 'dart:io';
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
@@ -17,14 +17,20 @@ import 'package:analyzer/src/util/ast_data_extractor.dart';
 import '../util/id_testing_helper.dart';
 
 main(List<String> args) {
-  Directory dataDir = Directory.fromUri(Platform.script.resolve(
-      '../../../_fe_analyzer_shared/test/flow_analysis/nullability/data'));
-  return runTests<String>(dataDir,
-      args: args,
-      createUriForFileName: createUriForFileName,
-      onFailure: onFailure,
-      runTest: runTestFor(
-          const _NullabilityDataComputer(), [analyzerDefaultConfig]));
+  Directory dataDir = Directory.fromUri(
+    Platform.script.resolve(
+      '../../../_fe_analyzer_shared/test/flow_analysis/nullability/data',
+    ),
+  );
+  return runTests<String>(
+    dataDir,
+    args: args,
+    createUriForFileName: createUriForFileName,
+    onFailure: onFailure,
+    runTest: runTestFor(const _NullabilityDataComputer(), [
+      analyzerDefaultConfig,
+    ]),
+  );
 }
 
 class _NullabilityDataComputer extends DataComputer<String> {
@@ -35,8 +41,11 @@ class _NullabilityDataComputer extends DataComputer<String> {
       const _NullabilityDataInterpreter();
 
   @override
-  void computeUnitData(TestingData testingData, CompilationUnit unit,
-      Map<Id, ActualData<String>> actualMap) {
+  void computeUnitData(
+    TestingData testingData,
+    CompilationUnit unit,
+    Map<Id, ActualData<String>> actualMap,
+  ) {
     var unitElement = unit.declaredFragment!;
     _NullabilityDataExtractor(
       unitElement.source.uri,
@@ -57,10 +66,10 @@ class _NullabilityDataExtractor extends AstDataExtractor<String> {
         node.inGetterContext() &&
         !node.inDeclarationContext()) {
       var element = node.element;
-      if (element is LocalVariableElement2 ||
+      if (element is LocalVariableElement ||
           element is FormalParameterElement) {
         var promotedType = _readType(node);
-        var declaredType = (element as VariableElement2).type;
+        var declaredType = (element as VariableElement).type;
         var isPromoted = promotedType != declaredType;
         if (isPromoted &&
             _typeSystem.isPotentiallyNullable(declaredType) &&

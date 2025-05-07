@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -298,13 +298,14 @@ const foo = 42;
   }
 
   test_location_partDirective_fileDoesNotExist() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 @foo
 part 'a.dart';
 const foo = 42;
-''', [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 10, 8),
-    ]);
+''',
+      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 10, 8)],
+    );
 
     _assertAtFoo42();
   }
@@ -1472,7 +1473,7 @@ import 'a.dart';
 void f(C c) {}
 ''');
 
-    var classC = findNode.namedType('C c').element2 as ClassElement2;
+    var classC = findNode.namedType('C c').element2 as ClassElement;
     var annotation = classC.metadata2.annotations.first;
     _assertElementAnnotationValueText(annotation, r'''
 B
@@ -1502,7 +1503,7 @@ import 'b.dart';
 void f(B b) {}
 ''');
 
-    var classB = findNode.namedType('B b').element2! as ClassElement2;
+    var classB = findNode.namedType('B b').element2! as ClassElement;
     var annotation = classB.metadata2.annotations.first;
     _assertElementAnnotationValueText(annotation, r'''
 A
@@ -1531,7 +1532,7 @@ import 'b.dart';
 void f(B b) {}
 ''');
 
-    var classB = findNode.namedType('B b').element2 as ClassElement2;
+    var classB = findNode.namedType('B b').element2 as ClassElement;
     var annotation = classB.metadata2.annotations.first;
     _assertElementAnnotationValueText(annotation, r'''
 A

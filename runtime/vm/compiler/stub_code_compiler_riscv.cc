@@ -2300,8 +2300,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   Label stepping, done_stepping;
   if (optimized == kUnoptimized) {
     __ Comment("Check single stepping");
-    __ LoadIsolate(TMP);
-    __ LoadFromOffset(TMP, TMP, target::Isolate::single_step_offset(),
+    __ LoadFromOffset(TMP, THR, target::Thread::single_step_offset(),
                       kUnsignedByte);
     __ bnez(TMP, &stepping);
     __ Bind(&done_stepping);
@@ -2655,8 +2654,7 @@ void StubCodeCompiler::GenerateZeroArgsUnoptimizedStaticCallStub() {
   // Check single stepping.
 #if !defined(PRODUCT)
   Label stepping, done_stepping;
-  __ LoadIsolate(TMP);
-  __ LoadFromOffset(TMP, TMP, target::Isolate::single_step_offset(),
+  __ LoadFromOffset(TMP, THR, target::Thread::single_step_offset(),
                     kUnsignedByte);
   __ bnez(TMP, &stepping, Assembler::kNearJump);
   __ Bind(&done_stepping);
@@ -2813,8 +2811,7 @@ void StubCodeCompiler::GenerateDebugStepCheckStub() {
 #else
   // Check single stepping.
   Label stepping, done_stepping;
-  __ LoadIsolate(A1);
-  __ LoadFromOffset(A1, A1, target::Isolate::single_step_offset(),
+  __ LoadFromOffset(A1, THR, target::Thread::single_step_offset(),
                     kUnsignedByte);
   __ bnez(A1, &stepping, compiler::Assembler::kNearJump);
   __ Bind(&done_stepping);
@@ -3084,8 +3081,7 @@ void StubCodeCompiler::GenerateUnoptimizedIdenticalWithNumberCheckStub() {
 #if !defined(PRODUCT)
   // Check single stepping.
   Label stepping, done_stepping;
-  __ LoadIsolate(TMP);
-  __ LoadFromOffset(TMP, TMP, target::Isolate::single_step_offset(),
+  __ LoadFromOffset(TMP, THR, target::Thread::single_step_offset(),
                     kUnsignedByte);
   __ bnez(TMP, &stepping);
   __ Bind(&done_stepping);

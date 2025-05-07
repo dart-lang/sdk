@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
@@ -36,7 +36,7 @@ class PreferFinalLocals extends LintRule {
 }
 
 class _DeclaredVariableVisitor extends RecursiveAstVisitor<void> {
-  final List<BindPatternVariableElement2> declaredElements = [];
+  final List<BindPatternVariableElement> declaredElements = [];
 
   @override
   void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
@@ -76,7 +76,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var inCaseClause = node.thisOrAncestorOfType<CaseClause>() != null;
     if (inCaseClause) {
       if (!isPotentiallyMutated(node, function)) {
-        rule.reportLint(node);
+        rule.reportAtNode(node);
       }
     } else {
       var forEachPattern = node.thisOrAncestorOfType<ForEachPartsWithPattern>();
@@ -92,7 +92,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     if (!inCaseClause) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 
@@ -108,12 +108,12 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     if (inCaseClause) {
       if (!isPotentiallyMutated(node, function)) {
-        rule.reportLint(node);
+        rule.reportAtNode(node);
       }
     } else {
       if (!node.hasPotentiallyMutatedDeclaredVariableInScope(function)) {
         if (node.pattern.containsJustWildcards) return;
-        rule.reportLintForToken(node.keyword);
+        rule.reportAtToken(node.keyword);
       }
     }
   }
@@ -136,10 +136,11 @@ class _Visitor extends SimpleAstVisitor<void> {
         return;
       }
     }
-    if (node.keyword != null) {
-      rule.reportLintForToken(node.keyword);
+    var keyword = node.keyword;
+    if (keyword != null) {
+      rule.reportAtToken(keyword);
     } else if (node.type != null) {
-      rule.reportLint(node.type);
+      rule.reportAtNode(node.type);
     }
   }
 }

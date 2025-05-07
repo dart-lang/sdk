@@ -59,7 +59,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void checkComment(Comment? comment) {
     if (comment != null && isJavaStyle(comment)) {
-      rule.reportLint(comment);
+      rule.reportAtNode(comment);
     }
   }
 
@@ -115,7 +115,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
     var comment = node.beginToken.precedingComments;
     if (comment != null && comment.lexeme.startsWith('/**')) {
-      rule.reportLintForToken(comment);
+      rule.reportAtToken(comment);
     }
   }
 

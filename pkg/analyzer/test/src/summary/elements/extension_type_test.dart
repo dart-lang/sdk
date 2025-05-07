@@ -74,6 +74,7 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+          returnType: int?
     extension type B
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
@@ -96,6 +97,7 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::B::@getter::it
+          returnType: int
 ''');
   }
 
@@ -153,6 +155,7 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+          returnType: int
 ''');
   }
 
@@ -214,6 +217,7 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+          returnType: int
 ''');
   }
 
@@ -287,6 +291,7 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+          returnType: num
 ''');
   }
 
@@ -360,6 +365,7 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+          returnType: num
 ''');
   }
 
@@ -444,6 +450,7 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+          returnType: num
 ''');
   }
 
@@ -504,6 +511,7 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+          returnType: int
 ''');
   }
 
@@ -564,6 +572,7 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+          returnType: int
 ''');
   }
 
@@ -627,8 +636,10 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+          returnType: int
         synthetic static get foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::foo
+          returnType: int
 ''');
   }
 
@@ -692,8 +703,10 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+          returnType: int
         synthetic static get foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::foo
+          returnType: int
 ''');
   }
 
@@ -750,8 +763,10 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+          returnType: int
         synthetic get foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::foo
+          returnType: int
 ''');
   }
 
@@ -816,6 +831,7 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+          returnType: int
 ''');
   }
 
@@ -872,8 +888,10 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+          returnType: int
         get foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::foo
+          returnType: int
 ''');
   }
 
@@ -946,6 +964,7 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::X::@getter::it
+          returnType: C
 ''');
   }
 
@@ -1004,6 +1023,7 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+          returnType: int
     hasImplementsSelfReference extension type B
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
@@ -1020,6 +1040,7 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::B::@getter::it
+          returnType: int
 ''');
   }
 
@@ -1065,6 +1086,7 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+          returnType: int
 ''');
   }
 
@@ -1121,6 +1143,7 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+          returnType: num
     extension type B
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
@@ -1137,6 +1160,7 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::B::@getter::it
+          returnType: int
 ''');
   }
 
@@ -1182,6 +1206,7 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+          returnType: int
 ''');
   }
 
@@ -1225,6 +1250,7 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::X::@getter::it
+          returnType: int?
 ''');
   }
 
@@ -1268,11 +1294,14 @@ library
       fields
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
+          hasEnclosingTypeParameterReference: true
           type: T
           getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+          hasEnclosingTypeParameterReference: true
+          returnType: T
 ''');
   }
 
@@ -1323,6 +1352,7 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::X::@getter::it
+          returnType: int
   typeAliases
     A
       firstFragment: <testLibraryFragment>::@typeAlias::A
@@ -1432,6 +1462,7 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+          returnType: int
 ''');
   }
 
@@ -1484,12 +1515,14 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+          returnType: int
       methods
         foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@method::foo
           formalParameters
             requiredPositional a
               type: int
+          returnType: void
 ''');
   }
 
@@ -1547,6 +1580,7 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+          returnType: int
       methods
         foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@method::foo
@@ -1557,6 +1591,7 @@ library
               constantInitializer
                 fragment: <testLibraryFragment>::@extensionType::A::@method::foo::@parameter::a
                 expression: expression_0
+          returnType: void
 ''');
   }
 
@@ -1573,7 +1608,7 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       extensionTypes
-        extension type <null-name>
+        extension type <null-name> (offset=15)
           reference: <testLibraryFragment>::@extensionType::0
           element: <testLibrary>::@extensionType::0
           fields
@@ -1600,6 +1635,7 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::0::@getter::it
+          returnType: int
 ''');
   }
 
@@ -1620,7 +1656,7 @@ library
           reference: <testLibraryFragment>::@extensionType::A
           element: <testLibrary>::@extensionType::A
           fields
-            <null-name>
+            <null-name> (offset=17)
               reference: <testLibraryFragment>::@extensionType::A::@field::<empty>
               element: <testLibraryFragment>::@extensionType::A::@field::<empty>#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::<empty>
@@ -1633,7 +1669,7 @@ library
               typeName: A
               typeNameOffset: 15
               formalParameters
-                this.<null-name>
+                this.<null-name> (offset=17)
                   element: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::<empty>#element
           getters
             synthetic get <null-name>
@@ -1660,6 +1696,7 @@ library
       getters
         synthetic get <null-name>
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::<empty>
+          returnType: InvalidType
 ''');
   }
 
@@ -1709,6 +1746,7 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+          returnType: int
 ''');
   }
 
@@ -1769,12 +1807,14 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+          returnType: int
       setters
         set foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@setter::foo
           formalParameters
             requiredPositional _
               type: double
+          returnType: void
 ''');
   }
 
@@ -1832,6 +1872,7 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+          returnType: InvalidType
     hasRepresentationSelfReference extension type B
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
@@ -1846,6 +1887,7 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::B::@getter::it
+          returnType: InvalidType
 ''');
   }
 
@@ -1903,6 +1945,7 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+          returnType: B
     hasRepresentationSelfReference extension type B
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
@@ -1917,6 +1960,7 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::B::@getter::it
+          returnType: InvalidType
 ''');
   }
 
@@ -1960,6 +2004,7 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+          returnType: InvalidType
 ''');
   }
 
@@ -2017,6 +2062,7 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+          returnType: int
     extension type B
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
@@ -2031,6 +2077,7 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::B::@getter::it
+          returnType: A Function(A)
 ''');
   }
 
@@ -2088,11 +2135,14 @@ library
       fields
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
+          hasEnclosingTypeParameterReference: true
           type: T
           getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+          hasEnclosingTypeParameterReference: true
+          returnType: T
     extension type B
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
@@ -2107,6 +2157,7 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::B::@getter::it
+          returnType: A<double>
 ''');
   }
 
@@ -2164,6 +2215,7 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+          returnType: int
     extension type B
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
@@ -2178,6 +2230,7 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::B::@getter::it
+          returnType: List<A>
 ''');
   }
 
@@ -2221,6 +2274,7 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+          returnType: int
 ''');
   }
 
@@ -2276,6 +2330,7 @@ library
       fields
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
+          hasEnclosingTypeParameterReference: true
           type: Map<T, U>
           getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
       constructors
@@ -2287,6 +2342,8 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+          hasEnclosingTypeParameterReference: true
+          returnType: Map<T, U>
 ''');
   }
 }

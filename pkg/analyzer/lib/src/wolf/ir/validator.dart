@@ -23,10 +23,11 @@ class ValidationError extends Error {
   final String instructionString;
   final String message;
 
-  ValidationError(
-      {required this.address,
-      required this.instructionString,
-      required this.message});
+  ValidationError({
+    required this.address,
+    required this.instructionString,
+    required this.message,
+  });
 
   @override
   String toString() =>
@@ -119,12 +120,13 @@ class _ControlFlowElement {
   /// Whether the control flow instruction was a `function` instruction.
   final bool isFunction;
 
-  _ControlFlowElement(
-      {required this.localCountBefore,
-      required this.functionFlagsBefore,
-      required this.valueStackDepthAfter,
-      required this.branchValueCount,
-      this.isFunction = false});
+  _ControlFlowElement({
+    required this.localCountBefore,
+    required this.functionFlagsBefore,
+    required this.valueStackDepthAfter,
+    required this.branchValueCount,
+    this.isFunction = false,
+  });
 }
 
 class _Validator {
@@ -149,8 +151,10 @@ class _Validator {
     var target = controlFlowStack.length - 1 - nesting;
     check(target >= 0, 'Control flow stack underflow');
     for (var i = target + 1; i < controlFlowStack.length; i++) {
-      check(!controlFlowStack[i].isFunction,
-          'Cannot branch outside of enclosing function');
+      check(
+        !controlFlowStack[i].isFunction,
+        'Cannot branch outside of enclosing function',
+      );
     }
     var branchValueCount = controlFlowStack[target].branchValueCount;
     popValues(branchValueCount);
@@ -171,16 +175,20 @@ class _Validator {
   /// Unconditionally reports a validation error.
   Never fail(String message) {
     throw ValidationError(
-        address: address,
-        instructionString: address < ir.endAddress
-            ? ir.instructionToString(address)
-            : 'after last instruction',
-        message: message);
+      address: address,
+      instructionString:
+          address < ir.endAddress
+              ? ir.instructionToString(address)
+              : 'after last instruction',
+      message: message,
+    );
   }
 
   void popValues(int count) {
     check(
-        valueStackDepth.indeterminateOrAtLeast(count), 'Value stack underflow');
+      valueStackDepth.indeterminateOrAtLeast(count),
+      'Value stack underflow',
+    );
     valueStackDepth -= count;
   }
 
@@ -193,8 +201,10 @@ class _Validator {
     for (address = 0; address < ir.endAddress; address++) {
       eventListener.onInstruction(address);
       var opcode = ir.opcodeAt(address);
-      check(address != 0 || opcode == Opcode.function,
-          'First instruction must be function');
+      check(
+        address != 0 || opcode == Opcode.function,
+        'First instruction must be function',
+      );
       switch (opcode) {
         case Opcode.alloc:
           var count = Opcode.alloc.decodeCount(ir, address);
@@ -210,11 +220,14 @@ class _Validator {
           check(inputCount >= 0, 'Negative input count');
           check(outputCount >= 0, 'Negative output count');
           popValues(inputCount);
-          controlFlowStack.add(_ControlFlowElement(
+          controlFlowStack.add(
+            _ControlFlowElement(
               localCountBefore: localCount,
               functionFlagsBefore: functionFlags,
               valueStackDepthAfter: valueStackDepth + outputCount,
-              branchValueCount: outputCount));
+              branchValueCount: outputCount,
+            ),
+          );
           valueStackDepth = ValueCount(inputCount);
         case Opcode.br:
           var nesting = Opcode.br.decodeNesting(ir, address);
@@ -239,11 +252,15 @@ class _Validator {
         case Opcode.end:
           check(controlFlowStack.isNotEmpty, 'Unmatched end');
           var controlFlowElement = controlFlowStack.removeLast();
-          check(localCount == controlFlowElement.localCountBefore,
-              'Unreleased locals');
+          check(
+            localCount == controlFlowElement.localCountBefore,
+            'Unreleased locals',
+          );
           popValues(controlFlowElement.branchValueCount);
-          check(valueStackDepth.indeterminateOrEqualTo(0),
-              '${valueStackDepth._depth} superfluous value(s) remaining');
+          check(
+            valueStackDepth.indeterminateOrEqualTo(0),
+            '${valueStackDepth._depth} superfluous value(s) remaining',
+          );
           valueStackDepth = controlFlowElement.valueStackDepthAfter;
           functionFlags = controlFlowElement.functionFlagsBefore;
         case Opcode.eq:
@@ -252,17 +269,23 @@ class _Validator {
         case Opcode.function:
           var type = Opcode.function.decodeType(ir, address);
           var kind = Opcode.function.decodeFlags(ir, address);
-          check(!kind.isInstance || address == 0,
-              'Instance function may only be used at instruction address 0');
-          controlFlowStack.add(_ControlFlowElement(
+          check(
+            !kind.isInstance || address == 0,
+            'Instance function may only be used at instruction address 0',
+          );
+          controlFlowStack.add(
+            _ControlFlowElement(
               localCountBefore: localCount,
               functionFlagsBefore: functionFlags,
               valueStackDepthAfter: valueStackDepth + 1,
               branchValueCount: 1,
-              isFunction: true));
+              isFunction: true,
+            ),
+          );
           functionFlags = kind;
-          valueStackDepth =
-              ValueCount(ir.countParameters(type) + (kind.isInstance ? 1 : 0));
+          valueStackDepth = ValueCount(
+            ir.countParameters(type) + (kind.isInstance ? 1 : 0),
+          );
         case Opcode.identical:
           popValues(2);
           pushValues(1);
@@ -275,11 +298,14 @@ class _Validator {
           var inputCount = Opcode.loop.decodeInputCount(ir, address);
           check(inputCount >= 0, 'Negative input count');
           popValues(inputCount);
-          controlFlowStack.add(_ControlFlowElement(
+          controlFlowStack.add(
+            _ControlFlowElement(
               localCountBefore: localCount,
               functionFlagsBefore: functionFlags,
               valueStackDepthAfter: ValueCount.indeterminate,
-              branchValueCount: inputCount));
+              branchValueCount: inputCount,
+            ),
+          );
           valueStackDepth = ValueCount(0);
           pushValues(inputCount);
         case Opcode.not:
@@ -296,13 +322,16 @@ class _Validator {
           var localCountFence =
               controlFlowStack.lastOrNull?.localCountBefore ?? 0;
           var newLocalCount = localCount - count;
-          check(newLocalCount >= localCountFence,
-              'Local variable stack underflow');
+          check(
+            newLocalCount >= localCountFence,
+            'Local variable stack underflow',
+          );
           localCount = newLocalCount;
         case Opcode.shuffle:
           var popCount = Opcode.shuffle.decodePopCount(ir, address);
           var stackIndices = ir.decodeStackIndices(
-              Opcode.shuffle.decodeStackIndices(ir, address));
+            Opcode.shuffle.decodeStackIndices(ir, address),
+          );
           check(popCount >= 0, 'Negative pop count');
           for (var stackIndex in stackIndices) {
             check(stackIndex >= 0, 'Negative stack index');

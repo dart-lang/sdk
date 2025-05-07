@@ -19,8 +19,9 @@ void main(List<String> args) async {
 
   var issueCount = 0;
   var collection = AnalysisContextCollection(
-      includedPaths: [entity.absolute.path],
-      resourceProvider: PhysicalResourceProvider.INSTANCE);
+    includedPaths: [entity.absolute.path],
+    resourceProvider: PhysicalResourceProvider.INSTANCE,
+  );
 
   // Often one context is returned, but depending on the project structure we
   // can see multiple contexts.
@@ -35,9 +36,10 @@ void main(List<String> args) async {
       var errorsResult = await context.currentSession.getErrors(filePath);
       if (errorsResult is ErrorsResult) {
         for (var error in errorsResult.errors) {
-          if (error.errorCode.type != ErrorType.TODO) {
+          if (error.errorCode.type != DiagnosticType.TODO) {
             print(
-                '  \u001b[1m${error.source.shortName}\u001b[0m ${error.message}');
+              '  \u001b[1m${error.source.shortName}\u001b[0m ${error.message}',
+            );
             issueCount++;
           }
         }

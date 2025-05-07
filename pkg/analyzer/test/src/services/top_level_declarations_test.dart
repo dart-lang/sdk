@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/services/top_level_declarations.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -19,9 +19,10 @@ main() {
 class TopLevelDeclarationsTest extends PubPackageResolutionTest {
   /// Verifies that the located public export for [element] is the library with
   /// URI [libraryUri].
-  Future<void> expectPublicExport(Element2 element, String libraryUri) async {
-    var publicLibrary =
-        await TopLevelDeclarations(result).publiclyExporting(element);
+  Future<void> expectPublicExport(Element element, String libraryUri) async {
+    var publicLibrary = await TopLevelDeclarations(
+      result,
+    ).publiclyExporting(element);
     expect(publicLibrary?.firstFragment.source.uri.toString(), libraryUri);
   }
 

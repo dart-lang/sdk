@@ -64,7 +64,7 @@ class E<invariant T extends core::Object? = dynamic> extends core::Object {
 class F<invariant T extends core::Object? = dynamic> extends self::E<self::F::T%> implements self::D<self::F::T%> {
   constructor •((self::F::T%) → void f) → self::F<self::F::T%>
     ;
-  forwarding-stub method method(covariant-by-class self::F::T% x) → core::int
+  forwarding-stub synthetic method method(covariant-by-class self::F::T% x) → core::int
     return super.{self::E::method}(x);
 }
 class NoSuchMethod<invariant T extends core::Object? = dynamic> extends core::Object implements self::B<self::NoSuchMethod::T%> {
@@ -72,13 +72,13 @@ class NoSuchMethod<invariant T extends core::Object? = dynamic> extends core::Ob
     ;
   method noSuchMethod(wildcard core::Invocation _#wc0#formal) → dynamic
     ;
-  no-such-method-forwarder get x() → self::NoSuchMethod::T?
+  synthetic no-such-method-forwarder get x() → self::NoSuchMethod::T?
     return this.{self::NoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#x, 1, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} self::NoSuchMethod::T?;
-  no-such-method-forwarder set x(self::NoSuchMethod::T? value) → void
+  synthetic no-such-method-forwarder set x(self::NoSuchMethod::T? value) → void
     return this.{self::NoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#x=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic};
-  no-such-method-forwarder method method(self::NoSuchMethod::T% x) → self::NoSuchMethod::T%
+  synthetic no-such-method-forwarder method method(self::NoSuchMethod::T% x) → self::NoSuchMethod::T%
     return this.{self::NoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#method, 0, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[x]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} self::NoSuchMethod::T%;
-  no-such-method-forwarder set y(self::NoSuchMethod::T% x) → void
+  synthetic no-such-method-forwarder set y(self::NoSuchMethod::T% x) → void
     return this.{self::NoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#y=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[x]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic};
 }
 static method main() → dynamic

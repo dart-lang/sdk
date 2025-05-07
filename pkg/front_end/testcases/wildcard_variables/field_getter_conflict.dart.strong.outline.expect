@@ -1,0 +1,26 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/wildcard_variables/field_getter_conflict.dart:7:14: Error: '_' is already declared in this scope.
+//   static int _ = 1;
+//              ^
+// pkg/front_end/testcases/wildcard_variables/field_getter_conflict.dart:6:18: Context: Previous declaration of '_'.
+//   static int get _ => 1;
+//                  ^
+//
+import self as self;
+import "dart:core" as core;
+
+extension type ET1(core::int id) {
+  abstract extension-type-member representation-field get id() → core::int;
+  static get _ = get self::ET1|_;
+  constructor • = self::ET1|constructor#;
+  constructor tearoff • = self::ET1|constructor#_#new#tearOff;
+}
+static extension-type-member method ET1|constructor#(core::int id) → self::ET1% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method ET1|constructor#_#new#tearOff(core::int id) → self::ET1% /* erasure=core::int, declared=! */
+  return self::ET1|constructor#(id);
+static extension-type-member get ET1|_() → core::int
+  ;

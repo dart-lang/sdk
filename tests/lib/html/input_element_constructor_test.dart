@@ -70,8 +70,11 @@ main() {
   });
 
   test('datetime-local', () {
-    check(new LocalDateTimeInputElement(), 'datetime-local',
-        LocalDateTimeInputElement.supported);
+    check(
+      new LocalDateTimeInputElement(),
+      'datetime-local',
+      LocalDateTimeInputElement.supported,
+    );
   });
 
   test('number', () {

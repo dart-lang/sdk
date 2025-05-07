@@ -6,7 +6,7 @@
 
 import 'dart:io';
 
-import 'package:native_assets_cli/code_assets_builder.dart';
+import 'package:code_assets/code_assets.dart';
 import 'package:test/test.dart';
 
 import '../utils.dart';
@@ -21,10 +21,12 @@ String crossOSNotAllowedError(String format) =>
 final String hostOSMessage = 'Host OS: ${Platform.operatingSystem}';
 String targetOSMessage(String targetOS) => 'Target OS: $targetOS';
 
-void main(List<String> args) async {
+void main([List<String> args = const []]) async {
   if (!nativeAssetsExperimentAvailableOnCurrentChannel) {
     return;
   }
+
+  final dartDevEntryScriptUri = resolveDartDevUri('bin/dartdev.dart');
 
   final bool fromDartdevSource = args.contains('--source');
   final hostOS = Platform.operatingSystem;
@@ -48,8 +50,7 @@ void main(List<String> args) async {
           final result = await runDart(
             arguments: [
               '--enable-experiment=native-assets',
-              if (fromDartdevSource)
-                Platform.script.resolve('../../bin/dartdev.dart').toFilePath(),
+              if (fromDartdevSource) dartDevEntryScriptUri.toFilePath(),
               'build',
               if (targetOS != null) ...[
                 '--target-os',
@@ -219,8 +220,7 @@ void main(List<String> args) {
       final result = await runDart(
         arguments: [
           '--enable-experiment=native-assets',
-          if (fromDartdevSource)
-            Platform.script.resolve('../../bin/dartdev.dart').toFilePath(),
+          if (fromDartdevSource) dartDevEntryScriptUri.toFilePath(),
           'build',
           'bin/dart_app.dart',
           '.'
@@ -328,34 +328,37 @@ void main(List<String> args) {
     },
   );
 
-  test(
-    'dart build with user defines',
-    timeout: longTimeout,
-    () async {
-      await nativeAssetsTest('user_defines', (packageUri) async {
-        await runDart(
-          arguments: [
-            '--enable-experiment=native-assets',
-            'build',
-            'bin/user_defines.dart',
-          ],
-          workingDirectory: packageUri,
-          logger: logger,
-        );
+  for (final usePubWorkspace in [true, false]) {
+    test(
+      'dart build with user defines',
+      timeout: longTimeout,
+      () async {
+        await nativeAssetsTest('user_defines', usePubWorkspace: usePubWorkspace,
+            (packageUri) async {
+          await runDart(
+            arguments: [
+              '--enable-experiment=native-assets',
+              'build',
+              'bin/user_defines.dart',
+            ],
+            workingDirectory: packageUri,
+            logger: logger,
+          );
 
-        final outputDirectory =
-            Directory.fromUri(packageUri.resolve('bin/user_defines'));
-        expect(outputDirectory.existsSync(), true);
+          final outputDirectory =
+              Directory.fromUri(packageUri.resolve('bin/user_defines'));
+          expect(outputDirectory.existsSync(), true);
 
-        final proccessResult = await runProcess(
-          executable: outputDirectory.uri.resolve('user_defines.exe'),
-          logger: logger,
-          throwOnUnexpectedExitCode: true,
-        );
-        expect(proccessResult.stdout, contains('Hello world!'));
-      });
-    },
-  );
+          final proccessResult = await runProcess(
+            executable: outputDirectory.uri.resolve('user_defines.exe'),
+            logger: logger,
+            throwOnUnexpectedExitCode: true,
+          );
+          expect(proccessResult.stdout, contains('Hello world!'));
+        });
+      },
+    );
+  }
 }
 
 Future<void> _withTempDir(Future<void> Function(Uri tempUri) fun) async {

@@ -33,6 +33,8 @@ class CoreTypesUtil {
   final Procedure wrapDartFunctionTarget;
   final Procedure exportWasmFunctionTarget;
   final Member wasmExternRefNullRef;
+  final Class wasmI32Class;
+  final Procedure wasmI32ToIntSigned;
 
   // Dart value to JS converters.
   final Procedure toJSBoolean;
@@ -90,6 +92,41 @@ class CoreTypesUtil {
   final Class jsArrayBufferImplClass;
   final Class byteBufferClass;
 
+  // NB. We rely on iteration ordering being insertion order to handle subtypes
+  // before supertypes to convert as `int` and `double` before `num`.
+  late final Map<Class, Procedure> _externRefConverterMap = {
+    coreTypes.boolClass: toJSBoolean,
+    coreTypes.intClass: jsifyInt,
+    coreTypes.doubleClass: toJSNumber,
+    coreTypes.numClass: jsifyNum,
+    jsValueClass: jsifyJSValue,
+    coreTypes.stringClass: jsifyString,
+    jsInt8ArrayImplClass: jsifyJSInt8ArrayImpl,
+    jsUint8ArrayImplClass: jsifyJSUint8ArrayImpl,
+    jsUint8ClampedArrayImplClass: jsifyJSUint8ClampedArrayImpl,
+    jsInt16ArrayImplClass: jsifyJSInt16ArrayImpl,
+    jsUint16ArrayImplClass: jsifyJSUint16ArrayImpl,
+    jsInt32ArrayImplClass: jsifyJSInt32ArrayImpl,
+    jsUint32ArrayImplClass: jsifyJSUint32ArrayImpl,
+    jsFloat32ArrayImplClass: jsifyJSFloat32ArrayImpl,
+    jsFloat64ArrayImplClass: jsifyJSFloat64ArrayImpl,
+    int8ListClass: jsInt8ArrayFromDartInt8List,
+    uint8ListClass: jsUint8ArrayFromDartUint8List,
+    uint8ClampedListClass: jsUint8ClampedArrayFromDartUint8ClampedList,
+    int16ListClass: jsInt16ArrayFromDartInt16List,
+    uint16ListClass: jsUint16ArrayFromDartUint16List,
+    int32ListClass: jsInt32ArrayFromDartInt32List,
+    uint32ListClass: jsUint32ArrayFromDartUint32List,
+    float32ListClass: jsFloat32ArrayFromDartFloat32List,
+    float64ListClass: jsFloat64ArrayFromDartFloat64List,
+    jsDataViewImplClass: jsifyJSDataViewImpl,
+    byteDataClass: jsifyByteData,
+    coreTypes.listClass: jsifyRawList,
+    jsArrayBufferImplClass: jsifyJSArrayBufferImpl,
+    byteBufferClass: jsArrayBufferFromDartByteBuffer,
+    coreTypes.functionClass: jsifyFunction,
+  };
+
   CoreTypesUtil(this.coreTypes, this.extensionIndex)
       : allowInteropTarget = coreTypes.index
             .getTopLevelProcedure('dart:js_util', 'allowInterop'),
@@ -124,6 +161,9 @@ class CoreTypesUtil {
         wasmArrayClass = coreTypes.index.getClass('dart:_wasm', 'WasmArray'),
         wasmArrayRefClass =
             coreTypes.index.getClass('dart:_wasm', 'WasmArrayRef'),
+        wasmI32Class = coreTypes.index.getClass('dart:_wasm', 'WasmI32'),
+        wasmI32ToIntSigned = coreTypes.index
+            .getProcedure('dart:_wasm', 'WasmI32', 'toIntSigned'),
         wrapDartFunctionTarget = coreTypes.index
             .getTopLevelProcedure('dart:_js_helper', '_wrapDartFunction'),
         exportWasmFunctionTarget = coreTypes.index
@@ -285,37 +325,40 @@ class CoreTypesUtil {
   /// Cast the [invocation] if needed to conform to the expected [returnType].
   Expression castInvocationForReturn(
       Expression invocation, DartType returnType) {
+    Expression expression;
     if (returnType is VoidType) {
-      // `undefined` may be returned for `void` external members. It, however,
-      // is an extern ref, and therefore needs to be made a Dart type before
-      // we can finish the invocation.
-      return invokeOneArg(dartifyRawTarget, invocation);
-    } else {
-      Expression expression;
-      if (isJSValueType(returnType)) {
-        // TODO(joshualitt): Expose boxed `JSNull` and `JSUndefined` to Dart
-        // code after migrating existing users of js interop on Dart2Wasm.
-        // expression = _createJSValue(invocation);
-        // Casts are expensive, so we stick to a null-assertion if needed. If
-        // the nullability can't be determined, cast.
-        expression = invokeOneArg(jsValueBoxTarget, invocation);
-        final nullability = returnType.extensionTypeErasure.nullability;
-        if (nullability == Nullability.nonNullable) {
-          expression = NullCheck(expression);
-        } else if (nullability == Nullability.undetermined) {
-          expression = AsExpression(expression, returnType);
-        }
-      } else {
-        // Because we simply don't have enough information, we leave all JS
-        // numbers as doubles. However, in cases where we know the user expects
-        // an `int` we check that the double is an integer, and then insert a
-        // cast. We also let static interop types flow through without
-        // conversion, both as arguments, and as the return type.
-        expression = convertAndCast(
-            returnType, invokeOneArg(dartifyRawTarget, invocation));
-      }
-      return expression;
+      // Technically a `void` return value can still be used, by casting the
+      // return type to `dynamic` or `Object?`. However this case should be
+      // extremely rare, and `dartifyRaw` overhead for return values that should
+      // never be used in practice is too much, so we avoid `dartifyRaw` on
+      // `void` returns and always return `null`.
+      return BlockExpression(
+          Block([ExpressionStatement(invocation)]), NullLiteral());
     }
+
+    if (isJSValueType(returnType)) {
+      // TODO(joshualitt): Expose boxed `JSNull` and `JSUndefined` to Dart
+      // code after migrating existing users of js interop on Dart2Wasm.
+      // expression = _createJSValue(invocation);
+      // Casts are expensive, so we stick to a null-assertion if needed. If
+      // the nullability can't be determined, cast.
+      expression = invokeOneArg(jsValueBoxTarget, invocation);
+      final nullability = returnType.extensionTypeErasure.nullability;
+      if (nullability == Nullability.nonNullable) {
+        expression = NullCheck(expression);
+      } else if (nullability == Nullability.undetermined) {
+        expression = AsExpression(expression, returnType);
+      }
+    } else {
+      // Because we simply don't have enough information, we leave all JS
+      // numbers as doubles. However, in cases where we know the user expects
+      // an `int` we check that the double is an integer, and then insert a
+      // cast. We also let static interop types flow through without
+      // conversion, both as arguments, and as the return type.
+      expression = convertAndCast(
+          returnType, invokeOneArg(dartifyRawTarget, invocation));
+    }
+    return expression;
   }
 
   // Handles any necessary type conversions. Today this is just for handling the
@@ -362,6 +405,43 @@ class CoreTypesUtil {
     }
     return AsExpression(expression, staticType);
   }
+
+  /// Return the function to convert a value with type [valueType] to Dart
+  /// interop type [expectedType].
+  ///
+  /// [expectedType] can be any interop type, but for now this only handles the
+  /// interop types generated by [_Specializer._getRawInteropProcedure].
+  ///
+  /// `null` return value means no conversion is needed, the value can be passed
+  /// to the interop function directly.
+  ///
+  /// The argument passed to the returned conversion function needs to be
+  /// non-nullable. This function does not check the nullability of [valueType]
+  /// and assume that the argument passed to the conversion function won't be
+  /// `null`.
+  Procedure? _conversionProcedure(
+      DartType valueType, DartType expectedType, TypeEnvironment typeEnv) {
+    if (expectedType == coreTypes.doubleNonNullableRawType) {
+      assert(valueType is InterfaceType &&
+          valueType.classNode == coreTypes.doubleClass);
+      return null;
+    }
+
+    assert(expectedType == nullableWasmExternRefType,
+        'Unexpected expected type: $expectedType');
+
+    for (final entry in _externRefConverterMap.entries) {
+      if (typeEnv.isSubtypeOf(
+          valueType,
+          InterfaceType(entry.key, Nullability.nonNullable),
+          SubtypeCheckMode.withNullabilities)) {
+        return entry.value;
+      }
+    }
+
+    // `dynamic` or `Object?`, convert based on runtime type.
+    return jsifyRawTarget;
+  }
 }
 
 StaticInvocation invokeOneArg(Procedure target, Expression arg) =>
@@ -378,20 +458,22 @@ InstanceInvocation invokeMethod(VariableDeclaration receiver, Procedure target,
 bool parametersNeedParens(List<String> parameters) =>
     parameters.isEmpty || parameters.length > 1;
 
-Expression jsifyValue(VariableDeclaration variable, CoreTypesUtil coreTypes,
-    TypeEnvironment typeEnv) {
-  final Procedure conversionProcedure;
+Expression jsifyValue(VariableDeclaration variable, DartType expectedType,
+    CoreTypesUtil coreTypes, TypeEnvironment typeEnv) {
+  final Procedure? conversionProcedure;
 
   if (coreTypes.extensionIndex.isStaticInteropType(variable.type) ||
       coreTypes.extensionIndex.isExternalDartReferenceType(variable.type)) {
     conversionProcedure = coreTypes.jsValueUnboxTarget;
   } else {
     conversionProcedure =
-        _conversionProcedure(variable.type, coreTypes, typeEnv);
+        coreTypes._conversionProcedure(variable.type, expectedType, typeEnv);
   }
 
-  final conversion =
-      StaticInvocation(conversionProcedure, Arguments([VariableGet(variable)]));
+  final conversion = conversionProcedure == null
+      ? VariableGet(variable)
+      : StaticInvocation(
+          conversionProcedure, Arguments([VariableGet(variable)]));
 
   if (variable.type.isPotentiallyNullable) {
     return ConditionalExpression(
@@ -402,55 +484,4 @@ Expression jsifyValue(VariableDeclaration variable, CoreTypesUtil coreTypes,
   } else {
     return conversion;
   }
-}
-
-Procedure _conversionProcedure(
-    DartType type, CoreTypesUtil util, TypeEnvironment typeEnv) {
-  // NB. We rely on iteration ordering being insertion order to handle subtypes
-  // before supertypes to convert as `int` and `double` before `num`.
-  final Map<Class, Procedure> converterMap = {
-    util.coreTypes.boolClass: util.toJSBoolean,
-    util.coreTypes.intClass: util.jsifyInt,
-    util.coreTypes.doubleClass: util.toJSNumber,
-    util.coreTypes.numClass: util.jsifyNum,
-    util.jsValueClass: util.jsifyJSValue,
-    util.coreTypes.stringClass: util.jsifyString,
-    util.jsInt8ArrayImplClass: util.jsifyJSInt8ArrayImpl,
-    util.jsUint8ArrayImplClass: util.jsifyJSUint8ArrayImpl,
-    util.jsUint8ClampedArrayImplClass: util.jsifyJSUint8ClampedArrayImpl,
-    util.jsInt16ArrayImplClass: util.jsifyJSInt16ArrayImpl,
-    util.jsUint16ArrayImplClass: util.jsifyJSUint16ArrayImpl,
-    util.jsInt32ArrayImplClass: util.jsifyJSInt32ArrayImpl,
-    util.jsUint32ArrayImplClass: util.jsifyJSUint32ArrayImpl,
-    util.jsFloat32ArrayImplClass: util.jsifyJSFloat32ArrayImpl,
-    util.jsFloat64ArrayImplClass: util.jsifyJSFloat64ArrayImpl,
-    util.int8ListClass: util.jsInt8ArrayFromDartInt8List,
-    util.uint8ListClass: util.jsUint8ArrayFromDartUint8List,
-    util.uint8ClampedListClass:
-        util.jsUint8ClampedArrayFromDartUint8ClampedList,
-    util.int16ListClass: util.jsInt16ArrayFromDartInt16List,
-    util.uint16ListClass: util.jsUint16ArrayFromDartUint16List,
-    util.int32ListClass: util.jsInt32ArrayFromDartInt32List,
-    util.uint32ListClass: util.jsUint32ArrayFromDartUint32List,
-    util.float32ListClass: util.jsFloat32ArrayFromDartFloat32List,
-    util.float64ListClass: util.jsFloat64ArrayFromDartFloat64List,
-    util.jsDataViewImplClass: util.jsifyJSDataViewImpl,
-    util.byteDataClass: util.jsifyByteData,
-    util.coreTypes.listClass: util.jsifyRawList,
-    util.jsArrayBufferImplClass: util.jsifyJSArrayBufferImpl,
-    util.byteBufferClass: util.jsArrayBufferFromDartByteBuffer,
-    util.coreTypes.functionClass: util.jsifyFunction,
-  };
-
-  for (final entry in converterMap.entries) {
-    if (typeEnv.isSubtypeOf(
-        type,
-        InterfaceType(entry.key, Nullability.nonNullable),
-        SubtypeCheckMode.withNullabilities)) {
-      return entry.value;
-    }
-  }
-
-  // `dynamic` or `Object?`, convert based on runtime type.
-  return util.jsifyRawTarget;
 }

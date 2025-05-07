@@ -309,9 +309,12 @@ main() {
       expect(js_util.getProperty(f, 'list')[0], equals(2));
       expect(js_util.getProperty(f, 'fnList')[0] is Function, isTrue);
       expect(
-          js_util.callMethod(
-              js_util.getProperty(f, 'fnList')[0], 'apply', [f, []]),
-          equals(42));
+        js_util.callMethod(js_util.getProperty(f, 'fnList')[0], 'apply', [
+          f,
+          [],
+        ]),
+        equals(42),
+      );
       expect(js_util.getProperty(f.list, "0"), equals(2));
       var index = 0;
       expect(js_util.getProperty(f.list, index++), equals(2));
@@ -324,15 +327,17 @@ main() {
       expect(js_util.getProperty(objectProperty, 'list') is List, isTrue);
       expect(js_util.getProperty(objectProperty, 'list')[1], equals(20));
       expect(
-          js_util.getProperty(objectProperty, 'functionProperty') is Function,
-          isTrue);
+        js_util.getProperty(objectProperty, 'functionProperty') is Function,
+        isTrue,
+      );
       // Using nested getProperty calls.
       expect(
-          js_util.getProperty(
-              js_util.getProperty(
-                  js_util.getProperty(f, 'objectProperty'), 'list'),
-              1),
-          equals(20));
+        js_util.getProperty(
+          js_util.getProperty(js_util.getProperty(f, 'objectProperty'), 'list'),
+          1,
+        ),
+        equals(20),
+      );
 
       // Using a variable for the property name.
       String propertyName = 'a';
@@ -404,9 +409,13 @@ main() {
       js_util.setProperty(f, 'bar', allowInterop(dartFunction));
       expect(js_util.getProperty(f, 'bar') is Function, isTrue);
       expect(js_util.callMethod(f, 'bar', []), equals('Dart Function'));
-      js_util.setProperty(f, 'bar', allowInterop(() {
-        return 'Inline';
-      }));
+      js_util.setProperty(
+        f,
+        'bar',
+        allowInterop(() {
+          return 'Inline';
+        }),
+      );
       expect(js_util.callMethod(f, 'bar', []), equals('Inline'));
       js_util.setProperty(f, 'bar', allowInterop(DartClass.staticFunction));
       expect(js_util.callMethod(f, 'bar', []), equals('static'));
@@ -423,7 +432,10 @@ main() {
       expect(js_util.getProperty(f.objectProperty, 'list')[1], equals(2));
       // Using a nested getProperty call.
       js_util.setProperty(
-          js_util.getProperty(f, 'objectProperty'), 'c', 'nested val');
+        js_util.getProperty(f, 'objectProperty'),
+        'c',
+        'nested val',
+      );
       expect(js_util.getProperty(f.objectProperty, 'c'), equals('nested val'));
 
       // Using a variable for the property name.
@@ -468,41 +480,57 @@ main() {
 
       // Call a method that returns an unbound function.
       expect(js_util.callMethod(f, 'nestedFunction', []) is Function, isTrue);
-      expect(js_util.callMethod(f, 'nestedFunction', [])(),
-          equals('Nested Function'));
+      expect(
+        js_util.callMethod(f, 'nestedFunction', [])(),
+        equals('Nested Function'),
+      );
 
       // Call method on a nested function property.
-      expect(js_util.callMethod(f.objectProperty, 'functionProperty', []),
-          equals('Function Property'));
+      expect(
+        js_util.callMethod(f.objectProperty, 'functionProperty', []),
+        equals('Function Property'),
+      );
       // Using a nested getProperty call.
       expect(
-          js_util.callMethod(
-              js_util.getProperty(f, 'objectProperty'), 'functionProperty', []),
-          equals('Function Property'));
+        js_util.callMethod(
+          js_util.getProperty(f, 'objectProperty'),
+          'functionProperty',
+          [],
+        ),
+        equals('Function Property'),
+      );
 
       // Call method with different args.
       expect(
-          js_util.callMethod(f, 'getFirstEl', [
-            [25, 50]
-          ]),
-          equals(25));
+        js_util.callMethod(f, 'getFirstEl', [
+          [25, 50],
+        ]),
+        equals(25),
+      );
       expect(js_util.callMethod(f, 'sumFn', [2, 3]), equals(5));
       expect(js_util.callMethod(f, 'getA', [f]), equals(42));
-      expect(js_util.callMethod(f, 'callFn', [allowInterop(jsFunction)]),
-          equals('JS Function'));
-      expect(js_util.callMethod(f, 'callFn', [allowInterop(dartFunction)]),
-          equals('Dart Function'));
       expect(
-          js_util.callMethod(f, 'callFn', [
-            allowInterop(() {
-              return 'inline';
-            })
-          ]),
-          equals('inline'));
+        js_util.callMethod(f, 'callFn', [allowInterop(jsFunction)]),
+        equals('JS Function'),
+      );
       expect(
-          js_util.callMethod(
-              f, 'callFn', [allowInterop(DartClass.staticFunction)]),
-          equals('static'));
+        js_util.callMethod(f, 'callFn', [allowInterop(dartFunction)]),
+        equals('Dart Function'),
+      );
+      expect(
+        js_util.callMethod(f, 'callFn', [
+          allowInterop(() {
+            return 'inline';
+          }),
+        ]),
+        equals('inline'),
+      );
+      expect(
+        js_util.callMethod(f, 'callFn', [
+          allowInterop(DartClass.staticFunction),
+        ]),
+        equals('static'),
+      );
 
       // Using a variable for the method name.
       String methodName = 'bar';
@@ -518,21 +546,31 @@ main() {
       expect(js_util.callMethod(o, 'zero', List<int>.empty()), equals('zero'));
 
       expect(
-          js_util.callMethod(o, 'two', List<int>.filled(2, 0)), equals('two'));
-      expect(js_util.callMethod(o, 'three', List<int>.generate(3, (i) => i)),
-          equals('three'));
+        js_util.callMethod(o, 'two', List<int>.filled(2, 0)),
+        equals('two'),
+      );
+      expect(
+        js_util.callMethod(o, 'three', List<int>.generate(3, (i) => i)),
+        equals('three'),
+      );
 
       Iterable<String> iterableStrings = <String>['foo', 'bar'];
-      expect(js_util.callMethod(o, 'two', List.of(iterableStrings)),
-          equals('two'));
+      expect(
+        js_util.callMethod(o, 'two', List.of(iterableStrings)),
+        equals('two'),
+      );
 
       const l1 = [1, 2];
       const l2 = [3, 4];
-      expect(js_util.callMethod(o, 'four', List.from(l1)..addAll(l2)),
-          equals('four'));
+      expect(
+        js_util.callMethod(o, 'four', List.from(l1)..addAll(l2)),
+        equals('four'),
+      );
       expect(js_util.callMethod(o, 'four', l1 + l2), equals('four'));
-      expect(js_util.callMethod(o, 'four', List.unmodifiable([1, 2, 3, 4])),
-          equals('four'));
+      expect(
+        js_util.callMethod(o, 'four', List.unmodifiable([1, 2, 3, 4])),
+        equals('four'),
+      );
 
       var setElements = {1, 2};
       expect(js_util.callMethod(o, 'two', setElements.toList()), equals('two'));
@@ -571,8 +609,10 @@ main() {
       expect(js_util.callMethod(o, 'one', const [3]), equals('one'));
       const constList = [10, 20, 30];
       expect(js_util.callMethod(o, 'three', constList), equals('three'));
-      expect(js_util.callMethod(o, 'one', DartClass.staticConstList),
-          equals('one'));
+      expect(
+        js_util.callMethod(o, 'one', DartClass.staticConstList),
+        equals('one'),
+      );
     });
   });
 
@@ -594,96 +634,136 @@ main() {
       var f = js_util.callConstructor(JSFooType, [42]);
       expect(f.a, equals(42));
 
-      var f2 =
-          js_util.callConstructor(js_util.getProperty(f, 'constructor'), [5]);
+      var f2 = js_util.callConstructor(js_util.getProperty(f, 'constructor'), [
+        5,
+      ]);
       expect(f2.a, equals(5));
     });
 
     test('typed literal', () {
       ExampleTypedLiteral literal = js_util.callConstructor(
-          js_util.getProperty(ExampleTypedLiteral(), 'constructor'), []);
+        js_util.getProperty(ExampleTypedLiteral(), 'constructor'),
+        [],
+      );
       expect(literal.a, equals(null));
     });
 
     test('callConstructor with List edge cases', () {
       expect(
-          js_util.getProperty(
-              js_util.callConstructor(Zero, List.empty()), 'count'),
-          equals(0));
+        js_util.getProperty(
+          js_util.callConstructor(Zero, List.empty()),
+          'count',
+        ),
+        equals(0),
+      );
       expect(
-          js_util.getProperty(
-              js_util.callConstructor(Zero, List<int>.empty()), 'count'),
-          equals(0));
+        js_util.getProperty(
+          js_util.callConstructor(Zero, List<int>.empty()),
+          'count',
+        ),
+        equals(0),
+      );
 
       expect(
-          js_util.getProperty(
-              js_util.callConstructor(Two, List<int>.filled(2, 0)), 'count'),
-          equals(2));
+        js_util.getProperty(
+          js_util.callConstructor(Two, List<int>.filled(2, 0)),
+          'count',
+        ),
+        equals(2),
+      );
       expect(
-          js_util.getProperty(
-              js_util.callConstructor(Three, List<int>.generate(3, (i) => i)),
-              'count'),
-          equals(3));
+        js_util.getProperty(
+          js_util.callConstructor(Three, List<int>.generate(3, (i) => i)),
+          'count',
+        ),
+        equals(3),
+      );
 
       Iterable<String> iterableStrings = <String>['foo', 'bar'];
       expect(
-          js_util.getProperty(
-              js_util.callConstructor(Two, List.of(iterableStrings)), 'count'),
-          equals(2));
+        js_util.getProperty(
+          js_util.callConstructor(Two, List.of(iterableStrings)),
+          'count',
+        ),
+        equals(2),
+      );
 
       const l1 = [1, 2];
       const l2 = [3, 4];
       expect(
-          js_util.getProperty(
-              js_util.callConstructor(Four, List.from(l1)..addAll(l2)),
-              'count'),
-          equals(4));
+        js_util.getProperty(
+          js_util.callConstructor(Four, List.from(l1)..addAll(l2)),
+          'count',
+        ),
+        equals(4),
+      );
       expect(
-          js_util.getProperty(js_util.callConstructor(Four, l1 + l2), 'count'),
-          equals(4));
+        js_util.getProperty(js_util.callConstructor(Four, l1 + l2), 'count'),
+        equals(4),
+      );
       expect(
-          js_util.getProperty(
-              js_util.callConstructor(Four, List.unmodifiable([1, 2, 3, 4])),
-              'count'),
-          equals(4));
+        js_util.getProperty(
+          js_util.callConstructor(Four, List.unmodifiable([1, 2, 3, 4])),
+          'count',
+        ),
+        equals(4),
+      );
 
       var setElements = {1, 2};
       expect(
-          js_util.getProperty(
-              js_util.callConstructor(Two, setElements.toList()), 'count'),
-          equals(2));
+        js_util.getProperty(
+          js_util.callConstructor(Two, setElements.toList()),
+          'count',
+        ),
+        equals(2),
+      );
 
       var spreadList = [1, 2, 3];
       expect(
-          js_util.getProperty(
-              js_util.callConstructor(Four, [1, ...spreadList]), 'count'),
-          equals(4));
+        js_util.getProperty(
+          js_util.callConstructor(Four, [1, ...spreadList]),
+          'count',
+        ),
+        equals(4),
+      );
     });
 
     test('edge cases for lowering to _callConstructorUncheckedN', () {
-      expect(js_util.getProperty(js_util.callConstructor(Zero, []), 'count'),
-          equals(0));
-      expect(js_util.getProperty(js_util.callConstructor(One, [1]), 'count'),
-          equals(1));
       expect(
-          js_util.getProperty(
-              js_util.callConstructor(Four, [1, 2, 3, 4]), 'count'),
-          equals(4));
+        js_util.getProperty(js_util.callConstructor(Zero, []), 'count'),
+        equals(0),
+      );
       expect(
-          js_util.getProperty(
-              js_util.callConstructor(Five, [1, 2, 3, 4, 5]), 'count'),
-          equals(5));
+        js_util.getProperty(js_util.callConstructor(One, [1]), 'count'),
+        equals(1),
+      );
+      expect(
+        js_util.getProperty(
+          js_util.callConstructor(Four, [1, 2, 3, 4]),
+          'count',
+        ),
+        equals(4),
+      );
+      expect(
+        js_util.getProperty(
+          js_util.callConstructor(Five, [1, 2, 3, 4, 5]),
+          'count',
+        ),
+        equals(5),
+      );
 
       // List with a type declaration, short circuits element checking
       expect(
-          js_util.getProperty(
-              js_util.callConstructor(Two, <int>[1, 2]), 'count'),
-          equals(2));
+        js_util.getProperty(js_util.callConstructor(Two, <int>[1, 2]), 'count'),
+        equals(2),
+      );
 
       // List as a variable instead of a List Literal or constant
       var list = [1, 2];
-      expect(js_util.getProperty(js_util.callConstructor(Two, list), 'count'),
-          equals(2));
+      expect(
+        js_util.getProperty(js_util.callConstructor(Two, list), 'count'),
+        equals(2),
+      );
 
       // Mixed types of elements to check in the given list.
       var x = 4;
@@ -691,31 +771,43 @@ main() {
       var b = false;
       var evens = [2, 4, 6];
       expect(
-          js_util.getProperty(
-              js_util.callConstructor(Four, [x, str, b, evens]), 'count'),
-          equals(4));
+        js_util.getProperty(
+          js_util.callConstructor(Four, [x, str, b, evens]),
+          'count',
+        ),
+        equals(4),
+      );
       var obj = Object();
-      expect(js_util.getProperty(js_util.callConstructor(One, [obj]), 'count'),
-          equals(1));
+      expect(
+        js_util.getProperty(js_util.callConstructor(One, [obj]), 'count'),
+        equals(1),
+      );
       var nullElement = null;
       expect(
-          js_util.getProperty(
-              js_util.callConstructor(One, [nullElement]), 'count'),
-          equals(1));
+        js_util.getProperty(
+          js_util.callConstructor(One, [nullElement]),
+          'count',
+        ),
+        equals(1),
+      );
 
       // const lists.
       expect(
-          js_util.getProperty(js_util.callConstructor(One, const [3]), 'count'),
-          equals(1));
+        js_util.getProperty(js_util.callConstructor(One, const [3]), 'count'),
+        equals(1),
+      );
       const constList = [10, 20, 30];
       expect(
-          js_util.getProperty(
-              js_util.callConstructor(Three, constList), 'count'),
-          equals(3));
+        js_util.getProperty(js_util.callConstructor(Three, constList), 'count'),
+        equals(3),
+      );
       expect(
-          js_util.getProperty(
-              js_util.callConstructor(One, DartClass.staticConstList), 'count'),
-          equals(1));
+        js_util.getProperty(
+          js_util.callConstructor(One, DartClass.staticConstList),
+          'count',
+        ),
+        equals(1),
+      );
     });
   });
 }

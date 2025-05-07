@@ -78,8 +78,9 @@ Future expectFutureIsTrue(Future future) =>
 
 Future expectFileSystemException(Function f, String message) {
   return f().then(
-      (_) => Expect.fail('Expected a FileSystemException: $message'),
-      onError: (e) => Expect.isTrue(e is FileSystemException));
+    (_) => Expect.fail('Expected a FileSystemException: $message'),
+    onError: (e) => Expect.isTrue(e is FileSystemException),
+  );
 }
 
 testCreateDirectoryRecursive() {
@@ -123,16 +124,21 @@ testCreateLinkRecursive() {
   Directory.systemTemp.createTemp('dart_directory').then((temp) {
     var link = new Link(join(temp.path, 'a', 'b', 'c'));
     return expectFileSystemException(
-            () => link.create(temp.path), 'link.create')
+          () => link.create(temp.path),
+          'link.create',
+        )
         .then((_) => link.create(temp.path, recursive: true))
         .then((_) => expectFutureIsTrue(link.exists()))
         // Test cases where the link or parent directory already exists.
         .then((_) => link.delete())
         .then((_) => link.create(temp.path, recursive: true))
         .then((_) => expectFutureIsTrue(link.exists()))
-        .then((_) => expectFileSystemException(
+        .then(
+          (_) => expectFileSystemException(
             () => link.create(temp.path, recursive: true),
-            'existing link.create'))
+            'existing link.create',
+          ),
+        )
         .then((_) => expectFutureIsTrue(link.exists()))
         .then((_) => asyncEnd())
         .whenComplete(() => temp.delete(recursive: true));

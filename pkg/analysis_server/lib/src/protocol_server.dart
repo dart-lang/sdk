@@ -14,7 +14,7 @@ import 'package:analysis_server/src/services/search/search_engine.dart'
 import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analyzer/dart/analysis/results.dart' as engine;
 import 'package:analyzer/dart/ast/ast.dart' as engine;
-import 'package:analyzer/dart/element/element2.dart' as engine;
+import 'package:analyzer/dart/element/element.dart' as engine;
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart' as engine;
 import 'package:analyzer/error/error.dart' as engine;
@@ -58,8 +58,8 @@ void doSourceChange_addSourceEdit(
   change.addEdit(file, isNewFile ? -1 : 0, edit);
 }
 
-String? getAliasedTypeString(engine.Element2 element) {
-  if (element is engine.TypeAliasElement2) {
+String? getAliasedTypeString(engine.Element element) {
+  if (element is engine.TypeAliasElement) {
     var aliasedType = element.aliasedType;
     return aliasedType.getDisplayString();
   }
@@ -68,8 +68,8 @@ String? getAliasedTypeString(engine.Element2 element) {
 
 /// Returns a color hex code (in the form '#FFFFFF')  if [element] represents
 /// a color.
-String? getColorHexString(engine.Element2? element) {
-  if (element is engine.VariableElement2) {
+String? getColorHexString(engine.Element? element) {
+  if (element is engine.VariableElement) {
     var dartValue = element.computeConstantValue();
     if (dartValue != null) {
       var color = ColorComputer.getColorForObject(dartValue);
@@ -85,17 +85,17 @@ String? getColorHexString(engine.Element2? element) {
   return null;
 }
 
-String? getReturnTypeString(engine.Element2 element) {
-  if (element is engine.ExecutableElement2) {
+String? getReturnTypeString(engine.Element element) {
+  if (element is engine.ExecutableElement) {
     if (element.kind == engine.ElementKind.SETTER) {
       return null;
     } else {
       return element.returnType.getDisplayString();
     }
-  } else if (element is engine.VariableElement2) {
+  } else if (element is engine.VariableElement) {
     var type = element.type;
     return type.getDisplayString();
-  } else if (element is engine.TypeAliasElement2) {
+  } else if (element is engine.TypeAliasElement) {
     var aliasedType = element.aliasedType;
     if (aliasedType is FunctionType) {
       var returnType = aliasedType.returnType;
@@ -108,28 +108,28 @@ String? getReturnTypeString(engine.Element2 element) {
 /// Translates engine errors through the ErrorProcessor.
 List<T> mapEngineErrors<T>(
   engine.AnalysisResultWithErrors result,
-  List<engine.AnalysisError> errors,
+  List<engine.Diagnostic> diagnostics,
   T Function(
     engine.AnalysisResultWithErrors result,
-    engine.AnalysisError error, [
-    engine.ErrorSeverity errorSeverity,
+    engine.Diagnostic diagnostic, [
+    engine.DiagnosticSeverity errorSeverity,
   ])
   constructor,
 ) {
   var analysisOptions = result.session.analysisContext
       .getAnalysisOptionsForFile(result.file);
   var serverErrors = <T>[];
-  for (var error in errors) {
-    var processor = ErrorProcessor.getProcessor(analysisOptions, error);
+  for (var diagnostic in diagnostics) {
+    var processor = ErrorProcessor.getProcessor(analysisOptions, diagnostic);
     if (processor != null) {
       var severity = processor.severity;
       // Errors with null severity are filtered out.
       if (severity != null) {
         // Specified severities override.
-        serverErrors.add(constructor(result, error, severity));
+        serverErrors.add(constructor(result, diagnostic, severity));
       }
     } else {
-      serverErrors.add(constructor(result, error));
+      serverErrors.add(constructor(result, diagnostic));
     }
   }
   return serverErrors;
@@ -137,19 +137,20 @@ List<T> mapEngineErrors<T>(
 
 /// Construct based on error information from the analyzer engine.
 ///
-/// If an [errorSeverity] is specified, it will override the one in [error].
+/// If an [diagnosticSeverity] is specified, it will override the one in
+/// [diagnostic].
 AnalysisError newAnalysisError_fromEngine(
   engine.AnalysisResultWithErrors result,
-  engine.AnalysisError error, [
-  engine.ErrorSeverity? errorSeverity,
+  engine.Diagnostic diagnostic, [
+  engine.DiagnosticSeverity? diagnosticSeverity,
 ]) {
-  var errorCode = error.errorCode;
+  var errorCode = diagnostic.errorCode;
   // prepare location
   Location location;
   {
-    var file = error.source.fullName;
-    var offset = error.offset;
-    var length = error.length;
+    var file = diagnostic.source.fullName;
+    var offset = diagnostic.offset;
+    var length = diagnostic.length;
     var lineInfo = result.lineInfo;
 
     var startLocation = lineInfo.getLocation(offset);
@@ -172,21 +173,21 @@ AnalysisError newAnalysisError_fromEngine(
   }
 
   // Default to the error's severity if none is specified.
-  errorSeverity ??= errorCode.errorSeverity;
+  diagnosticSeverity ??= errorCode.errorSeverity;
 
   // done
-  var severity = AnalysisErrorSeverity.values.byName(errorSeverity.name);
+  var severity = AnalysisErrorSeverity.values.byName(diagnosticSeverity.name);
   var type = AnalysisErrorType.values.byName(errorCode.type.name);
-  var message = error.message;
+  var message = diagnostic.message;
   var code = errorCode.name.toLowerCase();
   List<DiagnosticMessage>? contextMessages;
-  if (error.contextMessages.isNotEmpty) {
+  if (diagnostic.contextMessages.isNotEmpty) {
     contextMessages =
-        error.contextMessages
+        diagnostic.contextMessages
             .map((message) => newDiagnosticMessage(result, message))
             .toList();
   }
-  var correction = error.correction;
+  var correction = diagnostic.correctionMessage;
   var url = errorCode.url;
   return AnalysisError(
     severity,
@@ -236,8 +237,8 @@ DiagnosticMessage newDiagnosticMessage(
   );
 }
 
-/// Create a Location based on an [engine.Element2].
-Location? newLocation_fromElement(engine.Element2? element) {
+/// Create a Location based on an [engine.Element].
+Location? newLocation_fromElement(engine.Element? element) {
   if (element == null) {
     return null;
   }
@@ -297,7 +298,7 @@ Location newLocation_fromUnit(
 }
 
 /// Construct based on an element from the analyzer engine.
-OverriddenMember newOverriddenMember_fromEngine(engine.Element2 member) {
+OverriddenMember newOverriddenMember_fromEngine(engine.Element member) {
   var element = convertElement(member);
   var className = member.enclosingElement2!.displayName;
   return OverriddenMember(element, className);
@@ -344,19 +345,19 @@ SourceEdit newSourceEdit_range(
   return SourceEdit(range.offset, range.length, replacement, id: id);
 }
 
-List<Element> _computePath(engine.Element2 element) {
+List<Element> _computePath(engine.Element element) {
   var path = <Element>[];
   for (var fragment in element.firstFragment.withAncestors) {
     if (fragment is engine.LibraryFragment) {
-      path.add(convertLibraryFragment(fragment as CompilationUnitElementImpl));
+      path.add(convertLibraryFragment(fragment as LibraryFragmentImpl));
     }
     path.add(convertElement(fragment.element));
   }
   return path;
 }
 
-engine.LibraryFragment _getUnitElement(engine.Element2 element) {
-  if (element is engine.LibraryElement2) {
+engine.LibraryFragment _getUnitElement(engine.Element element) {
+  if (element is engine.LibraryElement) {
     return element.firstFragment;
   }
   var fragment = element.firstFragment.libraryFragment;

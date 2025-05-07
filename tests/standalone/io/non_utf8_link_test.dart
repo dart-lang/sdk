@@ -16,13 +16,16 @@ Future main() async {
   const dirName = 'foobar';
 
   test('Non-UTF8 Link', () async {
-    Directory tmp =
-        await Directory.systemTemp.createTemp('non_utf8_link_test_async');
+    Directory tmp = await Directory.systemTemp.createTemp(
+      'non_utf8_link_test_async',
+    );
     try {
       tmp = new Directory(await tmp.resolveSymbolicLinks());
       final path = join(tmp.path, dirName);
-      final rawPath =
-          utf8.encode(path).sublist(0, path.length - dirName.length).toList();
+      final rawPath = utf8
+          .encode(path)
+          .sublist(0, path.length - dirName.length)
+          .toList();
       rawPath.add(47);
       rawPath.add(182);
 
@@ -74,13 +77,16 @@ Future main() async {
   });
 
   test('Non-UTF8 Link Sync', () {
-    Directory tmp =
-        Directory.systemTemp.createTempSync('non_utf8_link_test_sync');
+    Directory tmp = Directory.systemTemp.createTempSync(
+      'non_utf8_link_test_sync',
+    );
     try {
       tmp = new Directory(tmp.resolveSymbolicLinksSync());
       final path = join(tmp.path, dirName);
-      final rawPath =
-          utf8.encode(path).sublist(0, path.length - dirName.length).toList();
+      final rawPath = utf8
+          .encode(path)
+          .sublist(0, path.length - dirName.length)
+          .toList();
       rawPath.add(47); // '/'
       rawPath.add(182); // invalid UTF-8 character.
 

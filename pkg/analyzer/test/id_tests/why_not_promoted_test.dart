@@ -15,14 +15,20 @@ import '../util/id_testing_helper.dart';
 
 main(List<String> args) {
   Directory dataDir = Directory.fromUri(
-      Platform.script.resolve('../../../_fe_analyzer_shared/test/flow_analysis/'
-          'why_not_promoted/data'));
-  return runTests<String?>(dataDir,
-      args: args,
-      createUriForFileName: createUriForFileName,
-      onFailure: onFailure,
-      runTest: runTestFor(
-          const _WhyNotPromotedDataComputer(), [analyzerDefaultConfig]));
+    Platform.script.resolve(
+      '../../../_fe_analyzer_shared/test/flow_analysis/'
+      'why_not_promoted/data',
+    ),
+  );
+  return runTests<String?>(
+    dataDir,
+    args: args,
+    createUriForFileName: createUriForFileName,
+    onFailure: onFailure,
+    runTest: runTestFor(const _WhyNotPromotedDataComputer(), [
+      analyzerDefaultConfig,
+    ]),
+  );
 }
 
 class _WhyNotPromotedDataComputer extends DataComputer<String?> {
@@ -36,8 +42,11 @@ class _WhyNotPromotedDataComputer extends DataComputer<String?> {
   bool get supportsErrors => true;
 
   @override
-  void computeUnitData(TestingData testingData, CompilationUnit unit,
-      Map<Id, ActualData<String?>> actualMap) {
+  void computeUnitData(
+    TestingData testingData,
+    CompilationUnit unit,
+    Map<Id, ActualData<String?>> actualMap,
+  ) {
     var unitUri = unit.declaredFragment!.source.uri;
     var flowResult = testingData.uriToFlowAnalysisData[unitUri]!;
     _WhyNotPromotedDataExtractor(unitUri, actualMap, flowResult).run(unit);

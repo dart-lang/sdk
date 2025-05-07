@@ -50,20 +50,26 @@ main() {
   // Check `Future.then`'s `onError`.
 
   asyncTest(() {
-    Future<int> future =
-        errorFuture.then<int>((_) => -1, onError: (_) => fi(4));
+    Future<int> future = errorFuture.then<int>(
+      (_) => -1,
+      onError: (_) => fi(4),
+    );
     return expectFutureInt(future, 4);
   });
 
   asyncTest(() {
-    Future<Future<int>> future =
-        errorFuture.then<Future<int>>((_) => fi(-1), onError: (_) => fi(5));
+    Future<Future<int>> future = errorFuture.then<Future<int>>(
+      (_) => fi(-1),
+      onError: (_) => fi(5),
+    );
     return expectFutureFutureInt(future, 5);
   });
 
   asyncTest(() {
-    Future<Future<int>> future =
-        errorFuture.then<Future<int>>((_) => fi(-1), onError: (_) => ffi(6));
+    Future<Future<int>> future = errorFuture.then<Future<int>>(
+      (_) => fi(-1),
+      onError: (_) => ffi(6),
+    );
     return expectFutureFutureInt(future, 6);
   });
 
@@ -124,8 +130,10 @@ main() {
   });
 
   asyncTest(() {
-    Future<Object> future =
-        errorFuture.then<Object>((_) => -1, onError: (_) => fi(15));
+    Future<Object> future = errorFuture.then<Object>(
+      (_) => -1,
+      onError: (_) => fi(15),
+    );
     Expect.type<Future<Object>>(future);
     Expect.notType<Future<int>>(future);
     return future.then<void>((o) {
@@ -134,8 +142,10 @@ main() {
   });
 
   asyncTest(() {
-    Future<Object> future =
-        errorFuture.then<Object>((_) => -1, onError: (_) => ffi(16));
+    Future<Object> future = errorFuture.then<Object>(
+      (_) => -1,
+      onError: (_) => ffi(16),
+    );
     Expect.type<Future<Object>>(future);
     Expect.notType<Future<int>>(future);
     Expect.notType<Future<Future<int>>>(future);

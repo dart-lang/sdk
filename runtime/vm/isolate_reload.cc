@@ -755,7 +755,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
       kernel_program = kernel::Program::ReadFromTypedData(typed_data);
     }
 
-    NoActiveIsolateScope no_active_isolate_scope;
+    NoActiveIsolateScope no_active_isolate_scope(thread);
 
     IsolateGroupSource* source = IsolateGroup::Current()->source();
     source->add_loaded_blob(Z,
@@ -777,7 +777,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     }
   }
 
-  NoActiveIsolateScope no_active_isolate_scope;
+  NoActiveIsolateScope no_active_isolate_scope(thread);
 
   if (skip_reload) {
     ASSERT(modified_libs_->IsEmpty());
@@ -1220,7 +1220,8 @@ ObjectPtr ProgramReloadContext::ReloadPhase2LoadKernel(
     const String& root_lib_url) {
   Thread* thread = Thread::Current();
 
-  LongJumpScope jump;
+  HANDLESCOPE(thread);
+  LongJumpScope jump(thread);
   if (DART_SETJMP(*jump.Set()) == 0) {
     const Object& tmp = kernel::KernelLoader::LoadEntireProgram(program);
     if (tmp.IsError()) {

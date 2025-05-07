@@ -8,7 +8,9 @@ import "package:expect/expect.dart";
 void checkRtiIdentical(rti.Rti rti1, rti.Rti rti2) {
   var format = rti.testingRtiToString;
   Expect.isTrue(
-      identical(rti1, rti2), 'identical(${format(rti1)}, ${format(rti2)}');
+    identical(rti1, rti2),
+    'identical(${format(rti1)}, ${format(rti2)}',
+  );
 }
 
 void checkToString(String expected, rti.Rti rti1) {
@@ -29,8 +31,9 @@ test1() {
   checkToString('AAA<Foo, aaa, bbb>', rti1);
 
   Expect.equals(
-      'binding(interface("Foo"), [interface("aaa"), interface("bbb")])',
-      rti.testingRtiToDebugString(env1b));
+    'binding(interface("Foo"), [interface("aaa"), interface("bbb")])',
+    rti.testingRtiToDebugString(env1b),
+  );
 
   // Extend environment in two steps
   var env2a = rti.testingUniverseEval(universe, 'Foo');
@@ -42,11 +45,14 @@ test1() {
   var rti2 = rti.testingEnvironmentEval(universe, env2c, 'AAA<0,1,2>');
   checkToString('AAA<Foo, aaa, bbb>', rti2);
 
-  Expect.equals('binding(interface("Foo"), [interface("aaa")])',
-      rti.testingRtiToDebugString(env2b));
   Expect.equals(
-      'binding(interface("Foo"), [interface("aaa"), interface("bbb")])',
-      rti.testingRtiToDebugString(env2c));
+    'binding(interface("Foo"), [interface("aaa")])',
+    rti.testingRtiToDebugString(env2b),
+  );
+  Expect.equals(
+    'binding(interface("Foo"), [interface("aaa"), interface("bbb")])',
+    rti.testingRtiToDebugString(env2c),
+  );
 
   checkRtiIdentical(env1b, env2c);
 }

@@ -66,6 +66,7 @@ library
       methods
         abstract X
           firstFragment: <testLibraryFragment>::@class::A::@method::X
+          hasEnclosingTypeParameterReference: true
           formalParameters
             optionalNamed a
               firstFragment: <testLibraryFragment>::@class::A::@method::X::@parameter::a
@@ -73,6 +74,7 @@ library
               constantInitializer
                 fragment: <testLibraryFragment>::@class::A::@method::X::@parameter::a
                 expression: expression_0
+          returnType: dynamic
 ''');
   }
 
@@ -170,6 +172,10 @@ library
       getters
         synthetic get f
           firstFragment: <testLibraryFragment>::@class::X::@getter::f
+          returnType: void Function(dynamic)
+            alias: <testLibrary>::@typeAlias::F
+              typeArguments
+                dynamic
   typeAliases
     F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -287,6 +293,7 @@ library
               constantInitializer
                 fragment: <testLibraryFragment>::@class::B::@method::foo::@parameter::a
                 expression: expression_0
+          returnType: void
 ''');
   }
 
@@ -633,6 +640,7 @@ library
       methods
         static f
           firstFragment: <testLibraryFragment>::@extension::E::@method::f
+          returnType: void
         static g
           firstFragment: <testLibraryFragment>::@extension::E::@method::g
           formalParameters
@@ -640,6 +648,7 @@ library
               type: Object
               constantInitializer
                 expression: expression_0
+          returnType: void
 ''');
   }
 
@@ -727,6 +736,7 @@ library
               type: B<int, double>
               constantInitializer
                 expression: expression_0
+          returnType: void
 ''');
   }
 
@@ -1081,6 +1091,7 @@ library
               type: B<T>
               constantInitializer
                 expression: expression_0
+          returnType: void
 ''');
   }
 
@@ -1171,6 +1182,7 @@ library
       methods
         foo
           firstFragment: <testLibraryFragment>::@class::C::@method::foo
+          hasEnclosingTypeParameterReference: true
           typeParameters
             E2
           formalParameters
@@ -1178,6 +1190,7 @@ library
               type: B<E1, E2>
               constantInitializer
                 expression: expression_0
+          returnType: void
 ''');
   }
 
@@ -1262,11 +1275,13 @@ library
       methods
         foo
           firstFragment: <testLibraryFragment>::@class::C::@method::foo
+          hasEnclosingTypeParameterReference: true
           formalParameters
             optionalPositional b
               type: B<T>
               constantInitializer
                 expression: expression_0
+          returnType: void
 ''');
   }
 }

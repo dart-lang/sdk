@@ -19,9 +19,7 @@ main() {
 
 abstract class LibraryImportElementTest extends ElementsBaseTest {
   test_import_configurations_useDefault() async {
-    declaredVariables = {
-      'dart.library.io': 'false',
-    };
+    declaredVariables = {'dart.library.io': 'false'};
     newFile('$testPackageLibPath/foo.dart', 'class A {}');
     newFile('$testPackageLibPath/foo_io.dart', 'class A {}');
     newFile('$testPackageLibPath/foo_html.dart', 'class A {}');
@@ -339,6 +337,10 @@ library
           fragments: @70
         <testLibraryFragment>::@prefix2::i3
           fragments: @117
+      libraryExports
+        dart:math
+        dart:math
+        dart:math
 ''');
   }
 
@@ -354,6 +356,8 @@ library
       element: <testLibrary>
       libraryImports
         dart:async
+          combinators
+            hide: Stream, Completer
       topLevelVariables
         f @51
           reference: <testLibraryFragment>::@topLevelVariable::f
@@ -381,12 +385,14 @@ library
   getters
     synthetic static get f
       firstFragment: <testLibraryFragment>::@getter::f
+      returnType: Future<dynamic>
   setters
     synthetic static set f
       firstFragment: <testLibraryFragment>::@setter::f
       formalParameters
         requiredPositional _f
           type: Future<dynamic>
+      returnType: void
 ''');
   }
 
@@ -445,6 +451,9 @@ library
       element: <testLibrary>
       libraryImports
         dart:async
+          combinators
+            hide: Stream
+            show: Future
       topLevelVariables
         f @52
           reference: <testLibraryFragment>::@topLevelVariable::f
@@ -472,12 +481,14 @@ library
   getters
     synthetic static get f
       firstFragment: <testLibraryFragment>::@getter::f
+      returnType: Future<dynamic>
   setters
     synthetic static set f
       firstFragment: <testLibraryFragment>::@setter::f
       formalParameters
         requiredPositional _f
           type: Future<dynamic>
+      returnType: void
 ''');
   }
 
@@ -486,8 +497,8 @@ library
     var library = await buildLibrary('import "a.dart" as a; a.C c;');
 
     var prefixElement =
-        library.definingCompilationUnit.libraryImports[0].prefix!.element;
-    expect(prefixElement.nameOffset, 19);
+        library.definingCompilationUnit.libraryImports[0].prefix2!;
+    expect(prefixElement.nameOffset2, 19);
 
     checkElementText(library, r'''
 library
@@ -527,12 +538,14 @@ library
   getters
     synthetic static get c
       firstFragment: <testLibraryFragment>::@getter::c
+      returnType: C
   setters
     synthetic static set c
       firstFragment: <testLibraryFragment>::@setter::c
       formalParameters
         requiredPositional _c
           type: C
+      returnType: void
 ''');
   }
 
@@ -550,7 +563,7 @@ library
       libraryImports
         dart:math as <null-name> (offset=21)
       prefixes
-        <testLibraryFragment>::@prefix2::1
+        <testLibraryFragment>::@prefix2::0
           fragments: @null
 ''');
   }
@@ -563,8 +576,7 @@ class D extends p.C {} // Prevent "unused import" warning
 ''');
     var libraryImports = library.definingCompilationUnit.libraryImports;
     expect(libraryImports, hasLength(2));
-    expect(libraryImports[0].importedLibrary!.location, library.location);
-    expect(libraryImports[1].importedLibrary!.isDartCore, true);
+    expect(libraryImports[1].importedLibrary2!.isDartCore, true);
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -625,6 +637,8 @@ library
       element: <testLibrary>
       libraryImports
         dart:async
+          combinators
+            show: Future, Stream
       topLevelVariables
         f @48
           reference: <testLibraryFragment>::@topLevelVariable::f
@@ -672,19 +686,23 @@ library
   getters
     synthetic static get f
       firstFragment: <testLibraryFragment>::@getter::f
+      returnType: Future<dynamic>
     synthetic static get s
       firstFragment: <testLibraryFragment>::@getter::s
+      returnType: Stream<dynamic>
   setters
     synthetic static set f
       firstFragment: <testLibraryFragment>::@setter::f
       formalParameters
         requiredPositional _f
           type: Future<dynamic>
+      returnType: void
     synthetic static set s
       firstFragment: <testLibraryFragment>::@setter::s
       formalParameters
         requiredPositional _s
           type: Stream<dynamic>
+      returnType: void
 ''');
   }
 
@@ -711,8 +729,9 @@ import 'foo.dart';
   test_imports() async {
     newFile('$testPackageLibPath/a.dart', 'library a; class C {}');
     newFile('$testPackageLibPath/b.dart', 'library b; class D {}');
-    var library =
-        await buildLibrary('import "a.dart"; import "b.dart"; C c; D d;');
+    var library = await buildLibrary(
+      'import "a.dart"; import "b.dart"; C c; D d;',
+    );
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -769,19 +788,23 @@ library
   getters
     synthetic static get c
       firstFragment: <testLibraryFragment>::@getter::c
+      returnType: C
     synthetic static get d
       firstFragment: <testLibraryFragment>::@getter::d
+      returnType: D
   setters
     synthetic static set c
       firstFragment: <testLibraryFragment>::@setter::c
       formalParameters
         requiredPositional _c
           type: C
+      returnType: void
     synthetic static set d
       firstFragment: <testLibraryFragment>::@setter::d
       formalParameters
         requiredPositional _d
           type: D
+      returnType: void
 ''');
   }
 
@@ -806,8 +829,9 @@ import 'dart:async' as p1;
 import 'dart:collection' as p2;
 import 'dart:math' as p1;
 ''');
-    var p1 = library.definingCompilationUnit.libraryImportPrefixes
-        .singleWhere((prefix) => prefix.name == 'p1');
+    var p1 = library.definingCompilationUnit.prefixes.singleWhere(
+      (prefix) => prefix.name3 == 'p1',
+    );
     var libraryImports = library.definingCompilationUnit.libraryImports;
     var import_async = libraryImports[0];
     var import_math = libraryImports[2];
@@ -986,6 +1010,7 @@ library
   getters
     synthetic static get a
       firstFragment: <testLibraryFragment>::@getter::a
+      returnType: int
 ''');
   }
 
@@ -1020,6 +1045,8 @@ library
                 element: <testLibraryFragment>::@getter::a#element
                 staticType: null
               element2: <testLibraryFragment>::@getter::a#element
+          combinators
+            show: Random
       topLevelVariables
         hasInitializer a @42
           reference: <testLibraryFragment>::@topLevelVariable::a
@@ -1045,6 +1072,7 @@ library
   getters
     synthetic static get a
       firstFragment: <testLibraryFragment>::@getter::a
+      returnType: int
 ''');
   }
 
@@ -1096,20 +1124,22 @@ library
   getters
     synthetic static get v
       firstFragment: <testLibraryFragment>::@getter::v
+      returnType: A
   setters
     synthetic static set v
       firstFragment: <testLibraryFragment>::@setter::v
       formalParameters
         requiredPositional _v
           type: A
+      returnType: void
 ''');
   }
 
   test_unresolved_import() async {
     var library = await buildLibrary("import 'foo.dart';");
     var libraryImports = library.definingCompilationUnit.libraryImports;
-    var importedLibrary = libraryImports[0].importedLibrary!;
-    expect(importedLibrary.loadLibraryFunction, isNotNull);
+    var importedLibrary = libraryImports[0].importedLibrary2!;
+    expect(importedLibrary.loadLibraryFunction2, isNotNull);
     expect(importedLibrary.publicNamespace, isNotNull);
     expect(importedLibrary.exportNamespace, isNotNull);
     checkElementText(library, r'''

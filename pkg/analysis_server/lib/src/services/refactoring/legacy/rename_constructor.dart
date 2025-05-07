@@ -14,21 +14,21 @@ import 'package:analysis_server/src/utilities/change_builder.dart';
 import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analysis_server_plugin/src/utilities/selection.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-/// A [Refactoring] for renaming [ConstructorElement2]s.
+/// A [Refactoring] for renaming [ConstructorElement]s.
 class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   RenameConstructorRefactoringImpl(
     super.workspace,
     super.sessionHelper,
-    ConstructorElement2 super.element,
+    ConstructorElement super.element,
   ) : super();
 
   @override
-  ConstructorElement2 get element => super.element as ConstructorElement2;
+  ConstructorElement get element => super.element as ConstructorElement;
 
   @override
   String get refactoringName {

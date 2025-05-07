@@ -26,16 +26,18 @@ Future<int> runServer(int port, int connections, bool clean) {
       }
     });
 
-    Future.wait(new List.generate(connections, (_) {
-      var client = new HttpClient();
-      return client
-          .get("127.0.0.1", server.port, "/")
-          .then((request) => request.close())
-          .then((response) => response.drain())
-          .catchError((e) {
-        if (clean) throw e;
-      });
-    })).then((_) {
+    Future.wait(
+      new List.generate(connections, (_) {
+        var client = new HttpClient();
+        return client
+            .get("127.0.0.1", server.port, "/")
+            .then((request) => request.close())
+            .then((response) => response.drain())
+            .catchError((e) {
+              if (clean) throw e;
+            });
+      }),
+    ).then((_) {
       if (clean) {
         int port = server.port;
         server.close().then((_) => completer.complete(port));

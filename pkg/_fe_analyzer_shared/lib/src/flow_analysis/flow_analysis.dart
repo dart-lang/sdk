@@ -4693,6 +4693,11 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         // whole expression behaves equivalently to a boolean (either `true` or
         // `false` depending whether the check uses the `!=` operator).
         booleanLiteral(wholeExpression, !notEqual);
+      case _GuaranteedNotEqual():
+        // Both operands are known by flow analysis to compare unequal, so the
+        // whole expression behaves equivalently to a boolean (either `true` or
+        // `false` depending whether the check uses the `!=` operator).
+        booleanLiteral(wholeExpression, notEqual);
 
       // SAFETY: we can assume `reference` is a `_Reference<Type>` because we
       // require clients not to mix data obtained from different
@@ -4891,25 +4896,21 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     } else {
       shortcutState = _current;
     }
-    if (operations.classifyType(leftHandSideType) ==
-        TypeClassification.nullOrEquivalent) {
-      shortcutState = shortcutState.setUnreachable();
+    switch (operations.classifyType(leftHandSideType)) {
+      case TypeClassification.nullOrEquivalent:
+        // The control path that skips the "if null" code is unreachable.
+        shortcutState = shortcutState.setUnreachable();
+      case TypeClassification.nonNullable:
+        // The control path containing the "if null" code is unreachable,
+        // assuming sound null safety.
+        if (typeAnalyzerOptions.soundFlowAnalysisEnabled) {
+          _current = _current.setUnreachable();
+        }
+      case TypeClassification.potentiallyNullable:
+        // Both control flow paths are reachable.
+        break;
     }
     _stack.add(new _IfNullExpressionContext<Type>(shortcutState));
-    // Note: we are now on the RHS of the `??`, and so at this point in the
-    // flow, it is known that the LHS evaluated to `null`.  It's tempting to
-    // update `_current` to reflect this (either promoting the type of the LHS,
-    // if it's a variable reference, or marking the flow as unreachable, if the
-    // LHS had a non-nullable static type).  However:
-    // - In the case where the LHS was a variable reference, we can't promote
-    //   it, because we don't promote to `Null` (see
-    //   https://github.com/dart-lang/language/issues/1505#issuecomment-975706918)
-    // - In the case where the LHS had a non-nullable static type, it still
-    //   might have been `null` due to mixed-mode unsoundness, so we can't mark
-    //   the flow as unreachable without allowing the unsoundness to escalate
-    //   (see https://github.com/dart-lang/language/issues/1143)
-    //
-    // So we just leave `_current` as is.
   }
 
   @override
@@ -5150,15 +5151,26 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   void nullAwareAccess_rightBegin(Expression? target, Type targetType) {
     _current = _current.split();
-    _stack.add(new _NullAwareAccessContext<Type>(_current));
+    FlowModel<Type> shortcutControlPath = _current;
     _Reference<Type>? targetReference = _getExpressionReference(target);
     if (targetReference != null) {
       _current = _current.tryMarkNonNullable(this, targetReference).ifTrue;
     }
-    if (operations.classifyType(targetType) ==
-        TypeClassification.nullOrEquivalent) {
-      _current = _current.setUnreachable();
+    switch (operations.classifyType(targetType)) {
+      case TypeClassification.nullOrEquivalent:
+        // The control flow path containing the null-aware code is unreachable.
+        _current = _current.setUnreachable();
+      case TypeClassification.nonNullable:
+        // The control flow path that skips the null-aware code is unreachable,
+        // assuming sound null safety.
+        if (typeAnalyzerOptions.soundFlowAnalysisEnabled) {
+          shortcutControlPath = shortcutControlPath.setUnreachable();
+        }
+      case TypeClassification.potentiallyNullable:
+        // Both control flow paths are reachable.
+        break;
     }
+    _stack.add(new _NullAwareAccessContext<Type>(shortcutControlPath));
   }
 
   @override
@@ -5184,8 +5196,21 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     } else {
       shortcutState = _current;
     }
-    if (operations.classifyType(keyType) == TypeClassification.nonNullable) {
-      shortcutState = shortcutState.setUnreachable();
+    switch (operations.classifyType(keyType)) {
+      case TypeClassification.nonNullable:
+        // The control flow path that skips the value expression is unreachable.
+        shortcutState = shortcutState.setUnreachable();
+      case TypeClassification.nullOrEquivalent:
+        // The control flow path containing the value expression is unreachable.
+        // This functionality was added as part of the `sound-flow-analysis`
+        // language feature, even though it would have been a sound reasoning
+        // step before then.
+        if (typeAnalyzerOptions.soundFlowAnalysisEnabled) {
+          _current = _current.setUnreachable();
+        }
+      case TypeClassification.potentiallyNullable:
+        // Both control flow paths are reachable.
+        break;
     }
     _stack.add(new _NullAwareMapEntryContext<Type>(shortcutState));
   }
@@ -5194,14 +5219,17 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   bool nullCheckOrAssertPattern_begin(
       {required bool isAssert, required Type matchedValueType}) {
     if (!isAssert) {
-      // Account for the possibility that the pattern might not match.  Note
-      // that it's tempting to skip this step if matchedValueType is
-      // non-nullable (based on the reasoning that a non-null value is
-      // guaranteed to satisfy a null check), but in weak mode that's not sound,
-      // because in weak mode even non-nullable values might be null.  We don't
-      // want flow analysis behavior to depend on mode, so we conservatively
-      // assume the pattern might not match regardless of matchedValueType.
-      _unmatched = _join(_unmatched, _current);
+      if (typeAnalyzerOptions.soundFlowAnalysisEnabled &&
+          operations.classifyType(matchedValueType) ==
+              TypeClassification.nonNullable) {
+        // The pattern is guaranteed to match.
+      } else {
+        // The pattern might not match, either because matchedValueType is
+        // nullable, or because sound flow analysis is disabled (in which case
+        // we presume the user might be running under an older version of Dart
+        // that supported weak null safety mode).
+        _unmatched = _join(_unmatched, _current);
+      }
     }
     FlowModel<Type>? ifNotNull =
         _nullCheckPattern(matchedValueType: matchedValueType);
@@ -5313,12 +5341,33 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       return false;
     }
 
-    if (operations.classifyType(matchedType) ==
-        TypeClassification.nonNullable) {
-      // The matched type is non-nullable, so promote to a non-nullable type.
-      // This allows for code like `case int? x?` to promote `x` to
-      // non-nullable.
-      knownType = operations.promoteToNonNull(knownType);
+    bool cannotMatch = false;
+    switch (operations.classifyType(matchedType)) {
+      case TypeClassification.nonNullable:
+        if (typeAnalyzerOptions.soundFlowAnalysisEnabled &&
+            operations.classifyType(knownType) ==
+                TypeClassification.nullOrEquivalent) {
+          // `Null()` cannot match a non-nullable matched value, assuming sound
+          // null safety.
+          cannotMatch = true;
+        }
+        // The matched type is non-nullable, so promote to a non-nullable type.
+        // This allows for code like `case int? x?` to promote `x` to
+        // non-nullable.
+        knownType = operations.promoteToNonNull(knownType);
+      case TypeClassification.nullOrEquivalent:
+        if (typeAnalyzerOptions.soundFlowAnalysisEnabled &&
+            operations.classifyType(knownType) ==
+                TypeClassification.nonNullable) {
+          // If `T` is a non-nullable type, `T()` cannot match a matched value
+          // of type `Null`. This reasoning step is sound regardless of whether
+          // sound null safety, but it is a new reasoning step that was added to
+          // flow analysis as part of the `sound-flow-analysis` feature.
+          cannotMatch = true;
+        }
+      case TypeClassification.potentiallyNullable:
+        // No conclusions can be drawn about `cannotMatch` or `knownType`.
+        break;
     }
     _PatternContext<Type> context = _stack.last as _PatternContext<Type>;
     _Reference<Type> matchedValueReference =
@@ -5356,6 +5405,9 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
           .ifFalse;
     }
     _current = ifTrue;
+    if (cannotMatch) {
+      _current = _current.setUnreachable();
+    }
     if (matchFailsIfWrongType && !coversMatchedType) {
       // There's a reachable control flow path where the match might fail due to
       // a type mismatch. Therefore, we must update the `_unmatched` flow state
@@ -5770,10 +5822,15 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
                 TypeClassification.nullOrEquivalent &&
             leftOperandTypeClassification == TypeClassification.nonNullable)) {
       // In strong mode the test is guaranteed to produce a "not equal" result,
-      // but weak mode it might produce an "equal" result.  We don't want flow
-      // analysis behavior to depend on mode, so we conservatively assume that
-      // either result is possible.
-      return const _NoEqualityInformation();
+      // but weak mode it might produce an "equal" result. If sound flow
+      // analysis is enabled, we assume that the user isn't running in weak mode
+      // and so we propagate the known "not equal" result. Otherwise, we
+      // conservatively assume that either result is possible.
+      if (typeAnalyzerOptions.soundFlowAnalysisEnabled) {
+        return const _GuaranteedNotEqual();
+      } else {
+        return const _NoEqualityInformation();
+      }
     } else if (lhsInfo != null && lhsInfo.isNull) {
       return new _EqualityCheckIsNullCheck(
           rhsInfo is _Reference<Type> ? rhsInfo : null,
@@ -6012,16 +6069,30 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       case _GuaranteedEqual():
         if (notEqual) {
           // Both operands are known by flow analysis to compare equal, so the
-          // constant pattern is guaranteed *not* to match.
+          // pattern is guaranteed *not* to match.
           _unmatched = _join(_unmatched!, _current);
           _current = _current.setUnreachable();
         } else {
           // Both operands are known by flow analysis to compare equal, so the
-          // constant pattern is guaranteed to match.  Since our approach to
-          // handling patterns in flow analysis uses "implicit and" semantics
-          // (initially assuming that the pattern always matches, and then
-          // updating the `_current` and `_unmatched` states to reflect what
-          // values the pattern rejects), we don't have to do any updates.
+          // pattern is guaranteed to match.  Since our approach to handling
+          // patterns in flow analysis uses "implicit and" semantics (initially
+          // assuming that the pattern always matches, and then updating the
+          // `_current` and `_unmatched` states to reflect what values the
+          // pattern rejects), we don't have to do any updates.
+        }
+      case _GuaranteedNotEqual():
+        if (notEqual) {
+          // Both operands are known by flow analysis to compare unequal, so the
+          // pattern is guaranteed to match.  Since our approach to handling
+          // patterns in flow analysis uses "implicit and" semantics (initially
+          // assuming that the pattern always matches, and then updating the
+          // `_current` and `_unmatched` states to reflect what values the
+          // pattern rejects), we don't have to do any updates.
+        } else {
+          // Both operands are known by flow analysis to compare unequal, so the
+          // pattern is guaranteed *not* to match.
+          _unmatched = _join(_unmatched!, _current);
+          _current = _current.setUnreachable();
         }
     }
   }
@@ -6380,6 +6451,16 @@ class _FunctionExpressionContext<Type extends Object>
 /// happens if both operands have type `Null`).
 class _GuaranteedEqual extends _EqualityCheckResult {
   const _GuaranteedEqual() : super._();
+}
+
+/// Specialization of [_EqualityCheckResult] used as the return value for
+/// [_FlowAnalysisImpl._equalityCheck] when it is determined that the two
+/// operands are guaranteed to be not equal to one another, so the code path
+/// that results from an equal result should be marked as unreachable.  (This
+/// happens if one operands has type `Null` and the other has a non-nullable
+/// type, and [TypeAnalyzerOptions.soundFlowAnalysisEnabled] is `true`).
+class _GuaranteedNotEqual extends _EqualityCheckResult {
+  const _GuaranteedNotEqual() : super._();
 }
 
 /// [_FlowContext] representing an `if` statement.

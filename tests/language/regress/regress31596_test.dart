@@ -39,7 +39,8 @@ main() {
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The argument type 'B2?' can't be assigned to the parameter type 'B?'.
   i.f(b2, b); // Ok since B2 assignable to A
-  void Function(Object, B) g = d.f as dynamic; // Ok; D.f reified as (Object, B) -> void
+  void Function(Object, B) g =
+      d.f as dynamic; // Ok; D.f reified as (Object, B) -> void
   Expect.throwsTypeError(() {
     d.f(a as B, b);
   });

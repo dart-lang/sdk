@@ -16,13 +16,20 @@ main() {
 @reflectiveTest
 class InvocationOfNonFunctionExpressionTest extends PubPackageResolutionTest {
   test_literal_int() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   3(5);
 }
-''', [
-      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 13, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
+          13,
+          1,
+        ),
+      ],
+    );
 
     var node = findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''

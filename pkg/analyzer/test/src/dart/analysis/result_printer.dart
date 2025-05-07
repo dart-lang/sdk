@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
@@ -12,6 +12,7 @@ import 'package:analyzer/src/dart/analysis/driver_event.dart' as events;
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
+import 'package:analyzer/src/fine/base_name_members.dart';
 import 'package:analyzer/src/fine/library_manifest.dart';
 import 'package:analyzer/src/fine/lookup_name.dart';
 import 'package:analyzer/src/fine/manifest_ast.dart';
@@ -42,11 +43,12 @@ class BundleRequirementsPrinter {
     required this.idProvider,
   });
 
-  void write(BundleRequirementsManifest requirements) {
+  void write(RequirementsManifest requirements) {
     sink.writelnWithIndent('requirements');
     sink.withIndent(() {
       _writeTopLevels(requirements);
-      _writeInterfaceMembers(requirements);
+      _writeInstanceItems(requirements);
+      _writeInterfaceItems(requirements);
       _writeExportRequirements(requirements);
     });
   }
@@ -64,7 +66,7 @@ class BundleRequirementsPrinter {
     });
   }
 
-  void _writeExportRequirements(BundleRequirementsManifest requirements) {
+  void _writeExportRequirements(RequirementsManifest requirements) {
     var exportRequirements = requirements.exportRequirements.sortedBy(
       (requirement) => requirement.exportedUri.toString(),
     );
@@ -82,14 +84,52 @@ class BundleRequirementsPrinter {
     });
   }
 
-  void _writeInterfaceMembers(BundleRequirementsManifest requirements) {
-    var libEntries = requirements.interfaceMembers.sorted;
-    sink.writeElements('interfaceMembers', libEntries, (libEntry) {
-      var topEntries = libEntry.value.sorted;
-      sink.writeElements('${libEntry.key}', topEntries, (topEntry) {
-        var memEntries = topEntry.value.sorted;
-        sink.writeElements(topEntry.key.asString, memEntries, (memEntry) {
-          _writeNamedId(memEntry);
+  void _writeInstanceItems(RequirementsManifest requirements) {
+    var libEntries = requirements.instances.sorted;
+
+    libEntries.removeWhere((entry) {
+      var ignored = configuration.requirements.ignoredLibraries;
+      return ignored.contains(entry.key);
+    });
+
+    sink.writeElements('instances', libEntries, (libEntry) {
+      var interfaceEntries = libEntry.value.sorted;
+      sink.writeElements('${libEntry.key}', interfaceEntries, (instanceEntry) {
+        sink.writelnWithIndent(instanceEntry.key.asString);
+        sink.withIndent(() {
+          sink.writeElements(
+            'requestedMethods',
+            instanceEntry.value.requestedMethods.sorted,
+            _writeNamedId,
+          );
+        });
+      });
+    });
+  }
+
+  void _writeInterfaceItems(RequirementsManifest requirements) {
+    var libEntries = requirements.interfaces.sorted;
+
+    libEntries.removeWhere((entry) {
+      var ignored = configuration.requirements.ignoredLibraries;
+      return ignored.contains(entry.key);
+    });
+
+    sink.writeElements('interfaces', libEntries, (libEntry) {
+      var interfaceEntries = libEntry.value.sorted;
+      sink.writeElements('${libEntry.key}', interfaceEntries, (interfaceEntry) {
+        sink.writelnWithIndent(interfaceEntry.key.asString);
+        sink.withIndent(() {
+          sink.writeElements(
+            'constructors',
+            interfaceEntry.value.constructors.sorted,
+            _writeNamedId,
+          );
+          sink.writeElements(
+            'methods',
+            interfaceEntry.value.methods.sorted,
+            _writeNamedId,
+          );
         });
       });
     });
@@ -104,7 +144,7 @@ class BundleRequirementsPrinter {
     }
   }
 
-  void _writeTopLevels(BundleRequirementsManifest requirements) {
+  void _writeTopLevels(RequirementsManifest requirements) {
     var libEntries = requirements.topLevels.sorted;
     sink.writeElements('topLevels', libEntries, (libEntry) {
       var topEntries = libEntry.value.sorted;
@@ -318,14 +358,16 @@ class DriverEventsPrinter {
 
     sink.writelnWithIndent('[operation] $printName');
     sink.withIndent(() {
-      var sortedLibraries = object.cycle.libraries
-          .sortedBy((libraryKind) => libraryKind.file.uriStr);
+      var sortedLibraries = object.cycle.libraries.sortedBy(
+        (libraryKind) => libraryKind.file.uriStr,
+      );
       for (var libraryKind in sortedLibraries) {
         sink.writelnWithIndent(libraryKind.file.uriStr);
         if (configuration.withLibraryManifest) {
           sink.withIndent(() {
-            var libraryElement =
-                object.elementFactory.libraryOfUri2(libraryKind.file.uri);
+            var libraryElement = object.elementFactory.libraryOfUri2(
+              libraryKind.file.uri,
+            );
             var manifest = libraryElement.manifest!;
             LibraryManifestPrinter(
               configuration: configuration,
@@ -335,7 +377,7 @@ class DriverEventsPrinter {
           });
         }
       }
-      _writeRequirements(object.requirementsManifest);
+      _writeRequirements(object.requirements);
     });
   }
 
@@ -371,12 +413,21 @@ class DriverEventsPrinter {
       case ExportLibraryMissing():
         // TODO(scheglov): Handle this case.
         throw UnimplementedError();
-      case InstanceMemberIdMismatch():
-        sink.writelnWithIndent('instanceMemberIdMismatch');
+      case InstanceMethodIdMismatch():
+        sink.writelnWithIndent('instanceMethodIdMismatch');
         sink.writeProperties({
           'libraryUri': failure.libraryUri,
           'interfaceName': failure.interfaceName.asString,
-          'memberName': failure.memberName.asString,
+          'methodName': failure.methodName.asString,
+          'expectedId': idProvider.manifestId(failure.expectedId),
+          'actualId': idProvider.manifestId(failure.actualId),
+        });
+      case InterfaceConstructorIdMismatch():
+        sink.writelnWithIndent('interfaceConstructorIdMismatch');
+        sink.writeProperties({
+          'libraryUri': failure.libraryUri,
+          'interfaceName': failure.interfaceName.asString,
+          'constructorName': failure.constructorName.asString,
           'expectedId': idProvider.manifestId(failure.expectedId),
           'actualId': idProvider.manifestId(failure.actualId),
         });
@@ -388,14 +439,14 @@ class DriverEventsPrinter {
           'expectedId': idProvider.manifestId(failure.expectedId),
           'actualId': idProvider.manifestId(failure.actualId),
         });
-      case TopLevelNotClass():
+      case TopLevelNotInterface():
         // TODO(scheglov): Handle this case.
         throw UnimplementedError();
     }
   }
 
-  void _writeRequirements(BundleRequirementsManifest? requirements) {
-    if (!configuration.withBundleRequirements) {
+  void _writeRequirements(RequirementsManifest? requirements) {
+    if (!configuration.withResultRequirements) {
       return;
     }
 
@@ -505,9 +556,10 @@ class DriverEventsPrinter {
       } else {
         sink.writelnWithIndent('[operation] $printName');
         sink.withIndent(() {
-          var uriStrList = event.cycle.libraries
-              .map((library) => library.file.uriStr)
-              .sorted();
+          var uriStrList =
+              event.cycle.libraries
+                  .map((library) => library.file.uriStr)
+                  .sorted();
           for (var uriStr in uriStrList) {
             sink.writelnWithIndent(uriStr);
           }
@@ -538,10 +590,7 @@ class DriverEventsPrinter {
 
     sink.writelnWithIndent('uri: ${result.uri}');
 
-    sink.writeFlags({
-      'isLibrary': result.isLibrary,
-      'isPart': result.isPart,
-    });
+    sink.writeFlags({'isLibrary': result.isLibrary, 'isPart': result.isPart});
 
     var libraryFragment = result.fragment;
 
@@ -550,8 +599,8 @@ class DriverEventsPrinter {
       libraryFragment.enclosingFragment,
     );
 
-    var elementsToWrite =
-        configuration.unitElementConfiguration.elementSelector(libraryFragment);
+    var elementsToWrite = configuration.unitElementConfiguration
+        .elementSelector(libraryFragment);
     elementPrinter.writeElementList2('selectedElements', elementsToWrite);
   }
 }
@@ -561,13 +610,14 @@ class DriverEventsPrinterConfiguration {
   var unitElementConfiguration = UnitElementPrinterConfiguration();
   var errorsConfiguration = ErrorsResultPrinterConfiguration();
   var elementTextConfiguration = ElementTextConfiguration();
-  var withBundleRequirements = false;
+  var withResultRequirements = false;
   var withGetLibraryByUri = true;
   var withElementManifests = false;
   var withLibraryManifest = false;
   var withLinkBundleEvents = false;
   var withSchedulerStatus = true;
   var withStreamResolvedUnitResults = true;
+  var requirements = RequirementPrinterConfiguration();
 
   var ignoredManifestInstanceMemberNames = <String>{
     '==',
@@ -591,10 +641,7 @@ class ErrorsResultPrinterConfiguration {
 final class GetCachedResolvedUnitEvent extends GetDriverEvent {
   final SomeResolvedUnitResult? result;
 
-  GetCachedResolvedUnitEvent({
-    required super.name,
-    required this.result,
-  });
+  GetCachedResolvedUnitEvent({required super.name, required this.result});
 
   @override
   String get methodName => 'getCachedResolvedUnit';
@@ -603,9 +650,7 @@ final class GetCachedResolvedUnitEvent extends GetDriverEvent {
 sealed class GetDriverEvent extends DriverEvent {
   final String name;
 
-  GetDriverEvent({
-    required this.name,
-  });
+  GetDriverEvent({required this.name});
 
   String get methodName;
 }
@@ -614,10 +659,7 @@ sealed class GetDriverEvent extends DriverEvent {
 final class GetErrorsEvent extends GetDriverEvent {
   final SomeErrorsResult result;
 
-  GetErrorsEvent({
-    required super.name,
-    required this.result,
-  });
+  GetErrorsEvent({required super.name, required this.result});
 
   @override
   String get methodName => 'getErrors';
@@ -627,10 +669,7 @@ final class GetErrorsEvent extends GetDriverEvent {
 final class GetIndexEvent extends GetDriverEvent {
   final AnalysisDriverUnitIndex? result;
 
-  GetIndexEvent({
-    required super.name,
-    required this.result,
-  });
+  GetIndexEvent({required super.name, required this.result});
 
   @override
   String get methodName => 'getIndex';
@@ -640,10 +679,7 @@ final class GetIndexEvent extends GetDriverEvent {
 final class GetLibraryByUriEvent extends GetDriverEvent {
   final SomeLibraryElementResult result;
 
-  GetLibraryByUriEvent({
-    required super.name,
-    required this.result,
-  });
+  GetLibraryByUriEvent({required super.name, required this.result});
 
   @override
   String get methodName => 'getLibraryByUri';
@@ -653,10 +689,7 @@ final class GetLibraryByUriEvent extends GetDriverEvent {
 final class GetResolvedLibraryByUriEvent extends GetDriverEvent {
   final SomeResolvedLibraryResult result;
 
-  GetResolvedLibraryByUriEvent({
-    required super.name,
-    required this.result,
-  });
+  GetResolvedLibraryByUriEvent({required super.name, required this.result});
 
   @override
   String get methodName => 'getResolvedLibraryByUri';
@@ -666,10 +699,7 @@ final class GetResolvedLibraryByUriEvent extends GetDriverEvent {
 final class GetResolvedLibraryEvent extends GetDriverEvent {
   final SomeResolvedLibraryResult result;
 
-  GetResolvedLibraryEvent({
-    required super.name,
-    required this.result,
-  });
+  GetResolvedLibraryEvent({required super.name, required this.result});
 
   @override
   String get methodName => 'getResolvedLibrary';
@@ -679,10 +709,7 @@ final class GetResolvedLibraryEvent extends GetDriverEvent {
 final class GetResolvedUnitEvent extends GetDriverEvent {
   final SomeResolvedUnitResult result;
 
-  GetResolvedUnitEvent({
-    required super.name,
-    required this.result,
-  });
+  GetResolvedUnitEvent({required super.name, required this.result});
 
   @override
   String get methodName => 'getResolvedUnit';
@@ -692,10 +719,7 @@ final class GetResolvedUnitEvent extends GetDriverEvent {
 final class GetUnitElementEvent extends GetDriverEvent {
   final SomeUnitElementResult result;
 
-  GetUnitElementEvent({
-    required super.name,
-    required this.result,
-  });
+  GetUnitElementEvent({required super.name, required this.result});
 
   @override
   String get methodName => 'getUnitElement';
@@ -738,6 +762,8 @@ class LibraryManifestPrinter {
       switch (topLevelItem) {
         case ClassItem():
           _writeClassItem(topLevelItem);
+        case MixinItem():
+          _writeMixinItem(topLevelItem);
         case TopLevelFunctionItem():
           _writeTopLevelFunctionItem(topLevelItem);
         case TopLevelGetterItem():
@@ -758,42 +784,201 @@ class LibraryManifestPrinter {
     }
   }
 
+  void _writeBaseNameMembers(BaseName name, BaseNameMembers items) {
+    void writeDeclaredId(String property, ManifestItem item) {
+      var idStr = idProvider.manifestId(item.id);
+      sink.writelnWithIndent('$name.$property: $idStr');
+    }
+
+    void writeInheritedId(String property, ManifestItemId id) {
+      var idStr = idProvider.manifestId(id);
+      sink.writelnWithIndent('$name.$property.inherited: $idStr');
+    }
+
+    void writeConstructor(DeclaredOrInheritedConstructor constructor) {
+      switch (constructor) {
+        case DeclaredConstructor(:var item):
+          writeDeclaredId('constructor', item);
+          if (configuration.withElementManifests) {
+            sink.withIndent(() {
+              _writeMetadata(item);
+              _writeNamedType('functionType', item.functionType);
+            });
+          }
+        case InheritedConstructor():
+          writeInheritedId('constructor', constructor.id);
+      }
+    }
+
+    void writeIndexEq(InstanceItemMethodItem item) {
+      writeDeclaredId('indexEq', item);
+      if (configuration.withElementManifests) {
+        sink.withIndent(() {
+          _writeMetadata(item);
+          _writeNamedType('functionType', item.functionType);
+        });
+      }
+    }
+
+    void writeMethod(InstanceItemMethodItem item) {
+      writeDeclaredId('method', item);
+      if (configuration.withElementManifests) {
+        sink.withIndent(() {
+          _writeMetadata(item);
+          _writeNamedType('functionType', item.functionType);
+        });
+      }
+    }
+
+    void writeGetter(InstanceItemGetterItem item) {
+      writeDeclaredId('getter', item);
+      if (configuration.withElementManifests) {
+        sink.withIndent(() {
+          _writeMetadata(item);
+          _writeNamedType('returnType', item.returnType);
+        });
+      }
+    }
+
+    void writeSetter(InstanceItemSetterItem item) {
+      writeDeclaredId('setter', item);
+      if (configuration.withElementManifests) {
+        sink.withIndent(() {
+          _writeMetadata(item);
+          _writeNamedType('valueType', item.valueType);
+        });
+      }
+    }
+
+    void assertHasId({
+      bool constructor = false,
+      bool getterOrMethod = false,
+      bool indexEq = false,
+      bool setter = false,
+    }) {
+      expect(items.constructorId, constructor ? isNotNull : isNull);
+      expect(items.getterOrMethodId, getterOrMethod ? isNotNull : isNull);
+      expect(items.indexEqId, indexEq ? isNotNull : isNull);
+      expect(items.setterId, setter ? isNotNull : isNull);
+    }
+
+    switch (items) {
+      case BaseNameConflict():
+        var idStr = idProvider.manifestId(items.id);
+        sink.writelnWithIndent('$name.conflict: $idStr');
+        assertHasId();
+      case BaseNameConstructor():
+        assertHasId(constructor: true);
+        writeConstructor(items.constructor);
+      case BaseNameConstructorGetter():
+        assertHasId(constructor: true, getterOrMethod: true);
+        writeConstructor(items.constructor);
+        writeGetter(items.getter);
+      case BaseNameConstructorGetterSetter():
+        assertHasId(constructor: true, getterOrMethod: true, setter: true);
+        writeConstructor(items.constructor);
+        writeGetter(items.getter);
+        writeSetter(items.setter);
+      case BaseNameConstructorMethod():
+        assertHasId(constructor: true, getterOrMethod: true);
+        writeConstructor(items.constructor);
+        writeMethod(items.method);
+      case BaseNameConstructorSetter():
+        assertHasId(constructor: true, setter: true);
+        writeConstructor(items.constructor);
+        writeSetter(items.setter);
+      case BaseNameGetter():
+        assertHasId(getterOrMethod: true);
+        writeGetter(items.getter);
+      case BaseNameGetterSetter():
+        assertHasId(getterOrMethod: true, setter: true);
+        writeGetter(items.getter);
+        writeSetter(items.setter);
+      case BaseNameIndexEq():
+        assertHasId(indexEq: true);
+        writeIndexEq(items.indexEq);
+      case BaseNameMethod():
+        assertHasId(getterOrMethod: true);
+        writeMethod(items.method);
+      case BaseNameMethodIndexEq():
+        assertHasId(getterOrMethod: true, indexEq: true);
+        writeMethod(items.method);
+        writeIndexEq(items.indexEq);
+      case BaseNameSetter():
+        assertHasId(setter: true);
+        writeSetter(items.setter);
+    }
+  }
+
   void _writeClassItem(ClassItem item) {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
         _writeMetadata(item);
         _writeTypeParameters(item.typeParameters);
         _writeNamedType('supertype', item.supertype);
+        _writeTypeList('mixins', item.mixins);
+        _writeTypeList('interfaces', item.interfaces);
       });
     }
+
     sink.withIndent(() {
-      var entries = item.members.sorted;
-      for (var entry in entries) {
-        _writeInstanceItemMember(entry.key, entry.value);
-      }
+      _writeInstanceItemMembers(item);
+      _writeInterfaceItemInterface(item);
     });
   }
 
-  void _writeInstanceItemMember(LookupName name, InstanceItemMemberItem item) {
-    if (configuration.ignoredManifestInstanceMemberNames
-        .contains(name.asString)) {
-      return;
+  void _writeInstanceItemMembers(InstanceItem item) {
+    var ignored = configuration.ignoredManifestInstanceMemberNames;
+
+    var declaredMembers =
+        item.declaredMembers.sorted.whereNot((entry) {
+          return ignored.contains(entry.key.asString);
+        }).toList();
+
+    if (declaredMembers.isNotEmpty) {
+      sink.writelnWithIndent('declaredMembers');
+      sink.withIndent(() {
+        for (var entry in declaredMembers) {
+          _writeBaseNameMembers(entry.key, entry.value);
+        }
+      });
+    }
+  }
+
+  void _writeInterfaceItemInterface(InterfaceItem item) {
+    var ignored = configuration.ignoredManifestInstanceMemberNames;
+
+    List<MapEntry<LookupName, V>> notIgnored<V>(Map<LookupName, V> map) {
+      return map.sorted.whereNot((entry) {
+        return ignored.contains(entry.key.asString);
+      }).toList();
     }
 
-    _writeNamedId(name, item.id);
-
-    if (configuration.withElementManifests) {
+    var mapEntries = notIgnored(item.interface.map);
+    if (mapEntries.isNotEmpty) {
+      sink.writelnWithIndent('interface');
       sink.withIndent(() {
-        switch (item) {
-          case InstanceItemGetterItem():
-            _writeMetadata(item);
-            _writeNamedType('returnType', item.returnType);
-          case InstanceItemMethodItem():
-            _writeMetadata(item);
-            _writeNamedType('functionType', item.functionType);
-          case InterfaceItemConstructorItem():
-            _writeMetadata(item);
-            _writeNamedType('functionType', item.functionType);
+        if (mapEntries.isNotEmpty) {
+          sink.writelnWithIndent('map');
+          sink.withIndent(() {
+            for (var entry in mapEntries) {
+              _writeNamedId(entry.key, entry.value);
+            }
+          });
+        }
+
+        var combinedIds = item.interface.combinedIds;
+        if (combinedIds.isNotEmpty) {
+          sink.writelnWithIndent('combinedIds');
+          sink.withIndent(() {
+            for (var entry in combinedIds.entries) {
+              var idListStr = entry.key.ids
+                  .map((id) => idProvider.manifestId(id))
+                  .join(', ');
+              var idStr = idProvider.manifestId(entry.value);
+              sink.writelnWithIndent('[$idListStr]: $idStr');
+            }
+          });
         }
       });
     }
@@ -821,6 +1006,22 @@ class LibraryManifestPrinter {
     }
   }
 
+  void _writeMixinItem(MixinItem item) {
+    if (configuration.withElementManifests) {
+      sink.withIndent(() {
+        _writeMetadata(item);
+        _writeTypeParameters(item.typeParameters);
+        _writeTypeList('superclassConstraints', item.superclassConstraints);
+        _writeTypeList('interfaces', item.interfaces);
+      });
+    }
+
+    sink.withIndent(() {
+      _writeInstanceItemMembers(item);
+      _writeInterfaceItemInterface(item);
+    });
+  }
+
   void _writeNamedId(LookupName name, ManifestItemId id) {
     var idStr = idProvider.manifestId(id);
     sink.writelnWithIndent('$name: $idStr');
@@ -846,14 +1047,32 @@ class LibraryManifestPrinter {
           sink.writelnWithIndent('elements');
           sink.withIndent(() {
             for (var (index, element) in node.elements.indexed) {
-              sink.writeWithIndent('[${2 + index}] ');
+              sink.writeWithIndent('[$index] ');
               _writelnElement(element);
             }
           });
         }
 
         if (node.elementIndexList.isNotEmpty) {
-          sink.writelnWithIndent('elementIndexList: ${node.elementIndexList}');
+          sink.writeElements('elementIndexList', node.elementIndexList, (
+            index,
+          ) {
+            var (kind, rawIndex) = ManifestAstElementKind.decode(index);
+            switch (kind) {
+              case ManifestAstElementKind.null_:
+                sink.writelnWithIndent('$index = null');
+              case ManifestAstElementKind.dynamic_:
+                sink.writelnWithIndent('$index = dynamic');
+              case ManifestAstElementKind.formalParameter:
+                sink.writelnWithIndent('$index = formalParameter $rawIndex');
+              case ManifestAstElementKind.importPrefix:
+                sink.writelnWithIndent('$index = importPrefix');
+              case ManifestAstElementKind.typeParameter:
+                sink.writelnWithIndent('$index = typeParameter $rawIndex');
+              case ManifestAstElementKind.regular:
+                sink.writelnWithIndent('$index = element $rawIndex');
+            }
+          });
         }
       });
     }
@@ -959,17 +1178,22 @@ class LibraryManifestPrinter {
     }
   }
 
-  void _writeTypeParameters(
-    List<ManifestTypeParameter> typeParameters,
-  ) {
-    sink.writeElements(
-      'typeParameters',
-      typeParameters,
-      (typeParameter) {
-        _writeNamedType('bound', typeParameter.bound);
-      },
-    );
+  void _writeTypeList(String name, List<ManifestType> types) {
+    sink.writeElements(name, types, (type) {
+      sink.writeIndent();
+      _writeType(type);
+    });
   }
+
+  void _writeTypeParameters(List<ManifestTypeParameter> typeParameters) {
+    sink.writeElements('typeParameters', typeParameters, (typeParameter) {
+      _writeNamedType('bound', typeParameter.bound);
+    });
+  }
+}
+
+class RequirementPrinterConfiguration {
+  var ignoredLibraries = <Uri>{Uri.parse('dart:core')};
 }
 
 class ResolvedLibraryResultPrinter {
@@ -978,7 +1202,7 @@ class ResolvedLibraryResultPrinter {
   final ElementPrinter elementPrinter;
   final IdProvider idProvider;
 
-  late final LibraryElement2 _libraryElement;
+  late final LibraryElement _libraryElement;
 
   ResolvedLibraryResultPrinter({
     required this.configuration,
@@ -1032,7 +1256,7 @@ class ResolvedUnitResultPrinter {
   final ResolvedUnitResultPrinterConfiguration configuration;
   final TreeStringSink sink;
   final ElementPrinter elementPrinter;
-  final LibraryElement2? libraryElement;
+  final LibraryElement? libraryElement;
   final IdProvider idProvider;
 
   ResolvedUnitResultPrinter({
@@ -1104,30 +1328,26 @@ class ResolvedUnitResultPrinter {
       }
 
       var typesToWrite = configuration.typesSelector(result);
-      sink.writeElements(
-        'selectedTypes',
-        typesToWrite.entries.toList(),
-        (entry) {
-          sink.writeIndent();
-          sink.write('${entry.key}: ');
-          elementPrinter.writeType(entry.value);
-        },
-      );
+      sink.writeElements('selectedTypes', typesToWrite.entries.toList(), (
+        entry,
+      ) {
+        sink.writeIndent();
+        sink.write('${entry.key}: ');
+        elementPrinter.writeType(entry.value);
+      });
 
       var variableTypesToWrite = configuration.variableTypesSelector(result);
-      sink.writeElements(
-        'selectedVariableTypes',
-        variableTypesToWrite,
-        (variable) {
-          sink.writeIndent();
-          sink.write('${variable.name3}: ');
-          if (variable is LocalVariableElement2) {
-            elementPrinter.writeType(variable.type);
-          } else if (variable is TopLevelVariableElement2) {
-            elementPrinter.writeType(variable.type);
-          }
-        },
-      );
+      sink.writeElements('selectedVariableTypes', variableTypesToWrite, (
+        variable,
+      ) {
+        sink.writeIndent();
+        sink.write('${variable.name3}: ');
+        if (variable is LocalVariableElement) {
+          elementPrinter.writeType(variable.type);
+        } else if (variable is TopLevelVariableElement) {
+          elementPrinter.writeType(variable.type);
+        }
+      });
     });
   }
 }
@@ -1136,7 +1356,7 @@ class ResolvedUnitResultPrinterConfiguration {
   var nodeConfiguration = ResolvedNodeTextConfiguration();
   AstNode? Function(ResolvedUnitResult) nodeSelector = (_) => null;
   Map<String, DartType> Function(ResolvedUnitResult) typesSelector = (_) => {};
-  List<Element2> Function(ResolvedUnitResult) variableTypesSelector = (_) => [];
+  List<Element> Function(ResolvedUnitResult) variableTypesSelector = (_) => [];
   bool Function(FileResult) withContentPredicate = (_) => false;
 }
 
@@ -1144,9 +1364,7 @@ class ResolvedUnitResultPrinterConfiguration {
 final class ResultStreamEvent extends DriverEvent {
   final Object object;
 
-  ResultStreamEvent({
-    required this.object,
-  });
+  ResultStreamEvent({required this.object});
 }
 
 final class SchedulerStatusEvent extends DriverEvent {
@@ -1156,7 +1374,7 @@ final class SchedulerStatusEvent extends DriverEvent {
 }
 
 class UnitElementPrinterConfiguration {
-  List<Element2> Function(LibraryFragment) elementSelector = (_) => [];
+  List<Element> Function(LibraryFragment) elementSelector = (_) => [];
 }
 
 extension on LibraryCycle {
@@ -1167,17 +1385,18 @@ extension on LibraryCycle {
 
 extension<V> on Map<LookupName, V> {
   List<MapEntry<LookupName, V>> get sorted {
-    return entries.sortedByCompare(
-      (entry) => entry.key,
-      LookupName.compare,
-    );
+    return entries.sortedByCompare((entry) => entry.key, LookupName.compare);
+  }
+}
+
+extension<V> on Map<BaseName, V> {
+  List<MapEntry<BaseName, V>> get sorted {
+    return entries.sortedByCompare((entry) => entry.key, BaseName.compare);
   }
 }
 
 extension<V> on Map<Uri, V> {
   List<MapEntry<Uri, V>> get sorted {
-    return entries.sortedBy(
-      (entry) => entry.key.toString(),
-    );
+    return entries.sortedBy((entry) => entry.key.toString());
   }
 }

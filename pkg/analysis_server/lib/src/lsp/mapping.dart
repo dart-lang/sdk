@@ -24,7 +24,8 @@ import 'package:analysis_server/src/services/completion/dart/feature_computer.da
 import 'package:analysis_server/src/services/snippets/snippet.dart';
 import 'package:analysis_server/src/utilities/extensions/string.dart';
 import 'package:analyzer/dart/analysis/results.dart' as server;
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart' as server;
 import 'package:analyzer/error/error.dart' as server;
 import 'package:analyzer/source/line_info.dart' as server;
 import 'package:analyzer/source/line_info.dart';
@@ -53,19 +54,21 @@ final completionFilterTextSplitPattern = RegExp(r'=>|[\(]');
 final completionSetterTypePattern = RegExp(r'^\((\S+)\s+\S+\)$');
 
 final diagnosticTagsForErrorCode = <String, List<lsp.DiagnosticTag>>{
-  _errorCode(WarningCode.DEAD_CODE): [lsp.DiagnosticTag.Unnecessary],
-  _errorCode(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE): [
+  _diagnosticCode(WarningCode.DEAD_CODE): [lsp.DiagnosticTag.Unnecessary],
+  _diagnosticCode(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE): [
     lsp.DiagnosticTag.Deprecated,
   ],
-  _errorCode(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE): [
+  _diagnosticCode(
+    HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE,
+  ): [lsp.DiagnosticTag.Deprecated],
+  _diagnosticCode(HintCode.DEPRECATED_MEMBER_USE): [
     lsp.DiagnosticTag.Deprecated,
   ],
-  _errorCode(HintCode.DEPRECATED_MEMBER_USE): [lsp.DiagnosticTag.Deprecated],
   'deprecated_member_use_from_same_package': [lsp.DiagnosticTag.Deprecated],
   'deprecated_member_use_from_same_package_with_message': [
     lsp.DiagnosticTag.Deprecated,
   ],
-  _errorCode(HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE): [
+  _diagnosticCode(HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE): [
     lsp.DiagnosticTag.Deprecated,
   ],
 };
@@ -170,26 +173,36 @@ lsp.WorkspaceEdit createPlainWorkspaceEdit(
   LspClientCapabilities clientCapabilities,
   List<server.SourceFileEdit> edits, {
   ChangeAnnotations annotateChanges = ChangeAnnotations.none,
+  String? filePath,
+  LineInfo? lineInfo,
 }) {
   return toWorkspaceEdit(
     annotateChanges: annotateChanges,
     clientCapabilities,
-    edits
-        .map(
-          (e) => FileEditInformation(
-            analysisServer.getVersionedDocumentIdentifier(e.file),
-            // If we expect to create the file, `server.getLineInfo()` won't
-            // provide a LineInfo so create one from empty contents.
-            e.fileStamp == -1
-                ? LineInfo.fromContent('')
-                : analysisServer.getLineInfo(e.file)!,
-            e.edits,
-            // `fileStamp == 1` is used by the server to indicate the file needs
-            // creating.
-            newFile: e.fileStamp == -1,
-          ),
-        )
-        .toList(),
+    edits.map((e) {
+      // If we don't expet to create the file use the passed line info if any
+      // and it matches the given file.
+      // If we expect to create the file, `server.getLineInfo()` won't
+      // provide a LineInfo so create one from empty contents.
+      LineInfo pickedLineInfo;
+      if (e.fileStamp == -1) {
+        pickedLineInfo = LineInfo.fromContent('');
+      } else {
+        if (filePath != null && lineInfo != null && filePath == e.file) {
+          pickedLineInfo = lineInfo;
+        } else {
+          pickedLineInfo = analysisServer.getLineInfo(e.file)!;
+        }
+      }
+      return FileEditInformation(
+        analysisServer.getVersionedDocumentIdentifier(e.file),
+        pickedLineInfo,
+        e.edits,
+        // `fileStamp == 1` is used by the server to indicate the file needs
+        // creating.
+        newFile: e.fileStamp == -1,
+      );
+    }).toList(),
   );
 }
 
@@ -261,6 +274,8 @@ lsp.WorkspaceEdit createWorkspaceEdit(
       clientCapabilities,
       change.edits,
       annotateChanges: annotateChanges,
+      filePath: filePath,
+      lineInfo: lineInfo,
     );
   }
 
@@ -516,7 +531,7 @@ lsp.Location? fragmentToLocation(
 
   int? nameOffset;
   int? nameLength;
-  if (fragment case PropertyAccessorElementImpl(
+  if (fragment case PropertyAccessorFragmentImpl(
     :var isSynthetic,
     :var nonSynthetic,
   ) when isSynthetic) {
@@ -1361,14 +1376,14 @@ lsp.CompletionItem toCompletionItem(
 lsp.Diagnostic toDiagnostic(
   ClientUriConverter uriConverter,
   server.ResolvedUnitResult result,
-  server.AnalysisError error, {
+  server.Diagnostic diagnostic, {
   required Set<lsp.DiagnosticTag> supportedTags,
   required bool clientSupportsCodeDescription,
 }) {
   return pluginToDiagnostic(
     uriConverter,
     (_) => result.lineInfo,
-    server.newAnalysisError_fromEngine(result, error),
+    server.newAnalysisError_fromEngine(result, diagnostic),
     supportedTags: supportedTags,
     clientSupportsCodeDescription: clientSupportsCodeDescription,
   );
@@ -1539,16 +1554,13 @@ lsp.SignatureHelp toSignatureHelp(
     var positionalOptional =
         signature.parameters.where((p) => p.isOptionalPositional).toList();
     var named = signature.parameters.where((p) => p.isNamed).toList();
-    var params = [];
-    if (positionalRequired.isNotEmpty) {
-      params.add(positionalRequired.map(getParamLabel).join(', '));
-    }
-    if (positionalOptional.isNotEmpty) {
-      params.add('[${positionalOptional.map(getParamLabel).join(', ')}]');
-    }
-    if (named.isNotEmpty) {
-      params.add('{${named.map(getParamLabel).join(', ')}}');
-    }
+    var params = [
+      if (positionalRequired.isNotEmpty)
+        positionalRequired.map(getParamLabel).join(', '),
+      if (positionalOptional.isNotEmpty)
+        '[${positionalOptional.map(getParamLabel).join(', ')}]',
+      if (named.isNotEmpty) '{${named.map(getParamLabel).join(', ')}}',
+    ];
     return '${resp.name}(${params.join(", ")})';
   }
 
@@ -1849,7 +1861,7 @@ lsp.MarkupContent _asMarkup(
   return lsp.MarkupContent(kind: format, value: content);
 }
 
-String _errorCode(server.ErrorCode code) => code.name.toLowerCase();
+String _diagnosticCode(server.DiagnosticCode code) => code.name.toLowerCase();
 
 /// Additional details about a completion that may be formatted differently
 /// depending on the client capabilities.

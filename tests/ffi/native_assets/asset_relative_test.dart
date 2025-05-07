@@ -65,10 +65,9 @@ Future<void> selfInvokes() async {
     selfSourceUri: selfSourceUri,
     runtime: Runtime.aot,
     kernelCombine: KernelCombine.concatenation,
-    aotCompile:
-        (Platform.isLinux || Platform.isMacOS)
-            ? AotCompile.assembly
-            : AotCompile.elf,
+    aotCompile: (Platform.isLinux || Platform.isMacOS)
+        ? AotCompile.assembly
+        : AotCompile.elf,
     relativePath: RelativePath.up,
     arguments: [runTestsArg],
     useSymlink: true,

@@ -43,7 +43,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         context.typeSystem.isNullable(expressionType) &&
         type != null &&
         context.typeSystem.isNonNullable(type)) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
     }
   }
 }

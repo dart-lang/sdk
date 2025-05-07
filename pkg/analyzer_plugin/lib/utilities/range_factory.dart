@@ -5,8 +5,8 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element2.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/source/source_range.dart';
 
 /// An instance of [RangeFactory] made available for convenience.
@@ -123,9 +123,10 @@ class RangeFactory {
     return SourceRange(node.offset, node.length);
   }
 
-  /// Return a source range that covers the same range as the given [error].
-  SourceRange error(AnalysisError error) {
-    return SourceRange(error.offset, error.length);
+  /// Returns a source range that covers the same range as the given
+  /// [diagnostic].
+  SourceRange error(Diagnostic diagnostic) {
+    return SourceRange(diagnostic.offset, diagnostic.length);
   }
 
   /// Returns a source range that covers the name of the given [fragment].

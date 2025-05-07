@@ -18,29 +18,46 @@ class TestZone {
   static T run<T>(String name, T Function() callback) {
     final tz = TestZone(name);
     final zone = Zone.current.fork(
-        specification: ZoneSpecification(
-            runUnary: tz.runUnary,
-            runBinary: tz.runBinary,
-            registerUnaryCallback: tz.registerUnaryCallback,
-            registerBinaryCallback: tz.registerBinaryCallback,
-            scheduleMicrotask: tz.scheduleMicrotask));
+      specification: ZoneSpecification(
+        runUnary: tz.runUnary,
+        runBinary: tz.runBinary,
+        registerUnaryCallback: tz.registerUnaryCallback,
+        registerBinaryCallback: tz.registerBinaryCallback,
+        scheduleMicrotask: tz.scheduleMicrotask,
+      ),
+    );
     return zone.run(callback);
   }
 
   R runUnary<R, T>(
-      Zone self, ZoneDelegate parent, Zone zone, R Function(T arg) f, T arg) {
+    Zone self,
+    ZoneDelegate parent,
+    Zone zone,
+    R Function(T arg) f,
+    T arg,
+  ) {
     log.add('$name.runUnary');
     return parent.runUnary(zone, f, arg);
   }
 
-  R runBinary<R, T1, T2>(Zone self, ZoneDelegate parent, Zone zone,
-      R Function(T1 arg1, T2 arg2) f, T1 arg1, T2 arg2) {
+  R runBinary<R, T1, T2>(
+    Zone self,
+    ZoneDelegate parent,
+    Zone zone,
+    R Function(T1 arg1, T2 arg2) f,
+    T1 arg1,
+    T2 arg2,
+  ) {
     log.add('$name.runBinary');
     return parent.runBinary(zone, f, arg1, arg2);
   }
 
   ZoneUnaryCallback<R, T> registerUnaryCallback<R, T>(
-      Zone self, ZoneDelegate parent, Zone zone, R Function(T arg) f) {
+    Zone self,
+    ZoneDelegate parent,
+    Zone zone,
+    R Function(T arg) f,
+  ) {
     log.add('$name.registerUnaryCallback');
     return parent.registerUnaryCallback(zone, (T arg) {
       log.add('$name.unaryCallback');
@@ -48,8 +65,12 @@ class TestZone {
     });
   }
 
-  ZoneBinaryCallback<R, T1, T2> registerBinaryCallback<R, T1, T2>(Zone self,
-      ZoneDelegate parent, Zone zone, R Function(T1 arg1, T2 arg2) f) {
+  ZoneBinaryCallback<R, T1, T2> registerBinaryCallback<R, T1, T2>(
+    Zone self,
+    ZoneDelegate parent,
+    Zone zone,
+    R Function(T1 arg1, T2 arg2) f,
+  ) {
     log.add('$name.registerBinaryCallback');
     return parent.registerBinaryCallback(zone, (T1 arg1, T2 arg2) {
       log.add('$name.binaryCallback');

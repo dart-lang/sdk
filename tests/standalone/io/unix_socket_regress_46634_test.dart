@@ -13,9 +13,11 @@ void main() async {
   }
   final futures = <Future>[];
   for (int i = 0; i < 10; ++i) {
-    futures.add(withTempDir('unix_socket_test', (Directory dir) async {
-      await testListenCloseListenClose('${dir.path}');
-    }));
+    futures.add(
+      withTempDir('unix_socket_test', (Directory dir) async {
+        await testListenCloseListenClose('${dir.path}');
+      }),
+    );
   }
   await Future.wait(futures);
 }

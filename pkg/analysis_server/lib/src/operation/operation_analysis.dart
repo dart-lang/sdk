@@ -186,7 +186,7 @@ String? _computeLibraryName(CompilationUnit unit) {
 }
 
 /// Runs the given notification producing function [f], catching exceptions.
-void _sendNotification(LegacyAnalysisServer server, Function() f) {
+void _sendNotification(LegacyAnalysisServer server, void Function() f) {
   try {
     f();
   } catch (exception, stackTrace) {

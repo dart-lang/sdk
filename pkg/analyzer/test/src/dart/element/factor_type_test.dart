@@ -30,7 +30,11 @@ class FactorTypeTest with FactorTypeTestMixin<TypeImpl>, ElementsTypesMixin {
 
   @override
   void expect(
-      TypeImpl T, TypeImpl S, String actualResult, String expectedResult) {
+    TypeImpl T,
+    TypeImpl S,
+    String actualResult,
+    String expectedResult,
+  ) {
     test.expect(actualResult, expectedResult);
   }
 

@@ -53,10 +53,9 @@ List<String> getLibraryMetadata(
   @notNull String libraryUri, [
   Object? libraries,
 ]) {
-  var library =
-      libraries != null
-          ? _get<Object?>(libraries, libraryUri)
-          : getLibrary('$libraryUri');
+  var library = libraries != null
+      ? _get<Object?>(libraries, libraryUri)
+      : getLibrary('$libraryUri');
   if (library == null) throw 'cannot find library for $libraryUri';
 
   final classes = <String>[];
@@ -120,10 +119,9 @@ Object? getClassMetadata(
   Object? objectInstance,
   Object? libraries,
 ]) {
-  var library =
-      libraries != null
-          ? _get<Object?>(libraries, libraryUri)
-          : getLibrary('$libraryUri');
+  var library = libraries != null
+      ? _get<Object?>(libraries, libraryUri)
+      : getLibrary('$libraryUri');
   if (library == null) throw 'cannot find library for $libraryUri';
 
   final rawName = name.split('<').first;
@@ -307,14 +305,13 @@ Object getObjectMetadata(@notNull Object object) {
   var reifiedType = getReifiedType(object);
   var className = typeName(reifiedType);
   var libraryId = null;
-  var cls =
-      JS<bool>('!', '#.Array.isArray(#)', global_, object)
-          // When the object is actually represented by a JavaScript Array use
-          // the interceptor class that matches the reified type.
-          ? JS_CLASS_REF(JSArray)
-          : (_hasConstructor(object)
-              ? _get<Object>(object, 'constructor')
-              : object);
+  var cls = JS<bool>('!', '#.Array.isArray(#)', global_, object)
+      // When the object is actually represented by a JavaScript Array use
+      // the interceptor class that matches the reified type.
+      ? JS_CLASS_REF(JSArray)
+      : (_hasConstructor(object)
+            ? _get<Object>(object, 'constructor')
+            : object);
   if (cls != null) {
     libraryId = getLibraryUri(cls);
   }
@@ -399,8 +396,9 @@ Object getObjectMetadata(@notNull Object object) {
 @notNull
 List<String> getObjectFieldNames(@notNull Object object) {
   var fieldNames = <String>[];
-  var cls =
-      _hasConstructor(object) ? _get<Object>(object, 'constructor') : object;
+  var cls = _hasConstructor(object)
+      ? _get<Object>(object, 'constructor')
+      : object;
 
   _collectObjectFieldNames(fieldNames, getFields(cls));
   return fieldNames..sort();
@@ -578,10 +576,9 @@ Shape _recordTypeShape(@notNull Type type) {
 String _symbolDescription(@notNull Object symbol) =>
     _get(symbol, 'description');
 
-String? _getDartSymbolName(@notNull dynamic symbol) =>
-    symbol is String
-        ? _getDartName(symbol)
-        : _getDartName(_symbolDescription(symbol));
+String? _getDartSymbolName(@notNull dynamic symbol) => symbol is String
+    ? _getDartName(symbol)
+    : _getDartName(_symbolDescription(symbol));
 
 String? _getDartName(String? name) {
   if (name == null) return null;

@@ -47,7 +47,7 @@ final callbackSmallDouble = ffiTestFunctions
 typedef SimpleMultiplyType = Double Function(Double);
 double simpleMultiply(double x) => x * 1.337;
 
-final doFromFunction =
-    () => Pointer.fromFunction<SimpleMultiplyType>(simpleMultiply, 0.0);
+final doFromFunction = () =>
+    Pointer.fromFunction<SimpleMultiplyType>(simpleMultiply, 0.0);
 
 final dartFunctionPointer = doFromFunction();

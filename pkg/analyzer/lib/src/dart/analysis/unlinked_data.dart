@@ -34,9 +34,7 @@ class AnalysisDriverUnlinkedUnit {
   });
 
   factory AnalysisDriverUnlinkedUnit.fromBytes(Uint8List bytes) {
-    return AnalysisDriverUnlinkedUnit.read(
-      SummaryDataReader(bytes),
-    );
+    return AnalysisDriverUnlinkedUnit.read(SummaryDataReader(bytes));
   }
 
   factory AnalysisDriverUnlinkedUnit.read(SummaryDataReader reader) {
@@ -108,14 +106,9 @@ class UnlinkedDartdocTemplate {
   final String name;
   final String value;
 
-  UnlinkedDartdocTemplate({
-    required this.name,
-    required this.value,
-  });
+  UnlinkedDartdocTemplate({required this.name, required this.value});
 
-  factory UnlinkedDartdocTemplate.read(
-    SummaryDataReader reader,
-  ) {
+  factory UnlinkedDartdocTemplate.read(SummaryDataReader reader) {
     return UnlinkedDartdocTemplate(
       name: reader.readStringUtf8(),
       value: reader.readStringUtf8(),
@@ -134,14 +127,9 @@ class UnlinkedLibraryDirective {
 
   final String? name;
 
-  UnlinkedLibraryDirective({
-    required this.docImports,
-    required this.name,
-  });
+  UnlinkedLibraryDirective({required this.docImports, required this.name});
 
-  factory UnlinkedLibraryDirective.read(
-    SummaryDataReader reader,
-  ) {
+  factory UnlinkedLibraryDirective.read(SummaryDataReader reader) {
     return UnlinkedLibraryDirective(
       docImports: reader.readTypedList(
         () => UnlinkedLibraryImportDirective.read(reader),
@@ -171,9 +159,7 @@ class UnlinkedLibraryExportDirective extends UnlinkedNamespaceDirective {
 
   factory UnlinkedLibraryExportDirective.read(SummaryDataReader reader) {
     return UnlinkedLibraryExportDirective(
-      combinators: reader.readTypedList(
-        () => UnlinkedCombinator.read(reader),
-      ),
+      combinators: reader.readTypedList(() => UnlinkedCombinator.read(reader)),
       configurations: reader.readTypedList(
         () => UnlinkedNamespaceDirectiveConfiguration.read(reader),
       ),
@@ -183,16 +169,12 @@ class UnlinkedLibraryExportDirective extends UnlinkedNamespaceDirective {
   }
 
   void write(BufferedSink sink) {
-    sink.writeList<UnlinkedCombinator>(
-      combinators,
-      (x) => x.write(sink),
-    );
-    sink.writeList<UnlinkedNamespaceDirectiveConfiguration>(
-      configurations,
-      (x) {
-        x.write(sink);
-      },
-    );
+    sink.writeList<UnlinkedCombinator>(combinators, (x) => x.write(sink));
+    sink.writeList<UnlinkedNamespaceDirectiveConfiguration>(configurations, (
+      x,
+    ) {
+      x.write(sink);
+    });
     sink.writeUInt30(exportKeywordOffset);
     sink.writeOptionalStringUtf8(uri);
   }
@@ -217,9 +199,7 @@ class UnlinkedLibraryImportDirective extends UnlinkedNamespaceDirective {
 
   factory UnlinkedLibraryImportDirective.read(SummaryDataReader reader) {
     return UnlinkedLibraryImportDirective(
-      combinators: reader.readTypedList(
-        () => UnlinkedCombinator.read(reader),
-      ),
+      combinators: reader.readTypedList(() => UnlinkedCombinator.read(reader)),
       configurations: reader.readTypedList(
         () => UnlinkedNamespaceDirectiveConfiguration.read(reader),
       ),
@@ -234,16 +214,12 @@ class UnlinkedLibraryImportDirective extends UnlinkedNamespaceDirective {
   }
 
   void write(BufferedSink sink) {
-    sink.writeList<UnlinkedCombinator>(
-      combinators,
-      (x) => x.write(sink),
-    );
-    sink.writeList<UnlinkedNamespaceDirectiveConfiguration>(
-      configurations,
-      (x) {
-        x.write(sink);
-      },
-    );
+    sink.writeList<UnlinkedCombinator>(combinators, (x) => x.write(sink));
+    sink.writeList<UnlinkedNamespaceDirectiveConfiguration>(configurations, (
+      x,
+    ) {
+      x.write(sink);
+    });
     sink.writeUInt30(1 + importKeywordOffset);
     sink.writeBool(isDocImport);
     sink.writeBool(isSyntheticDartCore);
@@ -366,10 +342,7 @@ class UnlinkedNamespaceDirectiveConfiguration {
 }
 
 class UnlinkedPartDirective extends UnlinkedConfigurableUriDirective {
-  UnlinkedPartDirective({
-    required super.configurations,
-    required super.uri,
-  });
+  UnlinkedPartDirective({required super.configurations, required super.uri});
 
   factory UnlinkedPartDirective.read(SummaryDataReader reader) {
     return UnlinkedPartDirective(
@@ -381,12 +354,11 @@ class UnlinkedPartDirective extends UnlinkedConfigurableUriDirective {
   }
 
   void write(BufferedSink sink) {
-    sink.writeList<UnlinkedNamespaceDirectiveConfiguration>(
-      configurations,
-      (x) {
-        x.write(sink);
-      },
-    );
+    sink.writeList<UnlinkedNamespaceDirectiveConfiguration>(configurations, (
+      x,
+    ) {
+      x.write(sink);
+    });
     sink.writeOptionalStringUtf8(uri);
   }
 }
@@ -404,9 +376,7 @@ class UnlinkedPartOfNameDirective {
     required this.nameRange,
   });
 
-  factory UnlinkedPartOfNameDirective.read(
-    SummaryDataReader reader,
-  ) {
+  factory UnlinkedPartOfNameDirective.read(SummaryDataReader reader) {
     return UnlinkedPartOfNameDirective(
       docImports: reader.readTypedList(
         () => UnlinkedLibraryImportDirective.read(reader),
@@ -438,9 +408,7 @@ class UnlinkedPartOfUriDirective {
     required this.uriRange,
   });
 
-  factory UnlinkedPartOfUriDirective.read(
-    SummaryDataReader reader,
-  ) {
+  factory UnlinkedPartOfUriDirective.read(SummaryDataReader reader) {
     return UnlinkedPartOfUriDirective(
       docImports: reader.readTypedList(
         () => UnlinkedLibraryImportDirective.read(reader),
@@ -463,17 +431,12 @@ class UnlinkedSourceRange {
   final int offset;
   final int length;
 
-  UnlinkedSourceRange({
-    required this.offset,
-    required this.length,
-  }) {
+  UnlinkedSourceRange({required this.offset, required this.length}) {
     RangeError.checkNotNegative(offset);
     RangeError.checkNotNegative(length);
   }
 
-  factory UnlinkedSourceRange.read(
-    SummaryDataReader reader,
-  ) {
+  factory UnlinkedSourceRange.read(SummaryDataReader reader) {
     return UnlinkedSourceRange(
       offset: reader.readUInt30(),
       length: reader.readUInt30(),
@@ -561,9 +524,7 @@ class UnlinkedUnit {
         () => UnlinkedLibraryDirective.read(reader),
       ),
       lineStarts: reader.readUInt30List(),
-      parts: reader.readTypedList(
-        () => UnlinkedPartDirective.read(reader),
-      ),
+      parts: reader.readTypedList(() => UnlinkedPartDirective.read(reader)),
       partOfNameDirective: reader.readOptionalObject(
         () => UnlinkedPartOfNameDirective.read(reader),
       ),

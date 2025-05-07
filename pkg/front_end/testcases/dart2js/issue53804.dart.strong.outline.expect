@@ -10,7 +10,7 @@ class A extends core::Object {
   @core::pragma::_("vm:never-inline")
   method foo() → core::String
     ;
-  static method _#new#tearOff() → self::A
+  static synthetic method _#new#tearOff() → self::A
     return new self::A::•();
 }
 static method main() → void

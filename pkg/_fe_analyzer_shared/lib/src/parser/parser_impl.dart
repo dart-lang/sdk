@@ -5844,14 +5844,7 @@ class Parser {
     assert(precedence <= SELECTOR_PRECEDENCE);
 
     bool isDotShorthand = _isDotShorthand(token.next!);
-    if (isDotShorthand) {
-      // TODO(kallentu): Once the analyzer implementation is done, we can avoid
-      // adding a synthetic identifier completely, but currently, the parser
-      // will crash without one.
-      //
-      // Insert a synthetic identifier to satisfy listeners.
-      token = rewriter.insertSyntheticIdentifier(token);
-    } else {
+    if (!isDotShorthand) {
       token =
           parseUnaryExpression(token, allowCascades, constantPatternContext);
     }

@@ -2649,7 +2649,9 @@ static Dart_NativeFunction OptExternalByteDataNativeResolver(
 }
 
 TEST_CASE(DartAPI_OptimizedExternalByteDataAccess) {
+  TransitionNativeToVM transition1(thread);
   NoBackgroundCompilerScope no_background_compiler(thread);
+  TransitionVMToNative transition2(thread);
 
   const char* kScriptChars = R"(
 import 'dart:typed_data';
@@ -10140,6 +10142,7 @@ TEST_CASE(DartAPI_TimelineCategories) {
     EXPECT_NOTSUBSTRING("Debugger", js_str);
     EXPECT_NOTSUBSTRING("Embedder", js_str);
     EXPECT_NOTSUBSTRING("Isolate", js_str);
+    EXPECT_NOTSUBSTRING("Microtask", js_str);
     EXPECT_NOTSUBSTRING("VM", js_str);
   }
 
@@ -10158,6 +10161,7 @@ TEST_CASE(DartAPI_TimelineCategories) {
     EXPECT_NOTSUBSTRING("Debugger", js_str);
     EXPECT_NOTSUBSTRING("Embedder", js_str);
     EXPECT_SUBSTRING("Isolate", js_str);
+    EXPECT_NOTSUBSTRING("Microtask", js_str);
     EXPECT_NOTSUBSTRING("VM", js_str);
   }
 
@@ -10176,6 +10180,7 @@ TEST_CASE(DartAPI_TimelineCategories) {
     EXPECT_NOTSUBSTRING("Debugger", js_str);
     EXPECT_NOTSUBSTRING("Embedder", js_str);
     EXPECT_NOTSUBSTRING("Isolate", js_str);
+    EXPECT_NOTSUBSTRING("Microtask", js_str);
     EXPECT_NOTSUBSTRING("VM", js_str);
   }
 }

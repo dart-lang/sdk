@@ -69,8 +69,11 @@ class OverlayResourceProvider implements ResourceProvider {
   /// Overlay the content of the file at the given [path]. The file will appear
   /// to have the given [content] and [modificationStamp] even if the file is
   /// modified in the base resource provider.
-  void setOverlay(String path,
-      {required String content, required int modificationStamp}) {
+  void setOverlay(
+    String path, {
+    required String content,
+    required int modificationStamp,
+  }) {
     _overlays[path] = _OverlayFileData(content, modificationStamp);
   }
 
@@ -97,8 +100,9 @@ class OverlayResourceProvider implements ResourceProvider {
 
   /// Return `true` if there is an overlay associated with at least one file
   /// contained inside the folder with the given [folderPath].
-  bool _hasOverlayIn(String folderPath) => _overlays.keys
-      .any((filePath) => pathContext.isWithin(folderPath, filePath));
+  bool _hasOverlayIn(String folderPath) => _overlays.keys.any(
+    (filePath) => pathContext.isWithin(folderPath, filePath),
+  );
 
   /// Move any overlay for the file at the [oldPath] to be an overlay for the
   /// file with the [newPath].
@@ -111,8 +115,9 @@ class OverlayResourceProvider implements ResourceProvider {
 
   /// Return the paths of all of the overlaid files that are children of the
   /// given [folderPath], either directly or indirectly.
-  Iterable<String> _overlaysInFolder(String folderPath) => _overlays.keys
-      .where((filePath) => pathContext.isWithin(folderPath, filePath));
+  Iterable<String> _overlaysInFolder(String folderPath) => _overlays.keys.where(
+    (filePath) => pathContext.isWithin(folderPath, filePath),
+  );
 }
 
 /// A file from an [OverlayResourceProvider].
@@ -326,7 +331,9 @@ abstract class _OverlayResource implements Resource {
   /// Return an instance of the subclass of this class corresponding to the
   /// given [resource] that is associated with the given [provider].
   factory _OverlayResource._from(
-      OverlayResourceProvider provider, Resource resource) {
+    OverlayResourceProvider provider,
+    Resource resource,
+  ) {
     if (resource is Folder) {
       return _OverlayFolder(provider, resource);
     } else if (resource is File) {

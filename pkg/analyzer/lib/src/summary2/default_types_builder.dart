@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -101,7 +101,7 @@ class DefaultTypesBuilder {
   }
 
   void _breakRawTypeCycles(
-    Element2 declarationElement,
+    Element declarationElement,
     TypeParameterList? parameterList,
   ) {
     if (parameterList == null) return;
@@ -115,7 +115,7 @@ class DefaultTypesBuilder {
         parameter,
         boundNode.typeOrThrow,
         declarationElement,
-        Set<Element2>.identity(),
+        Set<Element>.identity(),
       );
       allCycles.addAll(cycles);
     }
@@ -152,9 +152,11 @@ class DefaultTypesBuilder {
         }
 
         TypeParameter? current = parameter;
-        for (var step = 0;
-            current != null && step < typeParameters.length;
-            ++step) {
+        for (
+          var step = 0;
+          current != null && step < typeParameters.length;
+          ++step
+        ) {
           var bound = current.bound;
           if (bound is NamedType) {
             if (bound.importPrefix == null) {
@@ -190,7 +192,7 @@ class DefaultTypesBuilder {
   /// Compute bounds to be provided as type arguments in place of missing type
   /// arguments on raw types with the given type parameters.
   void _computeBounds(
-    Element2 declarationElement,
+    Element declarationElement,
     TypeParameterListImpl? parameterList,
   ) {
     if (parameterList == null) return;
@@ -211,8 +213,8 @@ class DefaultTypesBuilder {
     var graph = _TypeParametersGraph(elements, bounds);
     var stronglyConnected = computeStrongComponents(graph);
     for (var component in stronglyConnected) {
-      var dynamicSubstitution = <TypeParameterElement2, TypeImpl>{};
-      var nullSubstitution = <TypeParameterElement2, TypeImpl>{};
+      var dynamicSubstitution = <TypeParameterElement, TypeImpl>{};
+      var nullSubstitution = <TypeParameterElement, TypeImpl>{};
       for (var i in component) {
         var element = elements[i];
         dynamicSubstitution[element] = dynamicType;
@@ -231,8 +233,8 @@ class DefaultTypesBuilder {
     }
 
     for (var i = 0; i < length; i++) {
-      var thisSubstitution = <TypeParameterElement2, TypeImpl>{};
-      var nullSubstitution = <TypeParameterElement2, TypeImpl>{};
+      var thisSubstitution = <TypeParameterElement, TypeImpl>{};
+      var nullSubstitution = <TypeParameterElement, TypeImpl>{};
       var element = elements[i];
       thisSubstitution[element] = bounds[i];
       nullSubstitution[element] = bottomType;
@@ -260,22 +262,21 @@ class DefaultTypesBuilder {
   List<List<_CycleElement>> _findRawTypePathsToDeclaration(
     TypeParameter startParameter,
     DartType startType,
-    Element2 end,
-    Set<Element2> visited,
+    Element end,
+    Set<Element> visited,
   ) {
     var paths = <List<_CycleElement>>[];
     if (startType is NamedTypeBuilder) {
       var declaration = startType.element3;
       if (startType.arguments.isEmpty) {
         if (startType.element3 == end) {
-          paths.add([
-            _CycleElement(startParameter, startType),
-          ]);
+          paths.add([_CycleElement(startParameter, startType)]);
         } else if (visited.add(startType.element3)) {
-          void recurseParameters(List<TypeParameterElement2> parameters) {
+          void recurseParameters(List<TypeParameterElement> parameters) {
             for (var parameter in parameters) {
-              var parameterNode =
-                  _linker.getLinkingNode2(parameter.firstFragment);
+              var parameterNode = _linker.getLinkingNode2(
+                parameter.firstFragment,
+              );
               if (parameterNode is TypeParameter) {
                 var bound = parameterNode.bound;
                 if (bound != null) {
@@ -296,9 +297,9 @@ class DefaultTypesBuilder {
             }
           }
 
-          if (declaration is InterfaceElement2) {
+          if (declaration is InterfaceElement) {
             recurseParameters(declaration.typeParameters2);
-          } else if (declaration is TypeAliasElement2) {
+          } else if (declaration is TypeAliasElement) {
             recurseParameters(declaration.typeParameters2);
           }
           visited.remove(startType.element3);
@@ -328,12 +329,7 @@ class DefaultTypesBuilder {
         var bound = typeParameter.bound;
         if (bound != null) {
           paths.addAll(
-            _findRawTypePathsToDeclaration(
-              startParameter,
-              bound,
-              end,
-              visited,
-            ),
+            _findRawTypePathsToDeclaration(startParameter, bound, end, visited),
           );
         }
       }
@@ -370,10 +366,10 @@ class _TypeParametersGraph implements Graph<int> {
   // the type parameter with the index `i` in their bounds.
   final List<List<int>> _edges = [];
 
-  final Map<TypeParameterElement2, int> _parameterToIndex = Map.identity();
+  final Map<TypeParameterElement, int> _parameterToIndex = Map.identity();
 
   _TypeParametersGraph(
-    List<TypeParameterElement2> parameters,
+    List<TypeParameterElement> parameters,
     List<DartType> bounds,
   ) {
     assert(parameters.length == bounds.length);
@@ -419,17 +415,17 @@ class _TypeParametersGraph implements Graph<int> {
 }
 
 class _UpperLowerReplacementVisitor extends ReplacementVisitor {
-  final Map<TypeParameterElement2, TypeImpl> _upper;
-  final Map<TypeParameterElement2, TypeImpl> _lower;
+  final Map<TypeParameterElement, TypeImpl> _upper;
+  final Map<TypeParameterElement, TypeImpl> _lower;
   Variance _variance;
 
   _UpperLowerReplacementVisitor({
-    required Map<TypeParameterElement2, TypeImpl> upper,
-    required Map<TypeParameterElement2, TypeImpl> lower,
+    required Map<TypeParameterElement, TypeImpl> upper,
+    required Map<TypeParameterElement, TypeImpl> lower,
     required Variance variance,
-  })  : _upper = upper,
-        _lower = lower,
-        _variance = variance;
+  }) : _upper = upper,
+       _lower = lower,
+       _variance = variance;
 
   @override
   void changeVariance() {

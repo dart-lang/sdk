@@ -10,8 +10,13 @@ import 'package:expect/expect.dart';
 void rub(Object object, String message) {
   try {
     // Always fail, using non-standard operation name and verb.
-    HArrayFlagsCheck(object, ArrayFlags.unmodifiable,
-        ArrayFlags.fixedLengthCheck, 'rub', 'burnish');
+    HArrayFlagsCheck(
+      object,
+      ArrayFlags.unmodifiable,
+      ArrayFlags.fixedLengthCheck,
+      'rub',
+      'burnish',
+    );
     Expect.fail('HArrayFlagsCheck should always throw');
   } catch (e) {
     Expect.equals(message, e.toString());
@@ -20,15 +25,23 @@ void rub(Object object, String message) {
 
 main() {
   rub(const [], "Unsupported operation: 'rub': Cannot burnish a constant list");
-  rub(List.unmodifiable([]),
-      "Unsupported operation: 'rub': Cannot burnish an unmodifiable list");
-  rub(List.filled(0, 0),
-      "Unsupported operation: 'rub': Cannot burnish a fixed-length list");
+  rub(
+    List.unmodifiable([]),
+    "Unsupported operation: 'rub': Cannot burnish an unmodifiable list",
+  );
+  rub(
+    List.filled(0, 0),
+    "Unsupported operation: 'rub': Cannot burnish a fixed-length list",
+  );
   rub([], "Unsupported operation: 'rub': Cannot burnish a list");
 
-  rub(Uint8List(10).asUnmodifiableView(),
-      "Unsupported operation: 'rub': Cannot burnish an unmodifiable list");
+  rub(
+    Uint8List(10).asUnmodifiableView(),
+    "Unsupported operation: 'rub': Cannot burnish an unmodifiable list",
+  );
 
-  rub(ByteData(10).asUnmodifiableView(),
-      "Unsupported operation: 'rub': Cannot burnish an unmodifiable ByteData");
+  rub(
+    ByteData(10).asUnmodifiableView(),
+    "Unsupported operation: 'rub': Cannot burnish an unmodifiable ByteData",
+  );
 }

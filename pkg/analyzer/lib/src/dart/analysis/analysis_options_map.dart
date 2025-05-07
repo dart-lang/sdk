@@ -23,8 +23,8 @@ class AnalysisOptionsMap {
   /// Create an [AnalysisOptionsMap] that holds one set of [sharedOptions] for
   /// all associated files.
   factory AnalysisOptionsMap.forSharedOptions(
-          AnalysisOptionsImpl sharedOptions) =>
-      _SharedOptionsOptionsMap(sharedOptions);
+    AnalysisOptionsImpl sharedOptions,
+  ) => _SharedOptionsOptionsMap(sharedOptions);
 
   /// Get the first options entry or the default options object if there is none.
   AnalysisOptionsImpl get firstOrDefault =>

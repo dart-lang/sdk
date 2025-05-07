@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:meta/meta_meta.dart';
@@ -63,9 +63,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (elementAnnotation.targetKinds.length == 1 &&
           elementAnnotation.targetKinds.contains(TargetKind.library) &&
           firstDirective == node) {
-        rule.reportLint(annotation);
+        rule.reportAtNode(annotation);
       } else if (elementAnnotation.isPragmaLateTrust) {
-        rule.reportLint(annotation);
+        rule.reportAtNode(annotation);
       }
     }
   }
@@ -88,7 +88,7 @@ extension on ElementAnnotation {
     required String className,
   }) {
     var element = element2;
-    return element is ConstructorElement2 &&
+    return element is ConstructorElement &&
         element.enclosingElement2.name3 == className &&
         element.library2.name3 == libraryName;
   }

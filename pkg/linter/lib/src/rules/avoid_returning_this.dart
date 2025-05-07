@@ -95,11 +95,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (body is BlockFunctionBody) {
       var returnStatements = _BodyVisitor().collectReturns(body);
       if (returnStatements.isNotEmpty) {
-        rule.reportLint(returnStatements.first.expression);
+        rule.reportAtNode(returnStatements.first.expression);
       }
     } else if (body is ExpressionFunctionBody) {
       if (body.expression is ThisExpression) {
-        rule.reportLintForToken(node.name);
+        rule.reportAtToken(node.name);
       }
     }
   }

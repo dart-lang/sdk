@@ -16,6 +16,9 @@ void main() async {
   List<String> components = split(script);
   int index = components.indexOf('analyzer');
   String pkgPath = joinAll(components.sublist(0, index + 1));
-  await GeneratedContent.checkAll(pkgPath,
-      join(pkgPath, 'tool', 'experiments', 'generate.dart'), allTargets);
+  await GeneratedContent.checkAll(
+    pkgPath,
+    join(pkgPath, 'tool', 'experiments', 'generate.dart'),
+    allTargets,
+  );
 }

@@ -58,6 +58,7 @@ namespace bin {
   V(no_serve_observatory, disable_observatory)                                 \
   V(serve_observatory, enable_observatory)                                     \
   V(print_dtd, print_dtd)                                                      \
+  V(profile_microtasks, profile_microtasks)                                    \
   /* The purpose of this flag is documented in */                              \
   /* pkg/dartdev/lib/src/commands/run.dart. */                                 \
   V(resident, resident)

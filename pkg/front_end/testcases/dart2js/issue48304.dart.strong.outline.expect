@@ -12,7 +12,7 @@ class C extends core::Object implements self::B {
     ;
   method call<T extends core::Object? = dynamic>() → dynamic
     ;
-  static method _#new#tearOff() → self::C
+  static synthetic method _#new#tearOff() → self::C
     return new self::C::•();
 }
 abstract class A extends core::Object {
@@ -24,7 +24,7 @@ class Wrapper extends core::Object {
   final field self::B call;
   constructor •(self::B b, self::B call) → self::Wrapper
     ;
-  static method _#new#tearOff(self::B b, self::B call) → self::Wrapper
+  static synthetic method _#new#tearOff(self::B b, self::B call) → self::Wrapper
     return new self::Wrapper::•(b, call);
 }
 static method main() → void

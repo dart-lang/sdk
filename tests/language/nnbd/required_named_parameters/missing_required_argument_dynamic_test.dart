@@ -14,7 +14,8 @@ class A {
   A() {}
   int m1({required int a}) => 1;
 
-  F m2() => ({required String x}) => 'm2: $x';
+  F m2() =>
+      ({required String x}) => 'm2: $x';
 
   // Check a mix of required and optional.
   int m3({
@@ -111,7 +112,8 @@ class A {
 
 int f({required int a}) => 2;
 
-String Function({required int a}) g() => ({required int a}) => 'g';
+String Function({required int a}) g() =>
+    ({required int a}) => 'g';
 
 // Check a mix of required and optional.
 int h({

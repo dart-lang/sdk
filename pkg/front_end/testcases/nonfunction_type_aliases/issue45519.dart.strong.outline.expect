@@ -14,9 +14,9 @@ static method test() → dynamic
   ;
 static method main() → dynamic
   ;
-static method _#A#new#tearOff<X extends (self::C<self::_#A#new#tearOff::X>) → self::C<self::_#A#new#tearOff::X> = (self::C<dynamic>) → self::C<dynamic>>() → self::C<self::_#A#new#tearOff::X>
+static synthetic method _#A#new#tearOff<X extends (self::C<self::_#A#new#tearOff::X>) → self::C<self::_#A#new#tearOff::X> = (self::C<dynamic>) → self::C<dynamic>>() → self::C<self::_#A#new#tearOff::X>
   return new self::C::•<self::_#A#new#tearOff::X>();
-static method _#H#new#tearOff<invariant X extends core::Object? = dynamic>() → self::C<(self::_#H#new#tearOff::X%) → self::_#H#new#tearOff::X%>
+static synthetic method _#H#new#tearOff<invariant X extends core::Object? = dynamic>() → self::C<(self::_#H#new#tearOff::X%) → self::_#H#new#tearOff::X%>
   return new self::C::•<(self::_#H#new#tearOff::X%) → self::_#H#new#tearOff::X%>();
-static method _#B#new#tearOff<X extends self::C<(self::_#B#new#tearOff::X) → self::_#B#new#tearOff::X> = self::C<(dynamic) → dynamic>>() → self::C<self::_#B#new#tearOff::X>
+static synthetic method _#B#new#tearOff<X extends self::C<(self::_#B#new#tearOff::X) → self::_#B#new#tearOff::X> = self::C<(dynamic) → dynamic>>() → self::C<self::_#B#new#tearOff::X>
   return new self::C::•<self::_#B#new#tearOff::X>();

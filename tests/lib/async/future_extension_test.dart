@@ -36,15 +36,18 @@ void testIgnore() {
   {
     asyncStart();
     bool threw = false;
-    runZonedGuarded(() {
-      var c = Completer<int>.sync();
-      var f = c.future;
-      f.ignore();
-      c.completeError("ERROR2");
-    }, (e, s) {
-      threw = true;
-      Expect.fail("Should not happen: $e");
-    });
+    runZonedGuarded(
+      () {
+        var c = Completer<int>.sync();
+        var f = c.future;
+        f.ignore();
+        c.completeError("ERROR2");
+      },
+      (e, s) {
+        threw = true;
+        Expect.fail("Should not happen: $e");
+      },
+    );
     Future.delayed(Duration.zero, () {
       if (threw) Expect.fail("Future not ignored.");
       asyncEnd();

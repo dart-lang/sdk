@@ -73,64 +73,42 @@ void main(List<String> args) {
 void matchIL$loop(FlowGraph graph) {
   graph.match(inCodegenBlockOrder: true, [
     match.block('Graph'),
-    match.block('Function', [
-      match.Goto('loop_header'),
-    ]),
+    match.block('Function', [match.Goto('loop_header')]),
     'loop_header' <<
-        match.block('Join', [
-          match.Branch(match.any, ifTrue: 'loop_body'),
-        ]),
+        match.block('Join', [match.Branch(match.any, ifTrue: 'loop_body')]),
     'loop_body' <<
-        match.block('Target', [
-          match.Branch(match.any, ifFalse: 'loop_inc'),
-        ]),
-    'loop_inc' <<
-        match.block('Target', [
-          match.Goto('loop_header'),
-        ]),
+        match.block('Target', [match.Branch(match.any, ifFalse: 'loop_inc')]),
+    'loop_inc' << match.block('Target', [match.Goto('loop_header')]),
   ]);
 }
 
 void matchIL$loop2(FlowGraph graph) {
   graph.match(inCodegenBlockOrder: true, [
     match.block('Graph'),
-    match.block('Function', [
-      match.Goto('loop_header_1'),
-    ]),
+    match.block('Function', [match.Goto('loop_header_1')]),
     'loop_header_1' <<
-        match.block('Join', [
-          match.Branch(match.any, ifTrue: 'loop_body_1'),
-        ]),
-    'loop_body_1' <<
-        match.block('Target', [
-          match.Goto('loop_header_2'),
-        ]),
+        match.block('Join', [match.Branch(match.any, ifTrue: 'loop_body_1')]),
+    'loop_body_1' << match.block('Target', [match.Goto('loop_header_2')]),
     'loop_header_2' <<
         match.block('Join', [
-          match.Branch(match.any,
-              ifTrue: 'loop_body_2', ifFalse: 'loop_body_2_exit_1'),
+          match.Branch(
+            match.any,
+            ifTrue: 'loop_body_2',
+            ifFalse: 'loop_body_2_exit_1',
+          ),
         ]),
     'loop_body_2' <<
         match.block('Target', [
-          match.Branch(match.any,
-              ifTrue: 'loop_body_2_exit_2', ifFalse: 'loop_inc_2'),
+          match.Branch(
+            match.any,
+            ifTrue: 'loop_body_2_exit_2',
+            ifFalse: 'loop_inc_2',
+          ),
         ]),
-    'loop_inc_2' <<
-        match.block('Target', [
-          match.Goto('loop_header_2'),
-        ]),
-    'loop_body_2_exit_2' <<
-        match.block('Target', [
-          match.Goto('loop_inc_1'),
-        ]),
-    'loop_body_2_exit_1' <<
-        match.block('Target', [
-          match.Goto('loop_inc_1'),
-        ]),
-    'loop_inc_1' <<
-        match.block('Join', [
-          match.Goto('loop_header_1'),
-        ]),
+    'loop_inc_2' << match.block('Target', [match.Goto('loop_header_2')]),
+    'loop_body_2_exit_2' << match.block('Target', [match.Goto('loop_inc_1')]),
+    'loop_body_2_exit_1' << match.block('Target', [match.Goto('loop_inc_1')]),
+    'loop_inc_1' << match.block('Join', [match.Goto('loop_header_1')]),
   ]);
 }
 
@@ -147,9 +125,7 @@ void matchIL$bodyAlwaysThrows(FlowGraph graph) {
 void matchIL$throwInALoop(FlowGraph graph) {
   graph.match(inCodegenBlockOrder: true, [
     match.block('Graph'),
-    match.block('Function', [
-      match.Goto('loop_header'),
-    ]),
+    match.block('Function', [match.Goto('loop_header')]),
     'loop_header' <<
         match.block('Join', [
           'i' << match.Phi(match.any, 'inc_i'),
@@ -157,8 +133,11 @@ void matchIL$throwInALoop(FlowGraph graph) {
         ]),
     'loop_body' <<
         match.block('Target', [
-          match.Branch(match.any,
-              ifTrue: 'return_found', ifFalse: 'loop_body_cont'),
+          match.Branch(
+            match.any,
+            ifTrue: 'return_found',
+            ifFalse: 'loop_body_cont',
+          ),
         ]),
     'loop_body_cont' <<
         match.block('Target', [
@@ -176,17 +155,8 @@ void matchIL$throwInALoop(FlowGraph graph) {
           ],
           match.Goto('loop_header'),
         ]),
-    'return_found' <<
-        match.block('Target', [
-          match.DartReturn('i'),
-        ]),
-    'return_fail' <<
-        match.block('Target', [
-          match.DartReturn(match.any),
-        ]),
-    'throw' <<
-        match.block('Target', [
-          match.Throw(match.any),
-        ]),
+    'return_found' << match.block('Target', [match.DartReturn('i')]),
+    'return_fail' << match.block('Target', [match.DartReturn(match.any)]),
+    'throw' << match.block('Target', [match.Throw(match.any)]),
   ]);
 }

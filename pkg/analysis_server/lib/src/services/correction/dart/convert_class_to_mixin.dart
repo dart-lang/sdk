@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -91,7 +91,7 @@ class ConvertClassToMixin extends ResolvedCorrectionProducer {
 /// A visitor used to find all of the classes that define members referenced via
 /// `super`.
 class _SuperclassReferenceFinder extends RecursiveAstVisitor<void> {
-  final List<ClassElement2> referencedClasses = [];
+  final List<ClassElement> referencedClasses = [];
 
   _SuperclassReferenceFinder();
 
@@ -112,10 +112,10 @@ class _SuperclassReferenceFinder extends RecursiveAstVisitor<void> {
     return super.visitSuperExpression(node);
   }
 
-  void _addElement(Element2? element) {
-    if (element is ExecutableElement2) {
+  void _addElement(Element? element) {
+    if (element is ExecutableElement) {
       var enclosingElement = element.enclosingElement2;
-      if (enclosingElement is ClassElement2) {
+      if (enclosingElement is ClassElement) {
         referencedClasses.add(enclosingElement);
       }
     }

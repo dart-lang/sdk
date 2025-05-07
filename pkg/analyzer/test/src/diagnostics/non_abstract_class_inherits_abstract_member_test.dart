@@ -9,9 +9,7 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(
-      NonAbstractClassInheritsAbstractMemberTest,
-    );
+    defineReflectiveTests(NonAbstractClassInheritsAbstractMemberTest);
   });
 }
 
@@ -30,33 +28,41 @@ class B implements A {
   }
 
   test_abstract_field_final_implement_none() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A {
   abstract final int x;
 }
 class B implements A {}
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
           51,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_abstract_field_implement_getter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A {
   abstract int x;
 }
 class B implements A {
   int get x => 0;
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
           45,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_abstract_field_implement_getter_and_setter() async {
@@ -72,33 +78,41 @@ class B implements A {
   }
 
   test_abstract_field_implement_none() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A {
   abstract int x;
 }
 class B implements A {}
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO,
           45,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_abstract_field_implement_setter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A {
   abstract int x;
 }
 class B implements A {
   void set x(int value) {}
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
           45,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_abstractsDontOverrideConcretes_getter() async {
@@ -138,7 +152,8 @@ class C extends B {}
   }
 
   test_class_notAbstract_hasConcreteSubtype_method() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A {
   void foo();
 }
@@ -148,12 +163,15 @@ class B extends A {}
 class C extends B {}
 
 class D extends C {}
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
           42,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_classTypeAlias_interface() async {
@@ -194,7 +212,8 @@ abstract class B = A with M;
   }
 
   test_enum_getter_fromInterface() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   int get foo => 0;
 }
@@ -202,16 +221,20 @@ class A {
 enum E implements A {
   v;
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
           38,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_enum_getter_fromMixin() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 mixin M {
   int get foo;
 }
@@ -219,16 +242,20 @@ mixin M {
 enum E with M {
   v;
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
           33,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_enum_method_fromInterface() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   void foo() {}
 }
@@ -236,16 +263,20 @@ class A {
 enum E implements A {
   v;
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
           34,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_enum_method_fromMixin() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 mixin M {
   void foo();
 }
@@ -253,16 +284,20 @@ mixin M {
 enum E with M {
   v;
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
           32,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_enum_setter_fromInterface() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   set foo(int _) {}
 }
@@ -270,16 +305,20 @@ class A {
 enum E implements A {
   v;
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
           38,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_enum_setter_fromMixin() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 mixin M {
   set foo(int _);
 }
@@ -287,12 +326,15 @@ mixin M {
 enum E with M {
   v;
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
           36,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_external_field_final_implement_getter() async {
@@ -307,33 +349,41 @@ class B implements A {
   }
 
   test_external_field_final_implement_none() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   external final int x;
 }
 class B implements A {}
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
           42,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_external_field_implement_getter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   external int x;
 }
 class B implements A {
   int get x => 0;
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
           36,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_external_field_implement_getter_and_setter() async {
@@ -349,37 +399,46 @@ class B implements A {
   }
 
   test_external_field_implement_none() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   external int x;
 }
 class B implements A {}
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO,
           36,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_external_field_implement_setter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   external int x;
 }
 class B implements A {
   void set x(int value) {}
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
           36,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_fivePlus() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A {
   m();
   n();
@@ -389,17 +448,21 @@ abstract class A {
 }
 class C extends A {
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS,
           62,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_four() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A {
   m();
   n();
@@ -408,12 +471,15 @@ abstract class A {
 }
 class C extends A {
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR,
           55,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_mixin_concreteGetter() async {
@@ -506,7 +572,8 @@ class B extends A {
 
   test_one_classTypeAlias_interface() async {
     // issue 15979
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 //@dart=2.19
 abstract class M {}
 abstract class A {}
@@ -514,107 +581,134 @@ abstract class I {
   m();
 }
 class B = A with M implements I;
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
           87,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_one_classTypeAlias_mixin() async {
     // issue 15979
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 //@dart=2.19
 abstract class M {
   m();
 }
 abstract class A {}
 class B = A with M;
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
           67,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_one_classTypeAlias_superclass() async {
     // issue 15979
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 //@dart=2.19
 class M {}
 abstract class A {
   m();
 }
 class B = A with M;
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
           58,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_one_getter_fromInterface() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class I {
   int get g {return 1;}
 }
 class C implements I {
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
           42,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_one_getter_fromSuperclass() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A {
   int get g;
 }
 class C extends A {
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
           40,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_one_method_fromInterface() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class I {
   m(p) {}
 }
 class C implements I {
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
           28,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_one_method_fromInterface_abstractNSM() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class I {
   m(p) {}
 }
 class C implements I {
   noSuchMethod(v);
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
           28,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_one_method_fromInterface_abstractOverrideNSM() async {
@@ -632,39 +726,48 @@ class C extends B implements I {
   }
 
   test_one_method_fromInterface_ifcNSM() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class I {
   m(p) {}
   noSuchMethod(v) => null;
 }
 class C implements I {
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
           55,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_one_method_fromSuperclass() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A {
   m(p);
 }
 class C extends A {
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
           35,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_one_method_optionalParamCount() async {
     // issue 7640
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A {
   int x(int a);
 }
@@ -673,62 +776,78 @@ abstract class B {
 }
 class C implements A, B {
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
           89,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_one_mixinInherits_getter() async {
     // issue 15001
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 //@dart=2.19
 abstract class A { get g1; get g2; }
 abstract class B implements A { get g1 => 1; }
 class C extends Object with B {}
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
           103,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_one_mixinInherits_method() async {
     // issue 15001
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 //@dart=2.19
 abstract class A { m1(); m2(); }
 abstract class B implements A { m1() => 1; }
 class C extends Object with B {}
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
           97,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_one_mixinInherits_setter() async {
     // issue 15001
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 //@dart=2.19
 abstract class A { set s1(v); set s2(v); }
 abstract class B implements A { set s1(v) {} }
 class C extends Object with B {}
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
           109,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_one_noSuchMethod_interface() async {
     // issue 15979
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class I {
   noSuchMethod(v) => '';
 }
@@ -737,17 +856,21 @@ abstract class A {
 }
 class B extends A implements I {
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
           71,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_one_setter_and_implicitSetter() async {
     // test from language/override_inheritance_abstract_test_14.dart
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A {
   set field(_);
 }
@@ -757,47 +880,59 @@ abstract class I {
 class B extends A implements I {
   get field => 0;
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
           77,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_one_setter_fromInterface() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class I {
   set s(int i) {}
 }
 class C implements I {
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
           36,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_one_setter_fromSuperclass() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A {
   set s(int i);
 }
 class C extends A {
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
           43,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_one_superclasses_interface() async {
     // issue 11154
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   get a => 'a';
 }
@@ -806,46 +941,57 @@ abstract class B implements A {
 }
 class C extends B {
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
           84,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_one_variable_fromInterface_missingGetter() async {
     // issue 16133
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class I {
   var v;
 }
 class C implements I {
   set v(_) {}
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
           27,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_one_variable_fromInterface_missingSetter() async {
     // issue 16133
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class I {
   var v;
 }
 class C implements I {
   get v => 1;
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
           27,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_overridesConcreteMethodInObject() async {
@@ -860,7 +1006,8 @@ class B extends A with C {}
   }
 
   test_three() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A {
   m();
   n();
@@ -868,44 +1015,55 @@ abstract class A {
 }
 class C extends A {
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE,
           48,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_two() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 abstract class A {
   m();
   n();
 }
 class C extends A {
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO,
           41,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 
   test_two_fromInterface_missingBoth() async {
     // issue 16133
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class I {
   var v;
 }
 class C implements I {
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO,
           27,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
   }
 }

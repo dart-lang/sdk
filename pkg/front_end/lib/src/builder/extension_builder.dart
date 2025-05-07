@@ -28,6 +28,7 @@ abstract class ExtensionBuilder implements DeclarationBuilder {
       {bool setter = false, bool required = false});
 }
 
+// Coverage-ignore(suite): Not run.
 abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
     with DeclarationBuilderMixin
     implements ExtensionBuilder {
@@ -45,10 +46,6 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
   }
 
   @override
-  bool get isExtension => true;
-
-  @override
-  // Coverage-ignore(suite): Not run.
   Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
           {required Map<TypeParameterBuilder, TraversalState>
               typeParametersTraversalState}) =>

@@ -8,9 +8,8 @@ import 'package:expect/static_type_helper.dart';
 
 testFunctionExpressionInvocation() {
   (<T>(T t, void Function(T) f) => t)(0, (x) {
-        x.expectStaticType<Exactly<int>>();
-      })
-      .expectStaticType<Exactly<int>>();
+    x.expectStaticType<Exactly<int>>();
+  }).expectStaticType<Exactly<int>>();
 }
 
 testInstanceCreation() {

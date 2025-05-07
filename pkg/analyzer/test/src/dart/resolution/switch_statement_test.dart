@@ -583,7 +583,8 @@ SwitchStatement
   }
 
   test_variables_joinedCase_declareBoth_notConsistent_differentFinality() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   switch (x) {
     case final int a when a < 0:
@@ -591,13 +592,16 @@ void f(Object? x) {
       a;
   }
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE,
           101,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
 
     var node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
@@ -680,7 +684,8 @@ SwitchStatement
   }
 
   test_variables_joinedCase_declareBoth_notConsistent_differentFinalityTypes() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   switch (x) {
     case final int a when a < 0:
@@ -688,13 +693,16 @@ void f(Object? x) {
       a;
   }
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE,
           101,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
 
     var node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
@@ -777,7 +785,8 @@ SwitchStatement
   }
 
   test_variables_joinedCase_declareBoth_notConsistent_differentTypes() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   switch (x) {
     case int a when a < 0:
@@ -785,13 +794,16 @@ void f(Object? x) {
       a;
   }
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode
               .PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE,
           95,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
 
     var node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
@@ -873,7 +885,8 @@ SwitchStatement
   }
 
   test_variables_joinedCase_declareFirst() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   switch (x) {
     case 0:
@@ -881,12 +894,15 @@ void f(Object? x) {
       a;
   }
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES,
           80,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
 
     var node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
@@ -949,7 +965,8 @@ SwitchStatement
   }
 
   test_variables_joinedCase_declareSecond() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   switch (x) {
     case int a when a > 0:
@@ -957,12 +974,15 @@ void f(Object? x) {
       a;
   }
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES,
           80,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
 
     var node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
@@ -1025,7 +1045,8 @@ SwitchStatement
   }
 
   test_variables_joinedCase_hasDefault() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   switch (x) {
     case int a when a > 0:
@@ -1033,10 +1054,15 @@ void f(Object? x) {
       a;
   }
 }
-''', [
-      error(CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL,
-          81, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL,
+          81,
+          1,
+        ),
+      ],
+    );
 
     var node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
@@ -1093,7 +1119,8 @@ SwitchStatement
   }
 
   test_variables_joinedCase_hasDefault2() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   switch (x) {
     case var a:
@@ -1102,13 +1129,18 @@ void f(Object? x) {
       a;
   }
 }
-''', [
-      error(WarningCode.DEAD_CODE, 55, 4),
-      error(WarningCode.UNREACHABLE_SWITCH_CASE, 55, 4),
-      error(WarningCode.DEAD_CODE, 71, 7),
-      error(CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL,
-          86, 1),
-    ]);
+''',
+      [
+        error(WarningCode.DEAD_CODE, 55, 4),
+        error(WarningCode.UNREACHABLE_SWITCH_CASE, 55, 4),
+        error(WarningCode.DEAD_CODE, 71, 7),
+        error(
+          CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL,
+          86,
+          1,
+        ),
+      ],
+    );
 
     var node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
@@ -1157,7 +1189,8 @@ SwitchStatement
   }
 
   test_variables_joinedCase_hasLabel() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   switch (x) {
     myLabel:
@@ -1165,11 +1198,16 @@ void f(Object? x) {
       a;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LABEL, 39, 8),
-      error(CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL,
-          81, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LABEL, 39, 8),
+        error(
+          CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL,
+          81,
+          1,
+        ),
+      ],
+    );
 
     var node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
@@ -1230,7 +1268,8 @@ SwitchStatement
   }
 
   test_variables_joinedCase_notConsistent3() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   switch (x) {
     case int a:
@@ -1241,20 +1280,25 @@ void f(Object? x) {
       c;
   }
 }
-''', [
-      error(
+''',
+      [
+        error(
           CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES,
           95,
-          1),
-      error(
+          1,
+        ),
+        error(
           CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES,
           104,
-          1),
-      error(
+          1,
+        ),
+        error(
           CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES,
           113,
-          1),
-    ]);
+          1,
+        ),
+      ],
+    );
 
     var node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
@@ -1331,16 +1375,17 @@ SwitchStatement
   }
 
   test_variables_logicalOr() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f(Object? x) {
   switch (x) {
     case <int>[var a || var a]:
       a;
   }
 }
-''', [
-      error(WarningCode.DEAD_CODE, 56, 8),
-    ]);
+''',
+      [error(WarningCode.DEAD_CODE, 56, 8)],
+    );
 
     var node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
@@ -1399,7 +1444,8 @@ SwitchStatement
   }
 
   test_variables_scope() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 const a = 0;
 void f(Object? x) {
   switch (x) {
@@ -1407,12 +1453,21 @@ void f(Object? x) {
       a;
   }
 }
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION, 68,
-          1),
-      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 68, 1,
-          contextMessages: [message(testFile, 62, 1)]),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION,
+          68,
+          1,
+        ),
+        error(
+          CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+          68,
+          1,
+          contextMessages: [message(testFile, 62, 1)],
+        ),
+      ],
+    );
 
     var node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''

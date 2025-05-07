@@ -299,6 +299,9 @@ class KeywordHelper {
 
     /// Return `true` if `switch` should be suggested for the given [node].
     bool switchIsValid(AstNode? node) {
+      if (node is SimpleIdentifier && node.parent is DefaultFormalParameter) {
+        return false;
+      }
       if (node is CollectionElement && node is! Expression) {
         node = node.parent;
       }
@@ -421,11 +424,21 @@ class KeywordHelper {
 
   /// Add the keywords that are appropriate when the selection is at the start
   /// of a formal parameter in the given [parameterList].
-  void addFormalParameterKeywords(FormalParameterList parameterList) {
-    addKeyword(Keyword.COVARIANT);
+  void addFormalParameterKeywords(
+    FormalParameterList parameterList, {
+    required bool suggestRequired,
+    required bool suggestVariableName,
+    bool suggestCovariant = true,
+  }) {
+    if (suggestCovariant) {
+      addKeyword(Keyword.COVARIANT);
+    }
     addKeyword(Keyword.FINAL);
-    if (parameterList.inNamedGroup(offset)) {
+    if (suggestRequired && parameterList.inNamedGroup(offset)) {
       addKeyword(Keyword.REQUIRED);
+    }
+    if (!suggestVariableName) {
+      return;
     }
     var parent = parameterList.parent;
     if (parent is ConstructorDeclaration) {

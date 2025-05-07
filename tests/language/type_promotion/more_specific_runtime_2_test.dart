@@ -28,9 +28,7 @@ class D<T> {
 class E<T> extends D<T> {
   T? e;
 
-  E(e)
-      : this.e = e,
-        super(e);
+  E(e) : this.e = e, super(e);
 }
 
 void main() {
@@ -45,11 +43,9 @@ void testInterface() {
   A a = new B();
   if (a is B) {
     // Promotion B << A.
-
   }
   if (a is C) {
     // No promotion C !<< A.
-
   }
   B b = new B();
   if (b is A) {
@@ -58,7 +54,6 @@ void testInterface() {
   }
   if (x is A) {
     // Promotion A << dynamic.
-
   }
 }
 
@@ -69,25 +64,18 @@ testGeneric() {
   D d1 = new E<B>(null);
   if (d1 is E) {
     // Promotion: E << D.
-
   }
   if (d1 is E<A>) {
     // Promotion: E<A> << D.
-
-
-
   }
 
   D<A> d2 = new E<B>(null);
   if (d2 is E) {
     // No promotion: E !<< D<A>
-
   }
 
   D<A> d3 = new E<B>(new B());
   if (d3 is E<B>) {
     // Promotion: E<B> << D<A>
-
-
   }
 }

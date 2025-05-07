@@ -1,0 +1,37 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/invalid_override_return_type.dart:13:5: Error: The return type of the method 'Sub.foo' is 'A', which does not match the return type, 'B', of the overridden method, 'Super.foo'.
+//  - 'A' is from 'pkg/front_end/testcases/general/invalid_override_return_type.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/general/invalid_override_return_type.dart'.
+// Change to a subtype of 'B'.
+//   A foo() => new A();
+//     ^
+// pkg/front_end/testcases/general/invalid_override_return_type.dart:9:5: Context: This is the overridden method ('foo').
+//   B foo() => new B();
+//     ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+}
+class B extends self::A {
+  synthetic constructor •() → self::B
+    ;
+}
+class Super extends core::Object {
+  synthetic constructor •() → self::Super
+    ;
+  method foo() → self::B
+    ;
+}
+class Sub extends self::Super {
+  synthetic constructor •() → self::Sub
+    ;
+  erroneous method foo() → self::A
+    ;
+}

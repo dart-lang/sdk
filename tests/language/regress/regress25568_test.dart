@@ -12,8 +12,11 @@ class BacklogListEditorState
 
 class BacklogsState extends MutableEntityState<BacklogsState> {}
 
-abstract class AbstractListEditorState<ES extends ComponentState<ES>,
-    S extends AbstractListEditorState<ES, S>> extends ComponentState<S> {}
+abstract class AbstractListEditorState<
+  ES extends ComponentState<ES>,
+  S extends AbstractListEditorState<ES, S>
+>
+    extends ComponentState<S> {}
 
 abstract class ComponentState<S extends ComponentState<S>> {}
 
@@ -21,4 +24,5 @@ abstract class EntityState<ES extends EntityState<ES>>
     extends ComponentState<ES> {}
 
 abstract class MutableEntityState<S extends MutableEntityState<S>>
-    extends EntityState<S> implements ComponentState<S> {}
+    extends EntityState<S>
+    implements ComponentState<S> {}

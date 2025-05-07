@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../util/obvious_types.dart';
@@ -70,7 +70,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         bool ignoreThisVariable = false;
         AstNode? owningDeclaration = node;
         while (owningDeclaration != null) {
-          InterfaceElement2? owningElement = switch (owningDeclaration) {
+          InterfaceElement? owningElement = switch (owningDeclaration) {
             ClassDeclaration(:var declaredFragment?) =>
               declaredFragment.element,
             MixinDeclaration(:var declaredFragment?) =>
@@ -107,10 +107,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
     if (aDeclaredTypeIsNeeded) {
       if (node.variables.length == 1) {
-        rule.reportLint(node);
+        rule.reportAtNode(node);
       } else {
         // Multiple variables, report each of them separately. No fix.
-        variablesThatNeedAType.forEach(rule.reportLint);
+        variablesThatNeedAType.forEach(rule.reportAtNode);
       }
     }
   }

@@ -54,14 +54,19 @@ class LiteralElementVerifier {
   void _checkAssignableToElementType(TypeImpl type, AstNode errorNode) {
     var elementType = this.elementType;
 
-    if (!typeSystem.isAssignableTo(type, elementType!,
-        strictCasts: _strictCasts)) {
+    if (!typeSystem.isAssignableTo(
+      type,
+      elementType!,
+      strictCasts: _strictCasts,
+    )) {
       bool assignableWhenNullable = typeSystem.isAssignableTo(
-          type, typeSystem.makeNullable(elementType),
-          strictCasts: _strictCasts);
+        type,
+        typeSystem.makeNullable(elementType),
+        strictCasts: _strictCasts,
+      );
       var errorCode = switch ((
         forList: forList,
-        assignableWhenNullable: assignableWhenNullable
+        assignableWhenNullable: assignableWhenNullable,
       )) {
         (forList: false, assignableWhenNullable: false) =>
           CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE,
@@ -92,10 +97,7 @@ class LiteralElementVerifier {
           }
           _checkAssignableToElementType(element.typeOrThrow, element);
         } else {
-          errorReporter.atNode(
-            element,
-            CompileTimeErrorCode.EXPRESSION_IN_MAP,
-          );
+          errorReporter.atNode(element, CompileTimeErrorCode.EXPRESSION_IN_MAP);
         }
       case ForElementImpl():
         _verifyElement(element.body);
@@ -126,12 +128,11 @@ class LiteralElementVerifier {
             return;
           }
           _checkAssignableToElementType(
-              typeSystem.promoteToNonNull(element.value.typeOrThrow), element);
-        } else {
-          errorReporter.atNode(
+            typeSystem.promoteToNonNull(element.value.typeOrThrow),
             element,
-            CompileTimeErrorCode.EXPRESSION_IN_MAP,
           );
+        } else {
+          errorReporter.atNode(element, CompileTimeErrorCode.EXPRESSION_IN_MAP);
         }
       case null:
         break;
@@ -159,12 +160,17 @@ class LiteralElementVerifier {
     if (entry.keyQuestion != null) {
       keyType = typeSystem.promoteToNonNull(keyType);
     }
-    if (!typeSystem.isAssignableTo(keyType, mapKeyType,
-        strictCasts: _strictCasts)) {
+    if (!typeSystem.isAssignableTo(
+      keyType,
+      mapKeyType,
+      strictCasts: _strictCasts,
+    )) {
       if (entry.keyQuestion == null &&
           typeSystem.isAssignableTo(
-              keyType, typeSystem.makeNullable(mapKeyType),
-              strictCasts: _strictCasts)) {
+            keyType,
+            typeSystem.makeNullable(mapKeyType),
+            strictCasts: _strictCasts,
+          )) {
         errorReporter.atNode(
           entry.key,
           CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE_NULLABILITY,
@@ -185,12 +191,17 @@ class LiteralElementVerifier {
     if (entry.valueQuestion != null) {
       valueType = typeSystem.promoteToNonNull(valueType);
     }
-    if (!typeSystem.isAssignableTo(valueType, mapValueType,
-        strictCasts: _strictCasts)) {
+    if (!typeSystem.isAssignableTo(
+      valueType,
+      mapValueType,
+      strictCasts: _strictCasts,
+    )) {
       if (entry.valueQuestion == null &&
           typeSystem.isAssignableTo(
-              valueType, typeSystem.makeNullable(mapValueType),
-              strictCasts: _strictCasts)) {
+            valueType,
+            typeSystem.makeNullable(mapValueType),
+            strictCasts: _strictCasts,
+          )) {
         errorReporter.atNode(
           entry.value,
           CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE_NULLABILITY,
@@ -248,15 +259,22 @@ class LiteralElementVerifier {
 
     var iterableElementType = iterableType.typeArguments[0];
     var elementType = this.elementType;
-    if (!typeSystem.isAssignableTo(iterableElementType, elementType!,
-        strictCasts: _strictCasts)) {
-      var errorCode = forList
-          ? CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
-          : CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE;
+    if (!typeSystem.isAssignableTo(
+      iterableElementType,
+      elementType!,
+      strictCasts: _strictCasts,
+    )) {
+      var errorCode =
+          forList
+              ? CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+              : CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE;
       // Also check for an "implicit tear-off conversion" which would be applied
       // after desugaring a spread element.
       var implicitCallMethod = _errorVerifier.getImplicitCallMethod(
-          iterableElementType, elementType, expression);
+        iterableElementType,
+        elementType,
+        expression,
+      );
       if (implicitCallMethod == null) {
         errorReporter.atNode(
           expression,
@@ -272,8 +290,9 @@ class LiteralElementVerifier {
             errorReporter: errorReporter,
             errorNode: expression,
             genericMetadataIsEnabled: true,
-            inferenceUsingBoundsIsEnabled:
-                featureSet.isEnabled(Feature.inference_using_bounds),
+            inferenceUsingBoundsIsEnabled: featureSet.isEnabled(
+              Feature.inference_using_bounds,
+            ),
             strictInference: _errorVerifier.options.strictInference,
             strictCasts: _errorVerifier.options.strictCasts,
             typeSystemOperations: _errorVerifier.typeSystemOperations,
@@ -285,8 +304,11 @@ class LiteralElementVerifier {
           }
         }
 
-        if (!typeSystem.isAssignableTo(tearoffType, elementType,
-            strictCasts: _strictCasts)) {
+        if (!typeSystem.isAssignableTo(
+          tearoffType,
+          elementType,
+          strictCasts: _strictCasts,
+        )) {
           errorReporter.atNode(
             expression,
             errorCode,
@@ -303,10 +325,7 @@ class LiteralElementVerifier {
     var expressionType = expression.typeOrThrow;
     if (expressionType is DynamicType) {
       if (_errorVerifier.strictCasts) {
-        errorReporter.atNode(
-          expression,
-          CompileTimeErrorCode.NOT_MAP_SPREAD,
-        );
+        errorReporter.atNode(expression, CompileTimeErrorCode.NOT_MAP_SPREAD);
       }
       return;
     }
@@ -326,9 +345,7 @@ class LiteralElementVerifier {
       return;
     }
 
-    var mapType = expressionType.asInstanceOf2(
-      typeProvider.mapElement2,
-    );
+    var mapType = expressionType.asInstanceOf2(typeProvider.mapElement2);
 
     if (mapType == null) {
       return errorReporter.atNode(
@@ -339,8 +356,11 @@ class LiteralElementVerifier {
 
     var keyType = mapType.typeArguments[0];
     var mapKeyType = this.mapKeyType;
-    if (!typeSystem.isAssignableTo(keyType, mapKeyType!,
-        strictCasts: _strictCasts)) {
+    if (!typeSystem.isAssignableTo(
+      keyType,
+      mapKeyType!,
+      strictCasts: _strictCasts,
+    )) {
       errorReporter.atNode(
         expression,
         CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
@@ -350,8 +370,11 @@ class LiteralElementVerifier {
 
     var valueType = mapType.typeArguments[1];
     var mapValueType = this.mapValueType;
-    if (!typeSystem.isAssignableTo(valueType, mapValueType!,
-        strictCasts: _strictCasts)) {
+    if (!typeSystem.isAssignableTo(
+      valueType,
+      mapValueType!,
+      strictCasts: _strictCasts,
+    )) {
       errorReporter.atNode(
         expression,
         CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,

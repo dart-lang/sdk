@@ -58,6 +58,38 @@ import 'meta_meta.dart';
 @Deprecated("Use a return type of 'Never' instead")
 const _AlwaysThrows alwaysThrows = _AlwaysThrows();
 
+/// Used to annotate a [Future]-returning function (including constructors,
+/// getters, methods, and operators), or a [Future]-typed field (including
+/// top-level, instance, and static) `f`. Indicates that the [Future] value that
+/// `f` returns does not need to be awaited. Any methods that override `f` in
+/// class inheritance, are also expected to conform to this contract.
+///
+/// Tools, such as the analyzer, can use this to understand whether to report
+/// that a [Future]-typed value does not need to be awaited:
+///
+/// ```dart
+/// @awaitNotRequired Future<LogMessage> log(String message) { ... }
+///
+/// void fn() {
+///   log('Message'); // Not important to wait for logging to complete.
+/// }
+/// ```
+///
+/// Without the annotation on `log`, the analyzer may report a lint diagnostic
+/// at the call to `log`, such as `discarded_futures` or `unawaited_futures`,
+/// regarding the danger of not awaiting the function call, depending on what
+/// lint rules are enabled.
+///
+/// Tools, such as the analyzer, can also provide feedback if
+///
+/// * the annotation is associated with anything other than a constructor,
+///   function, method, operator, field, or top-level variable, or
+/// * the annotation is associated with a constructor, function, method, or
+///   operator that does not return a [Future], or
+/// * the annotation is associated with a field or top-level variable that is
+///   not typed as a [Future].
+const _AwaitNotRequired awaitNotRequired = _AwaitNotRequired();
+
 /// Used to annotate a parameter of an instance method that overrides another
 /// method.
 ///
@@ -526,11 +558,7 @@ const _VisibleForTesting visibleForTesting = _VisibleForTesting();
 /// Used to annotate a class.
 ///
 /// See [immutable] for more details.
-@Target({
-  TargetKind.classType,
-  TargetKind.extensionType,
-  TargetKind.mixinType,
-})
+@Target({TargetKind.classType, TargetKind.extensionType, TargetKind.mixinType})
 class Immutable {
   /// A human-readable explanation of the reason why the class is immutable.
   final String reason;
@@ -625,6 +653,19 @@ class _AlwaysThrows {
   const _AlwaysThrows();
 }
 
+/// See [awaitNotRequired] for more details.
+@Target({
+  TargetKind.constructor,
+  TargetKind.field,
+  TargetKind.function,
+  TargetKind.getter,
+  TargetKind.method,
+  TargetKind.topLevelVariable,
+})
+class _AwaitNotRequired {
+  const _AwaitNotRequired();
+}
+
 class _Checked {
   const _Checked();
 }
@@ -659,9 +700,7 @@ class _Experimental {
   const _Experimental();
 }
 
-@Target({
-  TargetKind.method,
-})
+@Target({TargetKind.method})
 class _Factory {
   const _Factory();
 }
@@ -687,24 +726,17 @@ class _Literal {
   const _Literal();
 }
 
-@Target({
-  TargetKind.parameter,
-  TargetKind.extensionType,
-})
+@Target({TargetKind.parameter, TargetKind.extensionType})
 class _MustBeConst {
   const _MustBeConst();
 }
 
-@Target({
-  TargetKind.overridableMember,
-})
+@Target({TargetKind.overridableMember})
 class _MustBeOverridden {
   const _MustBeOverridden();
 }
 
-@Target({
-  TargetKind.overridableMember,
-})
+@Target({TargetKind.overridableMember})
 class _MustCallSuper {
   const _MustCallSuper();
 }
@@ -744,17 +776,12 @@ class _Redeclare {
   const _Redeclare();
 }
 
-@Target({
-  TargetKind.classType,
-  TargetKind.mixinType,
-})
+@Target({TargetKind.classType, TargetKind.mixinType})
 class _Reopen {
   const _Reopen();
 }
 
-@Target({
-  TargetKind.classType,
-})
+@Target({TargetKind.classType})
 class _Sealed {
   const _Sealed();
 }

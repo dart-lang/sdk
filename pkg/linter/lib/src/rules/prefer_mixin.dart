@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
@@ -38,9 +38,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       var type = mixinNode.type;
       if (type is InterfaceType) {
         var element = type.element3;
-        if (element is MixinElement2) continue;
-        if (element is ClassElement2 && !element.isMixinClass) {
-          rule.reportLint(mixinNode, arguments: [mixinNode.name2.lexeme]);
+        if (element is MixinElement) continue;
+        if (element is ClassElement && !element.isMixinClass) {
+          rule.reportAtNode(mixinNode, arguments: [mixinNode.name2.lexeme]);
         }
       }
     }

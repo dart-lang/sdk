@@ -7,7 +7,7 @@ class Ext extends core::Object /*hasConstConstructor*/  {
   const constructor •() → self::Ext
     : assert(!(self::maybe == null), "Must not be null"), self::Ext::_ = "OK", super core::Object::•()
     ;
-  static method _#new#tearOff() → self::Ext
+  static synthetic method _#new#tearOff() → self::Ext
     return new self::Ext::•();
 }
 static const field core::String? maybe = const core::bool::fromEnvironment("not there") ?{core::String?} "string" : null;

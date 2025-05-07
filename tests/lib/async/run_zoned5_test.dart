@@ -10,10 +10,13 @@ import 'package:expect/expect.dart';
 main() {
   asyncStart();
   // Ensure that `runZoned`'s onError handles synchronous errors.
-  runZonedGuarded(() {
-    throw 0;
-  }, (e, s) {
-    Expect.equals(0, e);
-    asyncEnd();
-  });
+  runZonedGuarded(
+    () {
+      throw 0;
+    },
+    (e, s) {
+      Expect.equals(0, e);
+      asyncEnd();
+    },
+  );
 }

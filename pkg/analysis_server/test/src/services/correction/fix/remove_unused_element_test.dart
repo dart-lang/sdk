@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:linter/src/lint_names.dart';
@@ -180,7 +179,7 @@ enum _MyEnum {A, B, C}
     await assertHasFix(
       r'''
 ''',
-      errorFilter: (AnalysisError error) {
+      errorFilter: (error) {
         return error.errorCode == WarningCode.UNUSED_ELEMENT;
       },
     );

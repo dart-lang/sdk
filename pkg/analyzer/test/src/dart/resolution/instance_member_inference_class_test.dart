@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -918,7 +918,7 @@ class B implements A {
   }
 
   void _assertFieldType(
-    FieldElement2 field,
+    FieldElement field,
     String type, {
     bool isCovariant = false,
   }) {
@@ -932,7 +932,7 @@ class B implements A {
     }
   }
 
-  void _assertFieldTypeDynamic(FieldElement2 field) {
+  void _assertFieldTypeDynamic(FieldElement field) {
     expect(field.isSynthetic, isFalse);
 
     _assertGetterTypeDynamic(field.getter2);

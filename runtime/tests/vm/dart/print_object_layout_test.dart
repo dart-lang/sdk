@@ -75,8 +75,9 @@ main() async {
     throw "Cannot run test as $genSnapshot not available";
   }
 
-  final testScriptUri =
-      Platform.script.resolve('print_object_layout_script.dart');
+  final testScriptUri = Platform.script.resolve(
+    'print_object_layout_script.dart',
+  );
 
   await withTempDir('print-object-layout-test', (String temp) async {
     final appDillPath = path.join(temp, 'app.dill');

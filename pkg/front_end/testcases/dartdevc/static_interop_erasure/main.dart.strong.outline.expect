@@ -18,11 +18,11 @@ import "package:js/js.dart";
 @_js::staticInterop
 class StaticJSClass extends core::Object {
   external static factory •() → self2::StaticJSClass;
-  static method _#new#tearOff() → self2::StaticJSClass
+  static synthetic method _#new#tearOff() → self2::StaticJSClass
     return self2::StaticJSClass::•();
   static factory factory() → self2::StaticJSClass
     ;
-  static method _#factory#tearOff() → self2::StaticJSClass
+  static synthetic method _#factory#tearOff() → self2::StaticJSClass
     return self2::StaticJSClass::factory();
 }
 @_js::JS::•()

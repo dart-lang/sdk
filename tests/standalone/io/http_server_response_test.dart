@@ -16,10 +16,14 @@ import "dart:typed_data";
 // Platform.script may refer to a AOT or JIT snapshot, which are significantly
 // larger.
 File scriptSource = new File(
-    Platform.script.resolve("http_server_response_test.dart").toFilePath());
+  Platform.script.resolve("http_server_response_test.dart").toFilePath(),
+);
 
-void testServerRequest(void handler(server, request),
-    {int? bytes, bool closeClient = false}) {
+void testServerRequest(
+  void handler(server, request), {
+  int? bytes,
+  bool closeClient = false,
+}) {
   HttpServer.bind("127.0.0.1", 0).then((server) {
     server.defaultResponseHeaders.clear();
     server.listen((request) {
@@ -34,24 +38,29 @@ void testServerRequest(void handler(server, request),
         .get("127.0.0.1", server.port, "/")
         .then((request) => request.close())
         .then((response) {
-      int received = 0;
-      var subscription;
-      subscription = response.listen((data) {
-        if (closeClient) {
-          subscription.cancel();
+          int received = 0;
+          var subscription;
+          subscription = response.listen(
+            (data) {
+              if (closeClient) {
+                subscription.cancel();
+                client.close();
+              } else {
+                received += data.length;
+              }
+            },
+            onDone: () {
+              if (bytes != null) Expect.equals(received, bytes);
+              client.close();
+            },
+            onError: (error) {
+              Expect.isTrue(error is HttpException);
+            },
+          );
+        })
+        .catchError((error) {
           client.close();
-        } else {
-          received += data.length;
-        }
-      }, onDone: () {
-        if (bytes != null) Expect.equals(received, bytes);
-        client.close();
-      }, onError: (error) {
-        Expect.isTrue(error is HttpException);
-      });
-    }).catchError((error) {
-      client.close();
-    }, test: (e) => e is HttpException);
+        }, test: (e) => e is HttpException);
   });
 }
 
@@ -65,11 +74,9 @@ void testResponseDone() {
   });
 
   testServerRequest((server, request) {
-    new File("__nonexistent_file_")
-        .openRead()
-        .cast<List<int>>()
-        .pipe(request.response)
-        .catchError((e) {
+    new File(
+      "__nonexistent_file_",
+    ).openRead().cast<List<int>>().pipe(request.response).catchError((e) {
       server.close();
     });
   });
@@ -116,16 +123,14 @@ void testResponseAddStream() {
     request.response
         .addStream(new File("__nonexistent_file_").openRead())
         .catchError((e) {
-      server.close();
-    });
+          server.close();
+        });
   });
 
   testServerRequest((server, request) {
-    new File("__nonexistent_file_")
-        .openRead()
-        .cast<List<int>>()
-        .pipe(request.response)
-        .catchError((e) {
+    new File(
+      "__nonexistent_file_",
+    ).openRead().cast<List<int>>().pipe(request.response).catchError((e) {
       server.close();
     });
   });
@@ -254,16 +259,19 @@ void testIgnoreRequestData() {
     });
 
     var client = new HttpClient();
-    client.get("127.0.0.1", server.port, "/").then((request) {
-      request.contentLength = 1024 * 1024;
-      request.add(new Uint8List(1024 * 1024));
-      return request.close();
-    }).then((response) {
-      response.fold<int>(0, (s, b) => s + b.length).then((bytes) {
-        Expect.equals(8, bytes);
-        server.close();
-      });
-    });
+    client
+        .get("127.0.0.1", server.port, "/")
+        .then((request) {
+          request.contentLength = 1024 * 1024;
+          request.add(new Uint8List(1024 * 1024));
+          return request.close();
+        })
+        .then((response) {
+          response.fold<int>(0, (s, b) => s + b.length).then((bytes) {
+            Expect.equals(8, bytes);
+            server.close();
+          });
+        });
   });
 }
 

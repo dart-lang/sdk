@@ -41,6 +41,30 @@ class Test {
     ]);
   }
 
+  Future<void> test_class_instanceMember() async {
+    await resolveTestCode('''
+class A {
+}
+
+void f() {
+  int _ = A().Test;
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_class_staticMember() async {
+    await resolveTestCode('''
+class A {
+}
+
+void f() {
+  int _ = A.Test;
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_extends() async {
     await resolveTestCode('''
 class MyClass extends BaseClass {}

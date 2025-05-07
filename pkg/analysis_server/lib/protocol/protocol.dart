@@ -332,7 +332,7 @@ class Response extends RequestOrResponse {
       );
 
   /// Create and return the `DEBUG_PORT_COULD_NOT_BE_OPENED` error response.
-  Response.debugPortCouldNotBeOpened(Request request, dynamic error)
+  Response.debugPortCouldNotBeOpened(Request request, Object? error)
     : this(
         request.id,
         error: RequestError(
@@ -499,7 +499,7 @@ class Response extends RequestOrResponse {
 
   /// Initialize a newly created instance to represent the
   /// INVALID_FILE_PATH_FORMAT error condition.
-  Response.invalidFilePathFormat(Request request, path)
+  Response.invalidFilePathFormat(Request request, Object? path)
     : this(
         request.id,
         error: RequestError(
@@ -557,7 +557,11 @@ class Response extends RequestOrResponse {
 
   /// Initialize a newly created instance to represent the SERVER_ERROR error
   /// condition.
-  factory Response.serverError(Request request, exception, stackTrace) {
+  factory Response.serverError(
+    Request request,
+    Object? exception,
+    Object? stackTrace,
+  ) {
     var error = RequestError(
       RequestErrorCode.SERVER_ERROR,
       exception.toString(),

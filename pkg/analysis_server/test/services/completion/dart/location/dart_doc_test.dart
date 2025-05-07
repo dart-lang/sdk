@@ -338,6 +338,18 @@ suggestions
 ''');
   }
 
+  Future<void> test_start() async {
+    // There was a crash because we tried to walk before the (only) token
+    // of the documentation comment.
+    await computeSuggestions('''
+^/// hello
+class A {}
+''');
+    assertResponse(r'''
+suggestions
+''');
+  }
+
   Future<void> test_topLevelGetter() async {
     allowedIdentifiers = const {'myTopLevelGetter'};
     await computeSuggestions('''

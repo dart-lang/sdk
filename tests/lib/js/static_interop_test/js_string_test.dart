@@ -370,19 +370,18 @@ void testCharCodes() {
 }
 
 void testRepeat() {
-  List<String> testStrings =
-      [
-        '',
-        '\x00',
-        'a',
-        'ab',
-        '\x80',
-        '\xff',
-        '\u2028',
-        'abcdef\u2028',
-        '\u{10002}',
-        'abcdef\u{10002}',
-      ].map(jsStringImpl).toList();
+  List<String> testStrings = [
+    '',
+    '\x00',
+    'a',
+    'ab',
+    '\x80',
+    '\xff',
+    '\u2028',
+    'abcdef\u2028',
+    '\u{10002}',
+    'abcdef\u{10002}',
+  ].map(jsStringImpl).toList();
   List<int> counts = [0, 1, 2, 10];
   void testRepeat(String str, int repeat) {
     String expect;

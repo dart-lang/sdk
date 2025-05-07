@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 import 'dart:async';
 
 // Introduce an aliased type.
@@ -14,8 +13,8 @@ typedef T<X> = Null;
 abstract class C {
   final T<Null> v7;
 
-  C(): v7 = T();
-  //        ^
+  C() : v7 = T();
+  //         ^
   // [analyzer] unspecified
   // [cfe] unspecified
 }
@@ -50,14 +49,14 @@ main() {
   // [cfe] unspecified
 
   T<Null>();
-//^
-// [analyzer] unspecified
-// [cfe] unspecified
+  //^
+  // [analyzer] unspecified
+  // [cfe] unspecified
 
   T<Null>.named();
-//^
-// [analyzer] unspecified
-// [cfe] unspecified
+  //^
+  // [analyzer] unspecified
+  // [cfe] unspecified
 
   T<Object> v12 = foo<T<bool>>(T<bool>());
   //                           ^

@@ -33,18 +33,15 @@ class BorderRadius extends BorderRadiusGeometry {
 
   /// Creates a border radius where all radii are [radius].
   const BorderRadius.all(Radius radius)
-      : this.only(
-          topLeft: radius,
-          topRight: radius,
-          bottomLeft: radius,
-          bottomRight: radius,
-        );
+    : this.only(
+        topLeft: radius,
+        topRight: radius,
+        bottomLeft: radius,
+        bottomRight: radius,
+      );
 
   /// Creates a border radius where all radii are [Radius.circular(radius)].
-  BorderRadius.circular(double radius)
-      : this.all(
-          Radius.circular(radius),
-        );
+  BorderRadius.circular(double radius) : this.all(Radius.circular(radius));
 
   /// Creates a horizontally symmetrical border radius where the left and right
   /// sides of the rectangle have the same radii.
@@ -52,11 +49,11 @@ class BorderRadius extends BorderRadiusGeometry {
     Radius left = Radius.zero,
     Radius right = Radius.zero,
   }) : this.only(
-          topLeft: left,
-          topRight: right,
-          bottomLeft: left,
-          bottomRight: right,
-        );
+         topLeft: left,
+         topRight: right,
+         bottomLeft: left,
+         bottomRight: right,
+       );
 
   /// Creates a border radius with only the given non-zero values. The other
   /// corners will be right angles.
@@ -73,11 +70,11 @@ class BorderRadius extends BorderRadiusGeometry {
     Radius top = Radius.zero,
     Radius bottom = Radius.zero,
   }) : this.only(
-          topLeft: top,
-          topRight: top,
-          bottomLeft: bottom,
-          bottomRight: bottom,
-        );
+         topLeft: top,
+         topRight: top,
+         bottomLeft: bottom,
+         bottomRight: bottom,
+       );
 }
 
 /// An immutable set of radii for each corner of a rectangle, but with the
@@ -97,8 +94,9 @@ class BorderRadiusDirectional extends BorderRadiusGeometry {
   ///
   /// Consider using [EdgeInsets.zero] instead, since that object has the same
   /// effect, but will be cheaper to [resolve].
-  static const BorderRadiusDirectional zero =
-      BorderRadiusDirectional.all(Radius.zero);
+  static const BorderRadiusDirectional zero = BorderRadiusDirectional.all(
+    Radius.zero,
+  );
 
   /// The top-start [Radius].
   final Radius topStart;
@@ -114,18 +112,16 @@ class BorderRadiusDirectional extends BorderRadiusGeometry {
 
   /// Creates a border radius where all radii are [radius].
   const BorderRadiusDirectional.all(Radius radius)
-      : this.only(
-          topStart: radius,
-          topEnd: radius,
-          bottomStart: radius,
-          bottomEnd: radius,
-        );
+    : this.only(
+        topStart: radius,
+        topEnd: radius,
+        bottomStart: radius,
+        bottomEnd: radius,
+      );
 
   /// Creates a border radius where all radii are [Radius.circular(radius)].
   BorderRadiusDirectional.circular(double radius)
-      : this.all(
-          Radius.circular(radius),
-        );
+    : this.all(Radius.circular(radius));
 
   /// Creates a horizontally symmetrical border radius where the start and end
   /// sides of the rectangle have the same radii.
@@ -133,11 +129,11 @@ class BorderRadiusDirectional extends BorderRadiusGeometry {
     Radius start = Radius.zero,
     Radius end = Radius.zero,
   }) : this.only(
-          topStart: start,
-          topEnd: end,
-          bottomStart: start,
-          bottomEnd: end,
-        );
+         topStart: start,
+         topEnd: end,
+         bottomStart: start,
+         bottomEnd: end,
+       );
 
   /// Creates a border radius with only the given non-zero values. The other
   /// corners will be right angles.
@@ -154,11 +150,11 @@ class BorderRadiusDirectional extends BorderRadiusGeometry {
     Radius top = Radius.zero,
     Radius bottom = Radius.zero,
   }) : this.only(
-          topStart: top,
-          topEnd: top,
-          bottomStart: bottom,
-          bottomEnd: bottom,
-        );
+         topStart: top,
+         topEnd: top,
+         bottomStart: bottom,
+         bottomEnd: bottom,
+       );
 }
 
 /// Base class for [BorderRadius] that allows for text-direction aware resolution.

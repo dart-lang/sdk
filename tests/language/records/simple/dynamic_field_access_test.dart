@@ -28,8 +28,9 @@ dynamic r3 = runtimeTrue
     ? const (10, 'a', foo: [1], bar: (50, baz: 60)) as dynamic
     : A();
 dynamic r4 = runtimeTrue ? (foo1, foo2: foo2) as dynamic : A();
-dynamic r5 =
-    runtimeTrue ? (10, $2: 20, $1000000000000000000: 'meow') as dynamic : A();
+dynamic r5 = runtimeTrue
+    ? (10, $2: 20, $1000000000000000000: 'meow') as dynamic
+    : A();
 
 main() {
   Expect.equals(2, r1.$1);
@@ -38,7 +39,8 @@ main() {
   Expect.throwsNoSuchMethodError(() => r1.$4);
   Expect.throwsNoSuchMethodError(() => r1.$10000000000);
   Expect.throwsNoSuchMethodError(
-      () => r1.$99999999999999999999999999999999999999999999999);
+    () => r1.$99999999999999999999999999999999999999999999999,
+  );
   Expect.throwsNoSuchMethodError(() => r1.foo);
   Expect.equals((2, 3).toString(), r1.toString());
   Expect.throwsNoSuchMethodError(() {

@@ -2497,7 +2497,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       // Pass any Service Extension events on to the client so they can enable
       // functionality based upon them.
       case vm.EventKind.kServiceExtensionAdded:
-        this._sendServiceExtensionAdded(
+        _sendServiceExtensionAdded(
           event.extensionRPC!,
           event.isolate!.id!,
         );
@@ -2576,10 +2576,10 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       // Service registrations are passed to the client so they can toggle
       // behaviour based on their presence.
       case vm.EventKind.kServiceRegistered:
-        this._sendServiceRegistration(event.service!, event.method!);
+        _sendServiceRegistration(event.service!, event.method!);
         break;
       case vm.EventKind.kServiceUnregistered:
-        this._sendServiceUnregistration(event.service!, event.method!);
+        _sendServiceUnregistration(event.service!, event.method!);
         break;
     }
   }

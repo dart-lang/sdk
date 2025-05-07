@@ -4,10 +4,13 @@
 
 import 'package:kernel/ast.dart' show VariableDeclaration;
 
+import '../base/lookup_result.dart';
 import '../builder/builder.dart';
 
-abstract class VariableBuilder implements Builder {
+abstract class VariableBuilder implements Builder, LookupResult {
   VariableDeclaration? get variable;
+
+  bool get isConst;
 
   bool get isAssignable;
 }

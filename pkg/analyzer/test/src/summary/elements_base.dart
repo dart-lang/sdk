@@ -47,10 +47,7 @@ abstract class ElementsBaseTest extends PubPackageResolutionTest {
   }
 
   void checkElementText(LibraryElementImpl library, String expected) {
-    var actual = getLibraryText(
-      library: library,
-      configuration: configuration,
-    );
+    var actual = getLibraryText(library: library, configuration: configuration);
     if (actual != expected) {
       print('-------- Actual --------');
       print('$actual------------------------');

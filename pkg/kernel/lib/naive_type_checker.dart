@@ -41,6 +41,9 @@ class NaiveTypeChecker extends type_checker.TypeChecker {
   @override
   void checkOverride(
       Class host, Member ownMember, Member superMember, bool isSetter) {
+    // Skip erroneous members: they are allowed to be incorrect overrides.
+    if (ownMember.isErroneous) return;
+
     final bool ownMemberIsFieldOrAccessor =
         ownMember is Field || (ownMember as Procedure).isAccessor;
     final bool superMemberIsFieldOrAccessor =

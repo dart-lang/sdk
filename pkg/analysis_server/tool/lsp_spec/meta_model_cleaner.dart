@@ -433,7 +433,16 @@ class LspMetaModelCleaner {
           'SignatureInformationParameterInformation',
       'Pattern': 'LspPattern',
       'URI': 'LSPUri',
-
+      // The term "CodeAction" is a bit overloaded. It could mean both an
+      // individual result from the textDocument/codeAction request (which is a
+      // `Command` or a `CodeAction`), or the `CodeAction` type defined in
+      // the spec (which the spec also refers to as a "Code Action literal").
+      //
+      // To reduce confusion where we have similar APIs that operate on
+      // "Code Actions" (CodeAction|Command), we rename `CodeAction` to
+      // `CodeActionLiteral` and use the term `CodeAction` to mean either of
+      // those types.
+      'CodeAction': 'CodeActionLiteral',
       // In LSP 3.18, many types that were previously inline and got generated
       // names have been extracted to their own definitions with hand-written
       // names.

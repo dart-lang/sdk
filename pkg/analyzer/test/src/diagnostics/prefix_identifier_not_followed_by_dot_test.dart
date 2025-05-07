@@ -19,50 +19,72 @@ class PrefixIdentifierNotFollowedByDotTest extends PubPackageResolutionTest {
     newFile('$testPackageLibPath/lib.dart', '''
 library lib;
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'lib.dart' as p;
 class C {
   f() {
     p += 1;
   }
 }
-''', [
-      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 46, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+          46,
+          1,
+        ),
+      ],
+    );
   }
 
   test_assignment_compound_not_in_method() async {
     newFile('$testPackageLibPath/lib.dart', '''
 library lib;
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'lib.dart' as p;
 f() {
   p += 1;
 }
-''', [
-      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 32, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+          32,
+          1,
+        ),
+      ],
+    );
   }
 
   test_assignment_in_method() async {
     newFile('$testPackageLibPath/lib.dart', '''
 library lib;
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'lib.dart' as p;
 class C {
   f() {
     p = 1;
   }
 }
-''', [
-      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 46, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+          46,
+          1,
+        ),
+      ],
+    );
   }
 
   test_assignment_in_method_hasSuperField() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'dart:math' as p;
 
 class A {
@@ -74,37 +96,57 @@ class B extends A {
     p = 1;
   }
 }
-''', [
-      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 85, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+          85,
+          1,
+        ),
+      ],
+    );
   }
 
   test_assignment_not_in_method() async {
     newFile('$testPackageLibPath/lib.dart', '''
 library lib;
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'lib.dart' as p;
 f() {
   p = 1;
 }
-''', [
-      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 32, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+          32,
+          1,
+        ),
+      ],
+    );
   }
 
   test_compoundAssignment() async {
     newFile('$testPackageLibPath/lib.dart', '''
 library lib;
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'lib.dart' as p;
 f() {
   p += 1;
 }
-''', [
-      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 32, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+          32,
+          1,
+        ),
+      ],
+    );
   }
 
   test_conditionalMethodInvocation() async {
@@ -112,28 +154,42 @@ f() {
 library lib;
 g() {}
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'lib.dart' as p;
 f() {
   p?.g();
 }
-''', [
-      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 32, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+          32,
+          1,
+        ),
+      ],
+    );
   }
 
   test_conditionalPropertyAccess_call_loadLibrary() async {
     newFile('$testPackageLibPath/lib.dart', '''
 library lib;
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'lib.dart' deferred as p;
 f() {
   p?.loadLibrary();
 }
-''', [
-      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 41, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+          41,
+          1,
+        ),
+      ],
+    );
   }
 
   test_conditionalPropertyAccess_get() async {
@@ -141,28 +197,42 @@ f() {
 library lib;
 var x;
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'lib.dart' as p;
 f() {
   return p?.x;
 }
-''', [
-      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 39, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+          39,
+          1,
+        ),
+      ],
+    );
   }
 
   test_conditionalPropertyAccess_get_loadLibrary() async {
     newFile('$testPackageLibPath/lib.dart', '''
 library lib;
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'lib.dart' deferred as p;
 f() {
   return p?.loadLibrary;
 }
-''', [
-      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 48, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+          48,
+          1,
+        ),
+      ],
+    );
   }
 
   test_conditionalPropertyAccess_set() async {
@@ -170,41 +240,62 @@ f() {
 library lib;
 var x;
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'lib.dart' as p;
 f() {
   p?.x = null;
 }
-''', [
-      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 32, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+          32,
+          1,
+        ),
+      ],
+    );
   }
 
   test_conditionalPropertyAccess_set_loadLibrary() async {
     newFile('$testPackageLibPath/lib.dart', '''
 library lib;
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'lib.dart' deferred as p;
 f() {
   p?.loadLibrary = null;
 }
-''', [
-      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 41, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+          41,
+          1,
+        ),
+      ],
+    );
   }
 
   test_prefix_not_followed_by_dot() async {
     newFile('$testPackageLibPath/lib.dart', '''
 library lib;
 ''');
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'lib.dart' as p;
 f() {
   return p;
 }
-''', [
-      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 39, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+          39,
+          1,
+        ),
+      ],
+    );
   }
 }

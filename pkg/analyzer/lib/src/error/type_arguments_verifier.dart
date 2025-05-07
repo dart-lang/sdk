@@ -6,7 +6,7 @@ import "dart:math" as math;
 
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
@@ -23,7 +23,7 @@ import 'package:analyzer/src/utilities/extensions/object.dart';
 
 class TypeArgumentsVerifier {
   final AnalysisOptions _options;
-  final LibraryElement2 _libraryElement;
+  final LibraryElement _libraryElement;
   final ErrorReporter _errorReporter;
 
   TypeArgumentsVerifier(
@@ -189,8 +189,11 @@ class TypeArgumentsVerifier {
           );
         }
       }
-      _checkTypeArgumentCount(typeArguments, 1,
-          CompileTimeErrorCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS);
+      _checkTypeArgumentCount(
+        typeArguments,
+        1,
+        CompileTimeErrorCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS,
+      );
     }
   }
 
@@ -205,8 +208,11 @@ class TypeArgumentsVerifier {
           );
         }
       }
-      _checkTypeArgumentCount(typeArguments, 2,
-          CompileTimeErrorCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS);
+      _checkTypeArgumentCount(
+        typeArguments,
+        2,
+        CompileTimeErrorCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS,
+      );
     }
   }
 
@@ -238,8 +244,11 @@ class TypeArgumentsVerifier {
           );
         }
       }
-      _checkTypeArgumentCount(typeArguments, 1,
-          CompileTimeErrorCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS);
+      _checkTypeArgumentCount(
+        typeArguments,
+        1,
+        CompileTimeErrorCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS,
+      );
     }
   }
 
@@ -352,7 +361,12 @@ class TypeArgumentsVerifier {
         issues ??= <_TypeArgumentIssue>[];
         issues.add(
           _TypeArgumentIssue(
-              i, typeParameter, typeParameterName, bound, typeArgument),
+            i,
+            typeParameter,
+            typeParameterName,
+            bound,
+            typeArgument,
+          ),
         );
       }
     }
@@ -412,7 +426,7 @@ class TypeArgumentsVerifier {
           arguments: [
             issue.argument,
             issue.parameterName,
-            issue.parameterBound
+            issue.parameterBound,
           ],
           contextMessages: buildContextMessages(),
         );
@@ -542,12 +556,17 @@ class TypeArgumentsVerifier {
   /// [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP], or
   /// [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_SET].
   void _checkTypeArgumentConst(
-      TypeAnnotation typeAnnotation, ErrorCode errorCode) {
+    TypeAnnotation typeAnnotation,
+    DiagnosticCode errorCode,
+  ) {
     switch (typeAnnotation) {
       case NamedType(:var type, :var typeArguments):
         if (type is TypeParameterType) {
-          _errorReporter.atNode(typeAnnotation, errorCode,
-              arguments: [typeAnnotation.name2.lexeme]);
+          _errorReporter.atNode(
+            typeAnnotation,
+            errorCode,
+            arguments: [typeAnnotation.name2.lexeme],
+          );
         } else if (typeArguments != null) {
           for (var argument in typeArguments.arguments) {
             _checkTypeArgumentConst(argument, errorCode);
@@ -557,8 +576,11 @@ class TypeArgumentsVerifier {
         for (var parameter in parameters.parameters) {
           if (parameter case SimpleFormalParameter(type: var typeAnnotation?)) {
             if (typeAnnotation case TypeAnnotation(:TypeParameterType type)) {
-              _errorReporter
-                  .atNode(typeAnnotation, errorCode, arguments: [type]);
+              _errorReporter.atNode(
+                typeAnnotation,
+                errorCode,
+                arguments: [type],
+              );
             } else {
               _checkTypeArgumentConst(typeAnnotation, errorCode);
             }
@@ -586,21 +608,16 @@ class TypeArgumentsVerifier {
     }
   }
 
-  /// Verify that the given list of [typeArguments] contains exactly the
-  /// [expectedCount] of elements, reporting an error with the [errorCode]
-  /// if not.
+  /// Verifies that the given list of [typeArguments] contains exactly the
+  /// [expectedCount] of elements, reporting an error with the [code] if not.
   void _checkTypeArgumentCount(
     TypeArgumentList typeArguments,
     int expectedCount,
-    ErrorCode errorCode,
+    DiagnosticCode code,
   ) {
     int actualCount = typeArguments.arguments.length;
     if (actualCount != expectedCount) {
-      _errorReporter.atNode(
-        typeArguments,
-        errorCode,
-        arguments: [actualCount],
-      );
+      _errorReporter.atNode(typeArguments, code, arguments: [actualCount]);
     }
   }
 
@@ -615,7 +632,7 @@ class TypeArgumentsVerifier {
   ///
   /// - [type] does not have any `dynamic` type arguments.
   /// - the element is marked with `@optionalTypeArgs` from "package:meta".
-  bool _isMissingTypeArguments(AstNode node, DartType type, Element2? element) {
+  bool _isMissingTypeArguments(AstNode node, DartType type, Element? element) {
     var elementMetadata = element.ifTypeOrNull<Annotatable>()?.metadata2;
     if (elementMetadata == null) {
       return false;
@@ -656,7 +673,7 @@ class TypeArgumentsVerifier {
         return false;
     }
 
-    if (namedType.type?.element3 is ExtensionTypeElement2) {
+    if (namedType.type?.element3 is ExtensionTypeElement) {
       return false;
     }
 
@@ -678,7 +695,7 @@ class _TypeArgumentIssue {
   final int index;
 
   /// The type parameter with the bound that was violated.
-  final TypeParameterElement2 parameter;
+  final TypeParameterElement parameter;
 
   /// The non-null name of the [parameter].
   final String parameterName;

@@ -22,21 +22,6 @@ copy("copy_dartdev_snapshot") {
 application_snapshot("generate_dartdev_snapshot") {
   main_dart = "../../pkg/dartdev/bin/dartdev.dart"
   training_args = [ "--help" ]
-
-  if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
-    deps = [
-      "../..:runtime_precompiled",
-      "../dds:dds_aot",
-      "../dtd:dtd_aot",
-    ]
-  } else {
-    deps = [
-      "../dds:dds",
-      "../dtd:dtd",
-    ]
-  }
-
-  vm_args = []
   output = "$root_gen_dir/dartdev.dart.snapshot"
 }
 

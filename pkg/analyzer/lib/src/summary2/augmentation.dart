@@ -2,17 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 
 class ClassElementBuilder
-    extends InstanceElementBuilder<ClassElementImpl2, ClassElementImpl> {
-  ClassElementBuilder({
-    required super.element,
-    required super.firstFragment,
-  });
+    extends InstanceElementBuilder<ClassElementImpl2, ClassFragmentImpl> {
+  ClassElementBuilder({required super.element, required super.firstFragment});
 
-  void addFragment(ClassElementImpl fragment) {
+  void addFragment(ClassFragmentImpl fragment) {
     addFields(fragment.fields);
     addConstructors(fragment.constructors);
     addAccessors(fragment.accessors);
@@ -30,13 +27,10 @@ class ClassElementBuilder
 }
 
 class EnumElementBuilder
-    extends InstanceElementBuilder<EnumElementImpl2, EnumElementImpl> {
-  EnumElementBuilder({
-    required super.element,
-    required super.firstFragment,
-  });
+    extends InstanceElementBuilder<EnumElementImpl2, EnumFragmentImpl> {
+  EnumElementBuilder({required super.element, required super.firstFragment});
 
-  void addFragment(EnumElementImpl fragment) {
+  void addFragment(EnumFragmentImpl fragment) {
     addFields(fragment.fields);
     addConstructors(fragment.constructors);
     addAccessors(fragment.accessors);
@@ -53,14 +47,15 @@ class EnumElementBuilder
   }
 }
 
-class ExtensionElementBuilder extends InstanceElementBuilder<
-    ExtensionElementImpl2, ExtensionElementImpl> {
+class ExtensionElementBuilder
+    extends
+        InstanceElementBuilder<ExtensionElementImpl2, ExtensionFragmentImpl> {
   ExtensionElementBuilder({
     required super.element,
     required super.firstFragment,
   });
 
-  void addFragment(ExtensionElementImpl fragment) {
+  void addFragment(ExtensionFragmentImpl fragment) {
     addFields(fragment.fields);
     addAccessors(fragment.accessors);
     addMethods(fragment.methods);
@@ -76,14 +71,18 @@ class ExtensionElementBuilder extends InstanceElementBuilder<
   }
 }
 
-class ExtensionTypeElementBuilder extends InstanceElementBuilder<
-    ExtensionTypeElementImpl2, ExtensionTypeElementImpl> {
+class ExtensionTypeElementBuilder
+    extends
+        InstanceElementBuilder<
+          ExtensionTypeElementImpl2,
+          ExtensionTypeFragmentImpl
+        > {
   ExtensionTypeElementBuilder({
     required super.element,
     required super.firstFragment,
   });
 
-  void addFragment(ExtensionTypeElementImpl fragment) {
+  void addFragment(ExtensionTypeFragmentImpl fragment) {
     addFields(fragment.fields);
     addConstructors(fragment.constructors);
     addAccessors(fragment.accessors);
@@ -101,15 +100,13 @@ class ExtensionTypeElementBuilder extends InstanceElementBuilder<
 }
 
 /// A builder for top-level fragmented elements, e.g. classes.
-class FragmentedElementBuilder<E extends Element2, F extends Fragment> {
+class FragmentedElementBuilder<E extends Element, F extends Fragment> {
   final E element;
   final F firstFragment;
   F lastFragment;
 
-  FragmentedElementBuilder({
-    required this.element,
-    required this.firstFragment,
-  }) : lastFragment = firstFragment;
+  FragmentedElementBuilder({required this.element, required this.firstFragment})
+    : lastFragment = firstFragment;
 
   /// If [fragment] is an augmentation, set its previous fragment to
   /// [lastFragment].
@@ -123,10 +120,7 @@ class FragmentedElementBuilder<E extends Element2, F extends Fragment> {
 
 class GetterElementBuilder
     extends FragmentedElementBuilder<GetterElementImpl, GetterFragmentImpl> {
-  GetterElementBuilder({
-    required super.element,
-    required super.firstFragment,
-  });
+  GetterElementBuilder({required super.element, required super.firstFragment});
 
   void addFragment(GetterFragmentImpl fragment) {
     if (!identical(fragment, firstFragment)) {
@@ -137,16 +131,19 @@ class GetterElementBuilder
   }
 }
 
-abstract class InstanceElementBuilder<E extends InstanceElementImpl2,
-    F extends InstanceElementImpl> extends FragmentedElementBuilder<E, F> {
-  final Map<String, FieldElementImpl> fields = {};
-  final Map<String, ConstructorElementImpl> constructors = {};
+abstract class InstanceElementBuilder<
+  E extends InstanceElementImpl2,
+  F extends InstanceFragmentImpl
+>
+    extends FragmentedElementBuilder<E, F> {
+  final Map<String, FieldFragmentImpl> fields = {};
+  final Map<String, ConstructorFragmentImpl> constructors = {};
   final Map<String, GetterFragmentImpl> getters = {};
   final Map<String, SetterFragmentImpl> setters = {};
-  final Map<String, MethodElementImpl> methods = {};
+  final Map<String, MethodFragmentImpl> methods = {};
 
-  final Map<String, ElementImpl> fragmentGetters = {};
-  final Map<String, ElementImpl> fragmentSetters = {};
+  final Map<String, FragmentImpl> fragmentGetters = {};
+  final Map<String, FragmentImpl> fragmentSetters = {};
   final List<MethodElementImpl2> methods2 = [];
 
   InstanceElementBuilder({
@@ -154,7 +151,7 @@ abstract class InstanceElementBuilder<E extends InstanceElementImpl2,
     required super.firstFragment,
   });
 
-  void addAccessors(List<PropertyAccessorElementImpl> fragments) {
+  void addAccessors(List<PropertyAccessorFragmentImpl> fragments) {
     for (var fragment in fragments) {
       var name = fragment.name;
       switch (fragment) {
@@ -178,7 +175,7 @@ abstract class InstanceElementBuilder<E extends InstanceElementImpl2,
     }
   }
 
-  void addConstructors(List<ConstructorElementImpl> fragments) {
+  void addConstructors(List<ConstructorFragmentImpl> fragments) {
     for (var fragment in fragments) {
       var name = fragment.name;
       if (fragment.isAugmentation) {
@@ -191,7 +188,7 @@ abstract class InstanceElementBuilder<E extends InstanceElementImpl2,
     }
   }
 
-  void addFields(List<FieldElementImpl> fragments) {
+  void addFields(List<FieldFragmentImpl> fragments) {
     for (var fragment in fragments) {
       var name = fragment.name;
       if (fragment.isAugmentation) {
@@ -204,7 +201,7 @@ abstract class InstanceElementBuilder<E extends InstanceElementImpl2,
     }
   }
 
-  void addMethods(List<MethodElementImpl> fragments) {
+  void addMethods(List<MethodFragmentImpl> fragments) {
     for (var fragment in fragments) {
       var name = fragment.name;
       if (fragment.isAugmentation) {
@@ -217,7 +214,7 @@ abstract class InstanceElementBuilder<E extends InstanceElementImpl2,
     }
   }
 
-  ElementImpl? replaceGetter<T extends ElementImpl>(T fragment) {
+  FragmentImpl? replaceGetter<T extends FragmentImpl>(T fragment) {
     var name = (fragment as Fragment).name2;
     if (name == null) {
       return null;
@@ -237,7 +234,7 @@ abstract class InstanceElementBuilder<E extends InstanceElementImpl2,
     var element = firstFragment.element;
 
     if (element is MixinElementImpl2) {
-      if (firstFragment is MixinElementImpl) {
+      if (firstFragment is MixinFragmentImpl) {
         element.superclassConstraints.addAll(
           firstFragment.superclassConstraints,
         );
@@ -247,13 +244,10 @@ abstract class InstanceElementBuilder<E extends InstanceElementImpl2,
 }
 
 class MixinElementBuilder
-    extends InstanceElementBuilder<MixinElementImpl2, MixinElementImpl> {
-  MixinElementBuilder({
-    required super.element,
-    required super.firstFragment,
-  });
+    extends InstanceElementBuilder<MixinElementImpl2, MixinFragmentImpl> {
+  MixinElementBuilder({required super.element, required super.firstFragment});
 
-  void addFragment(MixinElementImpl fragment) {
+  void addFragment(MixinFragmentImpl fragment) {
     addFields(fragment.fields);
     addAccessors(fragment.accessors);
     addMethods(fragment.methods);
@@ -271,10 +265,7 @@ class MixinElementBuilder
 
 class SetterElementBuilder
     extends FragmentedElementBuilder<SetterElementImpl, SetterFragmentImpl> {
-  SetterElementBuilder({
-    required super.element,
-    required super.firstFragment,
-  });
+  SetterElementBuilder({required super.element, required super.firstFragment});
 
   void addFragment(SetterFragmentImpl fragment) {
     if (!identical(fragment, firstFragment)) {
@@ -285,8 +276,12 @@ class SetterElementBuilder
   }
 }
 
-class TopLevelFunctionElementBuilder extends FragmentedElementBuilder<
-    TopLevelFunctionElementImpl, TopLevelFunctionFragmentImpl> {
+class TopLevelFunctionElementBuilder
+    extends
+        FragmentedElementBuilder<
+          TopLevelFunctionElementImpl,
+          TopLevelFunctionFragmentImpl
+        > {
   TopLevelFunctionElementBuilder({
     required super.element,
     required super.firstFragment,
@@ -301,14 +296,18 @@ class TopLevelFunctionElementBuilder extends FragmentedElementBuilder<
   }
 }
 
-class TopLevelVariableElementBuilder extends FragmentedElementBuilder<
-    TopLevelVariableElementImpl2, TopLevelVariableElementImpl> {
+class TopLevelVariableElementBuilder
+    extends
+        FragmentedElementBuilder<
+          TopLevelVariableElementImpl2,
+          TopLevelVariableFragmentImpl
+        > {
   TopLevelVariableElementBuilder({
     required super.element,
     required super.firstFragment,
   });
 
-  void addFragment(TopLevelVariableElementImpl fragment) {
+  void addFragment(TopLevelVariableFragmentImpl fragment) {
     if (!identical(fragment, firstFragment)) {
       lastFragment.nextFragment = fragment;
       lastFragment = fragment;
@@ -317,14 +316,15 @@ class TopLevelVariableElementBuilder extends FragmentedElementBuilder<
   }
 }
 
-class TypeAliasElementBuilder extends FragmentedElementBuilder<
-    TypeAliasElementImpl2, TypeAliasElementImpl> {
+class TypeAliasElementBuilder
+    extends
+        FragmentedElementBuilder<TypeAliasElementImpl2, TypeAliasFragmentImpl> {
   TypeAliasElementBuilder({
     required super.element,
     required super.firstFragment,
   });
 
-  void addFragment(TypeAliasElementImpl fragment) {
+  void addFragment(TypeAliasFragmentImpl fragment) {
     if (!identical(fragment, firstFragment)) {
       lastFragment.nextFragment = fragment;
       lastFragment = fragment;

@@ -22,12 +22,16 @@ main() {
       .then((_) => new Future.error("e", trace))
       .whenComplete(() => 499)
       .then<Null>((_) {
-    throw "should never be reached";
-  }).then<Null>((_) {
-    throw "Unreachable";
-  }, onError: (e, st) {
-    Expect.equals("e", e);
-    Expect.identical(trace, st);
-    asyncEnd();
-  });
+        throw "should never be reached";
+      })
+      .then<Null>(
+        (_) {
+          throw "Unreachable";
+        },
+        onError: (e, st) {
+          Expect.equals("e", e);
+          Expect.identical(trace, st);
+          asyncEnd();
+        },
+      );
 }

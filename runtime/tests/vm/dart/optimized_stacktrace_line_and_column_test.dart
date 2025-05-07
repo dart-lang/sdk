@@ -22,7 +22,8 @@ test1() {
     print(s);
     Expect.isFalse(s.contains("-1:-1"), "A");
     RegExp regex = new RegExp(
-        "optimized_stacktrace_line_and_column_test(_none|_01)*\.dart:11(:18)*");
+      "optimized_stacktrace_line_and_column_test(_none|_01)*\.dart:11(:18)*",
+    );
     Expect.isTrue(regex.hasMatch(s), s);
   }
 
@@ -36,7 +37,8 @@ test1() {
     print(s);
     Expect.isFalse(s.contains("-1:-1"), "C");
     RegExp regex = new RegExp(
-        "optimized_stacktrace_line_and_column_test(_none|_01)*\.dart:11(:18)*");
+      "optimized_stacktrace_line_and_column_test(_none|_01)*\.dart:11(:18)*",
+    );
     Expect.isTrue(regex.hasMatch(s), "D");
   }
 }

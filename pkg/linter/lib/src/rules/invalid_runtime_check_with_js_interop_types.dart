@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 // ignore: implementation_imports
@@ -45,7 +45,7 @@ bool _isJsInteropType(DartType type, _InteropTypeKind kind) {
     var userJsInteropTypeKind =
         kind == _InteropTypeKind.userJsInteropType ||
         kind == _InteropTypeKind.any;
-    if (element is ExtensionTypeElement2) {
+    if (element is ExtensionTypeElement) {
       if (dartJsInteropTypeKind && element.isFromLibrary(_dartJsInteropUri)) {
         return true;
       } else if (userJsInteropTypeKind) {
@@ -100,14 +100,14 @@ bool _isWasmIncompatibleJsInterop(DartType type) {
 /// Returns null if `type` is not a `dart:js_interop` `@staticInterop` class.
 DartType? _jsTypeForStaticInterop(InterfaceType type) {
   var element = type.element3;
-  if (element is! ClassElement2) return null;
+  if (element is! ClassElement) return null;
   var metadata = element.metadata2;
   var hasJS = false;
   var hasStaticInterop = false;
-  LibraryElement2? dartJsInterop;
+  LibraryElement? dartJsInterop;
   for (var annotation in metadata.annotations) {
     var annotationElement = annotation.element2;
-    if (annotationElement is ConstructorElement2 &&
+    if (annotationElement is ConstructorElement &&
         annotationElement.isFromLibrary(_dartJsInteropUri) &&
         annotationElement.enclosingElement2.name3 == 'JS') {
       hasJS = true;
@@ -180,6 +180,8 @@ class EraseNonJSInteropTypes extends ExtensionTypeErasure {
 class InteropTypeChecker extends RecursiveTypeVisitor {
   bool _hasInteropType = false;
   final _visitedTypes = <DartType>{};
+
+  InteropTypeChecker() : super(includeTypeAliasArguments: false);
 
   bool hasInteropType(DartType type) {
     _hasInteropType = false;
@@ -418,7 +420,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (leftType == null || rightType == null) return;
     var code = getInvalidJsInteropTypeTest(leftType, rightType, check: false);
     if (code != null) {
-      rule.reportLint(node, arguments: [leftType, rightType], errorCode: code);
+      rule.reportAtNode(
+        node,
+        arguments: [leftType, rightType],
+        errorCode: code,
+      );
     }
   }
 
@@ -429,12 +435,16 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (leftType == null || rightType == null) return;
     var code = getInvalidJsInteropTypeTest(leftType, rightType, check: true);
     if (code != null) {
-      rule.reportLint(node, arguments: [leftType, rightType], errorCode: code);
+      rule.reportAtNode(
+        node,
+        arguments: [leftType, rightType],
+        errorCode: code,
+      );
     }
   }
 }
 
-extension on Element2 {
+extension on Element {
   /// Returns whether this is from the Dart library at [uri].
   bool isFromLibrary(String uri) => library2?.uri.toString() == uri;
 }

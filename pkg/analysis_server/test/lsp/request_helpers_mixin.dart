@@ -209,6 +209,25 @@ mixin LspRequestHelpersMixin {
   Range entireRange(String code) =>
       Range(start: startOfDocPos, end: positionFromOffset(code.length, code));
 
+  Future<T> executeCommand<T>(
+    Command command, {
+    T Function(Map<String, Object?>)? decoder,
+    ProgressToken? workDoneToken,
+  }) {
+    var request = makeRequest(
+      Method.workspace_executeCommand,
+      ExecuteCommandParams(
+        command: command.command,
+        arguments: command.arguments,
+        workDoneToken: workDoneToken,
+      ),
+    );
+    return expectSuccessfulResponseTo<T, Map<String, Object?>>(
+      request,
+      decoder ?? (result) => result as T,
+    );
+  }
+
   void expect(Object? actual, Matcher matcher, {String? reason}) =>
       test.expect(actual, matcher, reason: reason);
 
@@ -320,7 +339,7 @@ mixin LspRequestHelpersMixin {
     return expectSuccessfulResponseTo(request, Location.fromJson);
   }
 
-  Future<List<Either2<Command, CodeAction>>> getCodeActions(
+  Future<List<CodeAction>> getCodeActions(
     Uri fileUri, {
     Range? range,
     Position? position,
@@ -352,10 +371,10 @@ mixin LspRequestHelpersMixin {
       request,
       _fromJsonList(
         _generateFromJsonFor(
+          CodeActionLiteral.canParse,
+          CodeActionLiteral.fromJson,
           Command.canParse,
           Command.fromJson,
-          CodeAction.canParse,
-          CodeAction.fromJson,
         ),
       ),
     );

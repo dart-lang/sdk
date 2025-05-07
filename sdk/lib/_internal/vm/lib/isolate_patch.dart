@@ -6,8 +6,8 @@ import "dart:_internal" show ClassID, VMLibraryHooks, patch;
 
 import "dart:async"
     show Completer, Future, Stream, StreamController, StreamSubscription, Timer;
-
 import "dart:collection" show HashMap;
+import 'dart:developer' show postEvent;
 import "dart:typed_data" show ByteBuffer, TypedData, Uint8List;
 
 /// These are the additional parts of this patch library:
@@ -597,72 +597,66 @@ final class Isolate {
   void _pause(Capability resumeCapability) {
     // _sendOOB expects a fixed length array and hence we create a fixed
     // length array and assign values to it instead of using [ ... ].
-    var msg =
-        List<Object?>.filled(4, null)
-          ..[0] =
-              0 // Make room for OOB message type.
-          ..[1] = _PAUSE
-          ..[2] = pauseCapability
-          ..[3] = resumeCapability;
+    var msg = List<Object?>.filled(4, null)
+      ..[0] =
+          0 // Make room for OOB message type.
+      ..[1] = _PAUSE
+      ..[2] = pauseCapability
+      ..[3] = resumeCapability;
     _sendOOB(controlPort, msg);
   }
 
   @patch
   void resume(Capability resumeCapability) {
-    var msg =
-        List<Object?>.filled(4, null)
-          ..[0] =
-              0 // Make room for OOB message type.
-          ..[1] = _RESUME
-          ..[2] = pauseCapability
-          ..[3] = resumeCapability;
+    var msg = List<Object?>.filled(4, null)
+      ..[0] =
+          0 // Make room for OOB message type.
+      ..[1] = _RESUME
+      ..[2] = pauseCapability
+      ..[3] = resumeCapability;
     _sendOOB(controlPort, msg);
   }
 
   @patch
   void addOnExitListener(SendPort responsePort, {Object? response}) {
-    var msg =
-        List<Object?>.filled(4, null)
-          ..[0] =
-              0 // Make room for OOB message type.
-          ..[1] = _ADD_EXIT
-          ..[2] = responsePort
-          ..[3] = response;
+    var msg = List<Object?>.filled(4, null)
+      ..[0] =
+          0 // Make room for OOB message type.
+      ..[1] = _ADD_EXIT
+      ..[2] = responsePort
+      ..[3] = response;
     _sendOOB(controlPort, msg);
   }
 
   @patch
   void removeOnExitListener(SendPort responsePort) {
-    var msg =
-        List<Object?>.filled(3, null)
-          ..[0] =
-              0 // Make room for OOB message type.
-          ..[1] = _DEL_EXIT
-          ..[2] = responsePort;
+    var msg = List<Object?>.filled(3, null)
+      ..[0] =
+          0 // Make room for OOB message type.
+      ..[1] = _DEL_EXIT
+      ..[2] = responsePort;
     _sendOOB(controlPort, msg);
   }
 
   @patch
   void setErrorsFatal(bool errorsAreFatal) {
-    var msg =
-        List<Object?>.filled(4, null)
-          ..[0] =
-              0 // Make room for OOB message type.
-          ..[1] = _ERROR_FATAL
-          ..[2] = terminateCapability
-          ..[3] = errorsAreFatal;
+    var msg = List<Object?>.filled(4, null)
+      ..[0] =
+          0 // Make room for OOB message type.
+      ..[1] = _ERROR_FATAL
+      ..[2] = terminateCapability
+      ..[3] = errorsAreFatal;
     _sendOOB(controlPort, msg);
   }
 
   @patch
   void kill({int priority = beforeNextEvent}) {
-    var msg =
-        List<Object?>.filled(4, null)
-          ..[0] =
-              0 // Make room for OOB message type.
-          ..[1] = _KILL
-          ..[2] = terminateCapability
-          ..[3] = priority;
+    var msg = List<Object?>.filled(4, null)
+      ..[0] =
+          0 // Make room for OOB message type.
+      ..[1] = _KILL
+      ..[2] = terminateCapability
+      ..[3] = priority;
     _sendOOB(controlPort, msg);
   }
 
@@ -672,36 +666,33 @@ final class Isolate {
     Object? response,
     int priority = immediate,
   }) {
-    var msg =
-        List<Object?>.filled(5, null)
-          ..[0] =
-              0 // Make room for OOM message type.
-          ..[1] = _PING
-          ..[2] = responsePort
-          ..[3] = priority
-          ..[4] = response;
+    var msg = List<Object?>.filled(5, null)
+      ..[0] =
+          0 // Make room for OOM message type.
+      ..[1] = _PING
+      ..[2] = responsePort
+      ..[3] = priority
+      ..[4] = response;
     _sendOOB(controlPort, msg);
   }
 
   @patch
   void addErrorListener(SendPort port) {
-    var msg =
-        List<Object?>.filled(3, null)
-          ..[0] =
-              0 // Make room for OOB message type.
-          ..[1] = _ADD_ERROR
-          ..[2] = port;
+    var msg = List<Object?>.filled(3, null)
+      ..[0] =
+          0 // Make room for OOB message type.
+      ..[1] = _ADD_ERROR
+      ..[2] = port;
     _sendOOB(controlPort, msg);
   }
 
   @patch
   void removeErrorListener(SendPort port) {
-    var msg =
-        List<Object?>.filled(3, null)
-          ..[0] =
-              0 // Make room for OOB message type.
-          ..[1] = _DEL_ERROR
-          ..[2] = port;
+    var msg = List<Object?>.filled(3, null)
+      ..[0] =
+          0 // Make room for OOB message type.
+      ..[1] = _DEL_ERROR
+      ..[2] = port;
     _sendOOB(controlPort, msg);
   }
 

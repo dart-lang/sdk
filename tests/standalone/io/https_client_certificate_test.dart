@@ -19,26 +19,30 @@ String localFile(path) => Platform.script.resolve(path).toFilePath();
 
 SecurityContext serverContext = new SecurityContext()
   ..useCertificateChain(localFile('certificates/server_chain.pem'))
-  ..usePrivateKey(localFile('certificates/server_key.pem'),
-      password: 'dartdart')
-  ..setTrustedCertificates(
-    localFile('certificates/client_authority.pem'),
+  ..usePrivateKey(
+    localFile('certificates/server_key.pem'),
+    password: 'dartdart',
   )
-  ..setClientAuthorities(
-    localFile('certificates/client_authority.pem'),
-  );
+  ..setTrustedCertificates(localFile('certificates/client_authority.pem'))
+  ..setClientAuthorities(localFile('certificates/client_authority.pem'));
 
 SecurityContext clientContext = new SecurityContext()
   ..setTrustedCertificates(localFile('certificates/trusted_certs.pem'))
   ..useCertificateChain(localFile('certificates/client1.pem'))
-  ..usePrivateKey(localFile('certificates/client1_key.pem'),
-      password: 'dartdart');
+  ..usePrivateKey(
+    localFile('certificates/client1_key.pem'),
+    password: 'dartdart',
+  );
 
 void main() {
   asyncStart();
-  HttpServer.bindSecure(HOST_NAME, 0, serverContext,
-          backlog: 5, requestClientCertificate: true)
-      .then((server) {
+  HttpServer.bindSecure(
+    HOST_NAME,
+    0,
+    serverContext,
+    backlog: 5,
+    requestClientCertificate: true,
+  ).then((server) {
     server.listen((HttpRequest request) {
       Expect.isNotNull(request.certificate);
       Expect.equals('/CN=user1', request.certificate!.subject);
@@ -51,16 +55,22 @@ void main() {
         .getUrl(Uri.parse("https://$HOST_NAME:${server.port}/"))
         .then((request) => request.close())
         .then((response) {
-      Expect.equals('/CN=localhost', response.certificate!.subject);
-      Expect.equals('/CN=intermediateauthority', response.certificate!.issuer);
-      return response
-          .fold<List<int>>(<int>[], (message, data) => message..addAll(data));
-    }).then((message) {
-      String received = new String.fromCharCodes(message);
-      Expect.equals(received, "Hello");
-      client.close();
-      server.close();
-      asyncEnd();
-    });
+          Expect.equals('/CN=localhost', response.certificate!.subject);
+          Expect.equals(
+            '/CN=intermediateauthority',
+            response.certificate!.issuer,
+          );
+          return response.fold<List<int>>(
+            <int>[],
+            (message, data) => message..addAll(data),
+          );
+        })
+        .then((message) {
+          String received = new String.fromCharCodes(message);
+          Expect.equals(received, "Hello");
+          client.close();
+          server.close();
+          asyncEnd();
+        });
   });
 }

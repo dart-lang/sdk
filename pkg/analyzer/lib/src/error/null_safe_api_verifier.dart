@@ -33,8 +33,12 @@ class NullSafeApiVerifier {
     var isFutureValue = type.isDartAsyncFuture && constructor.name3 == 'value';
 
     if (isFutureValue) {
-      _checkTypes(expression, 'Future.value', type.typeArguments.single,
-          expression.argumentList);
+      _checkTypes(
+        expression,
+        'Future.value',
+        type.typeArguments.single,
+        expression.argumentList,
+      );
     }
   }
 
@@ -49,13 +53,21 @@ class NullSafeApiVerifier {
     if (targetClass.library2.isDartAsync == true &&
         targetClass.name3 == 'Completer' &&
         node.methodName.name == 'complete') {
-      _checkTypes(node, 'Completer.complete', targetType.typeArguments.single,
-          node.argumentList);
+      _checkTypes(
+        node,
+        'Completer.complete',
+        targetType.typeArguments.single,
+        node.argumentList,
+      );
     }
   }
 
-  void _checkTypes(ExpressionImpl node, String memberName, DartType type,
-      ArgumentListImpl args) {
+  void _checkTypes(
+    ExpressionImpl node,
+    String memberName,
+    DartType type,
+    ArgumentListImpl args,
+  ) {
     // If there's more than one argument, something else is wrong (and will
     // generate another diagnostic). Also, only check the argument type if we
     // expect a non-nullable type in the first place.

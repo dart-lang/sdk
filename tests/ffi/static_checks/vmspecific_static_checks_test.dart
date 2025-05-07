@@ -67,8 +67,6 @@ void main() {
   testRefStruct();
   testSizeOfGeneric();
   testSizeOfInvalidType();
-  testElementAtGeneric();
-  testElementAtNativeType();
   testLookupFunctionIsLeafMustBeConst();
   testAsFunctionIsLeafMustBeConst();
   testLookupFunctionTakesHandle();
@@ -1175,32 +1173,6 @@ void testSizeOfInvalidType() {
   // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_TYPE_ARGUMENT
 }
 
-void testElementAtGeneric() {
-  Pointer<T> generic<T extends NativeType>(Pointer<T> pointer) {
-    Pointer<T> returnValue = pointer;
-    returnValue = returnValue.elementAt(1);
-    //                        ^^^^^^^^^
-    // [cfe] The method 'elementAt' isn't defined for the class 'Pointer<T>'.
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
-    return returnValue;
-  }
-
-  Pointer<Int8> p = calloc();
-  p.elementAt(1);
-  generic(p);
-  calloc.free(p);
-}
-
-void testElementAtNativeType() {
-  Pointer<Int8> p = calloc();
-  p.elementAt(1);
-  Pointer<NativeType> p2 = p;
-  p2.elementAt(1);
-  // ^^^^^^^^^
-  // [cfe] The method 'elementAt' isn't defined for the class 'Pointer<NativeType>'.
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
-  calloc.free(p);
-}
 
 final class TestStruct1400 extends Struct {
   @Array(8)

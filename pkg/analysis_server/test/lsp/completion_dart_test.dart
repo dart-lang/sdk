@@ -2803,6 +2803,74 @@ void f({int one, int two}) {
     expect(res, isEmpty);
   }
 
+  Future<void> test_noOperators_propertyAccessExternal() async {
+    var content = '''
+class A {
+  int operator-() => 0;
+  int operator-(int other) => 0;
+}
+
+void f() {
+  A().^
+}
+''';
+
+    await initialize();
+    var code = TestCode.parse(content);
+    await openFile(mainFileUri, code.code);
+    var completions = await getCompletion(mainFileUri, code.position.position);
+    var labels = completions.map((c) => c.label).toList();
+    expect(labels, isNot(contains('==(…)')));
+    expect(labels, isNot(contains('-(…)')));
+    expect(labels, isNot(contains('unary-()')));
+  }
+
+  Future<void> test_noOperators_propertyAccessInternal() async {
+    var content = '''
+class A {
+  int operator-() => 0;
+  int operator-(int other) => 0;
+
+  void m() {
+    this.^
+  }
+}
+''';
+
+    await initialize();
+    var code = TestCode.parse(content);
+    await openFile(mainFileUri, code.code);
+    var completions = await getCompletion(mainFileUri, code.position.position);
+    var labels = completions.map((c) => c.label).toList();
+    expect(labels, isNot(contains('==(…)')));
+    expect(labels, isNot(contains('-(…)')));
+    expect(labels, isNot(contains('unary-()')));
+  }
+
+  Future<void> test_noOperators_superPropertyAccess() async {
+    var content = '''
+class A {
+  int operator-() => 0;
+  int operator-(int other) => 0;
+}
+
+class B extends A {
+  void m() {
+    super.^
+  }
+}
+''';
+
+    await initialize();
+    var code = TestCode.parse(content);
+    await openFile(mainFileUri, code.code);
+    var completions = await getCompletion(mainFileUri, code.position.position);
+    var labels = completions.map((c) => c.label).toList();
+    expect(labels, isNot(contains('==(…)')));
+    expect(labels, isNot(contains('-(…)')));
+    expect(labels, isNot(contains('unary-()')));
+  }
+
   Future<void> test_nullableTypes() async {
     var content = '''
 String? foo(int? a, [int b = 1]) {}
@@ -2820,6 +2888,28 @@ void f() {
 
     var completion = res.singleWhere((c) => c.label.startsWith('foo'));
     expect(completion.detail, '(int? a, [int b = 1]) → String?');
+  }
+
+  Future<void> test_operators_override() async {
+    var content = '''
+class A {
+  int operator-() => 0;
+  int operator-(int other) => 0;
+}
+
+class B extends A {
+  ^
+}
+''';
+
+    await initialize();
+    var code = TestCode.parse(content);
+    await openFile(mainFileUri, code.code);
+    var completions = await getCompletion(mainFileUri, code.position.position);
+    var labels = completions.map((c) => c.label).toList();
+    expect(labels, contains('override ==(Object other) { … }'));
+    expect(labels, contains('override -(int other) { … }'));
+    expect(labels, contains('override unary-() { … }'));
   }
 
   Future<void> test_plainText() async {

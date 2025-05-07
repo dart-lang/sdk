@@ -17,26 +17,33 @@ main() {
 @reflectiveTest
 class ConstEvalTypeStringTest extends PubPackageResolutionTest {
   test_length_unresolvedType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class B {
   final l;
   const B(String o) : l = o.length;
 }
 
 const y = B(x);
-''', [
-      error(
-        CompileTimeErrorCode.CONST_EVAL_TYPE_STRING,
-        70,
-        4,
-        contextMessages: [
-          ExpectedContextMessage(testFile, 47, 8,
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_EVAL_TYPE_STRING,
+          70,
+          4,
+          contextMessages: [
+            ExpectedContextMessage(
+              testFile,
+              47,
+              8,
               text:
-                  "The error is in the field initializer of 'B', and occurs here."),
-        ],
-      ),
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 72, 1),
-      error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 72, 1),
-    ]);
+                  "The error is in the field initializer of 'B', and occurs here.",
+            ),
+          ],
+        ),
+        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 72, 1),
+        error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 72, 1),
+      ],
+    );
   }
 }

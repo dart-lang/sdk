@@ -14,11 +14,7 @@ import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/parser.dart';
 
-CompilationUnit parseText(
-  Source source,
-  String text,
-  FeatureSet featureSet,
-) {
+CompilationUnit parseText(Source source, String text, FeatureSet featureSet) {
   CharSequenceReader reader = CharSequenceReader(text);
   Scanner scanner = Scanner(source, reader, AnalysisErrorListener.NULL_LISTENER)
     ..configureFeatures(

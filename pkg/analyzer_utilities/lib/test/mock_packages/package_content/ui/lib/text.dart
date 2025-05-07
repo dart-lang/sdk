@@ -58,7 +58,7 @@ class FontWeight {
     w600,
     w700,
     w800,
-    w900
+    w900,
   ];
 
   /// The encoded integer value of this font weight.

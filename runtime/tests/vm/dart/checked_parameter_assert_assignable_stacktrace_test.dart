@@ -50,6 +50,6 @@ final currentExpectations = [
 #0    B.takesA (%test%)
 #1    main (%test%)
 #2    _delayEntrypointInvocation.<anonymous closure> (isolate_patch.dart)
-#3    _RawReceivePort._handleMessage (isolate_patch.dart)"""
+#3    _RawReceivePort._handleMessage (isolate_patch.dart)""",
 ];
 // CURRENT EXPECTATIONS END

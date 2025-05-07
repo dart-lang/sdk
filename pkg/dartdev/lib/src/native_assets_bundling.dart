@@ -4,10 +4,11 @@
 
 import 'dart:io';
 
+import 'package:code_assets/code_assets.dart';
 import 'package:dartdev/src/native_assets_macos.dart';
-import 'package:native_assets_builder/native_assets_builder.dart';
-import 'package:native_assets_cli/code_assets_builder.dart';
-import 'package:native_assets_cli/data_assets_builder.dart';
+import 'package:data_assets/data_assets.dart';
+import 'package:hooks/hooks.dart';
+import 'package:hooks_runner/hooks_runner.dart';
 
 final libOutputDirectoryUri = Uri.file('lib/');
 final dataOutputDirectoryUri = Uri.file('assets/');
@@ -102,12 +103,10 @@ List<({Object asset, KernelAsset target})> _targetMapping(
   Uri outputUri,
   bool relocatable,
 ) {
-  final codeAssets = assets
-      .where((asset) => asset.isCodeAsset)
-      .map(CodeAsset.fromEncoded);
-  final dataAssets = assets
-      .where((asset) => asset.isDataAsset)
-      .map(DataAsset.fromEncoded);
+  final codeAssets =
+      assets.where((asset) => asset.isCodeAsset).map(CodeAsset.fromEncoded);
+  final dataAssets =
+      assets.where((asset) => asset.isDataAsset).map(DataAsset.fromEncoded);
 
   return [
     for (final asset in codeAssets)

@@ -22,7 +22,8 @@ abstract class C extends S {
   method() {}
   get getter {}
   set setter(x) {}
-  /* abstract */ notOverridden();
+  /* abstract */
+  notOverridden();
 }
 
 selectKeys<K, V>(Map<K, V> map, bool Function(V) predicate) {
@@ -45,18 +46,22 @@ main() {
     #runtimeType,
     #==,
     #noSuchMethod,
-    #toString
+    #toString,
   ], selectKeys(sMirror.instanceMembers, (dynamic dm) => !dm.isPrivate));
   // Filter out private to avoid implementation-specific members of Object.
 
   Expect.equals(sMirror, sMirror.instanceMembers[#field]!.owner);
   Expect.equals(
-      sMirror, sMirror.instanceMembers[const Symbol('field=')]!.owner);
+    sMirror,
+    sMirror.instanceMembers[const Symbol('field=')]!.owner,
+  );
   Expect.equals(sMirror, sMirror.instanceMembers[#finalField]!.owner);
   Expect.equals(sMirror, sMirror.instanceMembers[#method]!.owner);
   Expect.equals(sMirror, sMirror.instanceMembers[#getter]!.owner);
   Expect.equals(
-      sMirror, sMirror.instanceMembers[const Symbol('setter=')]!.owner);
+    sMirror,
+    sMirror.instanceMembers[const Symbol('setter=')]!.owner,
+  );
 
   Expect.setEquals([
     #field,
@@ -70,18 +75,22 @@ main() {
     #runtimeType,
     #==,
     #noSuchMethod,
-    #toString
+    #toString,
   ], selectKeys(cMirror.instanceMembers, (dynamic dm) => !dm.isPrivate));
   // Filter out private to avoid implementation-specific members of Object.
 
   Expect.equals(cMirror, cMirror.instanceMembers[#field]!.owner);
   Expect.equals(
-      cMirror, cMirror.instanceMembers[const Symbol('field=')]!.owner);
+    cMirror,
+    cMirror.instanceMembers[const Symbol('field=')]!.owner,
+  );
   Expect.equals(cMirror, cMirror.instanceMembers[#finalField]!.owner);
   Expect.equals(cMirror, cMirror.instanceMembers[#method]!.owner);
   Expect.equals(cMirror, cMirror.instanceMembers[#getter]!.owner);
   Expect.equals(
-      cMirror, cMirror.instanceMembers[const Symbol('setter=')]!.owner);
+    cMirror,
+    cMirror.instanceMembers[const Symbol('setter=')]!.owner,
+  );
 
   Expect.equals(sMirror, sMirror.instanceMembers[#notOverridden]!.owner);
   Expect.equals(sMirror, cMirror.instanceMembers[#notOverridden]!.owner);

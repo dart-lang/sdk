@@ -14,6 +14,8 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 import 'class_info.dart';
 import 'closures.dart';
 import 'code_generator.dart';
+import 'dynamic_module_kernel_metadata.dart'
+    show DynamicModuleConstantRepository;
 import 'dynamic_modules.dart';
 import 'param_info.dart';
 import 'translator.dart';
@@ -71,7 +73,10 @@ typedef ConstantCodeGenerator = void Function(w.InstructionsBuilder);
 class Constants {
   final Translator translator;
   final Map<Constant, ConstantInfo> constantInfo = {};
-  final Map<Constant, ConstantInfo> dynamicModuleConstantInfo = {};
+  late final Map<Constant, int>? dynamicMainModuleConstantId = (translator
+              .component.metadata[DynamicModuleConstantRepository.repositoryTag]
+          as DynamicModuleConstantRepository?)
+      ?.mapping[translator.component] ??= {};
   w.DataSegmentBuilder? int32Segment;
   late final ClassInfo typeInfo = translator.classInfo[translator.typeClass]!;
 
@@ -475,7 +480,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
   final w.ModuleBuilder targetModule;
 
   ConstantCreator(this.constants, w.ModuleBuilder module)
-      : targetModule = constants.translator.isDynamicModule
+      : targetModule = constants.translator.isDynamicSubmodule
             ? module
             : constants.translator.mainModule;
 
@@ -494,55 +499,106 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
       constant = constants._lowerTypeConstant(type);
     }
 
-    final cache = translator.dynamicModuleSupportEnabled &&
-            !translator.isMainModule(targetModule)
-        ? constants.dynamicModuleConstantInfo
-        : constants.constantInfo;
-    ConstantInfo? info = cache[constant];
+    ConstantInfo? info = constants.constantInfo[constant];
     if (info == null) {
       info = constant.accept(this);
       if (info != null) {
-        cache[constant] = info;
+        constants.constantInfo[constant] = info;
       }
     }
     return info;
   }
 
+  static String _dynamicModuleConstantExportName(int id) => '#c$id';
+  static String _dynamicModuleInitFunctionExportName(int id) => '#cf$id';
+
   ConstantInfo createConstant(
       Constant constant, w.RefType type, ConstantCodeGenerator generator,
       {bool lazy = false}) {
     assert(!type.nullable);
-    if (lazy || translator.dynamicModuleSupportEnabled) {
+
+    // This function is only called once per [Constant]. If we compile a dynamic
+    // submodule then the [dynamicModuleConstantIdMap] is pre-populated and
+    // we may find an export name. If we compile the main module, then the id
+    // will be `null`.
+    final dynamicModuleConstantIdMap = constants.dynamicMainModuleConstantId;
+    final mainModuleExportId = dynamicModuleConstantIdMap?[constant];
+    final isShareableAcrossModules = dynamicModuleConstantIdMap != null &&
+        constant.accept(_ConstantDynamicModuleSharedChecker(translator));
+    final needsRuntimeCanonicalization = isShareableAcrossModules &&
+        translator.isDynamicSubmodule &&
+        mainModuleExportId == null;
+
+    if (lazy || needsRuntimeCanonicalization) {
       // Create uninitialized global and function to initialize it.
-      final global =
-          targetModule.globals.define(w.GlobalType(type.withNullability(true)));
-      global.initializer.ref_null(w.HeapType.none);
-      global.initializer.end();
+      final globalType = w.GlobalType(type.withNullability(true));
+      w.Global global;
+      w.BaseFunction initFunction;
+
       w.FunctionType ftype =
           translator.typesBuilder.defineFunction(const [], [type]);
-      final function = targetModule.functions.define(ftype, "$constant");
-      final b2 = function.body;
-      generator(b2);
-      if (translator.dynamicModuleSupportEnabled) {
-        final valueLocal = b2.addLocal(type);
-        constant.accept(ConstantCanonicalizer(translator, b2, valueLocal));
-      }
-      w.Local temp = b2.addLocal(type);
-      b2.local_tee(temp);
-      b2.global_set(global);
-      b2.local_get(temp);
-      b2.end();
 
-      return ConstantInfo(constant, global, function);
+      if (mainModuleExportId != null) {
+        global = targetModule.globals.import(translator.mainModule.moduleName,
+            _dynamicModuleConstantExportName(mainModuleExportId), globalType);
+        initFunction = targetModule.functions.import(
+            translator.mainModule.moduleName,
+            _dynamicModuleInitFunctionExportName(mainModuleExportId),
+            ftype);
+      } else {
+        final definedGlobal = global = targetModule.globals.define(globalType);
+        definedGlobal.initializer.ref_null(w.HeapType.none);
+        definedGlobal.initializer.end();
+
+        final function =
+            initFunction = targetModule.functions.define(ftype, "$constant");
+
+        if (isShareableAcrossModules) {
+          final exportId = dynamicModuleConstantIdMap[constant] =
+              dynamicModuleConstantIdMap.length;
+
+          targetModule.exports.export(
+              _dynamicModuleConstantExportName(exportId), definedGlobal);
+          targetModule.exports
+              .export(_dynamicModuleInitFunctionExportName(exportId), function);
+        }
+        final b2 = function.body;
+        generator(b2);
+        if (needsRuntimeCanonicalization) {
+          final valueLocal = b2.addLocal(type);
+          constant.accept(ConstantCanonicalizer(translator, b2, valueLocal));
+        }
+        w.Local temp = b2.addLocal(type);
+        b2.local_tee(temp);
+        b2.global_set(global);
+        b2.local_get(temp);
+        b2.end();
+      }
+
+      return ConstantInfo(constant, global, initFunction);
     } else {
       // Create global with the constant in its initializer.
       assert(!constants.currentlyCreating);
-      constants.currentlyCreating = true;
-      final global =
-          targetModule.globals.define(w.GlobalType(type, mutable: false));
-      generator(global.initializer);
-      global.initializer.end();
-      constants.currentlyCreating = false;
+      final globalType = w.GlobalType(type, mutable: false);
+      w.Global global;
+      if (mainModuleExportId != null) {
+        global = targetModule.globals.import(translator.mainModule.moduleName,
+            _dynamicModuleConstantExportName(mainModuleExportId), globalType);
+      } else {
+        constants.currentlyCreating = true;
+        final definedGlobal = global = targetModule.globals.define(globalType);
+        generator(definedGlobal.initializer);
+        definedGlobal.initializer.end();
+        constants.currentlyCreating = false;
+
+        if (isShareableAcrossModules) {
+          final exportId = dynamicModuleConstantIdMap[constant] =
+              dynamicModuleConstantIdMap.length;
+
+          targetModule.exports.export(
+              _dynamicModuleConstantExportName(exportId), definedGlobal);
+        }
+      }
 
       return ConstantInfo(constant, global, null);
     }
@@ -651,6 +707,10 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
       args = supertype.typeArguments;
     }
 
+    // If the class ID is relative then it needs to be globalized when
+    // initializing the object which is a non-const operation.
+    lazy |= info.classId is RelativeClassId;
+
     return createConstant(constant, type, lazy: lazy, (b) {
       b.pushObjectHeaderFields(translator, info);
       for (int i = FieldIndex.objectFieldBase; i < fieldCount; i++) {
@@ -658,7 +718,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
         constants.instantiateConstant(
             b, subConstant, info.struct.fields[i].type.unpacked);
         if (isRelativeInterfaceType && i == FieldIndex.interfaceTypeClassId) {
-          assert(translator.isDynamicModule);
+          assert(translator.isDynamicSubmodule);
           translator.pushModuleId(b);
           translator.callReference(translator.globalizeClassId.reference, b);
         }
@@ -910,8 +970,8 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
 
     // The vtable for the target will be stored on a global in the target's
     // module.
-    final isLazy =
-        translator.moduleForReference(constant.targetReference) != targetModule;
+    final isLazy = translator.moduleForReference(constant.targetReference) !=
+        translator.mainModule;
     // The dummy struct must be declared before the constant global so that the
     // constant's initializer can reference it.
     final dummyStructGlobal = translator
@@ -1158,3 +1218,37 @@ List<int> _intToLittleEndianBytes(int i) {
 }
 
 String _intToBase64(int i) => base64.encode(_intToLittleEndianBytes(i));
+
+/// Resolves to true if the visited Constant is accessible from dynamic
+/// submodules.
+///
+/// Constants that are accessible from dynamic submodules should be:
+/// (1) Exported from the main module if they exist there and then imported
+/// into dynamic submodules.
+/// (2) Runtime canonicalized by dynamic submodules if they are not in the main
+/// module.
+class _ConstantDynamicModuleSharedChecker extends ConstantVisitor<bool>
+    with ConstantVisitorDefaultMixin<bool> {
+  final Translator translator;
+
+  _ConstantDynamicModuleSharedChecker(this.translator);
+
+  // TODO(natebiggs): Make this more precise by handling more specific
+  // constants.
+  @override
+  bool defaultConstant(Constant constant) => true;
+
+  @override
+  bool visitInstanceConstant(InstanceConstant constant) {
+    final cls = constant.classNode;
+    if (!cls.enclosingLibrary.isFromMainModule(translator.coreTypes)) {
+      return false;
+    }
+    if (cls == translator.wasmArrayClass ||
+        cls == translator.immutableWasmArrayClass) {
+      return true;
+    }
+    return constant.classNode.constructors.any(
+        (c) => c.isConst && c.isDynamicSubmoduleCallable(translator.coreTypes));
+  }
+}

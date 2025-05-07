@@ -113,7 +113,7 @@ void testIfNull() {
       bFalse
           ? d
           : ((c ?? a) // ignore: dead_null_aware_expression
-            ..expectStaticType<Exactly<A>>()),
+              ..expectStaticType<Exactly<A>>()),
     ),
   );
 
@@ -132,7 +132,7 @@ void testIfNull() {
       bFalse
           ? d
           : (((c) ?? a) // ignore: dead_null_aware_expression
-            ..expectStaticType<Exactly<A>>()),
+              ..expectStaticType<Exactly<A>>()),
     ),
   );
   Expect.throws(
@@ -145,7 +145,7 @@ void testIfNull() {
       bFalse
           ? d
           : ((((c)) ?? a) // ignore: dead_null_aware_expression
-            ..expectStaticType<Exactly<A>>()),
+              ..expectStaticType<Exactly<A>>()),
     ),
   );
   Expect.throws(

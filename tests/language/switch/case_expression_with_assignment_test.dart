@@ -6,7 +6,6 @@
 // Error was in pre-pattern case parsing.
 // @dart=2.19
 
-
 import "package:expect/expect.dart";
 
 const ERROR_A = 0;

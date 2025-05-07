@@ -2065,8 +2065,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStubForEntryKind(
   Label stepping, done_stepping;
   if (optimized == kUnoptimized) {
     __ Comment("Check single stepping");
-    __ LoadIsolate(EAX);
-    __ cmpb(Address(EAX, target::Isolate::single_step_offset()), Immediate(0));
+    __ cmpb(Address(THR, target::Thread::single_step_offset()), Immediate(0));
     __ j(NOT_EQUAL, &stepping);
     __ Bind(&done_stepping);
   }
@@ -2382,8 +2381,7 @@ static void GenerateZeroArgsUnoptimizedStaticCallForEntryKind(
 #if !defined(PRODUCT)
   // Check single stepping.
   Label stepping, done_stepping;
-  __ LoadIsolate(EAX);
-  __ cmpb(Address(EAX, target::Isolate::single_step_offset()), Immediate(0));
+  __ cmpb(Address(THR, target::Thread::single_step_offset()), Immediate(0));
   __ j(NOT_EQUAL, &stepping, Assembler::kNearJump);
   __ Bind(&done_stepping);
 #endif
@@ -2601,9 +2599,7 @@ void StubCodeCompiler::GenerateDebugStepCheckStub() {
 #else
   // Check single stepping.
   Label stepping, done_stepping;
-  __ LoadIsolate(EAX);
-  __ movzxb(EAX, Address(EAX, target::Isolate::single_step_offset()));
-  __ cmpl(EAX, Immediate(0));
+  __ cmpb(Address(THR, target::Thread::single_step_offset()), Immediate(0));
   __ j(NOT_EQUAL, &stepping, Assembler::kNearJump);
   __ Bind(&done_stepping);
   __ ret();
@@ -3099,9 +3095,7 @@ void StubCodeCompiler::GenerateUnoptimizedIdenticalWithNumberCheckStub() {
 #if !defined(PRODUCT)
   // Check single stepping.
   Label stepping, done_stepping;
-  __ LoadIsolate(EAX);
-  __ movzxb(EAX, Address(EAX, target::Isolate::single_step_offset()));
-  __ cmpl(EAX, Immediate(0));
+  __ cmpb(Address(THR, target::Thread::single_step_offset()), Immediate(0));
   __ j(NOT_EQUAL, &stepping);
   __ Bind(&done_stepping);
 #endif

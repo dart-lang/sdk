@@ -39,7 +39,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var rhs = node.rightHandSide;
     if (lhs is Identifier && rhs is Identifier) {
       if (lhs.name == rhs.name) {
-        rule.reportLint(node);
+        rule.reportAtNode(node);
       }
     }
   }

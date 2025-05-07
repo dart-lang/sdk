@@ -52,11 +52,13 @@ main() {
 
     List<Element> eachChecked = document.querySelector('#allChecked')!.children;
 
-    List<Element> someChecked =
-        document.querySelector('#someChecked')!.children;
+    List<Element> someChecked = document
+        .querySelector('#someChecked')!
+        .children;
 
-    List<Element> noneChecked =
-        document.querySelector('#noneChecked')!.children;
+    List<Element> noneChecked = document
+        .querySelector('#noneChecked')!
+        .children;
 
     expect(eachChecked.length, 4);
     expect(someChecked.length, 4);
@@ -76,11 +78,13 @@ main() {
 
     List<Element> eachChecked = document.querySelector('#allChecked')!.children;
 
-    List<Element> someChecked =
-        document.querySelector('#someChecked')!.children;
+    List<Element> someChecked = document
+        .querySelector('#someChecked')!
+        .children;
 
-    List<Element> noneChecked =
-        document.querySelector('#noneChecked')!.children;
+    List<Element> noneChecked = document
+        .querySelector('#noneChecked')!
+        .children;
 
     expect(eachChecked.length, 4);
     expect(someChecked.length, 4);
@@ -100,11 +104,13 @@ main() {
 
     List<Element> eachChecked = document.querySelector('#allChecked')!.children;
 
-    List<Element> someChecked =
-        document.querySelector('#someChecked')!.children;
+    List<Element> someChecked = document
+        .querySelector('#someChecked')!
+        .children;
 
-    List<Element> noneChecked =
-        document.querySelector('#noneChecked')!.children;
+    List<Element> noneChecked = document
+        .querySelector('#noneChecked')!
+        .children;
 
     expect(eachChecked.length, 4);
     expect(someChecked.length, 4);
@@ -122,8 +128,9 @@ main() {
   test('IsEmpty', () {
     Element root = insertTestDiv();
 
-    List<Element> someChecked =
-        document.querySelector('#someChecked')!.children;
+    List<Element> someChecked = document
+        .querySelector('#someChecked')!
+        .children;
 
     List<Element> emptyDiv = document.querySelector('#emptyDiv')!.children;
 
@@ -149,11 +156,13 @@ main() {
 
     List<Element> eachChecked = document.querySelector('#allChecked')!.children;
 
-    List<Element> someChecked =
-        document.querySelector('#someChecked')!.children;
+    List<Element> someChecked = document
+        .querySelector('#someChecked')!
+        .children;
 
-    List<Element> noneChecked =
-        document.querySelector('#noneChecked')!.children;
+    List<Element> noneChecked = document
+        .querySelector('#noneChecked')!
+        .children;
 
     expect(eachChecked.length, 4);
     expect(someChecked.length, 4);
@@ -183,11 +192,13 @@ main() {
 
     List<Element> eachChecked = document.querySelector('#allChecked')!.children;
 
-    List<Element> someChecked =
-        document.querySelector('#someChecked')!.children;
+    List<Element> someChecked = document
+        .querySelector('#someChecked')!
+        .children;
 
-    List<Element> noneChecked =
-        document.querySelector('#noneChecked')!.children;
+    List<Element> noneChecked = document
+        .querySelector('#noneChecked')!
+        .children;
 
     expect(eachChecked.length, 4);
     expect(someChecked.length, 4);
@@ -205,8 +216,9 @@ main() {
   test('Last', () {
     Element root = insertTestDiv();
 
-    List<Element> someChecked =
-        document.querySelector('#someChecked')!.children;
+    List<Element> someChecked = document
+        .querySelector('#someChecked')!
+        .children;
 
     expect(someChecked.length, 4);
 
@@ -217,11 +229,13 @@ main() {
   test('IndexOf', () {
     Element root = insertTestDiv();
 
-    List<Element> someChecked =
-        document.querySelector('#someChecked')!.children;
+    List<Element> someChecked = document
+        .querySelector('#someChecked')!
+        .children;
 
-    List<Element> noneChecked =
-        document.querySelector('#noneChecked')!.children;
+    List<Element> noneChecked = document
+        .querySelector('#noneChecked')!
+        .children;
 
     expect(someChecked.length, 4);
     expect(noneChecked.length, 4);
@@ -246,11 +260,13 @@ main() {
   test('LastIndexOf', () {
     Element root = insertTestDiv();
 
-    List<Element> someChecked =
-        document.querySelector('#someChecked')!.children;
+    List<Element> someChecked = document
+        .querySelector('#someChecked')!
+        .children;
 
-    List<Element> noneChecked =
-        document.querySelector('#noneChecked')!.children;
+    List<Element> noneChecked = document
+        .querySelector('#noneChecked')!
+        .children;
 
     expect(someChecked.length, 4);
     expect(noneChecked.length, 4);

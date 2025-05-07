@@ -187,7 +187,8 @@ PropertyAccess
   }
 
   test_implicitCall_tearOff_nullable() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   int call() => 0;
 }
@@ -199,9 +200,9 @@ class B {
 int Function() foo() {
   return B().a; // ref
 }
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 85, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 85, 5)],
+    );
 
     var identifier = findNode.simple('a; // ref');
     assertResolvedNodeText(identifier, r'''
@@ -324,7 +325,8 @@ PropertyAccess
   }
 
   test_inClass_superExpression_identifier_setter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   set foo(int _) {}
 
@@ -332,9 +334,9 @@ class A {
     super.foo;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SUPER_GETTER, 54, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SUPER_GETTER, 54, 3)],
+    );
 
     var node = findNode.propertyAccess('foo;');
     assertResolvedNodeText(node, r'''
@@ -412,7 +414,8 @@ PropertyAccess
   }
 
   test_inClass_superQualifier_identifier_setter() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   set foo(int _) {}
 }
@@ -424,9 +427,9 @@ class B extends A {
     super.foo;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_SUPER_GETTER, 97, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_SUPER_GETTER, 97, 3)],
+    );
 
     var node = findNode.propertyAccess('foo;');
     assertResolvedNodeText(node, r'''
@@ -1017,6 +1020,74 @@ PropertyAccess
     element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getter::foo#element
     staticType: int
   staticType: int
+''');
+  }
+
+  test_ofClass_inheritedGetter_ofGenericClass_usesTypeParameter() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  T get foo => throw 0;
+}
+
+class B extends A<int> {}
+
+void f(B b) {
+  (b).foo;
+}
+''');
+
+    var node = findNode.singlePropertyAccess;
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: b
+      element: <testLibraryFragment>::@function::f::@parameter::b#element
+      staticType: B
+    rightParenthesis: )
+    staticType: B
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    element: GetterMember
+      baseElement: <testLibraryFragment>::@class::A::@getter::foo#element
+      substitution: {T: int}
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_ofClass_inheritedGetter_ofGenericClass_usesTypeParameterNot() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  double get foo => throw 0;
+}
+
+class B extends A<int> {}
+
+void f(B b) {
+  (b).foo;
+}
+''');
+
+    var node = findNode.singlePropertyAccess;
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: b
+      element: <testLibraryFragment>::@function::f::@parameter::b#element
+      staticType: B
+    rightParenthesis: )
+    staticType: B
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    element: <testLibraryFragment>::@class::A::@getter::foo#element
+    staticType: double
+  staticType: double
 ''');
   }
 
@@ -1668,15 +1739,16 @@ PropertyAccess
   }
 
   test_ofExtensionType_read_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 extension type A(int it) {}
 
 void f(A a) {
   (a).foo;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 49, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 49, 3)],
+    );
 
     var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
@@ -2074,13 +2146,14 @@ PropertyAccess
   }
 
   test_ofRecordType_positionalField_2_unresolved() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f((int, String) r) {
   r.$3;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 2),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 2)],
+    );
 
     var node = findNode.propertyAccess(r'$3;');
     assertResolvedNodeText(node, r'''
@@ -2099,13 +2172,14 @@ PropertyAccess
   }
 
   test_ofRecordType_positionalField_dollarDigitLetter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f((int, String) r) {
   r.$0a;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 3)],
+    );
 
     var node = findNode.propertyAccess(r'$0a;');
     assertResolvedNodeText(node, r'''
@@ -2124,13 +2198,14 @@ PropertyAccess
   }
 
   test_ofRecordType_positionalField_dollarName() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f((int, String) r) {
   r.$zero;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 5),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 5)],
+    );
 
     var node = findNode.propertyAccess(r'$zero;');
     assertResolvedNodeText(node, r'''
@@ -2178,13 +2253,14 @@ PropertyAccess
   }
 
   test_ofRecordType_positionalField_letterDollarZero() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f((int, String) r) {
   r.a$0;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 3)],
+    );
 
     var node = findNode.propertyAccess(r'a$0;');
     assertResolvedNodeText(node, r'''
@@ -2226,13 +2302,14 @@ PropertyAccess
   }
 
   test_ofRecordType_unresolved() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f(({int foo}) r) {
   r.bar;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 28, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 28, 3)],
+    );
 
     var node = findNode.propertyAccess('bar;');
     assertResolvedNodeText(node, r'''
@@ -2253,13 +2330,14 @@ PropertyAccess
   /// Even though positional fields can have names, these names cannot be
   /// used to access these fields.
   test_ofRecordType_unresolved_positionalField() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f((int foo, String) r) {
   r.foo;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 34, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 34, 3)],
+    );
 
     var node = findNode.propertyAccess('foo;');
     assertResolvedNodeText(node, r'''
@@ -2494,16 +2572,22 @@ PropertyAccess
   }
 
   test_targetTypeParameter_noBound() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C<T> {
   void f(T t) {
     (t).foo;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          37, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          37,
+          3,
+        ),
+      ],
+    );
 
     var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
@@ -2546,13 +2630,14 @@ SimpleIdentifier
   }
 
   test_unresolved_identifier() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void f() {
   (a).foo;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 14, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 14, 1)],
+    );
 
     var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''

@@ -20,16 +20,17 @@ class StaticWarningCodeTest extends PubPackageResolutionTest {
   //  they're testing.
   test_nonAbstractClassInheritsAbstractMemberOne_ensureCorrectFunctionSubtypeIsUsedInImplementation() async {
     // 15028
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class C {
   foo(int x) => x;
 }
 abstract class D {
   foo(x, [y]);
 }
-class E extends C implements D {}''', [
-      error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 73, 1),
-    ]);
+class E extends C implements D {}''',
+      [error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 73, 1)],
+    );
   }
 
   test_typePromotion_functionType_arg_InterToDyn() async {

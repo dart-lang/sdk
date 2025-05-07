@@ -20,7 +20,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
-import 'package:analyzer_utilities/package_root.dart' as pkg_root;
+import 'package:analyzer_testing/package_root.dart' as pkg_root;
 import 'package:analyzer_utilities/tools.dart';
 import 'package:collection/collection.dart';
 import 'package:path/path.dart';
@@ -49,13 +49,16 @@ List<GeneratedContent> _analyzerGeneratedFiles() {
   return [
     for (var entry in classesByFile.entries)
       GeneratedFile(entry.key, (String pkgPath) async {
-        var codeGenerator =
-            _AnalyzerErrorGenerator(entry.value, generatedCodes);
+        var codeGenerator = _AnalyzerErrorGenerator(
+          entry.value,
+          generatedCodes,
+        );
         codeGenerator.generate();
         return codeGenerator.out.toString();
       }),
-    GeneratedFile('lib/src/error/error_code_values.g.dart',
-        (String pkgPath) async {
+    GeneratedFile('lib/src/error/error_code_values.g.dart', (
+      String pkgPath,
+    ) async {
       var codeGenerator = _ErrorCodeValuesGenerator(generatedCodes);
       codeGenerator.generate();
       return codeGenerator.out.toString();
@@ -115,14 +118,14 @@ library;
       out.writeln();
       _generateFastaAnalyzerErrorCodeList();
     }
-    for (var errorClass in errorClasses.toList()
-      ..sort((a, b) => a.name.compareTo(b.name))) {
+    for (var errorClass
+        in errorClasses.toList()..sort((a, b) => a.name.compareTo(b.name))) {
       out.writeln();
       out.write('class ${errorClass.name} extends ${errorClass.superclass} {');
       var entries = [
         ...analyzerMessages[errorClass.name]!.entries,
         if (errorClass.includeCfeMessages)
-          ...cfeToAnalyzerErrorCodeTables.analyzerCodeToInfo.entries
+          ...cfeToAnalyzerErrorCodeTables.analyzerCodeToInfo.entries,
       ].where((error) => !error.value.isRemoved).sortedBy((e) => e.key);
       for (var entry in entries) {
         var errorName = entry.key;
@@ -136,7 +139,8 @@ library;
         }
         if (errorCodeInfo is AliasErrorCodeInfo) {
           out.writeln(
-              '  static const ${errorCodeInfo.aliasForClass} $errorName =');
+            '  static const ${errorCodeInfo.aliasForClass} $errorName =',
+          );
           out.writeln('${errorCodeInfo.aliasFor};');
         } else {
           generatedCodes.add('${errorClass.name}.$errorName');
@@ -145,10 +149,13 @@ library;
         }
       }
       out.writeln();
-      out.writeln('/// Initialize a newly created error code to have the given '
-          '[name].');
       out.writeln(
-          'const ${errorClass.name}(String name, String problemMessage, {');
+        '/// Initialize a newly created error code to have the given '
+        '[name].',
+      );
+      out.writeln(
+        'const ${errorClass.name}(String name, String problemMessage, {',
+      );
       out.writeln('super.correctionMessage,');
       out.writeln('super.hasPublishedDocs = false,');
       out.writeln('super.isUnresolvedIdentifier = false,');
@@ -160,11 +167,13 @@ library;
       out.writeln(');');
       out.writeln();
       out.writeln('@override');
-      out.writeln('ErrorSeverity get errorSeverity => '
-          '${errorClass.severityCode};');
+      out.writeln(
+        'DiagnosticSeverity get errorSeverity => '
+        '${errorClass.severityCode};',
+      );
       out.writeln();
       out.writeln('@override');
-      out.writeln('ErrorType get type => ${errorClass.typeCode};');
+      out.writeln('DiagnosticType get type => ${errorClass.typeCode};');
       out.writeln('}');
     }
   }
@@ -237,7 +246,8 @@ import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
 ''');
     out.writeln();
     out.writeln(
-        "@AnalyzerPublicApi(message: 'exported by lib/error/error.dart')");
+      "@AnalyzerPublicApi(message: 'exported by lib/error/error.dart')",
+    );
     out.writeln('const List<ErrorCode> errorCodeValues = [');
     for (var name in generatedCodes) {
       out.writeln('  $name,');
@@ -251,15 +261,24 @@ class _SyntacticErrorGenerator {
   final String parserSource;
 
   factory _SyntacticErrorGenerator() {
-    String frontEndSharedPkgPath =
-        normalize(join(pkg_root.packageRoot, '_fe_analyzer_shared'));
+    String frontEndSharedPkgPath = normalize(
+      join(pkg_root.packageRoot, '_fe_analyzer_shared'),
+    );
 
-    String errorConverterSource = File(join(analyzerPkgPath,
-            joinAll(posix.split('lib/src/fasta/error_converter.dart'))))
-        .readAsStringSync();
-    String parserSource = File(join(frontEndSharedPkgPath,
-            joinAll(posix.split('lib/src/parser/parser.dart'))))
-        .readAsStringSync();
+    String errorConverterSource =
+        File(
+          join(
+            analyzerPkgPath,
+            joinAll(posix.split('lib/src/fasta/error_converter.dart')),
+          ),
+        ).readAsStringSync();
+    String parserSource =
+        File(
+          join(
+            frontEndSharedPkgPath,
+            joinAll(posix.split('lib/src/parser/parser.dart')),
+          ),
+        ).readAsStringSync();
 
     return _SyntacticErrorGenerator._(errorConverterSource, parserSource);
   }
@@ -275,8 +294,10 @@ class _SyntacticErrorGenerator {
       if (errorConverterSource.contains('"$errorCode"')) {
         if (converterCount == 0) {
           print('');
-          print('The following ParserErrorCodes could be removed'
-              ' from error_converter.dart:');
+          print(
+            'The following ParserErrorCodes could be removed'
+            ' from error_converter.dart:',
+          );
         }
         print('  $errorCode');
         ++converterCount;
@@ -298,8 +319,10 @@ class _SyntacticErrorGenerator {
     // Build a map of error message to ParserErrorCode
     var messageToName = <String, String>{};
     for (var entry in analyzerMessages['ParserErrorCode']!.entries) {
-      String message =
-          entry.value.problemMessage.replaceAll(RegExp(r'\{\d+\}'), '');
+      String message = entry.value.problemMessage.replaceAll(
+        RegExp(r'\{\d+\}'),
+        '',
+      );
       messageToName[message] = entry.key;
     }
 
@@ -316,8 +339,10 @@ class _SyntacticErrorGenerator {
     }
 
     // Print the # of autogenerated ParserErrorCodes.
-    print('${messageToName.length} of '
-        '${cfeToAnalyzerErrorCodeTables.infoToAnalyzerCode.length} ParserErrorCodes generated.');
+    print(
+      '${messageToName.length} of '
+      '${cfeToAnalyzerErrorCodeTables.infoToAnalyzerCode.length} ParserErrorCodes generated.',
+    );
 
     // List the ParserErrorCodes that could easily be auto generated
     // but have not been already.
@@ -385,8 +410,10 @@ class _SyntacticErrorGenerator {
             problemMessage = entry.problemMessage;
           }
         }
-        print('  ${fastaErrorCode.padRight(30)} --> $analyzerCode'
-            '\n      $problemMessage');
+        print(
+          '  ${fastaErrorCode.padRight(30)} --> $analyzerCode'
+          '\n      $problemMessage',
+        );
       }
     }
   }

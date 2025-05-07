@@ -27,23 +27,37 @@ main() {
   Expect.equals(true, throwsTypeError(() => float32x4 / dynamicNull));
   Expect.equals(true, throwsTypeError(() => float32x4.lessThan(dynamicNull)));
   Expect.equals(
-      true, throwsTypeError(() => float32x4.lessThanOrEqual(dynamicNull)));
+    true,
+    throwsTypeError(() => float32x4.lessThanOrEqual(dynamicNull)),
+  );
   Expect.equals(
-      true, throwsTypeError(() => float32x4.greaterThan(dynamicNull)));
+    true,
+    throwsTypeError(() => float32x4.greaterThan(dynamicNull)),
+  );
   Expect.equals(
-      true, throwsTypeError(() => float32x4.greaterThanOrEqual(dynamicNull)));
+    true,
+    throwsTypeError(() => float32x4.greaterThanOrEqual(dynamicNull)),
+  );
   Expect.equals(true, throwsTypeError(() => float32x4.equal(dynamicNull)));
   Expect.equals(true, throwsTypeError(() => float32x4.notEqual(dynamicNull)));
   Expect.equals(true, throwsTypeError(() => float32x4.scale(dynamicNull)));
   Expect.equals(
-      true, throwsTypeError(() => float32x4.clamp(dynamicNull, float32x4)));
+    true,
+    throwsTypeError(() => float32x4.clamp(dynamicNull, float32x4)),
+  );
   Expect.equals(
-      true, throwsTypeError(() => float32x4.clamp(float32x4, dynamicNull)));
+    true,
+    throwsTypeError(() => float32x4.clamp(float32x4, dynamicNull)),
+  );
   Expect.equals(true, throwsTypeError(() => float32x4.shuffle(dynamicNull)));
-  Expect.equals(true,
-      throwsTypeError(() => float32x4.shuffleMix(float32x4, dynamicNull)));
   Expect.equals(
-      true, throwsTypeError(() => float32x4.shuffleMix(dynamicNull, 0)));
+    true,
+    throwsTypeError(() => float32x4.shuffleMix(float32x4, dynamicNull)),
+  );
+  Expect.equals(
+    true,
+    throwsTypeError(() => float32x4.shuffleMix(dynamicNull, 0)),
+  );
   Expect.equals(true, throwsTypeError(() => float32x4.withX(dynamicNull)));
   Expect.equals(true, throwsTypeError(() => float32x4.withY(dynamicNull)));
   Expect.equals(true, throwsTypeError(() => float32x4.withZ(dynamicNull)));
@@ -51,13 +65,21 @@ main() {
   Expect.equals(true, throwsTypeError(() => float32x4.min(dynamicNull)));
   Expect.equals(true, throwsTypeError(() => float32x4.max(dynamicNull)));
   Expect.equals(
-      true, throwsTypeError(() => Float32x4(dynamicNull, 0.0, 0.0, 0.0)));
+    true,
+    throwsTypeError(() => Float32x4(dynamicNull, 0.0, 0.0, 0.0)),
+  );
   Expect.equals(
-      true, throwsTypeError(() => Float32x4(0.0, dynamicNull, 0.0, 0.0)));
+    true,
+    throwsTypeError(() => Float32x4(0.0, dynamicNull, 0.0, 0.0)),
+  );
   Expect.equals(
-      true, throwsTypeError(() => Float32x4(0.0, 0.0, dynamicNull, 0.0)));
+    true,
+    throwsTypeError(() => Float32x4(0.0, 0.0, dynamicNull, 0.0)),
+  );
   Expect.equals(
-      true, throwsTypeError(() => Float32x4(0.0, 0.0, 0.0, dynamicNull)));
+    true,
+    throwsTypeError(() => Float32x4(0.0, 0.0, 0.0, dynamicNull)),
+  );
 
   // Float32x4.splat
   Expect.equals(true, throwsTypeError(() => Float32x4.splat(dynamicNull)));
@@ -70,9 +92,13 @@ main() {
   Expect.equals(true, throwsTypeError(() => float64x2 / dynamicNull));
   Expect.equals(true, throwsTypeError(() => float64x2.scale(dynamicNull)));
   Expect.equals(
-      true, throwsTypeError(() => float64x2.clamp(dynamicNull, float64x2)));
+    true,
+    throwsTypeError(() => float64x2.clamp(dynamicNull, float64x2)),
+  );
   Expect.equals(
-      true, throwsTypeError(() => float64x2.clamp(float64x2, dynamicNull)));
+    true,
+    throwsTypeError(() => float64x2.clamp(float64x2, dynamicNull)),
+  );
   Expect.equals(true, throwsTypeError(() => float64x2.withX(dynamicNull)));
   Expect.equals(true, throwsTypeError(() => float64x2.withY(dynamicNull)));
   Expect.equals(true, throwsTypeError(() => Float64x2(dynamicNull, 0.0)));
@@ -92,9 +118,13 @@ main() {
   Expect.equals(true, throwsTypeError(() => int32x4 | dynamicNull));
   Expect.equals(true, throwsTypeError(() => int32x4.shuffle(dynamicNull)));
   Expect.equals(
-      true, throwsTypeError(() => int32x4.shuffleMix(int32x4, dynamicNull)));
+    true,
+    throwsTypeError(() => int32x4.shuffleMix(int32x4, dynamicNull)),
+  );
   Expect.equals(
-      true, throwsTypeError(() => int32x4.shuffleMix(dynamicNull, 0)));
+    true,
+    throwsTypeError(() => int32x4.shuffleMix(dynamicNull, 0)),
+  );
   Expect.equals(true, throwsTypeError(() => int32x4.withX(dynamicNull)));
   Expect.equals(true, throwsTypeError(() => int32x4.withY(dynamicNull)));
   Expect.equals(true, throwsTypeError(() => int32x4.withZ(dynamicNull)));
@@ -109,17 +139,29 @@ main() {
   Expect.equals(true, throwsTypeError(() => Int32x4(0, 0, dynamicNull, 0)));
   Expect.equals(true, throwsTypeError(() => Int32x4(0, 0, 0, dynamicNull)));
   Expect.equals(
-      true, throwsTypeError(() => int32x4.select(dynamicNull, float32x4)));
+    true,
+    throwsTypeError(() => int32x4.select(dynamicNull, float32x4)),
+  );
   Expect.equals(
-      true, throwsTypeError(() => int32x4.select(float32x4, dynamicNull)));
+    true,
+    throwsTypeError(() => int32x4.select(float32x4, dynamicNull)),
+  );
 
   // Int32x4.bool
-  Expect.equals(true,
-      throwsTypeError(() => Int32x4.bool(dynamicNull, false, false, false)));
-  Expect.equals(true,
-      throwsTypeError(() => Int32x4.bool(false, dynamicNull, false, false)));
-  Expect.equals(true,
-      throwsTypeError(() => Int32x4.bool(false, false, dynamicNull, false)));
-  Expect.equals(true,
-      throwsTypeError(() => Int32x4.bool(false, false, false, dynamicNull)));
+  Expect.equals(
+    true,
+    throwsTypeError(() => Int32x4.bool(dynamicNull, false, false, false)),
+  );
+  Expect.equals(
+    true,
+    throwsTypeError(() => Int32x4.bool(false, dynamicNull, false, false)),
+  );
+  Expect.equals(
+    true,
+    throwsTypeError(() => Int32x4.bool(false, false, dynamicNull, false)),
+  );
+  Expect.equals(
+    true,
+    throwsTypeError(() => Int32x4.bool(false, false, false, dynamicNull)),
+  );
 }

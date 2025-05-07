@@ -21,7 +21,9 @@ abstract class AbstractAnalysisOptionsTest
   VersionConstraint? get sdkVersionConstraint => null;
 
   Future<void> assertErrorsInCode(
-      String code, List<ExpectedError> expectedErrors) async {
+    String code,
+    List<ExpectedError> expectedErrors,
+  ) async {
     var path = convertPath('/analysis_options.yaml');
     newFile(path, code);
     var diagnostics = analyzeAnalysisOptions(
@@ -36,17 +38,24 @@ abstract class AbstractAnalysisOptionsTest
     errorListener.assertErrors(expectedErrors);
   }
 
-  ExpectedError error(ErrorCode code, int offset, int length,
-          {Pattern? correctionContains,
-          String? text,
-          List<Pattern> messageContains = const [],
-          List<ExpectedContextMessage> contextMessages =
-              const <ExpectedContextMessage>[]}) =>
-      ExpectedError(code, offset, length,
-          correctionContains: correctionContains,
-          message: text,
-          messageContains: messageContains,
-          expectedContextMessages: contextMessages);
+  ExpectedError error(
+    DiagnosticCode code,
+    int offset,
+    int length, {
+    Pattern? correctionContains,
+    String? text,
+    List<Pattern> messageContains = const [],
+    List<ExpectedContextMessage> contextMessages =
+        const <ExpectedContextMessage>[],
+  }) => ExpectedError(
+    code,
+    offset,
+    length,
+    correctionContains: correctionContains,
+    message: text,
+    messageContains: messageContains,
+    expectedContextMessages: contextMessages,
+  );
 
   void setUp() {
     var resolvers = [ResourceUriResolver(resourceProvider)];

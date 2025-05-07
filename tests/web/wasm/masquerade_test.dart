@@ -7,8 +7,9 @@ import 'dart:js_interop';
 
 import 'package:expect/expect.dart';
 
-const bool isJsCompatibility =
-    bool.fromEnvironment('dart.wasm.js_compatibility');
+const bool isJsCompatibility = bool.fromEnvironment(
+  'dart.wasm.js_compatibility',
+);
 
 void main() {
   final uint8List = Uint8List(10);

@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/lint/constants.dart'; // ignore: implementation_imports
 import 'package:collection/collection.dart' show IterableExtension;
 
@@ -52,12 +52,12 @@ class _Visitor extends SimpleAstVisitor<void> {
     var isRedirected =
         element.isFactory && element.redirectedConstructor2 != null;
     if (isRedirected && (element.redirectedConstructor2?.isConst ?? false)) {
-      rule.reportLintForToken(node.firstTokenAfterCommentAndMetadata);
+      rule.reportAtToken(node.firstTokenAfterCommentAndMetadata);
     }
     if (!isRedirected &&
         _hasConstConstructorInvocation(node) &&
         node.canBeConst) {
-      rule.reportLintForToken(node.firstTokenAfterCommentAndMetadata);
+      rule.reportAtToken(node.firstTokenAfterCommentAndMetadata);
     }
   }
 
@@ -67,15 +67,13 @@ class _Visitor extends SimpleAstVisitor<void> {
     var element = node.declaredFragment?.element;
     if (element == null) return;
     if (element.metadata2.hasImmutable) {
-      rule.reportLintForToken(node.name);
+      rule.reportAtToken(node.name);
     }
   }
 
-  static List<InterfaceElement2> _getSelfAndSuperClasses(
-    InterfaceElement2 self,
-  ) {
-    InterfaceElement2? current = self;
-    var seenElements = <InterfaceElement2>{};
+  static List<InterfaceElement> _getSelfAndSuperClasses(InterfaceElement self) {
+    InterfaceElement? current = self;
+    var seenElements = <InterfaceElement>{};
     while (current != null && seenElements.add(current)) {
       current = current.supertype?.element3;
     }
@@ -103,7 +101,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return redirectInvocation.element?.isConst ?? false;
     }
 
-    if (clazz is ExtensionTypeElement2) {
+    if (clazz is ExtensionTypeElement) {
       return clazz.primaryConstructor2.isConst;
     }
 
@@ -115,7 +113,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   /// Whether [clazz] or any of its super-types are annotated with
   /// `@immutable`.
-  static bool _hasImmutableAnnotation(InterfaceElement2 clazz) {
+  static bool _hasImmutableAnnotation(InterfaceElement clazz) {
     var selfAndInheritedClasses = _getSelfAndSuperClasses(clazz);
     return selfAndInheritedClasses.any((cls) => cls.metadata2.hasImmutable);
   }

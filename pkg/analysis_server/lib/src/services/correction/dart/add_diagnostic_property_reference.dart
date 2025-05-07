@@ -6,11 +6,12 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
+import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
@@ -253,10 +254,10 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
 
     // Compute the information for all the properties to be added.
     for (var error in propertyErrors) {
-      var selectionOffset = error.offset;
-      var selectionEnd = selectionOffset + error.length;
-      var locator = NodeLocator(selectionOffset, selectionEnd);
-      var node = locator.searchWithin(unitResult.unit);
+      var node = unitResult.unit.nodeCovering(
+        offset: error.offset,
+        length: error.length,
+      );
       if (node == null) {
         continue;
       }
@@ -322,24 +323,24 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
     }
   }
 
-  /// Returns a list of all the [AnalysisError]s of type
+  /// Returns a list of all the [Diagnostic]s of type
   /// [LinterLintCode.diagnostic_describe_all_properties] for the given
   /// [declaration].
-  List<AnalysisError> _getAllDiagnosticsInClass(ClassDeclaration declaration) {
-    var propertyErrors = <AnalysisError>[];
+  List<Diagnostic> _getAllDiagnosticsInClass(ClassDeclaration declaration) {
+    var propertyDiagnostics = <Diagnostic>[];
     var startOffset = declaration.offset;
     var endOffset = startOffset + declaration.length;
     for (var error in unitResult.errors) {
       var errorCode = error.errorCode;
-      if (errorCode.type == ErrorType.LINT &&
+      if (errorCode.type == DiagnosticType.LINT &&
           errorCode == LinterLintCode.diagnostic_describe_all_properties &&
           error.offset > startOffset &&
           error.offset < endOffset) {
-        propertyErrors.add(error);
+        propertyDiagnostics.add(error);
       }
     }
 
-    return propertyErrors;
+    return propertyDiagnostics;
   }
 
   /// Computes the information for the property at the given [node].
@@ -417,7 +418,7 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
         }
       case VariableDeclaration():
         var element = node.declaredFragment?.element;
-        if (element is FieldElement2) {
+        if (element is FieldElement) {
           return element.type;
         }
     }
@@ -425,7 +426,7 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
   }
 
   bool _isEnum(DartType type) {
-    return type is InterfaceType && type.element3 is EnumElement2;
+    return type is InterfaceType && type.element3 is EnumElement;
   }
 
   bool _isIterable(DartType type) {

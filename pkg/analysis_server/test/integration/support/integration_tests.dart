@@ -14,11 +14,11 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_utilities/test/mock_packages/mock_packages.dart';
+import 'package:analyzer_utilities/testing/test_support.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
-import '../../analysis_server_base.dart' show analysisOptionsContent;
 import '../../support/configuration_files.dart';
 import '../../support/sdk_paths.dart';
 import 'integration_test_methods.dart';

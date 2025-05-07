@@ -1,6 +1,69 @@
+## 3.9.0
+
+### Tools
+
+#### Dart Development Compiler (dartdevc)
+
+- Outstanding async code now checks and cancels itself after a hot restart if
+  it was started in a different generation of the application before the
+  restart. This includes outstanding `Future`s created by calling
+  `JSPromise.toDart` from the`dart:js_interop` and the underlying the
+  `dart:js_util` helper `promiseToFuture`. Dart callbacks will not be run, but
+  callbacks on the JavaScript side will still be executed.
+- Fixed a soundness issue that allowed direct invocation of the value returned
+  from a getter without any runtime checks when the getter's return type was a
+  generic type argument instantiated as `dynamic` or `Function`.
+
+  A getter defined as:
+
+  ```dart
+  class Container<T> {
+    T get value => _value;
+    ...
+  }
+  ```
+  Could trigger the issue with a direct invocation:
+
+  ```dart
+  Container<dynamic>().value('Invocation with missing runtime checks!');
+  ```
+
 ## 3.8.0
 
 **Released on:** Unreleased
+
+### Language
+
+Dart 3.8 adds [null-aware elements] to the language. To use them, set
+your package's [SDK constraint][language version] lower bound to 3.8
+or greater (`sdk: '^3.8.0'`).
+
+#### Null-Aware Elements
+
+[null-aware elements]: https://github.com/dart-lang/language/issues/323
+
+The null-aware elements language feature enables a simple syntax for
+including an element into a collection only if the element is not
+null. The syntax is available for list elements, set elements, map
+keys, and map values as described in the
+[null-aware elements specification](https://github.com/dart-lang/language/blob/main/accepted/future-releases/0323-null-aware-elements/feature-specification.md).
+
+The following is an example of a list literal written in both styles,
+without the null-aware elements language feature and with it:
+
+```dart
+var listWithoutNullAwareElements = [
+  if (promotableNullableValue != null) promotableNullableValue,
+  if (nullable.value != null) nullable.value!,
+  if (nullable.value case var value?) value,
+];
+
+var listWithNullAwareElements = [
+  ?promotableNullableValue,
+  ?nullable.value,
+  ?nullable.value,
+];
+```
 
 ### Libraries
 
@@ -25,10 +88,19 @@
   breaking change in 3.0.0 that removed the `registerElement` APIs. See
   [#53264](https://github.com/dart-lang/sdk/issues/53264) for details.
 
+#### `dart:ffi`
+
+- Added `Array.elements` which exposes an `Iterable` over the `Array`'s content.
+
 ### Tools
 
 #### Analyzer
 
+- The analyzer now supports "doc imports," a new comment-based syntax which
+  enables external elements to be referenced in documentation comments without
+  actually importing them. See [the
+  documentation](https://dart.dev/tools/doc-comments/references#doc-imports)
+  for details.
 - Code completion is improved to offer more valid suggestions. In particular,
   the suggestions are improved when completing text in a comment reference on a
   documentation comment for an extension, a typedef, or a directive (an import,
@@ -262,9 +334,10 @@ same as it was before.
 
 ### Language
 
-Dart 3.7 adds [wildcard variables] to the language. To use them, set your
-package's [SDK constraint][language version] lower bound to 3.7 or greater
-(`sdk: '^3.7.0'`).
+Dart 3.7 adds [wildcard variables] and [inference using
+bounds][inference using bounds specification] to the language. To use
+them, set your package's [SDK constraint][language version] lower
+bound to 3.7 or greater (`sdk: '^3.7.0'`).
 
 #### Wildcard Variables
 
@@ -290,6 +363,43 @@ main() {
   list.where((_) => true);
 }
 ```
+
+#### Inference Using Bounds
+
+[inference using bounds specification]: https://github.com/dart-lang/language/blob/main/accepted/future-releases/3009-inference-using-bounds/design-document.md
+
+With the inference using bounds feature, Dart's type inference
+algorithm generates constraints by combining existing constraints with
+the declared type bounds, not just best-effort approximations.
+
+This is especially important for F-bounded types, where inference
+using bounds correctly infers that, in the example below, `X` can be
+bound to `B`. Without the feature, the type argument must be specified
+explicitly: `f<B>(C())`:
+
+
+```dart
+class A<X extends A<X>> {}
+
+class B extends A<B> {}
+
+class C extends B {}
+
+void f<X extends A<X>>(X x) {}
+
+void main() {
+  f(B()); // OK.
+
+  // OK with this feature. Without it, inference fails after detecting
+  // that C is not a subtype of A<C>.
+  f(C());
+
+  f<B>(C()); // OK.
+}
+```
+
+The feature is described in more details in the
+[inference using bounds specification][].
 
 #### Other Language Changes
 

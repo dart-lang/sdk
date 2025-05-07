@@ -5,7 +5,6 @@
 // VMOptions=
 // VMOptions=--intern_strings_when_writing_perfetto_timeline
 
-import 'dart:collection';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io' show Platform;
@@ -14,6 +13,7 @@ import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart' hide Timeline;
 import 'package:vm_service_protos/vm_service_protos.dart';
 
+import 'common/service_test_common.dart' show mapFromListOfDebugAnnotations;
 import 'common/test_helper.dart';
 
 void primeTimeline() {
@@ -141,22 +141,6 @@ List<TrackEvent> extractTrackEventsFromTracePackets(
     }
   }
   return result;
-}
-
-Map<String, String> mapFromListOfDebugAnnotations(
-  List<DebugAnnotation> debugAnnotations,
-) {
-  return HashMap.fromEntries(
-    debugAnnotations.map((a) {
-      if (a.hasStringValue()) {
-        return MapEntry(a.name, a.stringValue);
-      } else if (a.hasLegacyJsonValue()) {
-        return MapEntry(a.name, a.legacyJsonValue);
-      } else {
-        throw 'We should not be writing annotations without values';
-      }
-    }),
-  );
 }
 
 void checkThatAllEventsHaveIsolateNumbers(Iterable<TrackEvent> events) {

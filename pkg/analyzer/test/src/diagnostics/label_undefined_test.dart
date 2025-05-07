@@ -16,52 +16,60 @@ main() {
 @reflectiveTest
 class LabelUndefinedTest extends PubPackageResolutionTest {
   test_break() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f() {
   x: while (true) {
     break y;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LABEL, 8, 2),
-      error(CompileTimeErrorCode.LABEL_UNDEFINED, 36, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LABEL, 8, 2),
+        error(CompileTimeErrorCode.LABEL_UNDEFINED, 36, 1),
+      ],
+    );
   }
 
   test_break_notLabel() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f(int x) {
   while (true) {
     break x;
   }
 }
-''', [
-      error(CompileTimeErrorCode.LABEL_UNDEFINED, 38, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.LABEL_UNDEFINED, 38, 1)],
+    );
   }
 
   test_continue() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f() {
   x: while (true) {
     continue y;
   }
 }
-''', [
-      error(WarningCode.UNUSED_LABEL, 8, 2),
-      error(CompileTimeErrorCode.LABEL_UNDEFINED, 39, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LABEL, 8, 2),
+        error(CompileTimeErrorCode.LABEL_UNDEFINED, 39, 1),
+      ],
+    );
   }
 
   test_continue_notLabel() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 f(int x) {
   while (true) {
     continue x;
   }
 }
-''', [
-      error(CompileTimeErrorCode.LABEL_UNDEFINED, 41, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.LABEL_UNDEFINED, 41, 1)],
+    );
   }
 }

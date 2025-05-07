@@ -5,7 +5,7 @@
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -32,30 +32,36 @@ class MustCallSuperVerifier {
       return;
     }
 
-    if (element is MethodElement2 && _hasConcreteSuperMethod(element)) {
+    if (element is MethodElement && _hasConcreteSuperMethod(element)) {
       _verifySuperIsCalled(
-          node, overriddenName, overridden.enclosingElement2?.name3);
+        node,
+        overriddenName,
+        overridden.enclosingElement2?.name3,
+      );
       return;
     }
 
     var enclosingElement = element.enclosingElement2;
-    if (enclosingElement is! ClassElement2) {
+    if (enclosingElement is! ClassElement) {
       return;
     }
 
     if (element is GetterElement) {
-      var inheritedConcreteGetter =
-          enclosingElement.lookupInheritedConcreteMember(element);
+      var inheritedConcreteGetter = enclosingElement
+          .lookupInheritedConcreteMember(element);
       if (inheritedConcreteGetter is GetterElement) {
         _verifySuperIsCalled(
-            node, overriddenName, overridden.enclosingElement2?.name3);
+          node,
+          overriddenName,
+          overridden.enclosingElement2?.name3,
+        );
       }
       return;
     }
 
     if (element is SetterElement) {
-      var inheritedConcreteSetter =
-          enclosingElement.lookupInheritedConcreteMember(element);
+      var inheritedConcreteSetter = enclosingElement
+          .lookupInheritedConcreteMember(element);
       if (inheritedConcreteSetter is SetterElement) {
         var name = overriddenName;
         // For a setter, give the name without the trailing '=' to the verifier,
@@ -76,10 +82,11 @@ class MustCallSuperVerifier {
   /// `@mustCallSuper`.
   ///
   /// [1]: https://pub.dev/documentation/meta/latest/meta/mustCallSuper-constant.html
-  ExecutableElement2? _findOverriddenMemberWithMustCallSuper(
-      ExecutableElement2 element) {
+  ExecutableElement? _findOverriddenMemberWithMustCallSuper(
+    ExecutableElement element,
+  ) {
     var classElement = element.enclosingElement2;
-    if (classElement is! InterfaceElement2) {
+    if (classElement is! InterfaceElement) {
       return null;
     }
 
@@ -90,18 +97,19 @@ class MustCallSuperVerifier {
 
     // Walk up the type hierarchy from [classElement], ignoring direct
     // interfaces.
-    var superclasses = Queue<InterfaceElement2?>();
+    var superclasses = Queue<InterfaceElement?>();
 
-    void addToQueue(InterfaceElement2 element) {
+    void addToQueue(InterfaceElement element) {
       superclasses.addAll(element.mixins.map((i) => i.element3));
       superclasses.add(element.supertype?.element3);
-      if (element is MixinElement2) {
-        superclasses
-            .addAll(element.superclassConstraints.map((i) => i.element3));
+      if (element is MixinElement) {
+        superclasses.addAll(
+          element.superclassConstraints.map((i) => i.element3),
+        );
       }
     }
 
-    var visitedClasses = <InterfaceElement2>{};
+    var visitedClasses = <InterfaceElement>{};
     addToQueue(classElement);
     while (superclasses.isNotEmpty) {
       var ancestor = superclasses.removeFirst();
@@ -109,9 +117,9 @@ class MustCallSuperVerifier {
         continue;
       }
 
-      ExecutableElement2? member;
+      ExecutableElement? member;
       switch (element) {
-        case MethodElement2():
+        case MethodElement():
           member = ancestor.getMethod2(name);
         case GetterElement():
           member = ancestor.getMethod2(name) ?? ancestor.getGetter2(name);
@@ -119,10 +127,10 @@ class MustCallSuperVerifier {
           member = ancestor.getSetter2(name);
       }
 
-      if (member is MethodElement2 && member.metadata2.hasMustCallSuper) {
+      if (member is MethodElement && member.metadata2.hasMustCallSuper) {
         return member;
       }
-      if (member is PropertyAccessorElement2 &&
+      if (member is PropertyAccessorElement &&
           member.metadata2.hasMustCallSuper) {
         return member;
       }
@@ -135,8 +143,8 @@ class MustCallSuperVerifier {
   }
 
   /// Returns whether [element] overrides a concrete method.
-  bool _hasConcreteSuperMethod(ExecutableElement2 element) {
-    var classElement = element.enclosingElement2 as InterfaceElement2;
+  bool _hasConcreteSuperMethod(ExecutableElement element) {
+    var classElement = element.enclosingElement2 as InterfaceElement;
 
     var name = element.name3;
     if (name == null) {
@@ -151,7 +159,7 @@ class MustCallSuperVerifier {
       return true;
     }
 
-    if (classElement is MixinElement2 &&
+    if (classElement is MixinElement &&
         classElement.superclassConstraints.any((c) => c.isConcrete(name))) {
       return true;
     }
@@ -159,8 +167,11 @@ class MustCallSuperVerifier {
     return false;
   }
 
-  void _verifySuperIsCalled(MethodDeclaration node, String? methodName,
-      String? overriddenEnclosingName) {
+  void _verifySuperIsCalled(
+    MethodDeclaration node,
+    String? methodName,
+    String? overriddenEnclosingName,
+  ) {
     var declaredFragment = node.declaredFragment!;
     var declaredElement = declaredFragment.element as ExecutableElementImpl2;
     if (!declaredElement.invokesSuperSelf) {
@@ -176,9 +187,8 @@ class MustCallSuperVerifier {
   }
 }
 
-extension on InterfaceElement2 {
-  ExecutableElement2? lookupInheritedConcreteMember(
-      ExecutableElement2 element) {
+extension on InterfaceElement {
+  ExecutableElement? lookupInheritedConcreteMember(ExecutableElement element) {
     var nameObj = Name.forElement(element);
     if (nameObj == null) {
       return null;

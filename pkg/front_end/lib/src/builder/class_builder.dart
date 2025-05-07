@@ -181,35 +181,22 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   }
 
   @override
-  Builder? findStaticBuilder(
-      String name, int fileOffset, Uri fileUri, LibraryBuilder accessingLibrary,
-      {bool isSetter = false}) {
+  LookupResult? findStaticBuilder(String name, int fileOffset, Uri fileUri,
+      LibraryBuilder accessingLibrary) {
     if (accessingLibrary.nameOriginBuilder !=
             libraryBuilder.nameOriginBuilder &&
         name.startsWith("_")) {
       return null;
     }
-    Builder? getable = nameSpace.lookupLocalMember(name, setter: false);
-    Builder? setable = nameSpace.lookupLocalMember(name, setter: true);
-    Builder? declaration;
-    if (getable != null || setable != null) {
-      declaration = normalizeLookup(
-          getable: getable,
-          setable: setable,
-          name: name,
-          charOffset: fileOffset,
-          fileUri: fileUri,
-          classNameOrDebugName: this.name,
-          isSetter: isSetter,
-          forStaticAccess: true);
-    }
-    return declaration;
+    return nameSpace.lookupLocal(name,
+        fileUri: fileUri, fileOffset: fileOffset, staticOnly: true);
   }
 
   @override
   Builder? lookupLocalMember(String name,
       {bool setter = false, bool required = false}) {
-    Builder? builder = nameSpace.lookupLocalMember(name, setter: setter);
+    LookupResult? result = nameSpace.lookupLocalMember(name);
+    Builder? builder = setter ? result?.setable : result?.getable;
     if (required && builder == null) {
       internalProblem(
           templateInternalProblemNotFoundIn.withArguments(

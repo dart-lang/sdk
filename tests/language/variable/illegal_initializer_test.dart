@@ -17,12 +17,11 @@ class B extends A {
   B.c2() : this.foo;
       //   ^^^^
       // [analyzer] COMPILE_TIME_ERROR.INVALID_REFERENCE_TO_THIS
-      // [cfe] Can't access 'this' in a field initializer.
-      //   ^^^^
       // [analyzer] SYNTACTIC_ERROR.MISSING_ASSIGNMENT_IN_INITIALIZER
-      // [cfe] Expected an assignment after the field name.
       //   ^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.INITIALIZER_FOR_NON_EXISTENT_FIELD
+      // [cfe] Can't access 'this' in a field initializer.
+      // [cfe] Expected an assignment after the field name.
       //        ^^^
       // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
 
@@ -39,15 +38,12 @@ class B extends A {
   B.c4() : this;
       //   ^^^^
       // [analyzer] COMPILE_TIME_ERROR.INITIALIZER_FOR_NON_EXISTENT_FIELD
-      // [cfe] Expected an assignment after the field name.
-      //   ^^^^
       // [analyzer] COMPILE_TIME_ERROR.INVALID_REFERENCE_TO_THIS
-      //   ^^^^
       // [analyzer] SYNTACTIC_ERROR.MISSING_ASSIGNMENT_IN_INITIALIZER
-      // [error line 39, column 16, length 0]
-      // [cfe] Expected '.' before this.
+      // [cfe] Expected an assignment after the field name.
       //       ^
       // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
+      // [cfe] Expected '.' before this.
       // [cfe] Expected an identifier, but got ''.
 }
 

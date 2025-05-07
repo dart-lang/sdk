@@ -4,16 +4,15 @@
 
 import 'package:kernel/ast.dart';
 
+import '../base/lookup_result.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/hierarchy/members_builder.dart';
 import 'builder.dart';
 import 'declaration_builders.dart';
 import 'library_builder.dart';
 
-abstract class MemberBuilder implements Builder {
+abstract class MemberBuilder implements Builder, LookupResult {
   String get name;
-
-  bool get isAssignable;
 
   LibraryBuilder get libraryBuilder;
 
@@ -87,14 +86,6 @@ abstract class MemberBuilder implements Builder {
   /// This is used to allow a single builder to create separate members for
   /// the getter and setter capabilities.
   Iterable<Reference> get exportedMemberReferences;
-
-  @override
-  bool get isExternal;
-
-  bool get isAbstract;
-
-  /// Returns `true` if this member is declared by an enum element.
-  bool get isEnumElement;
 
   /// Returns `true` if this member is a setter that conflicts with the implicit
   /// setter of a field.
@@ -206,15 +197,8 @@ abstract class BuilderClassMember implements ClassMember {
   bool get isDuplicate => memberBuilder.isDuplicate;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  bool get isField => memberBuilder.isField;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isGetter => memberBuilder.isGetter;
-
-  @override
-  bool get isSetter => memberBuilder.isSetter;
+  bool get isSetter =>
+      forSetter && !isDeclaredAsField(memberBuilder, forSetter: forSetter);
 
   @override
   bool get isStatic => memberBuilder.isStatic;
@@ -225,15 +209,8 @@ abstract class BuilderClassMember implements ClassMember {
   }
 
   @override
-  bool get isAbstract => memberBuilder.isAbstract;
-
-  @override
   // Coverage-ignore(suite): Not run.
   bool get isSynthesized => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isInternalImplementation => false;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -261,7 +238,8 @@ abstract class BuilderClassMember implements ClassMember {
     if (isStatic) {
       // Coverage-ignore-block(suite): Not run.
       return new StaticMemberResult(getMember(membersBuilder), memberKind,
-          isDeclaredAsField: memberBuilder.isField,
+          isDeclaredAsField:
+              isDeclaredAsField(memberBuilder, forSetter: forSetter),
           fullName:
               '${declarationBuilder.name}.${memberBuilder.memberName.text}');
     } else if (memberBuilder.isExtensionTypeMember) {
@@ -271,11 +249,13 @@ abstract class BuilderClassMember implements ClassMember {
       Member member = getTearOff(membersBuilder) ?? getMember(membersBuilder);
       return new ExtensionTypeMemberResult(
           extensionTypeDeclaration, member, memberKind, name,
-          isDeclaredAsField: memberBuilder.isField);
+          isDeclaredAsField:
+              isDeclaredAsField(memberBuilder, forSetter: forSetter));
     } else {
       return new TypeDeclarationInstanceMemberResult(
           getMember(membersBuilder), memberKind,
-          isDeclaredAsField: memberBuilder.isField);
+          isDeclaredAsField:
+              isDeclaredAsField(memberBuilder, forSetter: forSetter));
     }
   }
 

@@ -179,7 +179,7 @@ class Class1b extends self::_Class1b&Class1a&Mixin1 {
   synthetic constructor •() → self::Class1b
     : super self::_Class1b&Class1a&Mixin1::•()
     ;
-  static method _#new#tearOff() → self::Class1b
+  static synthetic method _#new#tearOff() → self::Class1b
     return new self::Class1b::•();
 }
 abstract class Class2a extends mai::Super2 implements mai::Super1 {
@@ -191,7 +191,7 @@ class Class2b extends self::_Class2b&Class2a&Mixin1 {
   synthetic constructor •() → self::Class2b
     : super self::_Class2b&Class2a&Mixin1::•()
     ;
-  static method _#new#tearOff() → self::Class2b
+  static synthetic method _#new#tearOff() → self::Class2b
     return new self::Class2b::•();
 }
 abstract class Class3a extends core::Object implements mai::Super1, mai::Super2 {
@@ -203,7 +203,7 @@ class Class3b extends self::_Class3b&Class3a&Mixin1 {
   synthetic constructor •() → self::Class3b
     : super self::_Class3b&Class3a&Mixin1::•()
     ;
-  static method _#new#tearOff() → self::Class3b
+  static synthetic method _#new#tearOff() → self::Class3b
     return new self::Class3b::•();
 }
 abstract class Class4a extends mai::Super1 implements mai::Super2 {
@@ -215,7 +215,7 @@ class Class4b extends self::_Class4b&Class4a&Mixin2 {
   synthetic constructor •() → self::Class4b
     : super self::_Class4b&Class4a&Mixin2::•()
     ;
-  static method _#new#tearOff() → self::Class4b
+  static synthetic method _#new#tearOff() → self::Class4b
     return new self::Class4b::•();
 }
 abstract class Class5a extends mai::Super2 implements mai::Super1 {
@@ -227,7 +227,7 @@ class Class5b extends self::_Class5b&Class5a&Mixin2 {
   synthetic constructor •() → self::Class5b
     : super self::_Class5b&Class5a&Mixin2::•()
     ;
-  static method _#new#tearOff() → self::Class5b
+  static synthetic method _#new#tearOff() → self::Class5b
     return new self::Class5b::•();
 }
 abstract class Class6a extends core::Object implements mai::Super1, mai::Super2 {
@@ -239,7 +239,7 @@ class Class6b extends self::_Class6b&Class6a&Mixin2 {
   synthetic constructor •() → self::Class6b
     : super self::_Class6b&Class6a&Mixin2::•()
     ;
-  static method _#new#tearOff() → self::Class6b
+  static synthetic method _#new#tearOff() → self::Class6b
     return new self::Class6b::•();
 }
 abstract class _Mixin1&Super1&Super2 extends core::Object implements mai::Super1, mai::Super2 /*isAnonymousMixin*/  {
@@ -251,175 +251,151 @@ abstract class _Class1b&Class1a&Mixin1 = self::Class1a with self::Mixin1 /*isAno
   synthetic constructor •() → self::_Class1b&Class1a&Mixin1
     : super self::Class1a::•()
     ;
-  mixin-super-stub get field1() → core::int
+  synthetic mixin-super-stub get field1() → core::int
     return super.{self::Mixin1::field1};
-  mixin-super-stub set field1(core::int value) → void
+  synthetic mixin-super-stub set field1(core::int value) → void
     return super.{self::Mixin1::field1} = value;
-  mixin-super-stub get field2() → core::int
+  synthetic mixin-super-stub get field2() → core::int
     return super.{self::Mixin1::field2};
-  mixin-super-stub set field2(core::int value) → void
+  synthetic mixin-super-stub set field2(core::int value) → void
     return super.{self::Mixin1::field2} = value;
-  mixin-super-stub method method1() → void
+  synthetic mixin-super-stub method method1() → void
     return super.{self::Mixin1::method1}();
-  mixin-super-stub method method2() → void
+  synthetic mixin-super-stub method method2() → void
     return super.{self::Mixin1::method2}();
-  mixin-super-stub get property1() → core::int
+  synthetic mixin-super-stub get property1() → core::int
     return super.{self::Mixin1::property1};
-  mixin-super-stub set property1(core::int value) → void
+  synthetic mixin-super-stub set property1(core::int value) → void
     return super.{self::Mixin1::property1} = value;
-  mixin-super-stub get property2() → core::int
+  synthetic mixin-super-stub get property2() → core::int
     return super.{self::Mixin1::property2};
-  mixin-super-stub set property2(core::int value) → void
+  synthetic mixin-super-stub set property2(core::int value) → void
     return super.{self::Mixin1::property2} = value;
 }
 abstract class _Class2b&Class2a&Mixin1 = self::Class2a with self::Mixin1 /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Class2b&Class2a&Mixin1
     : super self::Class2a::•()
     ;
-  mixin-super-stub get field1() → core::int
+  synthetic mixin-super-stub get field1() → core::int
     return super.{self::Mixin1::field1};
-  mixin-super-stub set field1(core::int value) → void
+  synthetic mixin-super-stub set field1(core::int value) → void
     return super.{self::Mixin1::field1} = value;
-  mixin-super-stub get field2() → core::int
+  synthetic mixin-super-stub get field2() → core::int
     return super.{self::Mixin1::field2};
-  mixin-super-stub set field2(core::int value) → void
+  synthetic mixin-super-stub set field2(core::int value) → void
     return super.{self::Mixin1::field2} = value;
-  mixin-super-stub method method1() → void
+  synthetic mixin-super-stub method method1() → void
     return super.{self::Mixin1::method1}();
-  mixin-super-stub method method2() → void
+  synthetic mixin-super-stub method method2() → void
     return super.{self::Mixin1::method2}();
-  mixin-super-stub get property1() → core::int
+  synthetic mixin-super-stub get property1() → core::int
     return super.{self::Mixin1::property1};
-  mixin-super-stub set property1(core::int value) → void
+  synthetic mixin-super-stub set property1(core::int value) → void
     return super.{self::Mixin1::property1} = value;
-  mixin-super-stub get property2() → core::int
+  synthetic mixin-super-stub get property2() → core::int
     return super.{self::Mixin1::property2};
-  mixin-super-stub set property2(core::int value) → void
+  synthetic mixin-super-stub set property2(core::int value) → void
     return super.{self::Mixin1::property2} = value;
 }
 abstract class _Class3b&Class3a&Mixin1 = self::Class3a with self::Mixin1 /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Class3b&Class3a&Mixin1
     : super self::Class3a::•()
     ;
-  mixin-super-stub get field1() → core::int
+  synthetic mixin-super-stub get field1() → core::int
     return super.{self::Mixin1::field1};
-  mixin-super-stub set field1(core::int value) → void
+  synthetic mixin-super-stub set field1(core::int value) → void
     return super.{self::Mixin1::field1} = value;
-  mixin-super-stub get field2() → core::int
+  synthetic mixin-super-stub get field2() → core::int
     return super.{self::Mixin1::field2};
-  mixin-super-stub set field2(core::int value) → void
+  synthetic mixin-super-stub set field2(core::int value) → void
     return super.{self::Mixin1::field2} = value;
-  mixin-super-stub method method1() → void
+  synthetic mixin-super-stub method method1() → void
     return super.{self::Mixin1::method1}();
-  mixin-super-stub method method2() → void
+  synthetic mixin-super-stub method method2() → void
     return super.{self::Mixin1::method2}();
-  mixin-super-stub get property1() → core::int
+  synthetic mixin-super-stub get property1() → core::int
     return super.{self::Mixin1::property1};
-  mixin-super-stub set property1(core::int value) → void
+  synthetic mixin-super-stub set property1(core::int value) → void
     return super.{self::Mixin1::property1} = value;
-  mixin-super-stub get property2() → core::int
+  synthetic mixin-super-stub get property2() → core::int
     return super.{self::Mixin1::property2};
-  mixin-super-stub set property2(core::int value) → void
+  synthetic mixin-super-stub set property2(core::int value) → void
     return super.{self::Mixin1::property2} = value;
 }
 abstract class _Class4b&Class4a&Mixin2 = self::Class4a with mai::Mixin2 /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Class4b&Class4a&Mixin2
     : super self::Class4a::•()
     ;
-  mixin-super-stub method method1() → void
+  synthetic mixin-super-stub method method1() → void
     return super.{mai::Mixin2::method1}();
-  mixin-super-stub method method2() → void
+  synthetic mixin-super-stub method method2() → void
     return super.{mai::Mixin2::method2}();
-  mixin-super-stub get property1() → core::int
+  synthetic mixin-super-stub get property1() → core::int
     return super.{mai::Mixin2::property1};
-  mixin-super-stub set property1(core::int value) → void
+  synthetic mixin-super-stub set property1(core::int value) → void
     return super.{mai::Mixin2::property1} = value;
-  mixin-super-stub get property2() → core::int
+  synthetic mixin-super-stub get property2() → core::int
     return super.{mai::Mixin2::property2};
-  mixin-super-stub set property2(core::int value) → void
+  synthetic mixin-super-stub set property2(core::int value) → void
     return super.{mai::Mixin2::property2} = value;
-  mixin-super-stub get field1() → core::int
+  synthetic mixin-super-stub get field1() → core::int
     return super.{mai::Mixin2::field1};
-  mixin-super-stub set field1(core::int value) → void
+  synthetic mixin-super-stub set field1(core::int value) → void
     return super.{mai::Mixin2::field1} = value;
-  mixin-super-stub get field2() → core::int
+  synthetic mixin-super-stub get field2() → core::int
     return super.{mai::Mixin2::field2};
-  mixin-super-stub set field2(core::int value) → void
+  synthetic mixin-super-stub set field2(core::int value) → void
     return super.{mai::Mixin2::field2} = value;
-  mixin-super-stub get _#Mixin2#field1#AI() → core::int
-    return super.{mai::Mixin2::_#Mixin2#field1#AI};
-  mixin-super-stub set _#Mixin2#field1#AI(core::int value) → void
-    return super.{mai::Mixin2::_#Mixin2#field1#AI} = value;
-  mixin-super-stub get _#Mixin2#field2#AI() → core::int
-    return super.{mai::Mixin2::_#Mixin2#field2#AI};
-  mixin-super-stub set _#Mixin2#field2#AI(core::int value) → void
-    return super.{mai::Mixin2::_#Mixin2#field2#AI} = value;
 }
 abstract class _Class5b&Class5a&Mixin2 = self::Class5a with mai::Mixin2 /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Class5b&Class5a&Mixin2
     : super self::Class5a::•()
     ;
-  mixin-super-stub method method1() → void
+  synthetic mixin-super-stub method method1() → void
     return super.{mai::Mixin2::method1}();
-  mixin-super-stub method method2() → void
+  synthetic mixin-super-stub method method2() → void
     return super.{mai::Mixin2::method2}();
-  mixin-super-stub get property1() → core::int
+  synthetic mixin-super-stub get property1() → core::int
     return super.{mai::Mixin2::property1};
-  mixin-super-stub set property1(core::int value) → void
+  synthetic mixin-super-stub set property1(core::int value) → void
     return super.{mai::Mixin2::property1} = value;
-  mixin-super-stub get property2() → core::int
+  synthetic mixin-super-stub get property2() → core::int
     return super.{mai::Mixin2::property2};
-  mixin-super-stub set property2(core::int value) → void
+  synthetic mixin-super-stub set property2(core::int value) → void
     return super.{mai::Mixin2::property2} = value;
-  mixin-super-stub get field1() → core::int
+  synthetic mixin-super-stub get field1() → core::int
     return super.{mai::Mixin2::field1};
-  mixin-super-stub set field1(core::int value) → void
+  synthetic mixin-super-stub set field1(core::int value) → void
     return super.{mai::Mixin2::field1} = value;
-  mixin-super-stub get field2() → core::int
+  synthetic mixin-super-stub get field2() → core::int
     return super.{mai::Mixin2::field2};
-  mixin-super-stub set field2(core::int value) → void
+  synthetic mixin-super-stub set field2(core::int value) → void
     return super.{mai::Mixin2::field2} = value;
-  mixin-super-stub get _#Mixin2#field1#AI() → core::int
-    return super.{mai::Mixin2::_#Mixin2#field1#AI};
-  mixin-super-stub set _#Mixin2#field1#AI(core::int value) → void
-    return super.{mai::Mixin2::_#Mixin2#field1#AI} = value;
-  mixin-super-stub get _#Mixin2#field2#AI() → core::int
-    return super.{mai::Mixin2::_#Mixin2#field2#AI};
-  mixin-super-stub set _#Mixin2#field2#AI(core::int value) → void
-    return super.{mai::Mixin2::_#Mixin2#field2#AI} = value;
 }
 abstract class _Class6b&Class6a&Mixin2 = self::Class6a with mai::Mixin2 /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Class6b&Class6a&Mixin2
     : super self::Class6a::•()
     ;
-  mixin-super-stub method method1() → void
+  synthetic mixin-super-stub method method1() → void
     return super.{mai::Mixin2::method1}();
-  mixin-super-stub method method2() → void
+  synthetic mixin-super-stub method method2() → void
     return super.{mai::Mixin2::method2}();
-  mixin-super-stub get property1() → core::int
+  synthetic mixin-super-stub get property1() → core::int
     return super.{mai::Mixin2::property1};
-  mixin-super-stub set property1(core::int value) → void
+  synthetic mixin-super-stub set property1(core::int value) → void
     return super.{mai::Mixin2::property1} = value;
-  mixin-super-stub get property2() → core::int
+  synthetic mixin-super-stub get property2() → core::int
     return super.{mai::Mixin2::property2};
-  mixin-super-stub set property2(core::int value) → void
+  synthetic mixin-super-stub set property2(core::int value) → void
     return super.{mai::Mixin2::property2} = value;
-  mixin-super-stub get field1() → core::int
+  synthetic mixin-super-stub get field1() → core::int
     return super.{mai::Mixin2::field1};
-  mixin-super-stub set field1(core::int value) → void
+  synthetic mixin-super-stub set field1(core::int value) → void
     return super.{mai::Mixin2::field1} = value;
-  mixin-super-stub get field2() → core::int
+  synthetic mixin-super-stub get field2() → core::int
     return super.{mai::Mixin2::field2};
-  mixin-super-stub set field2(core::int value) → void
+  synthetic mixin-super-stub set field2(core::int value) → void
     return super.{mai::Mixin2::field2} = value;
-  mixin-super-stub get _#Mixin2#field1#AI() → core::int
-    return super.{mai::Mixin2::_#Mixin2#field1#AI};
-  mixin-super-stub set _#Mixin2#field1#AI(core::int value) → void
-    return super.{mai::Mixin2::_#Mixin2#field1#AI} = value;
-  mixin-super-stub get _#Mixin2#field2#AI() → core::int
-    return super.{mai::Mixin2::_#Mixin2#field2#AI};
-  mixin-super-stub set _#Mixin2#field2#AI(core::int value) → void
-    return super.{mai::Mixin2::_#Mixin2#field2#AI} = value;
 }
 
 library;
@@ -434,7 +410,7 @@ class Super1 extends core::Object {
     : super core::Object::•()
     ;
   method method1() → void {}
-  static method _#new#tearOff() → mai::Super1
+  static synthetic method _#new#tearOff() → mai::Super1
     return new mai::Super1::•();
 }
 class Super2 extends core::Object {
@@ -444,7 +420,7 @@ class Super2 extends core::Object {
     : super core::Object::•()
     ;
   method method2() → void {}
-  static method _#new#tearOff() → mai::Super2
+  static synthetic method _#new#tearOff() → mai::Super2
     return new mai::Super2::•();
 }
 abstract class Mixin2 extends mai::_Mixin2&Super1&Super2 /*isMixinDeclaration*/  {

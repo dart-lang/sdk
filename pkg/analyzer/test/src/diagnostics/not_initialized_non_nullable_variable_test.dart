@@ -56,35 +56,56 @@ class A {
   }
 
   test_staticField_noInitializer() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   static int x = 0, y, z = 2;
 }
-''', [
-      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE, 30, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE,
+          30,
+          1,
+        ),
+      ],
+    );
   }
 
   test_staticField_noInitializer_constructor() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   static int x = 0, y, z = 2;
   A();
 }
-''', [
-      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE, 30, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE,
+          30,
+          1,
+        ),
+      ],
+    );
   }
 
   test_staticField_noInitializer_final_constructor() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   static final int x = 0, y, z = 2;
   A();
 }
-''', [
-      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE, 36, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE,
+          36,
+          1,
+        ),
+      ],
+    );
   }
 
   test_staticField_nullable() async {
@@ -112,13 +133,20 @@ class A {
   }
 
   test_staticField_type_never() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   static Never v;
 }
-''', [
-      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE, 25, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE,
+          25,
+          1,
+        ),
+      ],
+    );
   }
 
   test_staticField_type_void() async {
@@ -144,11 +172,18 @@ int v = 0;
   }
 
   test_topLevelVariable_noInitializer() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 int x = 0, y, z = 2;
-''', [
-      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE, 11, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE,
+          11,
+          1,
+        ),
+      ],
+    );
   }
 
   test_topLevelVariable_nullable() async {
@@ -170,11 +205,12 @@ var v;
   }
 
   test_topLevelVariable_type_never() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 Never v;
-''', [
-      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE, 6, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE, 6, 1)],
+    );
   }
 
   test_topLevelVariable_type_void() async {

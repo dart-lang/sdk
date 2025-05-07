@@ -360,13 +360,25 @@ class LinterLintCode extends LintCode {
     hasPublishedDocs: true,
   );
 
-  static const LintCode avoid_types_as_parameter_names = LinterLintCode(
+  static const LintCode
+  avoid_types_as_parameter_names_formal_parameter = LinterLintCode(
     LintNames.avoid_types_as_parameter_names,
     "The parameter name '{0}' matches a visible type name.",
     correctionMessage:
         "Try adding a name for the parameter or changing the parameter name to "
         "not match an existing type.",
     hasPublishedDocs: true,
+    uniqueName: 'avoid_types_as_parameter_names_formal_parameter',
+  );
+
+  static const LintCode
+  avoid_types_as_parameter_names_type_parameter = LinterLintCode(
+    LintNames.avoid_types_as_parameter_names,
+    "The type parameter name '{0}' matches a visible type name.",
+    correctionMessage:
+        "Try changing the type parameter name to not match an existing type.",
+    hasPublishedDocs: true,
+    uniqueName: 'avoid_types_as_parameter_names_type_parameter',
   );
 
   static const LintCode avoid_types_on_closure_parameters = LinterLintCode(
@@ -1202,9 +1214,10 @@ class LinterLintCode extends LintCode {
 
   static const LintCode prefer_foreach = LinterLintCode(
     LintNames.prefer_foreach,
-    "Use 'forEach' rather than a 'for' loop to apply a function to every "
-    "element.",
-    correctionMessage: "Try using 'forEach' rather than a 'for' loop.",
+    "Use 'forEach' and a tear-off rather than a 'for' loop to apply a function "
+    "to every element.",
+    correctionMessage:
+        "Try using 'forEach' and a tear-off rather than a 'for' loop.",
     hasPublishedDocs: true,
   );
 
@@ -1813,6 +1826,14 @@ class LinterLintCode extends LintCode {
     "Unnecessary use of 'toList' in a spread.",
     correctionMessage: "Try removing the invocation of 'toList'.",
     hasPublishedDocs: true,
+  );
+
+  static const LintCode unnecessary_unawaited = LinterLintCode(
+    LintNames.unnecessary_unawaited,
+    "Unnecessary use of 'unawaited'.",
+    correctionMessage:
+        "Try removing the use of 'unawaited', as the unawaited element is "
+        "annotated with '@awaitNotRequired'.",
   );
 
   static const LintCode unnecessary_underscores = LinterLintCode(

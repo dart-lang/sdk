@@ -59,7 +59,11 @@ class Rectangle<T extends num> implements math.MutableRectangle<T> {
     T rRight = max(right, other.right);
     T rBottom = max(bottom, other.bottom);
     return new Rectangle<T>(
-        rLeft, rTop, (rRight - rLeft) as T, (rBottom - rTop) as T);
+      rLeft,
+      rTop,
+      (rRight - rLeft) as T,
+      (rBottom - rTop) as T,
+    );
   }
 
   /// Tests whether `this` entirely contains [another].
@@ -77,6 +81,10 @@ class Rectangle<T extends num> implements math.MutableRectangle<T> {
     T rRight = min(right, rect.right);
     T rBottom = min(bottom, rect.bottom);
     return new Rectangle<T>(
-        rLeft, rTop, (rRight - rLeft) as T, (rBottom - rTop) as T);
+      rLeft,
+      rTop,
+      (rRight - rLeft) as T,
+      (rBottom - rTop) as T,
+    );
   }
 }

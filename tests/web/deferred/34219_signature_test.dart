@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 // Tests that closure signatures are walked as dependencies of a closure. If the
 // signature of the closure is not visited, SystemMessage is placed in the main
 // unit while it's superclass GeneratedMessage is placed in a deferred part.

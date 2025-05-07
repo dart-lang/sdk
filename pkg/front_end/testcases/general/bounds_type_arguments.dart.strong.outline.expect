@@ -36,5 +36,5 @@ static method test() → dynamic
   ;
 static method main() → dynamic
   ;
-static method _#H#new#tearOff<unrelated X extends core::Object? = dynamic>() → self::Class2
+static synthetic method _#H#new#tearOff<unrelated X extends core::Object? = dynamic>() → self::Class2
   return new self::Class2::•();

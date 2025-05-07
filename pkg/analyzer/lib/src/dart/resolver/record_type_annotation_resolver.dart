@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -19,7 +19,7 @@ import 'package:analyzer/src/error/codes.g.dart';
 class RecordTypeAnnotationResolver {
   final TypeProviderImpl typeProvider;
   final ErrorReporter errorReporter;
-  final LibraryElement2 libraryElement;
+  final LibraryElement libraryElement;
 
   RecordTypeAnnotationResolver({
     required this.typeProvider,
@@ -47,9 +47,13 @@ class RecordTypeAnnotationResolver {
 
         var previousField = usedNames[name];
         if (previousField != null) {
-          errorReporter.reportError(DiagnosticFactory()
-              .duplicateFieldDefinitionInType(
-                  errorReporter.source, field, previousField));
+          errorReporter.reportError(
+            DiagnosticFactory().duplicateFieldDefinitionInType(
+              errorReporter.source,
+              field,
+              previousField,
+            ),
+          );
         } else {
           usedNames[name] = field;
         }
@@ -84,7 +88,8 @@ class RecordTypeAnnotationResolver {
               );
             }
           } else if (RecordLiteralResolver.isForbiddenNameForRecordField(
-              name)) {
+            name,
+          )) {
             errorReporter.atToken(
               nameToken,
               CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT,
@@ -102,25 +107,26 @@ class RecordTypeAnnotationResolver {
   }
 
   void _buildType(RecordTypeAnnotationImpl node) {
-    var positionalFields = node.positionalFields.map((field) {
-      return RecordTypePositionalFieldImpl(
-        type: field.type.typeOrThrow,
-      );
-    }).toList();
+    var positionalFields =
+        node.positionalFields.map((field) {
+          return RecordTypePositionalFieldImpl(type: field.type.typeOrThrow);
+        }).toList();
 
-    var namedFields = node.namedFields?.fields.map((field) {
-      return RecordTypeNamedFieldImpl(
-        name: field.name.lexeme,
-        type: field.type.typeOrThrow,
-      );
-    }).toList();
+    var namedFields =
+        node.namedFields?.fields.map((field) {
+          return RecordTypeNamedFieldImpl(
+            name: field.name.lexeme,
+            type: field.type.typeOrThrow,
+          );
+        }).toList();
 
     node.type = RecordTypeImpl(
       positionalFields: positionalFields,
       namedFields: namedFields ?? const [],
-      nullabilitySuffix: node.question != null
-          ? NullabilitySuffix.question
-          : NullabilitySuffix.none,
+      nullabilitySuffix:
+          node.question != null
+              ? NullabilitySuffix.question
+              : NullabilitySuffix.none,
     );
   }
 }

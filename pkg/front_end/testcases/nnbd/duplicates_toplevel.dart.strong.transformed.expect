@@ -208,14 +208,6 @@ library;
 //   topLevelDuplicateFieldAndDuplicateSetter = 0;
 //                                            ^
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:113:3: Error: Setter not found: 'topLevelMethodAndSetter1'.
-//   topLevelMethodAndSetter1 = 0;
-//   ^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:114:3: Error: Setter not found: 'topLevelMethodAndSetter2'.
-//   topLevelMethodAndSetter2 = 0;
-//   ^^^^^^^^^^^^^^^^^^^^^^^^
-//
 import self as self;
 import "dart:core" as core;
 
@@ -334,12 +326,8 @@ static method test() → dynamic {
   invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:112:44: Error: Can't assign to this.
   topLevelDuplicateFieldAndDuplicateSetter = 0;
                                            ^";
-  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:113:3: Error: Setter not found: 'topLevelMethodAndSetter1'.
-  topLevelMethodAndSetter1 = 0;
-  ^^^^^^^^^^^^^^^^^^^^^^^^";
-  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:114:3: Error: Setter not found: 'topLevelMethodAndSetter2'.
-  topLevelMethodAndSetter2 = 0;
-  ^^^^^^^^^^^^^^^^^^^^^^^^";
+  self::topLevelMethodAndSetter1 = 0;
+  self::topLevelMethodAndSetter2 = 0;
 }
 static method main() → dynamic {
   self::result = null;

@@ -198,6 +198,25 @@ extension on int {}
 ''');
   }
 
+  Future<void> test_inExtensionGetter() async {
+    await resolveTestCode('''
+void f(int i) => i.foo;
+
+extension on int {
+  int get foo => bar;
+}
+''');
+    await assertHasFix('''
+void f(int i) => i.foo;
+
+extension on int {
+  int get foo => bar;
+
+  int get bar => null;
+}
+''');
+  }
+
   Future<void> test_nullableTargetType() async {
     await resolveTestCode('''
 void f(int? p) {

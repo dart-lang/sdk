@@ -16,29 +16,31 @@ main() {
 @reflectiveTest
 class ConflictingMethodAndFieldTest extends PubPackageResolutionTest {
   test_class_inSuper_field() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   int foo = 0;
 }
 class B extends A {
   foo() {}
 }
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD, 49, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD, 49, 3)],
+    );
   }
 
   test_class_inSuper_getter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   get foo => 0;
 }
 class B extends A {
   foo() {}
 }
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD, 50, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD, 50, 3)],
+    );
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
@@ -96,20 +98,22 @@ augment class B {}
   }
 
   test_class_inSuper_setter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   set foo(_) {}
 }
 class B extends A {
   foo() {}
 }
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD, 50, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD, 50, 3)],
+    );
   }
 
   test_enum_inMixin_getter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M {
   int get foo => 0;
 }
@@ -118,9 +122,9 @@ enum E with M {
   v;
   void foo() {}
 }
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD, 61, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD, 61, 3)],
+    );
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
@@ -179,7 +183,8 @@ augment enum E {}
   }
 
   test_enum_inMixin_setter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 mixin M {
   set foo(int _) {}
 }
@@ -188,9 +193,9 @@ enum E with M {
   v;
   void foo() {}
 }
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD, 61, 3),
-    ]);
+''',
+      [error(CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD, 61, 3)],
+    );
   }
 
   test_extensionType_field_external() async {

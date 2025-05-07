@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/dart/element/element.dart';
 
@@ -41,7 +41,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitIfElement(IfElement node) {
     if (node case IfElement(:var thenElement, elseKeyword: null)) {
-      Element2? nullCheckTarget;
+      Element? nullCheckTarget;
       if (node.expression case BinaryExpression(
         :var operator,
         :var leftOperand,
@@ -69,20 +69,20 @@ class _Visitor extends SimpleAstVisitor<void> {
           //
           //     [if (x != null) x]
           //     {if (x != null) x}
-          rule.reportLintForToken(node.ifKeyword);
+          rule.reportAtToken(node.ifKeyword);
         } else if (thenElement case MapLiteralEntry(:var key, :var value)) {
           if (key is SimpleIdentifier &&
               nullCheckTarget == key.canonicalElement) {
             // Map keys, such as the following:
             //
             //     {if (x != null) x: value}
-            rule.reportLintForToken(node.ifKeyword);
+            rule.reportAtToken(node.ifKeyword);
           } else if (value is SimpleIdentifier &&
               nullCheckTarget == value.canonicalElement) {
             // Map keys, such as the following:
             //
             //     {if (x != null) key: x}
-            rule.reportLintForToken(node.ifKeyword);
+            rule.reportAtToken(node.ifKeyword);
           }
         }
       }

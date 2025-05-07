@@ -75,14 +75,17 @@ LogicalAndPattern
   }
 
   test_variableDeclaration() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 void f() {
   var (a && b) = 0;
 }
-''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1),
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 23, 1),
-    ]);
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 23, 1),
+      ],
+    );
     var node = findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclarationStatement

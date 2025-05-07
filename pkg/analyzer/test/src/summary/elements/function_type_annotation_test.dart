@@ -53,12 +53,14 @@ library
   getters
     synthetic static get f
       firstFragment: <testLibraryFragment>::@getter::f
+      returnType: void Function()
   setters
     synthetic static set f
       firstFragment: <testLibraryFragment>::@setter::f
       formalParameters
         requiredPositional _f
           type: void Function()
+      returnType: void
 ''');
   }
 
@@ -99,12 +101,14 @@ library
   getters
     synthetic static get f
       firstFragment: <testLibraryFragment>::@getter::f
+      returnType: void Function()?
   setters
     synthetic static set f
       firstFragment: <testLibraryFragment>::@setter::f
       formalParameters
         requiredPositional _f
           type: void Function()?
+      returnType: void
 ''');
   }
 
@@ -217,6 +221,7 @@ library
       methods
         m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
+          returnType: int Function(int, String)
 ''');
   }
 
@@ -285,12 +290,14 @@ library
   getters
     synthetic static get v
       firstFragment: <testLibraryFragment>::@getter::v
+      returnType: int Function(int, String)
   setters
     synthetic static set v
       firstFragment: <testLibraryFragment>::@setter::v
       formalParameters
         requiredPositional _v
           type: int Function(int, String)
+      returnType: void
 ''');
   }
 
@@ -496,12 +503,14 @@ library
   getters
     synthetic static get v
       firstFragment: <testLibraryFragment>::@getter::v
+      returnType: int
   setters
     synthetic static set v
       firstFragment: <testLibraryFragment>::@setter::v
       formalParameters
         requiredPositional _v
           type: int
+      returnType: void
 ''');
   }
 
@@ -611,6 +620,7 @@ library
   getters
     synthetic static get v
       firstFragment: <testLibraryFragment>::@getter::v
+      returnType: A<String Function({int? a})>
 ''');
   }
 
@@ -720,6 +730,7 @@ library
   getters
     synthetic static get v
       firstFragment: <testLibraryFragment>::@getter::v
+      returnType: A<String Function([int?])>
 ''');
   }
 
@@ -829,6 +840,7 @@ library
   getters
     synthetic static get v
       firstFragment: <testLibraryFragment>::@getter::v
+      returnType: A<String Function({required int a})>
 ''');
   }
 
@@ -932,6 +944,7 @@ library
   getters
     synthetic static get v
       firstFragment: <testLibraryFragment>::@getter::v
+      returnType: A<String Function(int)>
 ''');
   }
 

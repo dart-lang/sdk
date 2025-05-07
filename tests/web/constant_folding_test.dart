@@ -202,8 +202,10 @@ void main() {
   const Subtract(-9007199254740992, 1, -9007199254740992).check();
   const Subtract(-9007199254740992, 100, -9007199254741092).check();
   const Subtract(
-          0x7fffffff00000000, -0x7fffffff00000000, 2 * 0x7fffffff00000000)
-      .check();
+    0x7fffffff00000000,
+    -0x7fffffff00000000,
+    2 * 0x7fffffff00000000,
+  ).check();
   const Subtract(4.2, 1.5, 2.7).check();
   const Subtract(1.5, 4.2, -2.7).check();
   const Subtract(1.5, 0, 1.5).check();
@@ -215,8 +217,11 @@ void main() {
   const Subtract(-0.0, 0.0, -0.0).check();
   const Subtract(-0.0, -0.0, 0.0).check();
   const Subtract(double.maxFinite, -double.maxFinite, double.infinity).check();
-  const Subtract(-double.maxFinite, double.maxFinite, double.negativeInfinity)
-      .check();
+  const Subtract(
+    -double.maxFinite,
+    double.maxFinite,
+    double.negativeInfinity,
+  ).check();
   const Subtract(1.5, double.nan, double.nan).check();
   const Subtract(double.nan, 1.5, double.nan).check();
   const Subtract(double.nan, double.nan, double.nan).check();
@@ -227,21 +232,33 @@ void main() {
   const Subtract(double.infinity, double.maxFinite, double.infinity).check();
   const Subtract(double.infinity, -double.maxFinite, double.infinity).check();
   const Subtract(
-          double.negativeInfinity, double.maxFinite, double.negativeInfinity)
-      .check();
+    double.negativeInfinity,
+    double.maxFinite,
+    double.negativeInfinity,
+  ).check();
   const Subtract(
-          double.negativeInfinity, -double.maxFinite, double.negativeInfinity)
-      .check();
+    double.negativeInfinity,
+    -double.maxFinite,
+    double.negativeInfinity,
+  ).check();
   const Subtract(1.5, double.infinity, double.negativeInfinity).check();
   const Subtract(1.5, double.negativeInfinity, double.infinity).check();
   const Subtract(double.infinity, double.infinity, double.nan).check();
-  const Subtract(double.infinity, double.negativeInfinity, double.infinity)
-      .check();
   const Subtract(
-          double.negativeInfinity, double.infinity, double.negativeInfinity)
-      .check();
-  const Subtract(double.negativeInfinity, double.negativeInfinity, double.nan)
-      .check();
+    double.infinity,
+    double.negativeInfinity,
+    double.infinity,
+  ).check();
+  const Subtract(
+    double.negativeInfinity,
+    double.infinity,
+    double.negativeInfinity,
+  ).check();
+  const Subtract(
+    double.negativeInfinity,
+    double.negativeInfinity,
+    double.nan,
+  ).check();
   const Subtract(double.minPositive, double.minPositive, 0.0).check();
   const Subtract(-double.minPositive, -double.minPositive, 0.0).check();
 
@@ -259,8 +276,11 @@ void main() {
   const Multiply(18014398509481984, -1, -18014398509481984).check();
   const Multiply(-1, 18014398509481984, -18014398509481984).check();
   const Multiply(9000000000000000, 9000000000000000, 8.1e31).check();
-  const Multiply(0x7fff000000000000, 0x8000000000000000, 8.506799558180535e37)
-      .check();
+  const Multiply(
+    0x7fff000000000000,
+    0x8000000000000000,
+    8.506799558180535e37,
+  ).check();
   const Multiply(0x8000000000000000, 1.2, 11068046444225730000.0).check();
   const Multiply(3.14, 2.72, 8.5408).check();
   const Multiply(-3.14, 2.72, -8.5408).check();
@@ -273,10 +293,16 @@ void main() {
   const Multiply(-0.0, 0.0, -0.0).check();
   const Multiply(-0.0, -0.0, 0.0).check();
   const Multiply(double.maxFinite, double.maxFinite, double.infinity).check();
-  const Multiply(double.maxFinite, -double.maxFinite, double.negativeInfinity)
-      .check();
-  const Multiply(-double.maxFinite, double.maxFinite, double.negativeInfinity)
-      .check();
+  const Multiply(
+    double.maxFinite,
+    -double.maxFinite,
+    double.negativeInfinity,
+  ).check();
+  const Multiply(
+    -double.maxFinite,
+    double.maxFinite,
+    double.negativeInfinity,
+  ).check();
   const Multiply(-double.maxFinite, -double.maxFinite, double.infinity).check();
   const Multiply(0, double.nan, double.nan).check();
   const Multiply(double.nan, 0, double.nan).check();
@@ -291,14 +317,20 @@ void main() {
   const Multiply(double.negativeInfinity, -0.0, double.nan).check();
   const Multiply(double.infinity, double.infinity, double.infinity).check();
   const Multiply(
-          double.infinity, double.negativeInfinity, double.negativeInfinity)
-      .check();
+    double.infinity,
+    double.negativeInfinity,
+    double.negativeInfinity,
+  ).check();
   const Multiply(
-          double.negativeInfinity, double.infinity, double.negativeInfinity)
-      .check();
+    double.negativeInfinity,
+    double.infinity,
+    double.negativeInfinity,
+  ).check();
   const Multiply(
-          double.negativeInfinity, double.negativeInfinity, double.infinity)
-      .check();
+    double.negativeInfinity,
+    double.negativeInfinity,
+    double.infinity,
+  ).check();
   const Multiply(double.minPositive, 0.5, 0.0).check();
   const Multiply(double.minPositive, -0.5, -0.0).check();
   const Multiply(-double.minPositive, 0.5, -0.0).check();
@@ -306,10 +338,15 @@ void main() {
   const Multiply(1e-300, -1e-300, -0.0).check();
   const Multiply(double.minPositive, double.infinity, double.infinity).check();
   const Multiply(
-          double.minPositive, double.negativeInfinity, double.negativeInfinity)
-      .check();
-  const Multiply(double.minPositive, double.maxFinite, 8.881784197001251e-16)
-      .check();
+    double.minPositive,
+    double.negativeInfinity,
+    double.negativeInfinity,
+  ).check();
+  const Multiply(
+    double.minPositive,
+    double.maxFinite,
+    8.881784197001251e-16,
+  ).check();
 
   const Modulo(27, 314159, 27).check();
   const Modulo(27, 1, 0).check();
@@ -358,8 +395,11 @@ void main() {
   const Modulo(double.infinity, double.infinity, double.nan).check();
   const Modulo(double.negativeInfinity, double.infinity, double.nan).check();
   const Modulo(double.infinity, double.negativeInfinity, double.nan).check();
-  const Modulo(double.negativeInfinity, double.negativeInfinity, double.nan)
-      .check();
+  const Modulo(
+    double.negativeInfinity,
+    double.negativeInfinity,
+    double.nan,
+  ).check();
 
   const TruncatingDivide(27, 314159, 0).check();
   const TruncatingDivide(27, 1, 27).check();
@@ -424,23 +464,41 @@ void main() {
   const Divide(-4294967295, 4294967296, -0.9999999997671694).check();
   const Divide(-4294967295, -4294967296, 0.9999999997671694).check();
   const Divide(9007199254740991, 9007199254740992, 0.9999999999999999).check();
-  const Divide(9007199254740991, -9007199254740992, -0.9999999999999999)
-      .check();
-  const Divide(-9007199254740991, 9007199254740992, -0.9999999999999999)
-      .check();
-  const Divide(-9007199254740991, -9007199254740992, 0.9999999999999999)
-      .check();
+  const Divide(
+    9007199254740991,
+    -9007199254740992,
+    -0.9999999999999999,
+  ).check();
+  const Divide(
+    -9007199254740991,
+    9007199254740992,
+    -0.9999999999999999,
+  ).check();
+  const Divide(
+    -9007199254740991,
+    -9007199254740992,
+    0.9999999999999999,
+  ).check();
   const Divide(4294967296, 4294967295, 1.0000000002328306).check();
   const Divide(4294967296, -4294967295, -1.0000000002328306).check();
   const Divide(-4294967296, 4294967295, -1.0000000002328306).check();
   const Divide(-4294967296, -4294967295, 1.0000000002328306).check();
   const Divide(9007199254740992, 9007199254740991, 1.0000000000000002).check();
-  const Divide(9007199254740992, -9007199254740991, -1.0000000000000002)
-      .check();
-  const Divide(-9007199254740992, 9007199254740991, -1.0000000000000002)
-      .check();
-  const Divide(-9007199254740992, -9007199254740991, 1.0000000000000002)
-      .check();
+  const Divide(
+    9007199254740992,
+    -9007199254740991,
+    -1.0000000000000002,
+  ).check();
+  const Divide(
+    -9007199254740992,
+    9007199254740991,
+    -1.0000000000000002,
+  ).check();
+  const Divide(
+    -9007199254740992,
+    -9007199254740991,
+    1.0000000000000002,
+  ).check();
   const Divide(4294967295, 0.5, 8589934590).check();
   const Divide(4294967295, -0.5, -8589934590).check();
   const Divide(-4294967295, 0.5, -8589934590).check();
@@ -497,10 +555,16 @@ void main() {
   const Divide(-double.minPositive, double.maxFinite, -0.0).check();
   const Divide(-double.minPositive, -double.maxFinite, 0).check();
   const Divide(double.maxFinite, double.minPositive, double.infinity).check();
-  const Divide(double.maxFinite, -double.minPositive, double.negativeInfinity)
-      .check();
-  const Divide(-double.maxFinite, double.minPositive, double.negativeInfinity)
-      .check();
+  const Divide(
+    double.maxFinite,
+    -double.minPositive,
+    double.negativeInfinity,
+  ).check();
+  const Divide(
+    -double.maxFinite,
+    double.minPositive,
+    double.negativeInfinity,
+  ).check();
   const Divide(-double.maxFinite, -double.minPositive, double.infinity).check();
 
   const Add("", "", "").check();
@@ -543,8 +607,11 @@ void main() {
   const Add(-0.0, 0.0, 0.0).check();
   const Add(-0.0, -0.0, -0.0).check();
   const Add(double.maxFinite, double.maxFinite, double.infinity).check();
-  const Add(-double.maxFinite, -double.maxFinite, double.negativeInfinity)
-      .check();
+  const Add(
+    -double.maxFinite,
+    -double.maxFinite,
+    double.negativeInfinity,
+  ).check();
   const Add(1.5, double.nan, double.nan).check();
   const Add(double.nan, 1.5, double.nan).check();
   const Add(double.nan, double.nan, double.nan).check();
@@ -554,18 +621,26 @@ void main() {
   const Add(double.negativeInfinity, double.nan, double.nan).check();
   const Add(double.infinity, -double.maxFinite, double.infinity).check();
   const Add(double.infinity, double.maxFinite, double.infinity).check();
-  const Add(double.negativeInfinity, -double.maxFinite, double.negativeInfinity)
-      .check();
-  const Add(double.negativeInfinity, double.maxFinite, double.negativeInfinity)
-      .check();
+  const Add(
+    double.negativeInfinity,
+    -double.maxFinite,
+    double.negativeInfinity,
+  ).check();
+  const Add(
+    double.negativeInfinity,
+    double.maxFinite,
+    double.negativeInfinity,
+  ).check();
   const Add(1.5, double.negativeInfinity, double.negativeInfinity).check();
   const Add(1.5, double.infinity, double.infinity).check();
   const Add(double.infinity, double.infinity, double.infinity).check();
   const Add(double.infinity, double.negativeInfinity, double.nan).check();
   const Add(double.negativeInfinity, double.infinity, double.nan).check();
-  const Add(double.negativeInfinity, double.negativeInfinity,
-          double.negativeInfinity)
-      .check();
+  const Add(
+    double.negativeInfinity,
+    double.negativeInfinity,
+    double.negativeInfinity,
+  ).check();
   const Add(double.minPositive, -double.minPositive, 0.0).check();
   const Add(-double.minPositive, double.minPositive, 0.0).check();
 
@@ -647,8 +722,11 @@ void main() {
   const LessEqual(-double.maxFinite, double.nan, false).check();
   const LessEqual(double.nan, double.negativeInfinity, false).check();
   const LessEqual(double.negativeInfinity, double.nan, false).check();
-  const LessEqual(double.negativeInfinity, double.negativeInfinity, true)
-      .check();
+  const LessEqual(
+    double.negativeInfinity,
+    double.negativeInfinity,
+    true,
+  ).check();
   const LessEqual(double.negativeInfinity, -double.maxFinite, true).check();
   const LessEqual(-double.maxFinite, double.negativeInfinity, false).check();
   const LessEqual(-double.maxFinite, -double.maxFinite, true).check();
@@ -717,8 +795,11 @@ void main() {
   const Greater(-double.maxFinite, double.nan, false).check();
   const Greater(double.nan, double.negativeInfinity, false).check();
   const Greater(double.negativeInfinity, double.nan, false).check();
-  const Greater(double.negativeInfinity, double.negativeInfinity, false)
-      .check();
+  const Greater(
+    double.negativeInfinity,
+    double.negativeInfinity,
+    false,
+  ).check();
   const Greater(double.negativeInfinity, -double.maxFinite, false).check();
   const Greater(-double.maxFinite, double.negativeInfinity, true).check();
   const Greater(-double.maxFinite, -double.maxFinite, false).check();
@@ -787,8 +868,11 @@ void main() {
   const GreaterEqual(-double.maxFinite, double.nan, false).check();
   const GreaterEqual(double.nan, double.negativeInfinity, false).check();
   const GreaterEqual(double.negativeInfinity, double.nan, false).check();
-  const GreaterEqual(double.negativeInfinity, double.negativeInfinity, true)
-      .check();
+  const GreaterEqual(
+    double.negativeInfinity,
+    double.negativeInfinity,
+    true,
+  ).check();
   const GreaterEqual(double.negativeInfinity, -double.maxFinite, false).check();
   const GreaterEqual(-double.maxFinite, double.negativeInfinity, true).check();
   const GreaterEqual(-double.maxFinite, -double.maxFinite, true).check();
@@ -906,8 +990,11 @@ void main() {
   const Identity(double.infinity, double.infinity, true).check();
   const Identity(double.infinity, double.negativeInfinity, false).check();
   const Identity(double.negativeInfinity, double.infinity, false).check();
-  const Identity(double.negativeInfinity, double.negativeInfinity, true)
-      .check();
+  const Identity(
+    double.negativeInfinity,
+    double.negativeInfinity,
+    true,
+  ).check();
   const Identity(0x8000000000000000, 0x8000000000000000, true).check();
   const Identity(0x8000000000000000, -9223372036854775808, false).check();
 
@@ -937,11 +1024,12 @@ void jsEquals(expected, actual, [String reason = ""]) {
 
   if (expected == 0 && actual == 0) {
     Expect.equals(
-        expected.isNegative,
-        actual.isNegative,
-        (reason == null ? "" : "$reason ") +
-            "${expected.toString()} and "
-                "${actual.toString()} have different signs.");
+      expected.isNegative,
+      actual.isNegative,
+      (reason == null ? "" : "$reason ") +
+          "${expected.toString()} and "
+              "${actual.toString()} have different signs.",
+    );
   }
 }
 
@@ -953,10 +1041,16 @@ abstract class TestOp {
 
   @pragma('dart2js:noInline')
   checkAll(evalResult) {
-    jsEquals(expected, result,
-        "Frontend constant evaluation does not yield expected value.");
-    jsEquals(expected, evalResult,
-        "Backend constant evaluation does not yield expected value.");
+    jsEquals(
+      expected,
+      result,
+      "Frontend constant evaluation does not yield expected value.",
+    );
+    jsEquals(
+      expected,
+      evalResult,
+      "Backend constant evaluation does not yield expected value.",
+    );
     jsEquals(expected, eval(), "eval() does not yield expected value.");
   }
 
@@ -1049,7 +1143,7 @@ class ShiftLeft extends TestOp {
   final arg2;
 
   const ShiftLeft(this.arg1, this.arg2, expected)
-      : super(expected, arg1 << arg2);
+    : super(expected, arg1 << arg2);
 
   @pragma('dart2js:tryInline')
   check() => checkAll(eval());
@@ -1064,7 +1158,7 @@ class ShiftRight extends TestOp {
   final arg2;
 
   const ShiftRight(this.arg1, this.arg2, expected)
-      : super(expected, arg1 >> arg2);
+    : super(expected, arg1 >> arg2);
 
   @pragma('dart2js:tryInline')
   check() => checkAll(eval());
@@ -1079,7 +1173,7 @@ class BooleanAnd extends TestOp {
   final arg2;
 
   const BooleanAnd(this.arg1, this.arg2, expected)
-      : super(expected, arg1 && arg2);
+    : super(expected, arg1 && arg2);
 
   @pragma('dart2js:tryInline')
   check() => checkAll(eval());
@@ -1094,7 +1188,7 @@ class BooleanOr extends TestOp {
   final arg2;
 
   const BooleanOr(this.arg1, this.arg2, expected)
-      : super(expected, arg1 || arg2);
+    : super(expected, arg1 || arg2);
 
   @pragma('dart2js:tryInline')
   check() => checkAll(eval());
@@ -1151,7 +1245,7 @@ class TruncatingDivide extends TestOp {
   final arg2;
 
   const TruncatingDivide(this.arg1, this.arg2, expected)
-      : super(expected, arg1 ~/ arg2);
+    : super(expected, arg1 ~/ arg2);
 
   @pragma('dart2js:tryInline')
   check() => checkAll(eval());
@@ -1206,7 +1300,7 @@ class LessEqual extends TestOp {
   final arg2;
 
   const LessEqual(this.arg1, this.arg2, expected)
-      : super(expected, arg1 <= arg2);
+    : super(expected, arg1 <= arg2);
 
   @pragma('dart2js:tryInline')
   check() => checkAll(eval());
@@ -1233,7 +1327,7 @@ class GreaterEqual extends TestOp {
   final arg2;
 
   const GreaterEqual(this.arg1, this.arg2, expected)
-      : super(expected, arg1 >= arg2);
+    : super(expected, arg1 >= arg2);
 
   @pragma('dart2js:tryInline')
   check() => checkAll(eval());
@@ -1260,7 +1354,7 @@ class Identity extends TestOp {
   final arg2;
 
   const Identity(this.arg1, this.arg2, expected)
-      : super(expected, identical(arg1, arg2));
+    : super(expected, identical(arg1, arg2));
 
   @pragma('dart2js:tryInline')
   check() => checkAll(eval());

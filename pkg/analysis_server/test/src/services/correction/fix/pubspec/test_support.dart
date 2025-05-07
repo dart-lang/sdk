@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/protocol_server.dart' show SourceEdit;
 import 'package:analysis_server/src/services/correction/fix/pubspec/fix_generator.dart';
 import 'package:analysis_server_plugin/edit/fix/fix.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart'
     as pubspec_validator;
@@ -22,7 +22,7 @@ abstract class PubspecFixTest with ResourceProviderMixin {
   late YamlNode node;
 
   /// The error to be fixed.
-  late AnalysisError error;
+  late Diagnostic diagnostic;
 
   /// Return the kind of fixes being tested by this test class.
   FixKind get kind;
@@ -54,11 +54,16 @@ abstract class PubspecFixTest with ResourceProviderMixin {
       provider: resourceProvider,
     );
     expect(errors.length, 1);
-    error = errors[0];
+    diagnostic = errors[0];
   }
 
   Future<List<Fix>> _getFixes() async {
-    var generator = PubspecFixGenerator(resourceProvider, error, content, node);
+    var generator = PubspecFixGenerator(
+      resourceProvider,
+      diagnostic,
+      content,
+      node,
+    );
     return await generator.computeFixes();
   }
 }

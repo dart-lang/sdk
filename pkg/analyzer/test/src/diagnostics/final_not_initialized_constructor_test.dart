@@ -16,40 +16,48 @@ main() {
 @reflectiveTest
 class FinalNotInitializedConstructorTest extends PubPackageResolutionTest {
   test_class_1() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   final int x;
   A() {}
 }
-''', [
-      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1, 27, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1, 27, 1)],
+    );
   }
 
   test_class_2() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   final int a;
   final int b;
   A() {}
 }
-''', [
-      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2, 42, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2, 42, 1)],
+    );
   }
 
   test_class_3() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   final int a;
   final int b;
   final int c;
   A() {}
 }
-''', [
-      error(
-          CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS, 57, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS,
+          57,
+          1,
+        ),
+      ],
+    );
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
@@ -205,15 +213,16 @@ augment class A {
   }
 
   Future<void> test_class_redirecting_error() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   final int x;
   A() : this._();
   A._();
 }
-''', [
-      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1, 45, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1, 45, 1)],
+    );
   }
 
   Future<void> test_class_redirecting_no_error() async {
@@ -237,32 +246,35 @@ class A {
   }
 
   test_enum_1() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 enum E {
   v;
   final int x;
   const E();
 }
-''', [
-      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1, 37, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1, 37, 1)],
+    );
   }
 
   test_enum_2() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 enum E {
   v;
   final int a;
   final int b;
   const E();
 }
-''', [
-      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2, 52, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2, 52, 1)],
+    );
   }
 
   test_enum_3Plus() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 enum E {
   v;
   final int a;
@@ -270,23 +282,29 @@ enum E {
   final int c;
   const E();
 }
-''', [
-      error(
-          CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS, 67, 1),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS,
+          67,
+          1,
+        ),
+      ],
+    );
   }
 
   Future<void> test_enum_redirecting_error() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 enum E {
   v1, v2._();
   final int x;
   const E() : this._();
   const E._();
 }
-''', [
-      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1, 70, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1, 70, 1)],
+    );
   }
 
   Future<void> test_enum_redirecting_no_error() async {
@@ -312,13 +330,14 @@ enum E {
   }
 
   test_extensionType() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension type A(int it) {
   A.named();
 }
-''', [
-      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1, 29, 1),
-    ]);
+''',
+      [error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1, 29, 1)],
+    );
   }
 
   test_extensionType_noError_constructorFieldInitializer() async {

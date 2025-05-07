@@ -61,7 +61,26 @@ AnalysisOptionsErrorCode:
 
       Parameters:
       0: the error message from the parse error
-AnalysisOptionsHintCode:
+AnalysisOptionsWarningCode:
+  ANALYSIS_OPTION_DEPRECATED:
+    problemMessage: "The option '{0}' is no longer supported."
+    hasPublishedDocs: false
+    comment: |
+      An error code indicating that the given option is deprecated.
+
+      Parameters:
+      0: the option name
+  ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT:
+    sharedName: ANALYSIS_OPTION_DEPRECATED
+    problemMessage: "The option '{0}' is no longer supported."
+    correctionMessage: "Try using the new '{1}' option."
+    hasPublishedDocs: false
+    comment: |-
+      An error code indicating that the given option is deprecated.
+
+      Parameters:
+      0: the option name
+      1: the replacement option name
   DEPRECATED_LINT:
     problemMessage: "'{0}' is a deprecated lint rule and should not be used."
     correctionMessage: Try removing '{0}'.
@@ -90,26 +109,6 @@ AnalysisOptionsHintCode:
 
       Parameters:
       0: the rule name
-AnalysisOptionsWarningCode:
-  ANALYSIS_OPTION_DEPRECATED:
-    problemMessage: "The option '{0}' is no longer supported."
-    hasPublishedDocs: false
-    comment: |
-      An error code indicating that the given option is deprecated.
-
-      Parameters:
-      0: the option name
-  ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT:
-    sharedName: ANALYSIS_OPTION_DEPRECATED
-    problemMessage: "The option '{0}' is no longer supported."
-    correctionMessage: "Try using the new '{1}' option."
-    hasPublishedDocs: false
-    comment: |-
-      An error code indicating that the given option is deprecated.
-
-      Parameters:
-      0: the option name
-      1: the replacement option name
   INCLUDED_FILE_WARNING:
     problemMessage: "Warning in the included options file {0}({1}..{2}): {3}"
     hasPublishedDocs: false
@@ -2825,6 +2824,9 @@ CompileTimeErrorCode:
     problemMessage: "Constant expressions don't support 'for' elements."
     correctionMessage: "Try replacing the 'for' element with a spread, or removing 'const'."
     hasPublishedDocs: false
+  CONST_EVAL_NULL_AWARE_ACCESS:
+    problemMessage: "Null-aware property access can't be used in a constant expression."
+    hasPublishedDocs: false
   CONST_EVAL_PROPERTY_ACCESS:
     problemMessage: "The property '{0}' can't be accessed on the type '{1}' in a constant expression."
     hasPublishedDocs: false
@@ -3861,6 +3863,24 @@ CompileTimeErrorCode:
     comment: |-
       Parameters:
       0: the name of the duplicate entity
+  DOT_SHORTHAND_MISSING_CONTEXT:
+    problemMessage: "A dot shorthand can't be used where there is no context type."
+  DOT_SHORTHAND_UNDEFINED_GETTER:
+    sharedName: DOT_SHORTHAND_UNDEFINED_MEMBER
+    problemMessage: "The static getter '{0}' isn't defined for the context type '{1}'."
+    correctionMessage: "Try correcting the name to the name of an existing static getter, or defining a getter or field named '{0}'."
+    comment: |-
+      Parameters:
+      0: the name of the static getter
+      1: the name of the enclosing type where the getter is being looked for
+  DOT_SHORTHAND_UNDEFINED_INVOCATION:
+    sharedName: DOT_SHORTHAND_UNDEFINED_MEMBER
+    problemMessage: "The static method or constructor '{0}' isn't defined for the type '{1}'."
+    correctionMessage: "Try correcting the name to the name of an existing static method or constructor, or defining a static method or constructor named '{0}'."
+    comment: |-
+      Parameters:
+      0: the name of the static method or constructor
+      1: the name of the enclosing type where the method or constructor is being looked for
   DUPLICATE_CONSTRUCTOR_DEFAULT:
     sharedName: DUPLICATE_CONSTRUCTOR
     problemMessage: The unnamed constructor is already defined.
@@ -24156,6 +24176,36 @@ WarningCode:
       #### Common fixes
 
       Remove the annotation from the declaration.
+  INVALID_AWAIT_NOT_REQUIRED_ANNOTATION:
+    problemMessage: "The annotation 'awaitNotRequired' can only be applied to a Future-returning function, or a Future-typed field."
+    hasPublishedDocs: false
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when anything other than a
+      `Future`-returning function or a `Future`-typed field or top-level
+      variable is annotated with [`awaitNotRequired`][meta-awaitNotRequired].
+
+      #### Example
+
+      The following code produces this diagnostic because the annotation is on a
+      `void`-returning function:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      @[!awaitNotRequired!]
+      void f() {}
+      ```
+
+      #### Common fixes
+
+      Remove the annotation:
+
+      ```dart
+      void f() {}
+      ```
   INVALID_EXPORT_OF_INTERNAL_ELEMENT:
     problemMessage: "The member '{0}' can't be exported as a part of a package's public API."
     correctionMessage: "Try using a hide clause to hide '{0}'."
@@ -24713,7 +24763,7 @@ WarningCode:
 
       Parameters:
       0: the name of the member
-  invalid_use_of_do_not_submit_member:
+  INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER:
     problemMessage: "Uses of '{0}' should not be submitted to source control."
     correctionMessage: "Try removing the reference to '{0}'."
     hasPublishedDocs: true
@@ -25194,6 +25244,187 @@ WarningCode:
       class A {
         void m() {}
       }
+      ```
+  INVALID_WIDGET_PREVIEW_APPLICATION:
+    problemMessage: "The '@Preview(...)' annotation can only be applied to public, statically accessible constructors and functions."
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a `@Preview(...)` annotation
+      is applied to an invalid widget preview target. Widget previews can only
+      be applied to public, statically accessible, explicitly defined
+      constructors and functions.
+
+      #### Examples
+
+      The following code produces this diagnostic because `_myPrivatePreview`
+      is private:
+
+      ```dart
+      import 'package:flutter/widgets.dart';
+      import 'package:flutter/widget_previews.dart';
+
+      // Invalid application to private top-level function.
+      @[!Preview!]()
+      // ignore: unused_element
+      Widget _myPrivatePreview() => Text('Foo');
+      ```
+
+      The following code produces this diagnostic because `myExternalPreview`
+      is `external`:
+
+      ```dart
+      import 'package:flutter/widgets.dart';
+      import 'package:flutter/widget_previews.dart';
+
+
+      // Invalid application to an external function.
+      @[!Preview!]()
+      external Widget myExternalPreview();
+      ```
+
+      The following code produces this diagnostic because `PublicWidget._()` is
+      private:
+
+      ```dart
+      import 'package:flutter/widgets.dart';
+      import 'package:flutter/widget_previews.dart';
+
+      class PublicWidget extends StatelessWidget {
+        // Invalid application to a private constructor.
+        @[!Preview!]()
+        PublicWidget._();
+
+        @override
+        Widget build(BuildContext) => Text('Foo');
+      }
+      ```
+
+      The following code produces this diagnostic because `instancePreview` is
+      an instance method:
+
+      ```dart
+      import 'package:flutter/widgets.dart';
+      import 'package:flutter/widget_previews.dart';
+
+      class PublicWidget extends StatelessWidget {
+        // Invalid application to a instance member.
+        @[!Preview!]()
+        Widget instancePreview() => PublicWidget();
+
+        @override
+        Widget build(BuildContext context) => Text('Foo');
+      }
+      ```
+
+      The following code produces this diagnostic because `_PrivateWidget` is
+      private:
+
+      ```dart
+      import 'package:flutter/widgets.dart';
+      import 'package:flutter/widget_previews.dart';
+
+      // ignore: unused_element
+      class _PrivateWidget extends StatelessWidget {
+        // Invalid application to a constructor of a private class.
+        @[!Preview!]()
+        _PrivateWidget();
+
+        @override
+        Widget build(BuildContext context) => Text('Foo');
+      }
+      ```
+
+      The following code produces this diagnostic because `_PrivateWidget` is
+      private:
+
+      ```dart
+      import 'package:flutter/widgets.dart';
+      import 'package:flutter/widget_previews.dart';
+
+      // ignore: unused_element
+      class _PrivateWidget extends StatelessWidget {
+        // Invalid application to a static method of a private class.
+        @[!Preview!]()
+        Widget privateStatic() => _PrivateWidget();
+
+        @override
+        Widget build(BuildContext context) => Text('Foo');
+      }
+      ```
+
+      The following code produces this diagnostic because `AbstractWidget` is
+      an `abstract` class:
+
+      ```dart
+      import 'package:flutter/widgets.dart';
+      import 'package:flutter/widget_previews.dart';
+
+      abstract class AbstractWidget extends StatelessWidget {
+        // Invalid application to a constructor of an abstract class.
+        @[!Preview!]()
+        AbstractWidget();
+
+        @override
+        Widget build(BuildContext context) => Text('Foo');
+      }
+      ```
+
+      #### Common fixes
+
+      Create a dedicated public, statically accessible, and explicitly defined
+      constructor, top-level function, or class member for use as a preview:
+
+  INVALID_WIDGET_PREVIEW_PRIVATE_ARGUMENT:
+    problemMessage: "'@Preview(...)' can only accept arguments that consist of literals and public symbols."
+    correctionMessage: "Rename private symbol '{0}' to '{1}'."
+    comment: |-
+      Parameters:
+      0: the name of the private symbol
+      1: the name of the proposed public symbol equivalent
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the `Preview` constructor is
+      invoked with arguments that contain references to private symbols.
+
+      #### Example
+
+      The following code produces this diagnostic because the constant variable
+      `_name` is private to the current library:
+
+      ```dart
+      import 'package:flutter/widgets.dart';
+      import 'package:flutter/widget_previews.dart';
+
+      const String _name = 'My Foo Preview';
+
+      @Preview([!name: _name!])
+      Widget myPreview() => Text('Foo');
+      ```
+
+      #### Common fixes
+
+      If appropriate, the private symbol should be made public:
+
+      ```dart
+      import 'package:flutter/widgets.dart';
+      import 'package:flutter/widget_previews.dart';
+
+      const String name = 'My Foo Preview';
+
+      @Preview(name: name)
+      Widget myPreview() => Text('Foo');
+      ```
+
+      Otherwise, a different public constant symbol should be used:
+
+      ```dart
+      import 'package:flutter/widgets.dart';
+      import 'package:flutter/widget_previews.dart';
+
+      @Preview(name: 'My Foo Preview')
+      Widget myPreview() => Text('Foo');
       ```
   MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE:
     sharedName: MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN

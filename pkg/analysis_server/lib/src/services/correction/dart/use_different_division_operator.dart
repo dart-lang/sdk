@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
@@ -132,7 +132,7 @@ class _UseDifferentDivisionOperator extends ResolvedCorrectionProducer {
 extension on DartType {
   Set<_DivisionOperator> get divisionOperators {
     switch (element3) {
-      case InterfaceElement2 element:
+      case InterfaceElement element:
         return {
           for (var method in element.methods2)
             // No need to test for eq operators, as they are not explicitly defined.
@@ -142,7 +142,7 @@ extension on DartType {
               _DivisionOperator.effectiveIntegerDivision,
           ...element.allSupertypes.expand((type) => type.divisionOperators),
         };
-      case TypeParameterElement2 element:
+      case TypeParameterElement element:
         return element.bound?.divisionOperators ?? const {};
     }
     return const {};

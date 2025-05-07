@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
@@ -47,7 +47,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.name.type == TokenType.EQ_EQ || isHashCode(node)) {
       var classElement = node.classElement;
       if (classElement != null && !classElement.hasImmutableAnnotation) {
-        rule.reportLintForToken(
+        rule.reportAtToken(
           node.firstTokenAfterCommentAndMetadata,
           arguments: [node.name.lexeme],
         );
@@ -57,7 +57,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 }
 
 extension on MethodDeclaration {
-  ClassElement2? get classElement =>
+  ClassElement? get classElement =>
       // TODO(pq): should this be ClassOrMixinDeclaration ?
       thisOrAncestorOfType<ClassDeclaration>()?.declaredFragment?.element;
 }

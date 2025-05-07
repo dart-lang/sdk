@@ -51,32 +51,38 @@ Future<void> testAsyncValue() async {
 }
 
 Future<void> testError() async {
-  var e = await asyncExpectThrows<ArgumentError>(Isolate.run<int>(() {
-    variable = 1;
-    Error.throwWithStackTrace(error, stack);
-  }));
+  var e = await asyncExpectThrows<ArgumentError>(
+    Isolate.run<int>(() {
+      variable = 1;
+      Error.throwWithStackTrace(error, stack);
+    }),
+  );
   Expect.equals(42, e.invalidValue);
   Expect.equals("name", e.name);
   Expect.equals(0, variable);
 }
 
 Future<void> testAsyncError() async {
-  var e = await asyncExpectThrows<ArgumentError>(Isolate.run<int>(() async {
-    variable = 1;
-    Error.throwWithStackTrace(error, stack);
-  }));
+  var e = await asyncExpectThrows<ArgumentError>(
+    Isolate.run<int>(() async {
+      variable = 1;
+      Error.throwWithStackTrace(error, stack);
+    }),
+  );
   Expect.equals(42, e.invalidValue);
   Expect.equals("name", e.name);
   Expect.equals(0, variable);
 }
 
 Future<void> testUncaughtError() async {
-  var e = await asyncExpectThrows<RemoteError>(Isolate.run<int>(() async {
-    variable = 1;
-    unawaited(Future.error(error, stack)); // Uncaught error
-    await Completer().future; // Never completes.
-    return -1;
-  }));
+  var e = await asyncExpectThrows<RemoteError>(
+    Isolate.run<int>(() async {
+      variable = 1;
+      unawaited(Future.error(error, stack)); // Uncaught error
+      await Completer().future; // Never completes.
+      return -1;
+    }),
+  );
 
   Expect.type<RemoteError>(e);
   Expect.equals(error.toString(), e.toString());
@@ -84,33 +90,39 @@ Future<void> testUncaughtError() async {
 }
 
 Future<void> testIsolateHangs() async {
-  var e = await asyncExpectThrows<RemoteError>(Isolate.run<int>(() async {
-    variable = 1;
-    await Completer<Never>().future; // Never completes.
-    // Isolate should end while hanging here, because its event loop is empty.
-  }));
+  var e = await asyncExpectThrows<RemoteError>(
+    Isolate.run<int>(() async {
+      variable = 1;
+      await Completer<Never>().future; // Never completes.
+      // Isolate should end while hanging here, because its event loop is empty.
+    }),
+  );
   Expect.type<RemoteError>(e);
   Expect.equals("Computation ended without result", e.toString());
   Expect.equals(0, variable);
 }
 
 Future<void> testIsolateKilled() async {
-  var e = await asyncExpectThrows<RemoteError>(Isolate.run<int>(() async {
-    variable = 1;
-    Isolate.current.kill(); // Send kill request.
-    await Completer<Never>().future; // Never completes.
-    // Isolate should get killed while hanging here.
-  }));
+  var e = await asyncExpectThrows<RemoteError>(
+    Isolate.run<int>(() async {
+      variable = 1;
+      Isolate.current.kill(); // Send kill request.
+      await Completer<Never>().future; // Never completes.
+      // Isolate should get killed while hanging here.
+    }),
+  );
   Expect.type<RemoteError>(e);
   Expect.equals("Computation ended without result", e.toString());
   Expect.equals(0, variable);
 }
 
 Future<void> testIsolateExits() async {
-  var e = await asyncExpectThrows<RemoteError>(Isolate.run<int>(() async {
-    variable = 1;
-    Isolate.exit(); // Dies here without sending anything back.
-  }));
+  var e = await asyncExpectThrows<RemoteError>(
+    Isolate.run<int>(() async {
+      variable = 1;
+      Isolate.exit(); // Dies here without sending anything back.
+    }),
+  );
   Expect.type<RemoteError>(e);
   Expect.equals("Computation ended without result", e.toString());
   Expect.equals(0, variable);

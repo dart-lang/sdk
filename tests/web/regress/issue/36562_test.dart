@@ -4,9 +4,6 @@
 
 const int x = 0;
 
-const List<int> l = const [
-  1,
-  -x,
-];
+const List<int> l = const [1, -x];
 
 main() => print(l);

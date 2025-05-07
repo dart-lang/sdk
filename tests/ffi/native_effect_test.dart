@@ -18,10 +18,11 @@ void main() {
 
 final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 
-final returnStruct1ByteInt = ffiTestFunctions.lookupFunction<
-  Struct1ByteInt Function(Int8),
-  Struct1ByteInt Function(int)
->("ReturnStruct1ByteInt");
+final returnStruct1ByteInt = ffiTestFunctions
+    .lookupFunction<
+      Struct1ByteInt Function(Int8),
+      Struct1ByteInt Function(int)
+    >("ReturnStruct1ByteInt");
 
 void testReturnStruct1ByteInt() {
   final result = returnStruct1ByteInt(1);

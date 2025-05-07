@@ -33,15 +33,11 @@ class E implements C, D {
 void main() {
   A a = new E();
   var b;
-  if (a is D && ((a = new D()) != null)) {
-
-  }
+  if (a is D && ((a = new D()) != null)) {}
   if (a is D && (b = a.d)) {
-
     a = A();
   }
   if ((((a) is D) && (b = (a).d))) {
-
     a = A();
   }
   if (f(a = A()) && a is D) {

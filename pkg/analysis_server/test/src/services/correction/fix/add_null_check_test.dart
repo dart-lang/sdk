@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:linter/src/lint_names.dart';
@@ -552,8 +551,8 @@ void f (List<int>? args) {
 ''');
     await assertNoFix(
       errorFilter:
-          (AnalysisError error) =>
-              error.errorCode !=
+          (diagnostic) =>
+              diagnostic.errorCode !=
               CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,
     );
   }
@@ -603,8 +602,8 @@ f(List<String>? args) {
 }
 ''',
       errorFilter:
-          (AnalysisError error) =>
-              error.errorCode !=
+          (diagnostic) =>
+              diagnostic.errorCode !=
               CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE,
     );
   }
@@ -626,8 +625,8 @@ g() {
 }
 ''',
       errorFilter:
-          (AnalysisError error) =>
-              error.errorCode ==
+          (diagnostic) =>
+              diagnostic.errorCode ==
               CompileTimeErrorCode
                   .UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH,
     );
@@ -650,8 +649,8 @@ class C {
 }
 ''',
       errorFilter:
-          (AnalysisError error) =>
-              error.errorCode !=
+          (diagnostic) =>
+              diagnostic.errorCode !=
               CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE,
     );
   }
@@ -669,8 +668,8 @@ Iterable<String> f(List<String>? args) sync* {
 }
 ''',
       errorFilter:
-          (AnalysisError error) =>
-              error.errorCode !=
+          (diagnostic) =>
+              diagnostic.errorCode !=
               CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE,
     );
   }

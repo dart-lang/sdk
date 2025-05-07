@@ -6,7 +6,7 @@ import 'package:flutter/painting.dart';
 
 class MaterialColor extends ColorSwatch<int> {
   const MaterialColor(int primary, Map<int, Color> swatch)
-      : super(primary, swatch);
+    : super(primary, swatch);
 
   Color get shade100 => this[100];
 
@@ -31,7 +31,7 @@ class MaterialColor extends ColorSwatch<int> {
 
 class MaterialAccentColor extends ColorSwatch<int> {
   const MaterialAccentColor(int primary, Map<int, Color> swatch)
-      : super(primary, swatch);
+    : super(primary, swatch);
 
   Color get shade50 => this[50];
 
@@ -50,23 +50,20 @@ class Colors {
   static const Color black = Color(0xFF000000);
   static const Color white = Color(0xFFFFFFFF);
 
-  static const MaterialColor red = MaterialColor(
-    _redPrimaryValue,
-    <int, Color>{
-      // For simpler testing, these values are not the real Flutter values
-      // but just varying alphas on a primary value.
-      50: Color(0x05FF0000),
-      100: Color(0x10FF0000),
-      200: Color(0x20FF0000),
-      300: Color(0x30FF0000),
-      400: Color(0x40FF0000),
-      500: Color(0x50FF0000),
-      600: Color(0x60FF0000),
-      700: Color(0x70FF0000),
-      800: Color(0x80FF0000),
-      900: Color(0x90FF0000),
-    },
-  );
+  static const MaterialColor red = MaterialColor(_redPrimaryValue, <int, Color>{
+    // For simpler testing, these values are not the real Flutter values
+    // but just varying alphas on a primary value.
+    50: Color(0x05FF0000),
+    100: Color(0x10FF0000),
+    200: Color(0x20FF0000),
+    300: Color(0x30FF0000),
+    400: Color(0x40FF0000),
+    500: Color(0x50FF0000),
+    600: Color(0x60FF0000),
+    700: Color(0x70FF0000),
+    800: Color(0x80FF0000),
+    900: Color(0x90FF0000),
+  });
   static const int _redPrimaryValue = 0xFFFF0000;
 
   static const MaterialAccentColor redAccent = MaterialAccentColor(

@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
@@ -94,7 +94,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         (parent is DoStatement && node == parent.condition) ||
         (parent is SwitchStatement && node == parent.expression) ||
         (parent is SwitchExpression && node == parent.expression)) {
-      rule.reportLint(node);
+      rule.reportAtNode(node);
       return;
     }
 
@@ -117,7 +117,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         // allows an extension getter, which extends a nullable type, to be
         // called on a `null` value.
         var target = parent.propertyName.element?.enclosingElement2;
-        if (target is ExtensionElement2 &&
+        if (target is ExtensionElement &&
             typeSystem.isNullable(target.extendedType)) {
           return;
         }
@@ -132,7 +132,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         // allows an extension method, which extends a nullable type, to be
         // called on a `null` value.
         var target = parent.methodName.element?.enclosingElement2;
-        if (target is ExtensionElement2 &&
+        if (target is ExtensionElement &&
             typeSystem.isNullable(target.extendedType)) {
           return;
         }
@@ -155,14 +155,14 @@ class _Visitor extends SimpleAstVisitor<void> {
           return;
         }
       }
-      rule.reportLint(node);
+      rule.reportAtNode(node);
       return;
     }
 
     if (expression is ConstructorReference) {
       if (parent is! FunctionExpressionInvocation ||
           parent.typeArguments == null) {
-        rule.reportLint(node);
+        rule.reportAtNode(node);
         return;
       }
     }
@@ -267,7 +267,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       // interpreted as a set-or-map literal.
       if (node.wouldBeParsedAsStatementBlock) return;
     }
-    rule.reportLint(node);
+    rule.reportAtNode(node);
   }
 }
 

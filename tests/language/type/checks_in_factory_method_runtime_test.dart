@@ -23,7 +23,6 @@ class Bar<T> implements Foo<T> {
       print(" String=$isString");
     };
 
-
     return new Bar<T>();
   }
 }

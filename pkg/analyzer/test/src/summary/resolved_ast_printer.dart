@@ -6,7 +6,7 @@ import 'package:analyzer/dart/ast/doc_comment.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -37,10 +37,10 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     required this.configuration,
     bool withOffsets = false,
     bool withResolution = true,
-  })  : _sink = sink,
-        _elementPrinter = elementPrinter,
-        _withOffsets = withOffsets,
-        _withResolution = withResolution;
+  }) : _sink = sink,
+       _elementPrinter = elementPrinter,
+       _withOffsets = withOffsets,
+       _withResolution = withResolution;
 
   @override
   void visitAdjacentStrings(AdjacentStrings node) {
@@ -466,6 +466,40 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) {
+    _sink.writeln('DotShorthandConstructorInvocation');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeParameterElement(node);
+      _writeType('staticType', node.staticType);
+    });
+  }
+
+  @override
+  void visitDotShorthandInvocation(DotShorthandInvocation node) {
+    _sink.writeln('DotShorthandInvocation');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeParameterElement(node);
+      _writeType('staticInvokeType', node.staticInvokeType);
+      _writeType('staticType', node.staticType);
+      _writeTypeList('typeArgumentTypes', node.typeArgumentTypes);
+    });
+  }
+
+  @override
+  void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
+    _sink.writeln('DotShorthandPropertyAccess');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeParameterElement(node);
+      _writeType('staticType', node.staticType);
+    });
+  }
+
+  @override
   void visitDottedName(DottedName node) {
     _sink.writeln('DottedName');
     _sink.withIndent(() {
@@ -493,9 +527,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitEnumConstantArguments(EnumConstantArguments node) {
-    if (configuration.withCheckingLinking) {
-      _checkChildrenEntitiesLinking(node);
-    }
+    _checkChildrenEntitiesLinking(node);
     _sink.writeln('EnumConstantArguments');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
@@ -1200,7 +1232,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitPatternVariableDeclarationStatement(
-      PatternVariableDeclarationStatement node) {
+    PatternVariableDeclarationStatement node,
+  ) {
     _sink.writeln('PatternVariableDeclarationStatement');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
@@ -1291,7 +1324,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitRecordTypeAnnotationNamedField(
-      RecordTypeAnnotationNamedField node) {
+    RecordTypeAnnotationNamedField node,
+  ) {
     _sink.writeln('RecordTypeAnnotationNamedField');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
@@ -1300,7 +1334,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitRecordTypeAnnotationNamedFields(
-      RecordTypeAnnotationNamedFields node) {
+    RecordTypeAnnotationNamedFields node,
+  ) {
     _sink.writeln('RecordTypeAnnotationNamedFields');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
@@ -1309,7 +1344,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitRecordTypeAnnotationPositionalField(
-      RecordTypeAnnotationPositionalField node) {
+    RecordTypeAnnotationPositionalField node,
+  ) {
     _sink.writeln('RecordTypeAnnotationPositionalField');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
@@ -1417,10 +1453,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       _writeParameterElement(node);
       _writeElement2('element', node.element);
       _writeType('staticType', node.staticType);
-      _writeTypeList(
-        'tearOffTypeArgumentTypes',
-        node.tearOffTypeArgumentTypes,
-      );
+      _writeTypeList('tearOffTypeArgumentTypes', node.tearOffTypeArgumentTypes);
     });
   }
 
@@ -1471,9 +1504,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitSuperFormalParameter(SuperFormalParameter node) {
-    if (configuration.withCheckingLinking) {
-      _checkChildrenEntitiesLinking(node);
-    }
+    _checkChildrenEntitiesLinking(node);
     _sink.writeln('SuperFormalParameter');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
@@ -1655,9 +1686,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitWildcardPattern(
-    covariant WildcardPatternImpl node,
-  ) {
+  void visitWildcardPattern(covariant WildcardPatternImpl node) {
     _sink.writeln('WildcardPattern');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
@@ -1730,7 +1759,7 @@ Expected parent: (${parent.runtimeType}) $parent
 
   void _writeDeclaredFragment(Fragment? fragment) {
     if (_withResolution) {
-      if (fragment is LocalVariableElementImpl) {
+      if (fragment is LocalVariableFragmentImpl) {
         _sink.writeWithIndent('declaredElement:');
         _sink.writeIf(fragment.hasImplicitType, ' hasImplicitType');
         _sink.writeIf(fragment.isConst, ' isConst');
@@ -1744,11 +1773,11 @@ Expected parent: (${parent.runtimeType}) $parent
         });
       } else {
         _writeFragment('declaredElement', fragment);
-        if (fragment is ExecutableElementImpl) {
+        if (fragment is ExecutableFragmentImpl) {
           _sink.withIndent(() {
             _writeType('type', fragment.type);
           });
-        } else if (fragment is ParameterElementImpl) {
+        } else if (fragment is FormalParameterFragmentImpl) {
           _sink.withIndent(() {
             _writeType('type', fragment.type);
           });
@@ -1760,7 +1789,8 @@ Expected parent: (${parent.runtimeType}) $parent
   void _writeDocDirectiveTag(DocDirectiveTag docDirective) {
     _sink.withIndent(() {
       _sink.writelnWithIndent(
-          'offset: [${docDirective.offset}, ${docDirective.end}]');
+        'offset: [${docDirective.offset}, ${docDirective.end}]',
+      );
       _sink.writelnWithIndent('type: [${docDirective.type}]');
       if (docDirective.positionalArguments.isNotEmpty) {
         _sink.writelnWithIndent('positionalArguments');
@@ -1790,7 +1820,7 @@ Expected parent: (${parent.runtimeType}) $parent
     });
   }
 
-  void _writeElement2(String name, Element2? element) {
+  void _writeElement2(String name, Element? element) {
     if (_withResolution) {
       _elementPrinter.writeNamedElement2(name, element);
     }
@@ -1804,7 +1834,7 @@ Expected parent: (${parent.runtimeType}) $parent
 
   void _writeGenericFunctionTypeElement(
     String name,
-    GenericFunctionTypeElementImpl? element,
+    GenericFunctionTypeFragmentImpl? element,
   ) {
     _sink.writeWithIndent('$name: ');
     if (element == null) {
@@ -1899,7 +1929,7 @@ Expected parent: (${parent.runtimeType}) $parent
     }
   }
 
-  void _writeParameterElements(List<ParameterElementImpl> parameters) {
+  void _writeParameterElements(List<FormalParameterFragmentImpl> parameters) {
     _sink.writelnWithIndent('parameters');
     _sink.withIndent(() {
       for (var parameter in parameters) {
@@ -1913,7 +1943,7 @@ Expected parent: (${parent.runtimeType}) $parent
     });
   }
 
-  void _writeParameterKind(ParameterElementImpl parameter) {
+  void _writeParameterKind(FormalParameterFragmentImpl parameter) {
     if (parameter.isOptionalNamed) {
       _sink.writelnWithIndent('kind: optional named');
     } else if (parameter.isOptionalPositional) {
@@ -2059,7 +2089,7 @@ Expected parent: (${parent.runtimeType}) $parent
       return declaredFragment.formalParameters;
     } else if (parametersParent is FormalParameter) {
       var declaredFragment = parametersParent.declaredFragment!;
-      declaredFragment as ParameterElementImpl;
+      declaredFragment as FormalParameterFragmentImpl;
       return declaredFragment.parameters;
     } else if (parametersParent is FunctionExpression) {
       var declaredFragment = parametersParent.declaredFragment!;
@@ -2080,21 +2110,17 @@ Expected parent: (${parent.runtimeType}) $parent
 class ResolvedNodeTextConfiguration {
   bool skipArgumentList = false;
 
-  /// If `true`, linking of [EnumConstantDeclaration] will be checked
-  // TODO(scheglov): Remove after https://github.com/dart-lang/sdk/issues/48380
-  bool withCheckingLinking = false;
-
   /// If `true`, elements of [InterfaceType] should be printed.
   bool withInterfaceTypeElements = false;
 
   /// If `true`, [Expression.correspondingParameter] should be printed.
   bool withParameterElements = true;
 
-  /// If `true`, `redirectedConstructor` properties of [ConstructorElement2]s
+  /// If `true`, `redirectedConstructor` properties of [ConstructorElement]s
   /// should be printer.
   bool withRedirectedConstructors = false;
 
-  /// If `true`, `superConstructor` properties of [ConstructorElement2]s
+  /// If `true`, `superConstructor` properties of [ConstructorElement]s
   /// should be printer.
   bool withSuperConstructors = false;
 

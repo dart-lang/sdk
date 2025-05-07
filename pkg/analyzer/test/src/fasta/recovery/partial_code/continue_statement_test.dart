@@ -13,34 +13,37 @@ main() {
 class ContinueStatementTest extends PartialCodeTest {
   buildAll() {
     buildTests(
-        'continue_statement',
-        [
-          TestDescriptor(
-              'keyword',
-              'continue',
-              [
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP
-              ],
-              "continue;",
-              expectedErrorsInValidCode: [
-                ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP
-              ],
-              failing: ['labeled', 'localFunctionNonVoid']),
-          TestDescriptor(
-              'label',
-              'continue a',
-              [
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP
-              ],
-              "continue a;",
-              expectedErrorsInValidCode: [
-                ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP
-              ]),
-        ],
-        PartialCodeTest.statementSuffixes,
-        head: 'f() { ',
-        tail: ' }');
+      'continue_statement',
+      [
+        TestDescriptor(
+          'keyword',
+          'continue',
+          [
+            ParserErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP,
+          ],
+          "continue;",
+          expectedDiagnosticsInValidCode: [
+            ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP,
+          ],
+          failing: ['labeled', 'localFunctionNonVoid'],
+        ),
+        TestDescriptor(
+          'label',
+          'continue a',
+          [
+            ParserErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP,
+          ],
+          "continue a;",
+          expectedDiagnosticsInValidCode: [
+            ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP,
+          ],
+        ),
+      ],
+      PartialCodeTest.statementSuffixes,
+      head: 'f() { ',
+      tail: ' }',
+    );
   }
 }

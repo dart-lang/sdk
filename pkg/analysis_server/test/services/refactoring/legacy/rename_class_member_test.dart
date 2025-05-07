@@ -549,6 +549,8 @@ class B extends A {
 
   Future<void>
   test_checkFinalConditions_shadowsSuper_MethodElement_otherLib() async {
+    useLineEndingsForPlatform = false;
+
     var libCode = r'''
 class A {
   newName() {} // marker
@@ -1864,6 +1866,8 @@ enum E with M {
 
   Future<void>
   test_checkFinalConditions_shadowsSuper_MethodElement_otherLib() async {
+    useLineEndingsForPlatform = false;
+
     var libCode = r'''
 mixin M {
   void newName() {}

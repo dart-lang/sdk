@@ -47,10 +47,11 @@ void main() {
       final alternativeName = r.readColumn("alternative_name") as String?;
       dynamic multiTypedValue = r.readColumn("multi_typed_column");
       expect(
-          true,
-          multiTypedValue == 42 ||
-              multiTypedValue == 'foo' ||
-              multiTypedValue == null);
+        true,
+        multiTypedValue == 42 ||
+            multiTypedValue == 'foo' ||
+            multiTypedValue == null,
+      );
       print("$id $name $alternativeName $multiTypedValue");
     }
     result = d.query("""
@@ -73,10 +74,11 @@ void main() {
       final alternativeName = r.readColumn("alternative_name") as String?;
       dynamic multiTypedValue = r.readColumn("multi_typed_column");
       expect(
-          true,
-          multiTypedValue == 42 ||
-              multiTypedValue == 'foo' ||
-              multiTypedValue == null);
+        true,
+        multiTypedValue == 42 ||
+            multiTypedValue == 'foo' ||
+            multiTypedValue == null,
+      );
       print("$id $name $alternativeName $multiTypedValue");
       if (id == 2) {
         result.close();

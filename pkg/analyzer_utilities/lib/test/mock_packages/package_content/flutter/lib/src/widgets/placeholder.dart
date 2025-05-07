@@ -8,13 +8,14 @@ import 'basic.dart';
 import 'framework.dart';
 
 class Placeholder extends StatelessWidget {
-  const Placeholder(
-      {super.key,
-      this.color = const Color(0xFF455A64), // Blue Grey 700
-      this.strokeWidth = 2.0,
-      this.fallbackWidth = 400.0,
-      this.fallbackHeight = 400.0,
-      this.child});
+  const Placeholder({
+    super.key,
+    this.color = const Color(0xFF455A64), // Blue Grey 700
+    this.strokeWidth = 2.0,
+    this.fallbackWidth = 400.0,
+    this.fallbackHeight = 400.0,
+    this.child,
+  });
 
   final Color color;
 

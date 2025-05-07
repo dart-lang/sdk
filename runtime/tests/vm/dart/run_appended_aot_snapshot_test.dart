@@ -8,7 +8,7 @@ import 'dart:io';
 import 'package:dart2native/dart2native.dart' hide platformDill, genSnapshot;
 import 'package:path/path.dart' as path;
 import 'package:expect/expect.dart';
-import 'package:native_assets_cli/code_assets_builder.dart' show OS;
+import 'package:code_assets/code_assets.dart' show OS;
 
 import 'snapshot_test_helper.dart';
 
@@ -31,15 +31,14 @@ Future<void> main(List<String> args) async {
     final String dillPath = path.join(tmp, 'test.dill');
     final String aotPath = path.join(tmp, 'test.aot');
     final String exePath = path.join(tmp, exeName);
-    final extraGenKernelOptions =
-        Platform.executableArguments
-            .where(
-              (arg) =>
-                  arg.startsWith('--enable-experiment=') ||
-                  arg == '--sound-null-safety' ||
-                  arg == '--no-sound-null-safety',
-            )
-            .toList();
+    final extraGenKernelOptions = Platform.executableArguments
+        .where(
+          (arg) =>
+              arg.startsWith('--enable-experiment=') ||
+              arg == '--sound-null-safety' ||
+              arg == '--no-sound-null-safety',
+        )
+        .toList();
 
     {
       final result = await generateAotKernel(

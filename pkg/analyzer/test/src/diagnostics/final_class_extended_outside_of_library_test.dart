@@ -27,13 +27,19 @@ final class Bar extends Foo {}
 final class Foo {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'foo.dart';
 final class Bar extends Foo {}
-''', [
-      error(
-          CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY, 43, 3),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY,
+          43,
+          3,
+        ),
+      ],
+    );
   }
 
   test_outside_viaLanguage219AndCore() async {
@@ -66,13 +72,19 @@ final class Foo {}
 typedef FooTypedef = Foo;
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'foo.dart';
 final class Bar extends FooTypedef {}
-''', [
-      error(
-          CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY, 43, 10),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY,
+          43,
+          10,
+        ),
+      ],
+    );
   }
 
   test_outside_viaTypedef_outside() async {
@@ -80,13 +92,19 @@ final class Bar extends FooTypedef {}
 final class Foo {}
 ''');
 
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'foo.dart';
 typedef FooTypedef = Foo;
 final class Bar extends FooTypedef {}
-''', [
-      error(
-          CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY, 69, 10),
-    ]);
+''',
+      [
+        error(
+          CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY,
+          69,
+          10,
+        ),
+      ],
+    );
   }
 }

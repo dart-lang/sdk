@@ -19,9 +19,12 @@ class FakeFunctionNSM {
 class C {
   get fakeFunctionCall => new FakeFunctionCall();
   get fakeFunctionNSM => new FakeFunctionNSM();
-  get closure => (x, y) => '2 $this $x $y';
-  get closureOpt => (x, y, [z, w]) => '3 $this $x $y $z $w';
-  get closureNamed => (x, y, {z, w}) => '4 $this $x $y $z $w';
+  get closure =>
+      (x, y) => '2 $this $x $y';
+  get closureOpt =>
+      (x, y, [z, w]) => '3 $this $x $y $z $w';
+  get closureNamed =>
+      (x, y, {z, w}) => '4 $this $x $y $z $w';
   tearOff(x, y) => '22 $this $x $y';
   tearOffOpt(x, y, [z, w]) => '33 $this $x $y $z $w';
   tearOffNamed(x, y, {z, w}) => '44 $this $x $y $z $w';
@@ -49,7 +52,9 @@ main() {
 
   im = reflect(c.closureNamed);
   Expect.equals(
-      '4 C 14 15 null 16', im.invoke(#call, [14, 15], {#w: 16}).reflectee);
+    '4 C 14 15 null 16',
+    im.invoke(#call, [14, 15], {#w: 16}).reflectee,
+  );
 
   im = reflect(c.tearOff);
   Expect.equals('22 C 9 10', im.invoke(#call, [9, 10]).reflectee);
@@ -59,5 +64,7 @@ main() {
 
   im = reflect(c.tearOffNamed);
   Expect.equals(
-      '44 C 14 15 null 16', im.invoke(#call, [14, 15], {#w: 16}).reflectee);
+    '44 C 14 15 null 16',
+    im.invoke(#call, [14, 15], {#w: 16}).reflectee,
+  );
 }

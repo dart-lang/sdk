@@ -43,7 +43,9 @@ abstract class Workspace {
   /// Create the source factory that should be used to resolve Uris to
   /// [Source]s. The [sdk] may be `null`. The [summaryData] can also be `null`.
   SourceFactory createSourceFactory(
-      DartSdk? sdk, SummaryDataStore? summaryData);
+    DartSdk? sdk,
+    SummaryDataStore? summaryData,
+  );
 
   /// Find the [WorkspacePackage] where the library at [filePath] is defined.
   ///

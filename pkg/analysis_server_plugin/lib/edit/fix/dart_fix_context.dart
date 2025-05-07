@@ -5,8 +5,8 @@
 import 'package:analysis_server_plugin/edit/fix/fix_context.dart';
 import 'package:analysis_server_plugin/src/correction/change_workspace.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/element/element2.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_state_filter.dart';
@@ -45,11 +45,11 @@ class DartFixContext implements FixContext {
   /// It's been observed that the same request is fired multiple times for at
   /// least some getFixes requsts. Caching the response can speed up such
   /// requests.
-  final Map<String, Future<Map<LibraryElement2, Element2>>>
+  final Map<String, Future<Map<LibraryElement, Element>>>
       _cachedTopLevelDeclarations = {};
 
   @override
-  final AnalysisError error;
+  final Diagnostic error;
 
   DartFixContext({
     required this.instrumentationService,
@@ -65,7 +65,7 @@ class DartFixContext implements FixContext {
   /// this library, and has the requested base name.
   ///
   /// For getters and setters the corresponding top-level variable is returned.
-  Future<Map<LibraryElement2, Element2>> getTopLevelDeclarations(String name) {
+  Future<Map<LibraryElement, Element>> getTopLevelDeclarations(String name) {
     var cachedResult = _cachedTopLevelDeclarations[name];
     if (cachedResult != null) return cachedResult;
     var result = TopLevelDeclarations(unitResult).withName(name);
@@ -75,7 +75,7 @@ class DartFixContext implements FixContext {
 
   /// Returns libraries with extensions that declare non-static public
   /// extension members with the [memberName].
-  Stream<LibraryElement2> librariesWithExtensions(Name memberName) async* {
+  Stream<LibraryElement> librariesWithExtensions(Name memberName) async* {
     var analysisContext = unitResult.session.analysisContext;
     if (analysisContext is! DriverBasedAnalysisContext) {
       return;
