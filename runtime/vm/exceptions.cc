@@ -572,12 +572,11 @@ static void JumpToExceptionHandler(Thread* thread,
 }
 
 NO_SANITIZE_SAFE_STACK  // This function manipulates the safestack pointer.
-    void
-    Exceptions::JumpToFrame(Thread* thread,
-                            uword program_counter,
-                            uword stack_pointer,
-                            uword frame_pointer,
-                            bool clear_deopt_at_target) {
+    void Exceptions::JumpToFrame(Thread* thread,
+                                 uword program_counter,
+                                 uword stack_pointer,
+                                 uword frame_pointer,
+                                 bool clear_deopt_at_target) {
   ASSERT(thread->execution_state() == Thread::kThreadInVM);
 
   const uword fp_for_clearing =

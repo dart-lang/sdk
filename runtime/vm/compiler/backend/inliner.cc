@@ -1959,9 +1959,9 @@ PolymorphicInliner::PolymorphicInliner(CallSiteInliner* owner,
       num_variants_(call->NumberOfChecks()),
       variants_(call->targets_),
       inlined_variants_(zone()),
-      non_inlined_variants_(new(zone()) CallTargets(zone())),
+      non_inlined_variants_(new (zone()) CallTargets(zone())),
       inlined_entries_(num_variants_),
-      exit_collector_(new(Z) InlineExitCollector(owner->caller_graph(), call)),
+      exit_collector_(new (Z) InlineExitCollector(owner->caller_graph(), call)),
       caller_function_(caller_function) {}
 
 IsolateGroup* PolymorphicInliner::isolate_group() const {

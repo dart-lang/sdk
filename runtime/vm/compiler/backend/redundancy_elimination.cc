@@ -774,7 +774,7 @@ class AliasedSet : public ZoneAllocated {
         typed_data_access_sizes_(),
         representatives_(),
         killed_(),
-        aliased_by_effects_(new(zone) BitVector(zone, places->length())) {
+        aliased_by_effects_(new (zone) BitVector(zone, places->length())) {
     InsertAlias(Place::CreateAnyInstanceAnyIndexAlias(
         zone_, kAnyInstanceAnyIndexAlias));
     for (intptr_t i = 0; i < places_.length(); i++) {

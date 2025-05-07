@@ -5918,7 +5918,7 @@ class DropTempsInstr : public Definition {
 class MakeTempInstr : public TemplateDefinition<0, NoThrow, Pure> {
  public:
   explicit MakeTempInstr(Zone* zone)
-      : null_(new(zone) ConstantInstr(Object::ZoneHandle())) {
+      : null_(new (zone) ConstantInstr(Object::ZoneHandle())) {
     // Note: We put ConstantInstr inside MakeTemp to simplify code generation:
     // having ConstantInstr allows us to use Location::Constant(null_) as an
     // output location for this instruction.
