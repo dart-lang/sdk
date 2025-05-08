@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/extensions/code_action.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
@@ -13,6 +14,7 @@ import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../utils/lsp_protocol_extensions.dart';
 import '../utils/test_code_extensions.dart';
 import 'code_actions_abstract.dart';
 
@@ -73,6 +75,79 @@ Future? f;
       kind: CodeActionKind('refactor.add.showCombinator'),
       title: "Add explicit 'show' combinator",
     );
+  }
+
+  Future<void> test_codeActionLiterals_supported() async {
+    setSnippetTextEditSupport();
+    setSupportedCodeActionKinds([CodeActionKind.Refactor]);
+
+    var code = TestCode.parse('''
+import 'package:flutter/widgets.dart';
+Widget build() {
+  return Te^xt('');
+}
+''');
+
+    var action = await expectCodeAction(
+      code,
+      kind: CodeActionKind('refactor.flutter.wrap.center'),
+      title: 'Wrap with Center',
+    );
+
+    // Ensure we are a CodeAction literal.
+    expect(action.isCodeActionLiteral, true);
+
+    await verifyCodeActionEdits(action, r'''
+>>>>>>>>>> lib/main.dart
+import 'package:flutter/widgets.dart';
+Widget build() {
+  return Center($0child: Text(''));
+}
+''');
+  }
+
+  Future<void> test_codeActionLiterals_unsupported() async {
+    setSnippetTextEditSupport();
+    setSupportedCodeActionKinds(null); // no codeActionLiteralSupport
+
+    var code = TestCode.parse('''
+import 'package:flutter/widgets.dart';
+Widget build() {
+  return Te[!!]xt('');
+}
+''');
+
+    var action = await expectCodeAction(
+      openTargetFile: true, // Open document to verify we get a version back.
+      code,
+      title: 'Wrap with Center',
+      command: Commands.applyCodeAction,
+      commandArgs: [
+        {
+          'textDocument': {'uri': mainFileUri.toString(), 'version': 1},
+          'range': code.range.range.toJson(),
+          'kind': 'refactor.flutter.wrap.center',
+          'loggedAction': 'dart.assist.flutter.wrap.center',
+        },
+      ],
+    );
+
+    // We don't support literals, so we expect the raw command instead.
+    expect(action.isCommand, true);
+    var command = action.asCommand;
+
+    // Verify that executing the command produces the correct edits (which will
+    // come back via `workspace/applyEdit`).
+    await verifyCommandEdits(command, r'''
+>>>>>>>>>> lib/main.dart
+import 'package:flutter/widgets.dart';
+Widget build() {
+  return Center($0child: Text(''));
+}
+''');
+
+    expectCommandLogged(Commands.applyCodeAction);
+    expectCommandLogged('dart.assist.flutter.wrap.center');
   }
 
   Future<void> test_errorMessage_invalidIntegers() async {

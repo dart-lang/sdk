@@ -31,20 +31,23 @@ class CodeActionHandler
     CancellationToken token,
   ) async {
     var performance = message.performance;
-    var capabilities = message.clientCapabilities;
-    if (capabilities == null) {
+    var editorCapabilities = server.editorClientCapabilities;
+    var callerCapabilities = message.clientCapabilities;
+    if (editorCapabilities == null || callerCapabilities == null) {
       // This should not happen unless a client misbehaves.
       return serverNotInitializedError;
     }
 
-    var supportsLiterals = capabilities.literalCodeActions;
-    var supportedKinds = supportsLiterals ? capabilities.codeActionKinds : null;
+    var supportsLiterals = callerCapabilities.literalCodeActions;
+    var supportedKinds =
+        supportsLiterals ? callerCapabilities.codeActionKinds : null;
 
     var computer = CodeActionComputer(
       server,
       params.textDocument,
       params.range,
-      capabilities: capabilities,
+      editorCapabilities: editorCapabilities,
+      callerCapabilities: callerCapabilities,
       only: params.context.only,
       supportedKinds: supportedKinds,
       triggerKind: params.context.triggerKind,

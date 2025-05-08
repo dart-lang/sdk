@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:analysis_server/src/lsp/handlers/commands/apply_code_action.dart';
 /// @docImport 'package:language_server_protocol/protocol_special.dart';
 /// @docImport 'package:analysis_server/src/lsp/handlers/handler_code_actions.dart';
 library;
@@ -28,8 +29,14 @@ import 'package:collection/collection.dart' show groupBy;
 import 'package:path/src/context.dart';
 
 /// A helper class for computing [CodeAction]s that is used by both the
-/// [CodeActionHandler] and an upcoming command handler.
-class CodeActionComputer with HandlerHelperMixin<LspAnalysisServer> {
+/// [CodeActionHandler] and [ApplyCodeActionCommandHandler].
+class CodeActionComputer
+    with
+        HandlerHelperMixin<
+          // TODO(dantup): Make this (and the code action producers) work with
+          //  either server.
+          LspAnalysisServer
+        > {
   /// The text document to compute code actions for.
   final TextDocumentIdentifier textDocument;
 
@@ -55,15 +62,20 @@ class CodeActionComputer with HandlerHelperMixin<LspAnalysisServer> {
   /// Whether [CodeAction]s can be [CodeActionLiteral]s or not.
   ///
   /// This is usually based on the callers capabilities, however
-  /// for [ApplyCodeActionCommandHandler] it will be based on the editors
+  /// for [ApplyCodeActionCommandHandler] it will be based on the editor's
   /// capabilities since it will compute the edits and send them to the editor
   /// directly.
   final bool allowCodeActionLiterals;
 
   final OperationPerformanceImpl performance;
 
-  /// The capabilities of the client.
-  final LspClientCapabilities capabilities;
+  /// The capabilities of the caller making the request for [CodeAction]s.
+  final LspClientCapabilities callerCapabilities;
+
+  /// The capabilities of the editor (which may or may not be the same as
+  /// [callerCapabilities] depending on whether the request came from the editor
+  /// or another client - such as over DTD).
+  final LspClientCapabilities editorCapabilities;
 
   @override
   final LspAnalysisServer server;
@@ -79,7 +91,8 @@ class CodeActionComputer with HandlerHelperMixin<LspAnalysisServer> {
     this.server,
     this.textDocument,
     this.range, {
-    required this.capabilities,
+    required this.editorCapabilities,
+    required this.callerCapabilities,
     required this.only,
     required this.supportedKinds,
     required this.triggerKind,
@@ -226,7 +239,10 @@ class CodeActionComputer with HandlerHelperMixin<LspAnalysisServer> {
           libraryResult,
           unit,
           shouldIncludeKind: shouldIncludeKind,
-          capabilities: capabilities,
+          editorCapabilities: editorCapabilities,
+          callerCapabilities: callerCapabilities,
+          allowCodeActionLiterals: allowCodeActionLiterals,
+          allowCommands: allowCommands,
           triggerKind: triggerKind,
           analysisOptions: analysisOptions,
           willBeDeduplicated: true,
@@ -240,7 +256,10 @@ class CodeActionComputer with HandlerHelperMixin<LspAnalysisServer> {
           offset: offset,
           length: length,
           shouldIncludeKind: shouldIncludeKind,
-          capabilities: capabilities,
+          editorCapabilities: editorCapabilities,
+          callerCapabilities: callerCapabilities,
+          allowCodeActionLiterals: allowCodeActionLiterals,
+          allowCommands: allowCommands,
           analysisOptions: analysisOptions,
         ),
       if (isAnalysisOptions)
@@ -252,7 +271,10 @@ class CodeActionComputer with HandlerHelperMixin<LspAnalysisServer> {
           offset: offset,
           length: length,
           shouldIncludeKind: shouldIncludeKind,
-          capabilities: capabilities,
+          editorCapabilities: editorCapabilities,
+          callerCapabilities: callerCapabilities,
+          allowCodeActionLiterals: allowCodeActionLiterals,
+          allowCommands: allowCommands,
           analysisOptions: analysisOptions,
         ),
       PluginCodeActionsProducer(
@@ -263,7 +285,10 @@ class CodeActionComputer with HandlerHelperMixin<LspAnalysisServer> {
         offset: offset,
         length: length,
         shouldIncludeKind: shouldIncludeKind,
-        capabilities: capabilities,
+        editorCapabilities: editorCapabilities,
+        callerCapabilities: callerCapabilities,
+        allowCodeActionLiterals: allowCodeActionLiterals,
+        allowCommands: allowCommands,
         analysisOptions: analysisOptions,
       ),
     ];

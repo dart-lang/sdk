@@ -51,7 +51,10 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
     required super.offset,
     required super.length,
     required super.shouldIncludeKind,
-    required super.capabilities,
+    required super.editorCapabilities,
+    required super.callerCapabilities,
+    required super.allowCodeActionLiterals,
+    required super.allowCommands,
     required super.analysisOptions,
     required this.triggerKind,
     required this.willBeDeduplicated,
@@ -125,11 +128,6 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
   Future<List<CodeActionWithPriority>> getAssistActions({
     OperationPerformanceImpl? performance,
   }) async {
-    // These assists are only provided as literal CodeActions.
-    if (!supportsLiterals) {
-      return const [];
-    }
-
     try {
       var context = DartAssistContext(
         server.instrumentationService,
@@ -171,15 +169,18 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
             if (!shouldIncludeKind(kind)) {
               return null;
             }
-            var action = CodeAction.t1(
-              createAssistCodeActionLiteral(
-                assist.change,
-                kind,
-                assist.change.id,
-                unitResult.path,
-                unitResult.lineInfo,
-              ),
+            var action = createCodeActionLiteralOrApplyCommand(
+              unitResult.path,
+              docIdentifier,
+              range,
+              unitResult.lineInfo,
+              change,
+              kind,
+              change.id,
             );
+            if (action == null) {
+              return null;
+            }
             return (action: action, priority: assist.kind.priority);
           })
           .nonNulls
@@ -197,7 +198,8 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
     OperationPerformance? performance,
   ) async {
     // These fixes are only provided as literal CodeActions.
-    if (!supportsLiterals) {
+    if (!allowCodeActionLiterals) {
+      // TODO(dantup): Support this (via createCodeActionLiteralOrApplyCommand)
       return [];
     }
 
@@ -257,8 +259,8 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
             server.uriConverter,
             unitResult,
             error,
-            supportedTags: supportedDiagnosticTags,
-            clientSupportsCodeDescription: supportsCodeDescription,
+            supportedTags: callerSupportedDiagnosticTags,
+            clientSupportsCodeDescription: callerSupportsCodeDescription,
           );
           codeActions.addAll(
             fixes.map((fix) {
@@ -302,7 +304,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
   ) async {
     // If the client does not support workspace/applyEdit, we won't be able to
     // run any of these.
-    if (!supportsApplyEdit) {
+    if (!editorSupportsApplyEdit) {
       return const [];
     }
 
@@ -316,7 +318,9 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
         startSessions: await server.currentSessions,
         resolvedLibraryResult: libraryResult,
         resolvedUnitResult: unitResult,
-        clientCapabilities: capabilities,
+        // TODO(dantup): Determine if we need to provide both editor+caller
+        //  capabilities here.
+        clientCapabilities: editorCapabilities,
         selectionOffset: offset,
         selectionLength: length,
         includeExperimental:
@@ -510,7 +514,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
   Future<List<CodeAction>> getSourceActions() async {
     // If the client does not support workspace/applyEdit, we won't be able to
     // run any of these.
-    if (!supportsApplyEdit) {
+    if (!editorSupportsApplyEdit) {
       return const [];
     }
 
@@ -539,7 +543,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
     CodeActionKind kind,
     Command command,
   ) {
-    return supportsLiterals
+    return allowCodeActionLiterals
         ? CodeAction.t1(
           CodeActionLiteral(title: command.title, kind: kind, command: command),
         )
