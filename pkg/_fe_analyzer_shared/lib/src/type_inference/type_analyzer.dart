@@ -284,6 +284,10 @@ mixin TypeAnalyzer<
   @override
   FlowAnalysis<Node, Statement, Expression, Variable, SharedTypeView> get flow;
 
+  /// Queries whether the [_dotShorthands] stack is empty, meaning that we have
+  /// no cached context types.
+  bool get isDotShorthandContextEmpty => _dotShorthands.isEmpty;
+
   @override
   TypeAnalyzerOperations<Variable, TypeDeclarationType, TypeDeclaration>
       get operations;
@@ -2335,10 +2339,6 @@ mixin TypeAnalyzer<
 
   /// Queries whether [node] is a dot shorthand.
   bool isDotShorthand(Expression node);
-
-  /// Queries whether the [_dotShorthands] stack is empty, meaning that we have
-  /// no cached context types.
-  bool get isDotShorthandContextEmpty => _dotShorthands.isEmpty;
 
   /// Queries whether the switch statement or expression represented by [node]
   /// was exhaustive.  [expressionType] is the static type of the scrutinee.
