@@ -623,9 +623,9 @@ abstract class Node {
     final source = _sourceInformation;
     return source is _SourceInformationAndAnnotations
         ? _SourceInformationAndAnnotations(
-          newSourceInformation,
-          source._annotations,
-        )
+            newSourceInformation,
+            source._annotations,
+          )
         : newSourceInformation;
   }
 
