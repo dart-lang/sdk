@@ -20,12 +20,14 @@ import 'integration_tests.dart';
 /// {
 ///   "type": "add"
 ///   "content": String
+///   "version": optional int
 /// }
 final Matcher isAddContentOverlay = LazyMatcher(
-  () => MatchesJsonObject('AddContentOverlay', {
-    'type': equals('add'),
-    'content': isString,
-  }),
+  () => MatchesJsonObject(
+    'AddContentOverlay',
+    {'type': equals('add'), 'content': isString},
+    optionalFields: {'version': isInt},
+  ),
 );
 
 /// AnalysisError
@@ -206,12 +208,14 @@ final Matcher isBulkFixDetail = LazyMatcher(
 /// {
 ///   "type": "change"
 ///   "edits": List<SourceEdit>
+///   "version": optional int
 /// }
 final Matcher isChangeContentOverlay = LazyMatcher(
-  () => MatchesJsonObject('ChangeContentOverlay', {
-    'type': equals('change'),
-    'edits': isListOf(isSourceEdit),
-  }),
+  () => MatchesJsonObject(
+    'ChangeContentOverlay',
+    {'type': equals('change'), 'edits': isListOf(isSourceEdit)},
+    optionalFields: {'version': isInt},
+  ),
 );
 
 /// ClosingLabel

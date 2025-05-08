@@ -590,13 +590,6 @@ class LegacyAnalysisServer extends AnalysisServer {
     return driver?.getCachedResolvedUnit(path);
   }
 
-  /// Gets the current version number of a document.
-  ///
-  /// For the legacy server we do not track version numbers, these are
-  /// LSP-specific.
-  @override
-  int? getDocumentVersion(String path) => null;
-
   @override
   FutureOr<void> handleAnalysisStatusChange(analysis.AnalysisStatus status) {
     super.handleAnalysisStatusChange(status);
@@ -1015,8 +1008,10 @@ class LegacyAnalysisServer extends AnalysisServer {
 
       // Prepare the new contents.
       String? newContents;
+      int? newVersion;
       if (change is AddContentOverlay) {
         newContents = change.content;
+        newVersion = change.version;
       } else if (change is ChangeContentOverlay) {
         if (oldContents == null) {
           // The client may only send a ChangeContentOverlay if there is
@@ -1033,6 +1028,7 @@ class LegacyAnalysisServer extends AnalysisServer {
         }
         try {
           newContents = SourceEdit.applySequence(oldContents, change.edits);
+          newVersion = change.version;
         } on RangeError {
           throw RequestFailure(
             Response(
@@ -1046,6 +1042,7 @@ class LegacyAnalysisServer extends AnalysisServer {
         }
       } else if (change is RemoveContentOverlay) {
         newContents = null;
+        newVersion = null;
       } else {
         // Protocol parsing should have ensured that we never get here.
         throw AnalysisException('Illegal change type');
@@ -1059,6 +1056,11 @@ class LegacyAnalysisServer extends AnalysisServer {
         );
       } else {
         resourceProvider.removeOverlay(file);
+      }
+      if (newVersion != null) {
+        documentVersions[file] = newVersion;
+      } else {
+        documentVersions.remove(file);
       }
 
       for (var driver in driverMap.values) {

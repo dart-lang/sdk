@@ -7,7 +7,7 @@
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  <version>1.39.0</version>
+  <version>1.40.0</version>
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -142,6 +142,10 @@
   ignoring the item or treating it with some default/fallback handling.
 </p>
 <h3>Changelog</h3>
+<h4>1.40.0</h4>
+<ul>
+  <li>Added a an optional <tt>version</tt> field to <tt>AddContentOverlay</tt> and <tt>ChangeContentOverlay</tt> to allow clients/servers to have a way to identify specific versions of documents.</li>
+</ul>
 <h4>1.39.0</h4>
 <ul>
   <li>Added a new <tt>lspCapabilities</tt> field to the <tt>setClientCapabilities</tt> parameters to allow clients to provide their LSP capabilities. These capabilities can indicate that a client can support <tt>lsp.handle</tt> requests in the server-to-client direction.</li>
