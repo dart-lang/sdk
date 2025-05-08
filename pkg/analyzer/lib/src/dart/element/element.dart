@@ -41,6 +41,7 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart'
     show Namespace, NamespaceBuilder;
 import 'package:analyzer/src/error/inference_error.dart';
+import 'package:analyzer/src/fine/annotations.dart';
 import 'package:analyzer/src/fine/library_manifest.dart';
 import 'package:analyzer/src/fine/requirements.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
@@ -135,14 +136,15 @@ class BindPatternVariableFragmentImpl extends PatternVariableFragmentImpl
       super.previousFragment as BindPatternVariableFragmentImpl?;
 }
 
+@elementClass
 class ClassElementImpl2 extends InterfaceElementImpl2 implements ClassElement {
   @override
+  @trackedIncludedIntoId
   final Reference reference;
 
-  @override
-  final ClassFragmentImpl firstFragment;
+  final ClassFragmentImpl _firstFragment;
 
-  ClassElementImpl2(this.reference, this.firstFragment) {
+  ClassElementImpl2(this.reference, this._firstFragment) {
     reference.element2 = this;
     firstFragment.augmentedInternal = this;
   }
@@ -153,7 +155,10 @@ class ClassElementImpl2 extends InterfaceElementImpl2 implements ClassElement {
   ///
   /// If the class is sealed, and all its subtypes are either final or sealed,
   /// then these subtypes are all subtypes that are possible.
+  @trackedDirectlyExpensive
   List<InterfaceTypeImpl>? get allSubtypes {
+    globalResultRequirements?.record_classElement_allSubtypes(element: this);
+
     if (isFinal) {
       var result = <InterfaceTypeImpl>[];
       for (var element in library2.children2) {
@@ -199,7 +204,16 @@ class ClassElementImpl2 extends InterfaceElementImpl2 implements ClassElement {
   }
 
   @override
+  @trackedDirectlyDisable
+  ClassFragmentImpl get firstFragment {
+    globalResultRequirements?.record_disable(this, 'firstFragment');
+    return _firstFragment;
+  }
+
+  @override
+  @trackedDirectlyDisable
   List<ClassFragmentImpl> get fragments {
+    globalResultRequirements?.record_disable(this, 'fragments');
     return [
       for (
         ClassFragmentImpl? fragment = firstFragment;
@@ -211,8 +225,12 @@ class ClassElementImpl2 extends InterfaceElementImpl2 implements ClassElement {
   }
 
   @override
-  @override
+  @trackedDirectlyExpensive
   bool get hasNonFinalField {
+    globalResultRequirements?.record_classElement_hasNonFinalField(
+      element: this,
+    );
+
     var classesToVisit = <InterfaceElementImpl2>[];
     var visitedClasses = <InterfaceElementImpl2>{};
     classesToVisit.add(this);
@@ -244,25 +262,34 @@ class ClassElementImpl2 extends InterfaceElementImpl2 implements ClassElement {
   }
 
   @override
+  @trackedIncludedIntoId
   bool get isAbstract => firstFragment.isAbstract;
 
   @override
+  @trackedIncludedIntoId
   bool get isBase => firstFragment.isBase;
 
   @override
+  @trackedIncludedIntoId
   bool get isConstructable => firstFragment.isConstructable;
 
   @override
+  @trackedIncludedIntoId
   bool get isDartCoreEnum => firstFragment.isDartCoreEnum;
 
   @override
+  @trackedIncludedIntoId
   bool get isDartCoreObject => firstFragment.isDartCoreObject;
 
+  @trackedIncludedIntoId
   bool get isDartCoreRecord {
     return name3 == 'Record' && library2.isDartCore;
   }
 
+  @trackedDirectlyExpensive
   bool get isEnumLike {
+    globalResultRequirements?.record_classElement_isEnumLike(element: this);
+
     // Must be a concrete class.
     if (isAbstract) {
       return false;
@@ -297,32 +324,42 @@ class ClassElementImpl2 extends InterfaceElementImpl2 implements ClassElement {
   }
 
   @override
+  @trackedIncludedIntoId
   bool get isExhaustive => firstFragment.isExhaustive;
 
   @override
+  @trackedIncludedIntoId
   bool get isFinal => firstFragment.isFinal;
 
   @override
+  @trackedIncludedIntoId
   bool get isInterface => firstFragment.isInterface;
 
   @override
+  @trackedIncludedIntoId
   bool get isMixinApplication => firstFragment.isMixinApplication;
 
   @override
+  @trackedIncludedIntoId
   bool get isMixinClass => firstFragment.isMixinClass;
 
   @override
+  @trackedIncludedIntoId
   bool get isSealed => firstFragment.isSealed;
 
   @override
+  @trackedIncludedIntoId
   bool get isValidMixin => firstFragment.isValidMixin;
 
   @override
+  @trackedDirectlyDisable
   T? accept2<T>(ElementVisitor2<T> visitor) {
+    globalResultRequirements?.record_disable(this, 'accept2');
     return visitor.visitClassElement(this);
   }
 
   @override
+  @trackedIndirectly
   bool isExtendableIn2(LibraryElement library) {
     if (library == library2) {
       return true;
@@ -331,6 +368,7 @@ class ClassElementImpl2 extends InterfaceElementImpl2 implements ClassElement {
   }
 
   @override
+  @trackedIndirectly
   bool isImplementableIn2(LibraryElement library) {
     if (library == library2) {
       return true;
@@ -339,6 +377,7 @@ class ClassElementImpl2 extends InterfaceElementImpl2 implements ClassElement {
   }
 
   @override
+  @trackedIndirectly
   bool isMixableIn2(LibraryElement library) {
     if (library == library2) {
       return true;

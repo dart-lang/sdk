@@ -511,6 +511,24 @@ class RequirementsManifest {
     }
   }
 
+  void record_classElement_allSubtypes({required ClassElementImpl2 element}) {
+    // TODO(scheglov): implement.
+  }
+
+  void record_classElement_hasNonFinalField({
+    required ClassElementImpl2 element,
+  }) {
+    // TODO(scheglov): implement.
+  }
+
+  void record_classElement_isEnumLike({required ClassElementImpl2 element}) {
+    // TODO(scheglov): implement.
+  }
+
+  void record_disable(Object target, String method) {
+    // TODO(scheglov): implement.
+  }
+
   void record_instanceElement_getGetter({
     required InstanceElementImpl2 element,
     required String name,
