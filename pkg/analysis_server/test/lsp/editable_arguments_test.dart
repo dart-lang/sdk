@@ -14,8 +14,8 @@ void main() {
 }
 
 @reflectiveTest
-class EditableArgumentsTest extends SharedAbstractLspAnalysisServerTest
-    with SharedEditableArgumentsTests {
+class EditableArgumentsTest extends AbstractLspAnalysisServerTest
+    with LspSharedTestMixin, SharedEditableArgumentsTests {
   @override
   void setUp() {
     super.setUp();

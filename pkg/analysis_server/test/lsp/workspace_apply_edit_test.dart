@@ -14,8 +14,9 @@ void main() {
 }
 
 @reflectiveTest
-class WorkspaceApplyEditTest extends SharedAbstractLspAnalysisServerTest
+class WorkspaceApplyEditTest extends AbstractLspAnalysisServerTest
     with
+        LspSharedTestMixin,
         // Tests are defined in SharedWorkspaceApplyEditTests because they
         // are shared and run for both LSP and Legacy servers.
         SharedWorkspaceApplyEditTests {}

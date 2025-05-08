@@ -13,8 +13,9 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../tool/lsp_spec/matchers.dart';
 import '../utils/test_code_extensions.dart';
-import 'code_actions_abstract.dart';
+import 'code_actions_mixin.dart';
 import 'request_helpers_mixin.dart';
+import 'server_abstract.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -222,7 +223,7 @@ void f() {
     try {
       // Send an edit request immediately after the refactor request.
       var req1 = executeCommand(codeAction.command!);
-      var req2 = replaceFile(100, mainFileUri, 'new test content');
+      var req2 = replaceFile(100, mainFileUri, '// new test content');
       completer.complete();
 
       // Expect the first to fail because of the modified content.
@@ -264,22 +265,22 @@ void f() {
 
   Future<void> test_generatesNames() async {
     const content = '''
-Object F() {
+Object? F() {
   return Container([!Text('Test!')!]);
 }
 
-Object Container(Object text) => null;
-Object Text(Object text) => null;
+Object? Container(Object? text) => null;
+Object? Text(Object? text) => null;
 ''';
     const expectedContent = '''
-Object F() {
+Object? F() {
   return Container(text());
 }
 
-Object text() => Text('Test!');
+Object? text() => Text('Test!');
 
-Object Container(Object text) => null;
-Object Text(Object text) => null;
+Object? Container(Object? text) => null;
+Object? Text(Object? text) => null;
 ''';
 
     await verifyCodeActionLiteralEdits(
@@ -308,7 +309,7 @@ void f() {}
     const content = '''
 import 'dart:io' as io;
 
-i^o.File a;
+i^o.File? a;
 ''';
 
     await expectNoAction(
@@ -977,10 +978,14 @@ void foo2() {
   }
 }
 
-abstract class RefactorCodeActionsTest extends AbstractCodeActionsTest {
+abstract class RefactorCodeActionsTest extends AbstractLspAnalysisServerTest
+    with CodeActionsTestMixin {
   @override
   void setUp() {
     super.setUp();
+
+    setApplyEditSupport();
+    setDocumentChangesSupport();
     setSupportedCodeActionKinds([CodeActionKind.Refactor]);
   }
 }

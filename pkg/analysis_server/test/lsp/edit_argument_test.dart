@@ -215,10 +215,11 @@ class ComputeStringValueTest {
 }
 
 @reflectiveTest
-class EditArgumentTest extends SharedAbstractLspAnalysisServerTest
+class EditArgumentTest extends AbstractLspAnalysisServerTest
+    with
+        LspSharedTestMixin,
         // Tests are defined in SharedEditArgumentTests because they
         // are shared and run for both LSP and Legacy servers.
-        with
         SharedEditArgumentTests {
   @override
   Future<void> setUp() async {

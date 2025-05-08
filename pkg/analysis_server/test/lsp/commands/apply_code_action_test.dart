@@ -4,13 +4,15 @@
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../tool/lsp_spec/matchers.dart';
 import '../../utils/test_code_extensions.dart';
-import '../code_actions_abstract.dart';
+import '../code_actions_mixin.dart';
+import '../server_abstract.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -19,7 +21,18 @@ void main() {
 }
 
 @reflectiveTest
-class ApplyCodeActionTest extends AbstractCodeActionsTest {
+class ApplyCodeActionTest extends AbstractLspAnalysisServerTest
+    with CodeActionsTestMixin {
+  @override
+  void setUp() {
+    super.setUp();
+
+    setApplyEditSupport();
+    setDocumentChangesSupport();
+
+    registerBuiltInAssistGenerators();
+  }
+
   Future<void> test_bad_actionNotFoundAtLocation() async {
     var code = TestCode.parse('''
 var a = [!!]1;
