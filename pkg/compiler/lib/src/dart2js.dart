@@ -486,8 +486,6 @@ Future<api.CompilationResult> compile(
     _OneOption(Flags.stopAfterProgramSplit, passThrough),
     _OneOption(Flags.disableTypeInference, passThrough),
     _OneOption(Flags.useTrivialAbstractValueDomain, passThrough),
-    _OneOption(Flags.experimentalWrapped, passThrough),
-    _OneOption(Flags.experimentalPowersets, passThrough),
     _OneOption(Flags.disableRtiOptimization, passThrough),
     _OneOption(Flags.terse, passThrough),
     _OneOption('--deferred-map=.+', passThrough),
