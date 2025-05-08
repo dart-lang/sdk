@@ -4,7 +4,7 @@ publish_to: none
 
 environment:
   # Use min prerelease bound to get the latest formatter changes.
-  sdk: '^3.7.0'
+  sdk: '^3.8.0'
 
 resolution: workspace
 

@@ -129,16 +129,15 @@ class JsUtilOptimizer extends Transformer {
            '_functionToJS$i',
          ),
        ),
-       _functionToJSCaptureThisTargets =
-           isDart2JS
-               ? List<Procedure>.generate(
-                 5,
-                 (i) => _coreTypes.index.getTopLevelProcedure(
-                   'dart:js_util',
-                   '_functionToJSCaptureThis$i',
-                 ),
-               )
-               : null,
+       _functionToJSCaptureThisTargets = isDart2JS
+           ? List<Procedure>.generate(
+               5,
+               (i) => _coreTypes.index.getTopLevelProcedure(
+                 'dart:js_util',
+                 '_functionToJSCaptureThis$i',
+               ),
+             )
+           : null,
        _functionToJSNTarget = _coreTypes.index.getTopLevelProcedure(
          'dart:js_util',
          '_functionToJSN',
@@ -255,11 +254,10 @@ class JsUtilOptimizer extends Transformer {
           )..fileOffset = node.fileOffset;
 
           if (!shouldTrustType) {
-            expression =
-                AsExpression(expression, node.getterType)
-                  ..isTypeError = true
-                  ..isForDynamic = true
-                  ..fileOffset = node.fileOffset;
+            expression = AsExpression(expression, node.getterType)
+              ..isTypeError = true
+              ..isForDynamic = true
+              ..fileOffset = node.fileOffset;
           }
 
           final statement = ReturnStatement(expression)
@@ -397,10 +395,9 @@ class JsUtilOptimizer extends Transformer {
       // dotted prefix.
       var className = getJSName(enclosingClass);
       if (className.isEmpty) {
-        className =
-            enclosingClass is Class
-                ? enclosingClass.name
-                : (enclosingClass as ExtensionTypeDeclaration).name;
+        className = enclosingClass is Class
+            ? enclosingClass.name
+            : (enclosingClass as ExtensionTypeDeclaration).name;
       }
       dottedPrefix = concatenateJSNames(dottedPrefix, className);
     }
@@ -453,8 +450,9 @@ class JsUtilOptimizer extends Transformer {
     bool shouldTrustType, [
     Expression? maybeReceiver,
   ]) {
-    final target =
-        shouldTrustType ? _getPropertyTrustTypeTarget : _getPropertyTarget;
+    final target = shouldTrustType
+        ? _getPropertyTrustTypeTarget
+        : _getPropertyTarget;
     final isInstanceInteropMember = _extensionIndex.isInstanceInteropMember(
       node,
     );
@@ -465,10 +463,9 @@ class JsUtilOptimizer extends Transformer {
       final positionalArgs = arguments.positional;
       assert(positionalArgs.length == (isInstanceInteropMember ? 1 : 0));
       // We clone the receiver as each invocation needs a fresh node.
-      final receiver =
-          maybeReceiver == null
-              ? positionalArgs.first
-              : _cloner.clone(maybeReceiver);
+      final receiver = maybeReceiver == null
+          ? positionalArgs.first
+          : _cloner.clone(maybeReceiver);
       final property = StringLiteral(name);
       return StaticInvocation(
           target,
@@ -502,10 +499,9 @@ class JsUtilOptimizer extends Transformer {
       // members.
       final positionalArgs = arguments.positional;
       assert(positionalArgs.length == (isInstanceInteropMember ? 2 : 1));
-      final receiver =
-          maybeReceiver == null
-              ? positionalArgs.first
-              : _cloner.clone(maybeReceiver);
+      final receiver = maybeReceiver == null
+          ? positionalArgs.first
+          : _cloner.clone(maybeReceiver);
       final property = StringLiteral(name);
       final value = positionalArgs.last;
       return _lowerSetProperty(
@@ -536,18 +532,18 @@ class JsUtilOptimizer extends Transformer {
     bool shouldTrustType, [
     Expression? maybeReceiver,
   ]) {
-    final target =
-        shouldTrustType ? _callMethodTrustTypeTarget : _callMethodTarget;
+    final target = shouldTrustType
+        ? _callMethodTrustTypeTarget
+        : _callMethodTarget;
     final isInstanceInteropMember = _extensionIndex.isInstanceInteropMember(
       node,
     );
     final name = _getMemberJSName(node);
     return (Arguments arguments, Expression invocation) {
       var positional = arguments.positional;
-      final receiver =
-          maybeReceiver == null
-              ? positional.first
-              : _cloner.clone(maybeReceiver);
+      final receiver = maybeReceiver == null
+          ? positional.first
+          : _cloner.clone(maybeReceiver);
       if (isInstanceInteropMember) {
         // Ignore `this` for extension and extension type members.
         positional = positional.sublist(1);
@@ -587,8 +583,9 @@ class JsUtilOptimizer extends Transformer {
     StaticInvocation Function(StaticInvocation)? invocationOptimizer;
     switch (operator) {
       case '[]':
-        target =
-            shouldTrustType ? _getPropertyTrustTypeTarget : _getPropertyTarget;
+        target = shouldTrustType
+            ? _getPropertyTrustTypeTarget
+            : _getPropertyTarget;
         break;
       case '[]=':
         target = _setPropertyTarget;
@@ -773,10 +770,9 @@ class JsUtilOptimizer extends Transformer {
     Arguments arguments = node.arguments;
     assert(arguments.positional.length == 3);
     assert(arguments.named.isEmpty);
-    List<Procedure> targets =
-        shouldTrustType
-            ? _callMethodUncheckedTrustTypeTargets
-            : _callMethodUncheckedTargets;
+    List<Procedure> targets = shouldTrustType
+        ? _callMethodUncheckedTrustTypeTargets
+        : _callMethodUncheckedTargets;
 
     return _lowerToCallUnchecked(
       node,
@@ -844,15 +840,14 @@ class JsUtilOptimizer extends Transformer {
       if (argumentsListConstant.entries.length >= callUncheckedTargets.length) {
         return node;
       }
-      callUncheckedArguments =
-          argumentsListConstant.entries
-              .map<Expression>(
-                (constant) => ConstantExpression(
-                  constant,
-                  constant.getType(_staticTypeContext),
-                ),
-              )
-              .toList();
+      callUncheckedArguments = argumentsListConstant.entries
+          .map<Expression>(
+            (constant) => ConstantExpression(
+              constant,
+              constant.getType(_staticTypeContext),
+            ),
+          )
+          .toList();
       entryType = argumentsListConstant.typeArgument;
     } else {
       // Skip lowering arguments in any other type of List.
