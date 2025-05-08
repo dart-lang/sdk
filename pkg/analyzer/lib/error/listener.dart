@@ -16,7 +16,7 @@ import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
-/// An object that listens for [AnalysisError]s being produced by the analysis
+/// An object that listens for [Diagnostic]s being produced by the analysis
 /// engine.
 abstract class AnalysisErrorListener {
   /// An error listener that ignores errors that are reported to it.
@@ -24,7 +24,7 @@ abstract class AnalysisErrorListener {
 
   /// This method is invoked when an [error] has been found by the analysis
   /// engine.
-  void onError(AnalysisError error);
+  void onError(Diagnostic error);
 }
 
 /// An [AnalysisErrorListener] that keeps track of whether any error has been
@@ -37,7 +37,7 @@ class BooleanErrorListener implements AnalysisErrorListener {
   bool get errorReported => _errorReported;
 
   @override
-  void onError(AnalysisError error) {
+  void onError(Diagnostic error) {
     _errorReported = true;
   }
 }
@@ -182,7 +182,7 @@ class ErrorReporter {
     contextMessages ??= [];
     contextMessages.addAll(convertTypeNames(arguments));
     _errorListener.onError(
-      AnalysisError.tmp(
+      Diagnostic.tmp(
         source: _source,
         offset: offset,
         length: length,
@@ -233,7 +233,7 @@ class ErrorReporter {
   }
 
   /// Report the given [error].
-  void reportError(AnalysisError error) {
+  void reportError(Diagnostic error) {
     _errorListener.onError(error);
   }
 }
@@ -241,10 +241,10 @@ class ErrorReporter {
 /// An error listener that will record the errors that are reported to it in a
 /// way that is appropriate for caching those errors within an analysis context.
 class RecordingErrorListener implements AnalysisErrorListener {
-  Set<AnalysisError>? _errors;
+  Set<Diagnostic>? _errors;
 
   /// Return the errors collected by the listener.
-  List<AnalysisError> get errors {
+  List<Diagnostic> get errors {
     if (_errors == null) {
       return const [];
     }
@@ -252,7 +252,7 @@ class RecordingErrorListener implements AnalysisErrorListener {
   }
 
   /// Return the errors collected by the listener for the given [source].
-  List<AnalysisError> getErrorsForSource(Source source) {
+  List<Diagnostic> getErrorsForSource(Source source) {
     if (_errors == null) {
       return const [];
     }
@@ -260,7 +260,7 @@ class RecordingErrorListener implements AnalysisErrorListener {
   }
 
   @override
-  void onError(AnalysisError error) {
+  void onError(Diagnostic error) {
     (_errors ??= {}).add(error);
   }
 }
@@ -268,7 +268,7 @@ class RecordingErrorListener implements AnalysisErrorListener {
 /// An [AnalysisErrorListener] that ignores error.
 class _NullErrorListener implements AnalysisErrorListener {
   @override
-  void onError(AnalysisError event) {
+  void onError(Diagnostic event) {
     // Ignore errors
   }
 }

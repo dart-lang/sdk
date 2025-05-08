@@ -57,4 +57,5 @@ HashMap<String, DiagnosticCode> _computeUniqueNameToCodeMap() {
 }
 
 /// A deprecated name for [Diagnostic]. Please use [Diagnostic].
+@Deprecated("Use 'Diagnostic' instead.")
 typedef AnalysisError = Diagnostic;

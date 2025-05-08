@@ -125,7 +125,7 @@ ErrorsResultImpl mockResult(DiagnosticType type, DiagnosticSeverity severity) {
   var code = MockErrorCode(type, severity, 'mock_code');
   var uri = file.toUri();
   var source = MockSource(path, uri);
-  var error = MockAnalysisError(source, code, 20, 'MSG');
+  var error = MockDiagnostic(source, code, 20, 'MSG');
 
   return ErrorsResultImpl(
     session: _MockAnalysisSession(),
