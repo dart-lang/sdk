@@ -1623,4 +1623,145 @@ void f() {
 }
 ''');
   }
+
+  Future<void> test_static_tearoff() async {
+    await resolveTestCode('''
+void f() async {
+  int _ = await g(C.foo);
+}
+
+Future<T> g<T>(Future<T> Function() foo) => foo();
+
+class C {
+}
+''');
+    await assertHasFix('''
+void f() async {
+  int _ = await g(C.foo);
+}
+
+Future<T> g<T>(Future<T> Function() foo) => foo();
+
+class C {
+  static Future<int> foo() async {
+  }
+}
+''');
+  }
+
+  Future<void> test_static_tearoff_prefixed_typeParameter() async {
+    await resolveTestCode('''
+import '' as self;
+
+void f() async {
+  await g(self.C.foo);
+}
+
+Future<T> g<T>(Future<S> Function<S>() foo) => foo();
+
+class C {
+}
+''');
+    await assertHasFix('''
+import '' as self;
+
+void f() async {
+  await g(self.C.foo);
+}
+
+Future<T> g<T>(Future<S> Function<S>() foo) => foo();
+
+class C {
+  static Future<S> foo<S>() async {
+  }
+}
+''');
+  }
+
+  Future<void> test_static_tearoff_prefixed_typeParameter_bound1() async {
+    await resolveTestCode('''
+import '' as self;
+
+void f() async {
+  await g(self.C.foo);
+}
+
+Future<T> g<T>(Future<S> Function<S extends num>() foo) => foo();
+
+class C {
+}
+''');
+    await assertHasFix('''
+import '' as self;
+
+void f() async {
+  await g(self.C.foo);
+}
+
+Future<T> g<T>(Future<S> Function<S extends num>() foo) => foo();
+
+class C {
+  static Future<S> foo<S extends num>() async {
+  }
+}
+''');
+  }
+
+  Future<void> test_static_tearoff_prefixed_typeParameter_bound2() async {
+    await resolveTestCode('''
+import '' as self;
+
+void f() async {
+  await g(self.C.foo);
+}
+
+Future<T> g<T extends num>(Future<S> Function<S extends T>() foo) => foo();
+
+class C {
+}
+''');
+    await assertHasFix('''
+import '' as self;
+
+void f() async {
+  await g(self.C.foo);
+}
+
+Future<T> g<T extends num>(Future<S> Function<S extends T>() foo) => foo();
+
+class C {
+  static Future<S> foo<S extends num>() async {
+  }
+}
+''');
+  }
+
+  Future<void> test_static_tearoff_prefixed_typeParameter_class() async {
+    await resolveTestCode('''
+import '' as self;
+
+void f() async {
+  await g(self.C.foo);
+}
+
+Future<T> g<T>(Future<S> Function<S>() foo) => foo();
+
+class C<S> {
+}
+''');
+    await assertHasFix('''
+import '' as self;
+
+void f() async {
+  await g(self.C.foo);
+}
+
+Future<T> g<T>(Future<S> Function<S>() foo) => foo();
+
+class C<S> {
+  static Future<S> foo<S>() async {
+  }
+}
+''');
+  }
 }
