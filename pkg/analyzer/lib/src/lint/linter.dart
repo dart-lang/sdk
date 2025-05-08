@@ -24,9 +24,137 @@ export 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
 export 'package:analyzer/src/lint/state.dart'
     show dart2_12, dart3, dart3_3, State;
 
+/// Describes an [AbstractAnalysisRule] which reports diagnostics using exactly
+/// one [DiagnosticCode].
+typedef AnalysisRule = LintRule;
+
+//typedef MultiAnalysisRule = MultiLintRule;
+
 /// Describes a static analysis rule, either a lint rule (which must be enabled
 /// via analysis options) or a warning rule (which is enabled by default).
-typedef AnalysisRule = LintRule;
+sealed class AbstractAnalysisRule {
+  /// Used to report lint warnings.
+  /// NOTE: this is set by the framework before any node processors start
+  /// visiting nodes.
+  late ErrorReporter _reporter;
+
+  /// Short description suitable for display in console output.
+  final String description;
+
+  /// Lint name.
+  final String name;
+
+  /// The state of a lint, and optionally since when the state began.
+  final State state;
+
+  AbstractAnalysisRule({
+    required this.name,
+    required this.description,
+    this.state = const State.stable(),
+  });
+
+  /// Indicates whether the lint rule can work with just the parsed information
+  /// or if it requires a resolved unit.
+  bool get canUseParsedResult => false;
+
+  /// A list of incompatible rule ids.
+  List<String> get incompatibleRules => const [];
+
+  /// The lint codes associated with this lint rule.
+  List<LintCode> get lintCodes;
+
+  @protected
+  // Protected so that lint rule visitors do not access this directly.
+  // TODO(srawlins): With the new availability of an ErrorReporter on
+  // LinterContextUnit, we should probably remove this reporter. But whatever
+  // the new API would be is not yet decided. It might also change with the
+  // notion of post-processing lint rules that have access to all unit
+  // reporters at once.
+  ErrorReporter get reporter => _reporter;
+
+  set reporter(ErrorReporter value) => _reporter = value;
+
+  /// Returns a visitor to be passed to pubspecs to perform lint
+  /// analysis.
+  ///
+  /// Lint errors are reported via this [LintRule]'s error [reporter].
+  PubspecVisitor? getPubspecVisitor() => null;
+
+  /// Registers node processors in the given [registry].
+  ///
+  /// The node processors may use the provided [context] to access information
+  /// that is not available from the AST nodes or their associated elements.
+  void registerNodeProcessors(
+    NodeLintRegistry registry,
+    LinterContext context,
+  ) {}
+
+  void _reportAtNode(
+    AstNode? node, {
+    List<Object> arguments = const [],
+    List<DiagnosticMessage>? contextMessages,
+    required DiagnosticCode diagnosticCode,
+  }) {
+    if (node != null && !node.isSynthetic) {
+      reporter.atNode(
+        node,
+        diagnosticCode,
+        arguments: arguments,
+        contextMessages: contextMessages,
+      );
+    }
+  }
+
+  void _reportAtOffset(
+    int offset,
+    int length, {
+    required DiagnosticCode diagnosticCode,
+    List<Object> arguments = const [],
+    List<DiagnosticMessage>? contextMessages,
+  }) {
+    reporter.atOffset(
+      offset: offset,
+      length: length,
+      errorCode: diagnosticCode,
+      arguments: arguments,
+      contextMessages: contextMessages,
+    );
+  }
+
+  void _reportAtPubNode(
+    PSNode node, {
+    List<Object> arguments = const [],
+    List<DiagnosticMessage> contextMessages = const [],
+    required DiagnosticCode errorCode,
+  }) {
+    // Cache error and location info for creating `AnalysisErrorInfo`s.
+    var error = Diagnostic.tmp(
+      source: node.source,
+      offset: node.span.start.offset,
+      length: node.span.length,
+      errorCode: errorCode,
+      arguments: arguments,
+      contextMessages: contextMessages,
+    );
+    reporter.reportError(error);
+  }
+
+  void _reportAtToken(
+    Token token, {
+    required DiagnosticCode diagnosticCode,
+    List<Object> arguments = const [],
+    List<DiagnosticMessage>? contextMessages,
+  }) {
+    if (!token.isSynthetic) {
+      reporter.atToken(
+        token,
+        diagnosticCode,
+        arguments: arguments,
+        contextMessages: contextMessages,
+      );
+    }
+  }
+}
 
 /// Provides access to information needed by lint rules that is not available
 /// from AST nodes or the element model.
@@ -175,161 +303,69 @@ final class LinterContextWithResolvedResults implements LinterContext {
   LibraryElement get libraryElement2 => definingUnit.libraryFragment.element;
 }
 
-/// Describes a lint rule.
-abstract class LintRule {
-  /// Used to report lint warnings.
-  /// NOTE: this is set by the framework before any node processors start
-  /// visiting nodes.
-  late ErrorReporter _reporter;
+/// Describes an [AbstractAnalysisRule] which reports exactly one type of
+/// diagnostic (one [DiagnosticCode]).
+abstract class LintRule extends AbstractAnalysisRule {
+  LintRule({required super.name, required super.description, super.state});
 
-  /// Short description suitable for display in console output.
-  final String description;
+  LintCode get lintCode;
 
-  /// Lint name.
-  final String name;
-
-  /// The state of a lint, and optionally since when the state began.
-  final State state;
-
-  LintRule({
-    required this.name,
-    required this.description,
-    this.state = const State.stable(),
-  });
-
-  /// Indicates whether the lint rule can work with just the parsed information
-  /// or if it requires a resolved unit.
-  bool get canUseParsedResult => false;
-
-  /// A list of incompatible rule ids.
-  List<String> get incompatibleRules => const [];
-
-  /// The lint code associated with this linter, if it is only associated with a
-  /// single lint code.
-  ///
-  /// Note that this property is just a convenient shorthand for a rule to
-  /// associate a lint rule with a single lint code. Use [lintCodes] for the
-  /// full list of (possibly multiple) lint codes which a lint rule may be
-  /// associated with.
-  LintCode get lintCode =>
-      throw UnimplementedError(
-        "'lintCode' is not implemented for $runtimeType",
-      );
-
-  /// The lint codes associated with this lint rule.
+  @override
   List<LintCode> get lintCodes => [lintCode];
-
-  @protected
-  // Protected so that lint rule visitors do not access this directly.
-  // TODO(srawlins): With the new availability of an ErrorReporter on
-  // LinterContextUnit, we should probably remove this reporter. But whatever
-  // the new API would be is not yet decided. It might also change with the
-  // notion of post-processing lint rules that have access to all unit
-  // reporters at once.
-  ErrorReporter get reporter => _reporter;
-
-  set reporter(ErrorReporter value) => _reporter = value;
-
-  /// Returns a visitor to be passed to pubspecs to perform lint
-  /// analysis.
-  ///
-  /// Lint errors are reported via this [LintRule]'s error [reporter].
-  PubspecVisitor? getPubspecVisitor() => null;
-
-  /// Registers node processors in the given [registry].
-  ///
-  /// The node processors may use the provided [context] to access information
-  /// that is not available from the AST nodes or their associated elements.
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {}
 
   /// Reports a diagnostic at [node] with message [arguments] and
   /// [contextMessages].
-  ///
-  /// The error reported is either [errorCode] if that is passed in, otherwise
-  /// [lintCode].
   void reportAtNode(
     AstNode? node, {
     List<Object> arguments = const [],
     List<DiagnosticMessage>? contextMessages,
-    DiagnosticCode? errorCode,
-  }) {
-    if (node != null && !node.isSynthetic) {
-      reporter.atNode(
-        node,
-        errorCode ?? lintCode,
-        arguments: arguments,
-        contextMessages: contextMessages,
-      );
-    }
-  }
+  }) => _reportAtNode(
+    node,
+    diagnosticCode: lintCode,
+    arguments: arguments,
+    contextMessages: contextMessages,
+  );
 
   /// Reports a diagnostic at [offset], with [length], with message [arguments]
   /// and [contextMessages].
-  ///
-  /// The error reported is either [errorCode] if that is passed in, otherwise
-  /// [lintCode].
   void reportAtOffset(
     int offset,
     int length, {
     List<Object> arguments = const [],
     List<DiagnosticMessage>? contextMessages,
-    DiagnosticCode? errorCode,
-  }) {
-    reporter.atOffset(
-      offset: offset,
-      length: length,
-      errorCode: errorCode ?? lintCode,
-      arguments: arguments,
-      contextMessages: contextMessages,
-    );
-  }
+  }) => _reportAtOffset(
+    offset,
+    length,
+    diagnosticCode: lintCode,
+    arguments: arguments,
+    contextMessages: contextMessages,
+  );
 
   /// Reports a diagnostic at Pubspec [node], with message [arguments] and
   /// [contextMessages].
-  ///
-  /// The error reported is either [errorCode] if that is passed in, otherwise
-  /// [lintCode].
   void reportAtPubNode(
     PSNode node, {
     List<Object> arguments = const [],
     List<DiagnosticMessage> contextMessages = const [],
-    DiagnosticCode? errorCode,
-  }) {
-    // Cache error and location info for creating `AnalysisErrorInfo`s.
-    var error = Diagnostic.tmp(
-      source: node.source,
-      offset: node.span.start.offset,
-      length: node.span.length,
-      errorCode: errorCode ?? lintCode,
-      arguments: arguments,
-      contextMessages: contextMessages,
-    );
-    reporter.reportError(error);
-  }
+  }) => _reportAtPubNode(
+    node,
+    errorCode: lintCode,
+    arguments: arguments,
+    contextMessages: contextMessages,
+  );
 
   /// Reports a diagnostic at [token], with message [arguments] and
   /// [contextMessages].
-  ///
-  /// The error reported is either [errorCode] if that is passed in, otherwise
-  /// [lintCode].
   void reportAtToken(
     Token token, {
     List<Object> arguments = const [],
     List<DiagnosticMessage>? contextMessages,
-    DiagnosticCode? errorCode,
-  }) {
-    if (!token.isSynthetic) {
-      reporter.atToken(
-        token,
-        errorCode ?? lintCode,
-        arguments: arguments,
-        contextMessages: contextMessages,
-      );
-    }
-  }
+  }) => _reportAtToken(
+    token,
+    diagnosticCode: lintCode,
+    arguments: arguments,
+    contextMessages: contextMessages,
+  );
 }
 
 /// Provides access to information needed by lint rules that is not available
@@ -350,4 +386,78 @@ class LintRuleUnitContext {
   /// The library fragment representing the compilation unit.
   @experimental
   LibraryFragment get libraryFragment => unit.declaredFragment!;
+}
+
+/// Describes an [AbstractAnalysisRule] which reports diagnostics using multiple
+/// [DiagnosticCode]s).
+abstract class MultiAnalysisRule extends AbstractAnalysisRule {
+  MultiAnalysisRule({
+    required super.name,
+    required super.description,
+    super.state,
+  });
+
+  /// Reports [errorCode] at [node] with message [arguments] and
+  /// [contextMessages].
+  void reportAtNode(
+    AstNode? node, {
+    List<Object> arguments = const [],
+    List<DiagnosticMessage>? contextMessages,
+    required DiagnosticCode errorCode,
+  }) => _reportAtNode(
+    node,
+    diagnosticCode: errorCode,
+    arguments: arguments,
+    contextMessages: contextMessages,
+  );
+
+  /// Reports [errorCode] at [offset], with [length], with message [arguments]
+  /// and [contextMessages].
+  void reportAtOffset(
+    int offset,
+    int length, {
+    required DiagnosticCode errorCode,
+    List<Object> arguments = const [],
+    List<DiagnosticMessage>? contextMessages,
+  }) => _reportAtOffset(
+    offset,
+    length,
+    diagnosticCode: errorCode,
+    arguments: arguments,
+    contextMessages: contextMessages,
+  );
+
+  /// Reports [errorCode] at Pubspec [node], with message [arguments] and
+  /// [contextMessages].
+  void reportAtPubNode(
+    PSNode node, {
+    required DiagnosticCode errorCode,
+    List<Object> arguments = const [],
+    List<DiagnosticMessage> contextMessages = const [],
+  }) {
+    // Cache error and location info for creating `AnalysisErrorInfo`s.
+    var error = Diagnostic.tmp(
+      source: node.source,
+      offset: node.span.start.offset,
+      length: node.span.length,
+      errorCode: errorCode,
+      arguments: arguments,
+      contextMessages: contextMessages,
+    );
+    reporter.reportError(error);
+  }
+
+  /// Reports [errorCode] at [token], with message [arguments] and
+  /// [contextMessages].
+  void reportAtToken(
+    Token token, {
+    required DiagnosticCode errorCode,
+    List<Object> arguments = const [],
+    List<DiagnosticMessage>? contextMessages,
+  }) => _reportAtToken(
+    token,
+    diagnosticCode: errorCode,
+    arguments: arguments,
+    contextMessages: contextMessages,
+  );
 }

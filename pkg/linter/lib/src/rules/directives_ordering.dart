@@ -56,7 +56,7 @@ bool _isPartDirective(Directive node) => node is PartDirective;
 bool _isRelativeDirective(NamespaceDirective node) =>
     !_isAbsoluteDirective(node);
 
-class DirectivesOrdering extends LintRule {
+class DirectivesOrdering extends MultiAnalysisRule {
   static const List<LintCode> allCodes = [
     LinterLintCode.directives_ordering_alphabetical,
     LinterLintCode.directives_ordering_dart,

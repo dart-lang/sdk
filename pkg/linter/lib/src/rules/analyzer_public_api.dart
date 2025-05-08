@@ -13,7 +13,7 @@ import '../analyzer.dart';
 const _desc =
     'Do not expose implementation details through the analyzer public API.';
 
-class AnalyzerPublicApi extends LintRule {
+class AnalyzerPublicApi extends MultiAnalysisRule {
   static const ruleName = 'analyzer_public_api';
 
   /// Lint issued if a file in the analyzer public API contains a `part`
@@ -109,7 +109,7 @@ class AnalyzerPublicApi extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final MultiAnalysisRule rule;
 
   /// Elements that are imported into the current compilation unit's import
   /// namespace via `import` directives that do *not* access a package's `src`

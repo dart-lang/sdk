@@ -16,7 +16,7 @@ import '../extensions.dart';
 
 const _desc = r'Specify type annotations.';
 
-class StrictTopLevelInference extends LintRule {
+class StrictTopLevelInference extends MultiAnalysisRule {
   StrictTopLevelInference()
     : super(name: LintNames.strict_top_level_inference, description: _desc);
 
@@ -43,7 +43,7 @@ class StrictTopLevelInference extends LintRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final bool _wildCardVariablesEnabled;
 
-  final LintRule rule;
+  final MultiAnalysisRule rule;
 
   final LinterContext context;
 

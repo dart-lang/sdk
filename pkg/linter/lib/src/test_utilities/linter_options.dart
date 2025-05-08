@@ -8,7 +8,7 @@ import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
 
 class LinterOptions {
-  final Iterable<LintRule> enabledRules;
+  final Iterable<AbstractAnalysisRule> enabledRules;
 
   /// The path to the Dart SDK.
   String? dartSdkPath;
@@ -16,6 +16,6 @@ class LinterOptions {
   /// Whether to gather timing data during analysis.
   bool enableTiming = false;
 
-  LinterOptions({Iterable<LintRule>? enabledRules})
+  LinterOptions({Iterable<AbstractAnalysisRule>? enabledRules})
     : enabledRules = enabledRules ?? Registry.ruleRegistry;
 }

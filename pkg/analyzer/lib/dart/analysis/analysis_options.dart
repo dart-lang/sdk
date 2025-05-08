@@ -45,7 +45,7 @@ abstract class AnalysisOptions {
   /// A list of the lint rules that are to be run in an analysis context if
   /// [lint] is `true`.
   // ignore: analyzer_public_api_bad_type
-  List<LintRule> get lintRules;
+  List<AbstractAnalysisRule> get lintRules;
 
   /// The plugin configurations for each plugin which is configured in analysis
   /// options.

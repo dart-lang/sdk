@@ -11,7 +11,7 @@ import '../extensions.dart';
 
 const _desc = r'Declare method return types.';
 
-class AlwaysDeclareReturnTypes extends LintRule {
+class AlwaysDeclareReturnTypes extends MultiAnalysisRule {
   AlwaysDeclareReturnTypes()
     : super(name: LintNames.always_declare_return_types, description: _desc);
 
@@ -34,7 +34,7 @@ class AlwaysDeclareReturnTypes extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final MultiAnalysisRule rule;
   final LinterContext context;
 
   _Visitor(this.rule, this.context);

@@ -43,7 +43,7 @@ final class AnalysisOptionsBuilder {
 
   bool lint = false;
 
-  List<LintRule> lintRules = [];
+  List<AbstractAnalysisRule> lintRules = [];
 
   bool propagateLinterExceptions = false;
 
@@ -378,7 +378,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool warning = true;
 
   @override
-  List<LintRule> lintRules = [];
+  List<AbstractAnalysisRule> lintRules = [];
 
   /// Whether linter exceptions should be propagated to the caller (by
   /// rethrowing them).

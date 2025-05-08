@@ -13,7 +13,7 @@ import '../util/dart_type_utilities.dart';
 
 const _desc = r'Use contains for `List` and `String` instances.';
 
-class PreferContains extends LintRule {
+class PreferContains extends MultiAnalysisRule {
   PreferContains() : super(name: LintNames.prefer_contains, description: _desc);
 
   // TODO(brianwilkerson): Both `alwaysFalse` and `alwaysTrue` should be warnings

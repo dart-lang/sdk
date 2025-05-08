@@ -10,7 +10,7 @@ import '../analyzer.dart';
 
 const _desc = r'Avoid returning `null` for `void`.';
 
-class AvoidReturningNullForVoid extends LintRule {
+class AvoidReturningNullForVoid extends MultiAnalysisRule {
   AvoidReturningNullForVoid()
     : super(name: LintNames.avoid_returning_null_for_void, description: _desc);
 
@@ -32,7 +32,7 @@ class AvoidReturningNullForVoid extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final MultiAnalysisRule rule;
 
   _Visitor(this.rule);
 

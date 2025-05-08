@@ -11,7 +11,7 @@ import '../extensions.dart';
 
 const _desc = "Don't use `final` for local variables.";
 
-class UnnecessaryFinal extends LintRule {
+class UnnecessaryFinal extends MultiAnalysisRule {
   UnnecessaryFinal()
     : super(name: LintNames.unnecessary_final, description: _desc);
 
@@ -43,7 +43,7 @@ class UnnecessaryFinal extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final MultiAnalysisRule rule;
 
   _Visitor(this.rule);
 
