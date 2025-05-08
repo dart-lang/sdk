@@ -119,7 +119,7 @@ class NodeTextExpectationsCollector {
     ),
     _AssertMethod(
       className: 'FineAnalysisDriverTest',
-      methodName: '_runManualRequirementsScenario',
+      methodName: '_runManualRequirementsRecording',
       argument: _ArgumentNamed('expectedEvents'),
     ),
     _AssertMethod(

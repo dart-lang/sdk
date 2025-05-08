@@ -944,19 +944,50 @@ class LibraryManifestPrinter {
   void _writeInstanceItemMembers(InstanceItem item) {
     var ignored = configuration.ignoredManifestInstanceMemberNames;
 
-    var declaredMembers =
-        item.declaredMembers.sorted.whereNot((entry) {
-          return ignored.contains(entry.key.asString);
-        }).toList();
+    void writeDeclaredFields() {
+      var declaredFields =
+          item.declaredFields.sorted.whereNot((entry) {
+            return ignored.contains(entry.key.asString);
+          }).toList();
 
-    if (declaredMembers.isNotEmpty) {
-      sink.writelnWithIndent('declaredMembers');
-      sink.withIndent(() {
-        for (var entry in declaredMembers) {
-          _writeBaseNameMembers(entry.key, entry.value);
-        }
-      });
+      if (declaredFields.isNotEmpty) {
+        sink.writelnWithIndent('declaredFields');
+        sink.withIndent(() {
+          for (var entry in declaredFields) {
+            var name = entry.key.asString;
+            var item = entry.value;
+            var idStr = idProvider.manifestId(item.id);
+            sink.writelnWithIndent('$name: $idStr');
+            if (configuration.withElementManifests) {
+              sink.withIndent(() {
+                _writeMetadata(item);
+                _writeNamedType('type', item.type);
+                _writeNode('constInitializer', item.constInitializer);
+              });
+            }
+          }
+        });
+      }
     }
+
+    void writeDeclaredMethods() {
+      var declaredMembers =
+          item.declaredMembers.sorted.whereNot((entry) {
+            return ignored.contains(entry.key.asString);
+          }).toList();
+
+      if (declaredMembers.isNotEmpty) {
+        sink.writelnWithIndent('declaredMembers');
+        sink.withIndent(() {
+          for (var entry in declaredMembers) {
+            _writeBaseNameMembers(entry.key, entry.value);
+          }
+        });
+      }
+    }
+
+    writeDeclaredFields();
+    writeDeclaredMethods();
   }
 
   void _writeInterfaceItemInterface(InterfaceItem item) {
