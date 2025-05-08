@@ -7,10 +7,12 @@ import 'package:analysis_server/src/lsp/extensions/code_action.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 
-import '../../../lsp/code_actions_abstract.dart';
+import '../../../lsp/code_actions_mixin.dart';
+import '../../../lsp/server_abstract.dart';
 import '../../../utils/test_code_extensions.dart';
 
-abstract class RefactoringTest extends AbstractCodeActionsTest {
+abstract class RefactoringTest extends AbstractLspAnalysisServerTest
+    with CodeActionsTestMixin {
   /// Position of the marker where the refactor will be invoked.
   Position? _position;
 
@@ -96,5 +98,16 @@ abstract class RefactoringTest extends AbstractCodeActionsTest {
     var config = {if (experimentalOptInFlag) 'experimentalRefactors': true};
 
     await provideConfig(super.initialize, config);
+  }
+
+  @override
+  void setUp() {
+    super.setUp();
+
+    // Many refactor tests test with code that produces errors.
+    failTestOnErrorDiagnostic = false;
+
+    setApplyEditSupport();
+    setDocumentChangesSupport();
   }
 }

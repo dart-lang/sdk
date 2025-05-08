@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:analysis_server/src/lsp/handlers/commands/apply_code_action.dart';
+library;
+
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
@@ -9,6 +12,8 @@ import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/protocol_server.dart'
+    hide AnalysisOptions, Position;
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/request_handler_mixin.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart';
@@ -33,12 +38,34 @@ abstract class AbstractCodeActionsProducer
   final int offset;
   final int length;
   final bool Function(CodeActionKind?) shouldIncludeKind;
-  final LspClientCapabilities capabilities;
+
+  /// The capabilities of the caller making the request for [CodeAction]s.
+  final LspClientCapabilities callerCapabilities;
+
+  /// The capabilities of the editor (which may or may not be the same as
+  /// [callerCapabilities] depending on whether the request came from the editor
+  /// or another client - such as over DTD).
+  final LspClientCapabilities editorCapabilities;
 
   final AnalysisOptions analysisOptions;
 
   @override
   final LspAnalysisServer server;
+
+  /// Whether [CodeAction]s can be [Command]s or not.
+  ///
+  /// This is usually true (because there is no capability for this), however
+  /// it will be disabled by [ApplyCodeActionCommandHandler] so that we can't
+  /// recursively return command-based actions.
+  final bool allowCommands;
+
+  /// Whether [CodeAction]s can be [CodeActionLiteral]s or not.
+  ///
+  /// This is usually based on the callers capabilities, however
+  /// for [ApplyCodeActionCommandHandler] it will be based on the editor's
+  /// capabilities since it will compute the edits and send them to the editor
+  /// directly.
+  final bool allowCodeActionLiterals;
 
   AbstractCodeActionsProducer(
     this.server,
@@ -47,21 +74,47 @@ abstract class AbstractCodeActionsProducer
     required this.offset,
     required this.length,
     required this.shouldIncludeKind,
-    required this.capabilities,
+    required this.callerCapabilities,
+    required this.editorCapabilities,
+    required this.allowCommands,
+    required this.allowCodeActionLiterals,
     required this.analysisOptions,
   });
+
+  Set<DiagnosticTag> get callerSupportedDiagnosticTags =>
+      callerCapabilities.diagnosticTags;
+
+  bool get callerSupportsCodeDescription =>
+      callerCapabilities.diagnosticCodeDescription;
+
+  bool get editorSupportsApplyEdit => editorCapabilities.applyEdit;
 
   String get name;
 
   String get path => file.path;
 
-  Set<DiagnosticTag> get supportedDiagnosticTags => capabilities.diagnosticTags;
-
-  bool get supportsApplyEdit => capabilities.applyEdit;
-
-  bool get supportsCodeDescription => capabilities.diagnosticCodeDescription;
-
-  bool get supportsLiterals => capabilities.literalCodeActions;
+  /// Creates a command to apply a CodeAction later.
+  Command createApplyCodeActionCommand(
+    String title,
+    CodeActionKind kind,
+    String? loggedId,
+    OptionalVersionedTextDocumentIdentifier textDocument,
+    Range range,
+  ) {
+    return Command(
+      title: title,
+      command: Commands.applyCodeAction,
+      // The arguments here must match those in `ApplyCodeActionCommandHandler`.
+      arguments: [
+        {
+          'textDocument': textDocument,
+          'range': range,
+          'kind': kind,
+          'loggedAction': loggedId,
+        },
+      ],
+    );
+  }
 
   /// Creates a CodeAction to apply this assist.
   ///
@@ -87,13 +140,52 @@ abstract class AbstractCodeActionsProducer
       command: createLogActionCommand(loggedAssistId),
       edit: createWorkspaceEdit(
         server,
-        capabilities,
+        editorCapabilities,
         change,
         allowSnippets: true,
         filePath: path,
         lineInfo: lineInfo,
       ),
     );
+  }
+
+  /// Creates a [CodeAction] that is:
+  ///
+  /// - a [CodeActionLiteral] if [allowCodeActionLiterals], or
+  /// - a [Command] for [Commands.applyCodeAction] if [allowCommands], or
+  /// - null
+  CodeAction? createCodeActionLiteralOrApplyCommand(
+    String path,
+    OptionalVersionedTextDocumentIdentifier textDocument,
+    Range range,
+    LineInfo lineInfo,
+    SourceChange change,
+    CodeActionKind kind,
+    String? loggedAssistId,
+  ) {
+    if (allowCodeActionLiterals) {
+      return CodeAction.t1(
+        createAssistCodeActionLiteral(
+          change,
+          kind,
+          loggedAssistId,
+          path,
+          lineInfo,
+        ),
+      );
+    } else if (allowCommands) {
+      return CodeAction.t2(
+        createApplyCodeActionCommand(
+          change.message,
+          kind,
+          loggedAssistId,
+          textDocument,
+          range,
+        ),
+      );
+    } else {
+      return null;
+    }
   }
 
   /// Create an LSP [Diagnostic] for [diagnostic].
@@ -107,8 +199,8 @@ abstract class AbstractCodeActionsProducer
       server.uriConverter,
       (_) => lineInfo,
       protocol.newAnalysisError_fromEngine(result, diagnostic),
-      supportedTags: supportedDiagnosticTags,
-      clientSupportsCodeDescription: supportsCodeDescription,
+      supportedTags: callerSupportedDiagnosticTags,
+      clientSupportsCodeDescription: callerSupportsCodeDescription,
     );
   }
 
@@ -137,7 +229,7 @@ abstract class AbstractCodeActionsProducer
       command: createLogActionCommand(loggedFixId),
       edit: createWorkspaceEdit(
         server,
-        capabilities,
+        editorCapabilities,
         change,
         allowSnippets: true,
         filePath: path,

@@ -26,7 +26,10 @@ class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
     required super.offset,
     required super.length,
     required super.shouldIncludeKind,
-    required super.capabilities,
+    required super.editorCapabilities,
+    required super.callerCapabilities,
+    required super.allowCodeActionLiterals,
+    required super.allowCommands,
     required super.analysisOptions,
   });
 
@@ -43,7 +46,8 @@ class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
     OperationPerformance? performance,
   ) async {
     // These fixes are only provided as literal CodeActions.
-    if (!supportsLiterals) {
+    if (!allowCodeActionLiterals) {
+      // TODO(dantup): Support this (via createCodeActionLiteralOrApplyCommand)
       return [];
     }
 

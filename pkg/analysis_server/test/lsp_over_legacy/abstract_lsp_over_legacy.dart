@@ -199,10 +199,10 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
   @override
   ClientUriConverter get uriConverter => server.uriConverter;
 
-  Future<void> addOverlay(String filePath, String content) {
+  Future<void> addOverlay(String filePath, String content, [int? version]) {
     return handleSuccessfulRequest(
       AnalysisUpdateContentParams({
-        convertPath(filePath): AddContentOverlay(content),
+        convertPath(filePath): AddContentOverlay(content, version: version),
       }).toRequest(
         '${nextRequestId++}',
         clientUriConverter: server.uriConverter,
@@ -417,8 +417,7 @@ abstract class SharedLspOverLegacyTest extends LspOverLegacyTest
 
   @override
   Future<void> openFile(Uri uri, String content, {int version = 1}) async {
-    // TODO(dantup): Add version here when legacy protocol supports.
-    await addOverlay(fromUri(uri), content);
+    await addOverlay(fromUri(uri), content, version);
   }
 
   /// Opens a file content without providing a version number.
@@ -432,9 +431,8 @@ abstract class SharedLspOverLegacyTest extends LspOverLegacyTest
 
   @override
   Future<void> replaceFile(int newVersion, Uri uri, String content) async {
-    // TODO(dantup): Add version here when legacy protocol supports.
     // For legacy, we can use addOverlay to replace the whole file.
-    await addOverlay(fromUri(uri), content);
+    await addOverlay(fromUri(uri), content, newVersion);
   }
 
   /// Replaces a file content without providing a version number.

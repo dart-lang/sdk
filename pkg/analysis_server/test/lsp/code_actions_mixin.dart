@@ -5,8 +5,6 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/extensions/code_action.dart';
-import 'package:analysis_server/src/services/correction/assist_internal.dart';
-import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
@@ -16,11 +14,11 @@ import '../utils/test_code_extensions.dart';
 import 'change_verifier.dart';
 import 'server_abstract.dart';
 
-abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
+mixin CodeActionsTestMixin on AbstractLspAnalysisServerTest {
   /// Initializes the server with some basic configuration and expects to find
   /// a [CodeAction] with [kind]/[command]/[title].
   Future<CodeAction> expectCodeAction(
-    String content, {
+    TestCode code, {
     CodeActionKind? kind,
     String? command,
     List<Object>? commandArgs,
@@ -30,7 +28,6 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
     bool openTargetFile = false,
   }) async {
     filePath ??= mainFilePath;
-    var code = TestCode.parse(content);
     newFile(filePath, code.code);
 
     await initialize();
@@ -73,7 +70,7 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
     bool openTargetFile = false,
   }) async {
     var action = await expectCodeAction(
-      content,
+      TestCode.parse(content),
       kind: kind,
       command: command,
       commandArgs: commandArgs,
@@ -193,8 +190,8 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
         return false;
       }
 
-      if (kind != null && actionKind != kind) {
-        return false;
+      if (kind != null) {
+        expect(actionKind, kind);
       }
 
       // Some tests filter by only supplying a command, so if there is no
@@ -235,21 +232,6 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
       }
     }
     return null;
-  }
-
-  @override
-  void setUp() {
-    super.setUp();
-
-    // Fix tests are likely to have diagnostics that need fixing.
-    failTestOnErrorDiagnostic = false;
-
-    // Some defaults that most tests use. Tests can opt-out by overwriting these
-    // before initializing.
-    setApplyEditSupport();
-    setDocumentChangesSupport();
-    registerBuiltInAssistGenerators();
-    registerBuiltInFixGenerators();
   }
 
   /// Verifies that executing the given Code Action (either via a command or

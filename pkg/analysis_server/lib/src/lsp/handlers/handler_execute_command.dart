@@ -6,6 +6,7 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
+import 'package:analysis_server/src/lsp/handlers/commands/apply_code_action.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/fix_all.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/fix_all_in_workspace.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/log_action.dart';
@@ -41,6 +42,8 @@ class ExecuteCommandHandler
 
         // Commands that currently require an underlying LSP server.
         if (server is LspAnalysisServer) ...{
+          // TODO(dantup): Make code actions shared.
+          Commands.applyCodeAction: ApplyCodeActionCommandHandler(server),
           Commands.fixAll: FixAllCommandHandler(server),
           Commands.fixAllInWorkspace: FixAllInWorkspaceCommandHandler(server),
           Commands.previewFixAllInWorkspace:

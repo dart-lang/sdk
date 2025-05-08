@@ -6,12 +6,14 @@ import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../tool/lsp_spec/matchers.dart';
-import 'code_actions_abstract.dart';
+import 'code_actions_mixin.dart';
+import 'server_abstract.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -21,7 +23,9 @@ void main() {
   });
 }
 
-abstract class AbstractSourceCodeActionsTest extends AbstractCodeActionsTest {
+abstract class AbstractSourceCodeActionsTest
+    extends AbstractLspAnalysisServerTest
+    with CodeActionsTestMixin {
   /// For convenience since source code actions do not rely on a position (but
   /// one must be provided), uses [startOfDocPos] to avoid every test needing
   /// to include a '^' marker.
@@ -46,12 +50,25 @@ abstract class AbstractSourceCodeActionsTest extends AbstractCodeActionsTest {
   @override
   void setUp() {
     super.setUp();
+
+    setApplyEditSupport();
+    setDocumentChangesSupport();
     setSupportedCodeActionKinds([CodeActionKind.Source]);
   }
 }
 
 @reflectiveTest
 class FixAllSourceCodeActionsTest extends AbstractSourceCodeActionsTest {
+  @override
+  void setUp() {
+    super.setUp();
+
+    // Fix tests are likely to have diagnostics that need fixing.
+    failTestOnErrorDiagnostic = false;
+
+    registerBuiltInFixGenerators();
+  }
+
   Future<void> test_appliesCorrectEdits() async {
     const analysisOptionsContent = '''
 linter:
@@ -351,14 +368,14 @@ import 'dart:math';
 import 'dart:async';
 import 'dart:convert';
 
-Completer foo;
+Completer? foo;
 int minified(int x, int y) => min(x, y);
 ''';
     const expectedContent = '''
 import 'dart:async';
 import 'dart:math';
 
-Completer foo;
+Completer? foo;
 int minified(int x, int y) => min(x, y);
 ''';
 
@@ -375,14 +392,14 @@ import 'dart:math';
 import 'dart:async';
 import 'dart:convert';
 
-Completer foo;
+Completer? foo;
 int minified(int x, int y) => min(x, y);
 ''';
     const expectedContent = '''
 import 'dart:async';
 import 'dart:math';
 
-Completer foo;
+Completer? foo;
 int minified(int x, int y) => min(x, y);
 ''';
 
@@ -414,6 +431,7 @@ int minified(int x, int y) => min(x, y);
   }
 
   Future<void> test_fileHasErrors_failsSilentlyForAutomatic() async {
+    failTestOnErrorDiagnostic = false;
     var content = 'invalid dart code';
 
     var codeAction = await expectCodeActionLiteral(
@@ -429,6 +447,7 @@ int minified(int x, int y) => min(x, y);
   }
 
   Future<void> test_fileHasErrors_failsWithErrorForManual() async {
+    failTestOnErrorDiagnostic = false;
     var content = 'invalid dart code';
 
     var codeAction = await expectCodeActionLiteral(
@@ -464,7 +483,7 @@ int minified(int x, int y) => min(x, y);
 import 'dart:async';
 import 'dart:math';
 
-Completer foo;
+Completer? foo;
 int minified(int x, int y) => min(x, y);
 ''';
 
@@ -500,12 +519,12 @@ int minified(int x, int y) => min(x, y);
 class SortMembersSourceCodeActionsTest extends AbstractSourceCodeActionsTest {
   Future<void> test_appliesCorrectEdits_withDocumentChangesSupport() async {
     const content = '''
-String b;
-String a;
+String? b;
+String? a;
 ''';
     const expectedContent = '''
-String a;
-String b;
+String? a;
+String? b;
 ''';
 
     await verifyCodeActionLiteralEdits(
@@ -517,12 +536,12 @@ String b;
 
   Future<void> test_appliesCorrectEdits_withoutDocumentChangesSupport() async {
     const content = '''
-String b;
-String a;
+String? b;
+String? a;
 ''';
     const expectedContent = '''
-String a;
-String b;
+String? a;
+String? b;
 ''';
 
     setDocumentChangesSupport(false);
@@ -554,8 +573,8 @@ String b;
 
   Future<void> test_failsIfClientDoesntApplyEdits() async {
     const content = '''
-String b;
-String a;
+String? b;
+String? a;
 ''';
 
     var codeAction = await expectCodeActionLiteral(
@@ -591,6 +610,7 @@ String a;
   }
 
   Future<void> test_fileHasErrors_failsSilentlyForAutomatic() async {
+    failTestOnErrorDiagnostic = false;
     var content = 'invalid dart code';
 
     var codeAction = await expectCodeActionLiteral(
@@ -606,6 +626,7 @@ String a;
   }
 
   Future<void> test_fileHasErrors_failsWithErrorForManual() async {
+    failTestOnErrorDiagnostic = false;
     var content = 'invalid dart code';
 
     var codeAction = await expectCodeActionLiteral(

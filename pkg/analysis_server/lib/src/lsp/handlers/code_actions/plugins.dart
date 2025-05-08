@@ -25,7 +25,10 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
     required super.offset,
     required super.length,
     required super.shouldIncludeKind,
-    required super.capabilities,
+    required super.editorCapabilities,
+    required super.callerCapabilities,
+    required super.allowCodeActionLiterals,
+    required super.allowCommands,
     required super.analysisOptions,
   }) : driver = server.getAnalysisDriver(file.path);
 
@@ -37,7 +40,10 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
     OperationPerformance? performance,
   }) async {
     // These assists are only provided as literal CodeActions.
-    if (!supportsLiterals) {
+    if (!allowCodeActionLiterals) {
+      // TODO(dantup): Support this (via createCodeActionLiteralOrApplyCommand)
+      //  this will require plugins to create stable IDs/kinds so we can look
+      //  them back up in `applyCodeAction`.
       return [];
     }
 
@@ -57,7 +63,10 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
     OperationPerformance? performance,
   ) async {
     // These fixes are only provided as literal CodeActions.
-    if (!supportsLiterals) {
+    if (!allowCodeActionLiterals) {
+      // TODO(dantup): Support this (via createCodeActionLiteralOrApplyCommand)
+      //  this will require plugins to create stable IDs/kinds so we can look
+      //  them back up in `applyCodeAction`.
       return [];
     }
 
@@ -110,8 +119,8 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
       server.uriConverter,
       (_) => lineInfo,
       fixes.error,
-      supportedTags: supportedDiagnosticTags,
-      clientSupportsCodeDescription: supportsCodeDescription,
+      supportedTags: callerSupportedDiagnosticTags,
+      clientSupportsCodeDescription: callerSupportsCodeDescription,
     );
     return fixes.fixes.map((fix) {
       var kind = toCodeActionKind(fix.change.id, CodeActionKind.QuickFix);

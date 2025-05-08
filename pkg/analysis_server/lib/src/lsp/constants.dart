@@ -104,6 +104,7 @@ abstract final class Commands {
   /// commands should be sent to the server for execution (as opposed to being
   /// executed in the local plugin).
   static final serverSupportedCommands = [
+    applyCodeAction,
     sortMembers,
     organizeImports,
     fixAll,
@@ -116,6 +117,7 @@ abstract final class Commands {
     // Add commands for each of the new refactorings.
     ...RefactoringProcessor.generators.keys,
   ];
+  static const applyCodeAction = 'dart.edit.codeAction.apply';
   static const sortMembers = 'dart.edit.sortMembers';
   static const organizeImports = 'dart.edit.organizeImports';
   static const fixAll = 'dart.edit.fixAll';

@@ -53,6 +53,7 @@ For more information about the server's capabilities and configuration, see:
         if (!Sdk.checkArtifactExists(sdk.dartAotRuntime)) {
           return _genericErrorExitCode;
         }
+        args = [...args];
         args.remove('--$useAotSnapshotFlag');
         VmInteropHandler.run(
           sdk.dartAotRuntime,

@@ -5,6 +5,7 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/extensions/code_action.dart';
+import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
@@ -16,7 +17,8 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../utils/test_code_extensions.dart';
-import 'code_actions_abstract.dart';
+import 'code_actions_mixin.dart';
+import 'server_abstract.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -46,7 +48,8 @@ class DeprecatedCamelCaseTypes extends LintRule {
 }
 
 @reflectiveTest
-class FixesCodeActionsTest extends AbstractCodeActionsTest {
+class FixesCodeActionsTest extends AbstractLspAnalysisServerTest
+    with CodeActionsTestMixin {
   /// Helper to check plugin fixes for [filePath].
   ///
   /// Used to ensure that both Dart and non-Dart files fixes are returned.
@@ -108,7 +111,15 @@ bar
   @override
   void setUp() {
     super.setUp();
+
+    // Fix tests are likely to have diagnostics that need fixing.
+    failTestOnErrorDiagnostic = false;
+
+    setApplyEditSupport();
+    setDocumentChangesSupport();
     setSupportedCodeActionKinds([CodeActionKind.QuickFix]);
+
+    registerBuiltInFixGenerators();
   }
 
   Future<void> test_addImport_noPreference() async {

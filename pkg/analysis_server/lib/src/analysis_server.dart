@@ -110,6 +110,15 @@ abstract class AnalysisServer {
   /// The object through which analytics are to be sent.
   final AnalyticsManager analyticsManager;
 
+  /// The versions of each document known to the server (keyed by path), used to
+  /// send back to the client for server-initiated edits so that the client can
+  /// ensure they have a matching version of the document before applying them.
+  ///
+  /// Handlers should prefer to use the `getVersionedDocumentIdentifier` method
+  /// which will return a null-versioned identifier if the document version is
+  /// not known.
+  final Map<String, int> documentVersions = {};
+
   /// A connection to DTD (the Dart Tooling Daemon) that allows other clients to
   /// call server functionality.
   ///
@@ -635,8 +644,8 @@ abstract class AnalysisServer {
     return analysisContext.driver.dartdocDirectiveInfo;
   }
 
-  /// Gets the current version number of a document (if known).
-  int? getDocumentVersion(String path);
+  /// Gets the current version number of a document.
+  int? getDocumentVersion(String path) => documentVersions[path];
 
   /// Return a [Future] that completes with the [Element] at the given
   /// [offset] of the given [file], or with `null` if there is no node at the
@@ -765,7 +774,7 @@ abstract class AnalysisServer {
     String path,
   ) {
     return lsp.OptionalVersionedTextDocumentIdentifier(
-      uri: resourceProvider.pathContext.toUri(path),
+      uri: uriConverter.toClientUri(path),
       version: getDocumentVersion(path),
     );
   }

@@ -77,15 +77,6 @@ class LspAnalysisServer extends AnalysisServer {
   /// be sent.
   final LspServerCommunicationChannel channel;
 
-  /// The versions of each document known to the server (keyed by path), used to
-  /// send back to the client for server-initiated edits so that the client can
-  /// ensure they have a matching version of the document before applying them.
-  ///
-  /// Handlers should prefer to use the `getVersionedDocumentIdentifier` method
-  /// which will return a null-versioned identifier if the document version is
-  /// not known.
-  final Map<String, VersionedTextDocumentIdentifier> documentVersions = {};
-
   /// The message handler for the server based on the current state
   /// (uninitialized, initializing, initialized, etc.).
   late ServerStateMessageHandler messageHandler;
@@ -388,28 +379,6 @@ class LspAnalysisServer extends AnalysisServer {
     // Don't await this because it involves sending requests to the client (for
     // config) that should not stop/delay initialization.
     unawaited(capabilitiesComputer.performDynamicRegistration());
-  }
-
-  /// Gets the current version number of a document.
-  @override
-  int? getDocumentVersion(String path) => documentVersions[path]?.version;
-
-  /// Gets the current identifier/version of a document known to the server,
-  /// returning an [OptionalVersionedTextDocumentIdentifier] with a version of
-  /// `null` if the document version is not known.
-  ///
-  /// Prefer using [HandlerHelperMixin.extractDocumentVersion] when you
-  /// already have a [TextDocumentIdentifier] from the client because it is
-  /// guaranteed to be what the client expected and not just the current version
-  /// the server has.
-  @override
-  OptionalVersionedTextDocumentIdentifier getVersionedDocumentIdentifier(
-    String path,
-  ) {
-    return OptionalVersionedTextDocumentIdentifier(
-      uri: uriConverter.toClientUri(path),
-      version: getDocumentVersion(path),
-    );
   }
 
   @override

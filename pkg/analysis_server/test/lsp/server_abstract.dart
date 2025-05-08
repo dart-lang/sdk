@@ -1675,10 +1675,10 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin, LspEditHelpersMixin
   }
 }
 
-/// An [AbstractLspAnalysisServerTest] that provides an implementation of
-/// [SharedTestInterface] to allow tests to be shared between server/test kinds.
-abstract class SharedAbstractLspAnalysisServerTest
-    extends AbstractLspAnalysisServerTest
+/// A mixin for [AbstractLspAnalysisServerTest] that provides an implementation
+/// of [SharedTestInterface] to allow tests to be shared between server/test
+/// kinds.
+mixin LspSharedTestMixin on AbstractLspAnalysisServerTest
     implements SharedTestInterface {
   @override
   String get testFilePath => join(projectFolderPath, 'lib', 'test.dart');
