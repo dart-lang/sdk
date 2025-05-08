@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:html';
 import 'dart:async';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/nav/notify_event.dart';
 import 'package:observatory/src/elements/nav/notify_exception.dart';
@@ -46,22 +49,22 @@ class NavNotifyElement extends CustomElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = <Element>[];
+    removeChildren();
     _r.disable(notify: true);
     _subscription!.cancel();
   }
 
   void render() {
-    children = <Element>[
-      new DivElement()
-        ..children = <Element>[
-          new DivElement()
-            ..children = _repository
+    children = <HTMLElement>[
+      new HTMLDivElement()
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..appendChildren(_repository
                 .list()
                 .where(_filter)
-                .map<Element>(_toElement)
-                .toList()
-        ]
+                .map<HTMLElement>(_toElement)
+                .toList())
+        ])
     ];
   }
 
@@ -72,7 +75,7 @@ class NavNotifyElement extends CustomElement implements Renderable {
     return true;
   }
 
-  Element _toElement(M.Notification notification) {
+  HTMLElement _toElement(M.Notification notification) {
     if (notification is M.EventNotification) {
       return (new NavNotifyEventElement(notification.event, queue: _r.queue)
             ..onDelete.listen((_) => _repository.delete(notification)))
@@ -84,7 +87,7 @@ class NavNotifyElement extends CustomElement implements Renderable {
           .element;
     } else {
       assert(false);
-      return new DivElement()..text = 'Invalid Notification Type';
+      return new HTMLDivElement()..textContent = 'Invalid Notification Type';
     }
   }
 }

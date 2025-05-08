@@ -89,7 +89,7 @@ class ExportLocation {
         other.exportIndex == exportIndex;
   }
 
-  LibraryExportElementImpl exportOf(LibraryElementImpl library) {
+  LibraryExportImpl exportOf(LibraryElementImpl library) {
     var fragment = library.units[fragmentIndex];
     return fragment.libraryExports[exportIndex];
   }

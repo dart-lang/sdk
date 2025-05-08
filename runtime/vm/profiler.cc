@@ -606,7 +606,7 @@ class SampleBlockCleanupVisitor : public IsolateVisitor {
 };
 
 void Profiler::Cleanup() {
-  if (!FLAG_profiler) {
+  if (!FLAG_profiler && !initialized_) {
     return;
   }
   ASSERT(initialized_);

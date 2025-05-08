@@ -4,10 +4,11 @@
 
 library field_script_test;
 
-import 'package:observatory/service_io.dart';
 import 'package:test/test.dart';
-import 'test_helper.dart';
+
+import 'package:observatory/service_io.dart';
 import 'service_test_common.dart';
+import 'test_helper.dart';
 
 part 'field_script_other.dart';
 
@@ -26,7 +27,7 @@ var tests = <IsolateTest>[
       await f.load();
       String locationString = await f.location!.toUserString();
       if (f.name == "tests") {
-        expect(locationString, "field_script_test.dart:18:5");
+        expect(locationString, "field_script_test.dart:19:5");
       } else if (f.name == "otherField") {
         expect(locationString, "field_script_other.dart:7:5");
       } else {

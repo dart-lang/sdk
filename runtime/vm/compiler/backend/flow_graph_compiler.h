@@ -334,6 +334,28 @@ class LateInitializationErrorSlowPath : public ThrowErrorSlowPathCode {
   }
 };
 
+class FieldAccessErrorSlowPath : public ThrowErrorSlowPathCode {
+ public:
+  explicit FieldAccessErrorSlowPath(Instruction* instruction)
+      : ThrowErrorSlowPathCode(
+            instruction,
+            kStaticFieldAccessedWithoutIsolateErrorRuntimeEntry) {
+    ASSERT(instruction->IsStoreStaticField());
+  }
+  virtual const char* name() { return "field access error"; }
+
+  virtual intptr_t GetNumberOfArgumentsForRuntimeCall() {
+    return 1;  // field
+  }
+
+  virtual void PushArgumentsForRuntimeCall(FlowGraphCompiler* compiler);
+
+ private:
+  FieldPtr OriginalField() const {
+    return instruction()->AsStoreStaticField()->field().Original();
+  }
+};
+
 class FlowGraphCompiler : public ValueObject {
  private:
   class BlockInfo : public ZoneAllocated {

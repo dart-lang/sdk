@@ -135,11 +135,6 @@ class ElementDisplayStringBuilder {
     }
   }
 
-  void writeExportElement(LibraryExportElementImpl element) {
-    _write('export ');
-    _writeDirectiveUri(element.uri);
-  }
-
   void writeExtensionElement(ExtensionFragmentImpl element) {
     if (element.isAugmentation) {
       _write('augment ');
@@ -210,11 +205,6 @@ class ElementDisplayStringBuilder {
     _writeFormalParameters(element.parameters, forElement: true);
   }
 
-  void writeImportElement(LibraryImportElementImpl element) {
-    _write('import ');
-    _writeDirectiveUri(element.uri);
-  }
-
   void writeInterfaceType(InterfaceType type) {
     if (_maybeWriteTypeAlias(type)) {
       return;
@@ -232,6 +222,16 @@ class ElementDisplayStringBuilder {
   void writeLibraryElement(LibraryElementImpl element) {
     _write('library ');
     _write('${element.source.uri}');
+  }
+
+  void writeLibraryExport(LibraryExportImpl element) {
+    _write('export ');
+    _writeDirectiveUri(element.uri);
+  }
+
+  void writeLibraryImport(LibraryImportImpl element) {
+    _write('import ');
+    _writeDirectiveUri(element.uri);
   }
 
   void writeMixinElement(MixinFragmentImpl element) {
@@ -253,7 +253,7 @@ class ElementDisplayStringBuilder {
     _writeNullability(type.nullabilitySuffix);
   }
 
-  void writePartElement(PartElementImpl element) {
+  void writePartInclude(PartIncludeImpl element) {
     _write('part ');
     _writeDirectiveUri(element.uri);
   }
@@ -649,7 +649,7 @@ class ElementDisplayStringBuilder {
 
 enum _WriteFormalParameterKind { requiredPositional, optionalPositional, named }
 
-extension on LibraryImportElementImpl {
+extension on LibraryImportImpl {
   String get libraryName {
     if (uri case DirectiveUriWithRelativeUriString uri) {
       return uri.relativeUriString;

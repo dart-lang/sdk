@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:observatory/service_io.dart';
+import 'dart:async';
+
 import 'package:test/test.dart';
+
+import 'package:observatory/service_io.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
-import 'dart:async';
-
-const int LINE_A = 22;
+const int LINE_A = 23;
 
 int value = 0;
 
@@ -19,7 +20,7 @@ int incValue(int amount) {
 }
 
 Future testMain() async {
-  incValue(incValue(1)); // line A.
+  incValue(incValue(1));  // LINE_A
 }
 
 var tests = <IsolateTest>[

@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/clients/build_resolvers/build_resolvers.dart';
@@ -66,7 +66,13 @@ class ParseResult {
   final String content;
   final LineInfo lineInfo;
   final CompilationUnit unit;
-  final List<AnalysisError> errors;
+  final List<Diagnostic> diagnostics;
 
-  ParseResult(this.path, this.content, this.lineInfo, this.unit, this.errors);
+  ParseResult(
+    this.path,
+    this.content,
+    this.lineInfo,
+    this.unit,
+    this.diagnostics,
+  );
 }

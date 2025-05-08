@@ -245,15 +245,6 @@ class _EnumElementFragmentBodyBuilderContext extends BodyBuilderContext {
 
   @override
   // Coverage-ignore(suite): Not run.
-  AugmentSuperTarget? get augmentSuperTarget {
-    if (_fragment.builder.isAugmentation) {
-      return _fragment.builder.augmentSuperTarget;
-    }
-    return null;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
   ConstantContext get constantContext {
     return ConstantContext.inferred;
   }
@@ -353,8 +344,11 @@ class EnumElementDeclaration
   }
 
   @override
-  void buildFieldOutlineNode(SourceLibraryBuilder libraryBuilder,
-      NameScheme nameScheme, BuildNodesCallback f, FieldReference references,
+  void buildFieldOutlineNode(
+      SourceLibraryBuilder libraryBuilder,
+      NameScheme nameScheme,
+      BuildNodesCallback f,
+      PropertyReferences references,
       {required List<TypeParameter>? classTypeParameters}) {
     _field = new Field.immutable(dummyName,
         type: _type,
@@ -363,7 +357,7 @@ class EnumElementDeclaration
         isStatic: true,
         fileUri: fileUri,
         fieldReference: references.fieldReference,
-        getterReference: references.fieldGetterReference,
+        getterReference: references.getterReference,
         isEnumElement: true)
       ..fileOffset = nameOffset
       ..fileEndOffset = nameOffset;

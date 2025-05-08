@@ -5,8 +5,10 @@
 library vm_references_test;
 
 import 'dart:mirrors';
-import 'package:observatory/service_io.dart';
+
 import 'package:test/test.dart';
+
+import 'package:observatory/service_io.dart';
 import 'test_helper.dart';
 
 class Foo {}

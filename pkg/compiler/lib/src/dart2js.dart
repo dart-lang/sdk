@@ -486,8 +486,6 @@ Future<api.CompilationResult> compile(
     _OneOption(Flags.stopAfterProgramSplit, passThrough),
     _OneOption(Flags.disableTypeInference, passThrough),
     _OneOption(Flags.useTrivialAbstractValueDomain, passThrough),
-    _OneOption(Flags.experimentalWrapped, passThrough),
-    _OneOption(Flags.experimentalPowersets, passThrough),
     _OneOption(Flags.disableRtiOptimization, passThrough),
     _OneOption(Flags.terse, passThrough),
     _OneOption('--deferred-map=.+', passThrough),
@@ -538,6 +536,7 @@ Future<api.CompilationResult> compile(
     _OneOption('${Flags.invoker}=.+', setInvoker),
     _OneOption('${Flags.verbosity}=.+', passThrough),
     _OneOption(Flags.disableDiagnosticByteCache, passThrough),
+    _OneOption(Flags.enableDeferredLoadingEventLog, passThrough),
 
     // Experimental features.
     // We don't provide documentation for these yet.

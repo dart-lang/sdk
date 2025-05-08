@@ -4,10 +4,11 @@
 
 import 'dart:collection';
 import 'dart:developer';
-import 'package:observatory/models.dart' show InstanceKind;
-import 'package:observatory/service_io.dart';
+
 import 'package:test/test.dart';
 
+import 'package:observatory/models.dart' show InstanceKind;
+import 'package:observatory/service_io.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
@@ -44,7 +45,7 @@ void testFunction() {
 }
 
 void fooxx<E extends String>(List<E> y) {
-  List<E> x = new List<E>.from(["hello"]);
+  List<E> x = new List<E>.from(["hello"]);  // ignore:unused_local_variable
 }
 
 var tests = <IsolateTest>[

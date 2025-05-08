@@ -326,16 +326,16 @@
         "use-elf": true
       }
     },
-    "vm-asan-(linux|mac)-(debug|product|release)-(ia32|x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {},
+    "vm-asan-(linux|mac|win)-(debug|product|release)-(ia32|x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {},
     "vm-lsan-(linux|mac)-(debug|product|release)-(ia32|x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {},
     "vm-msan-linux-(debug|product|release)-(x64|arm64|simarm64|simriscv64)": {},
     "vm-tsan-(linux|mac)-(debug|product|release)-(x64|arm64|simarm64|simriscv64)": {},
-    "vm-ubsan-(linux|mac)-(debug|product|release)-(ia32|x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {},
-    "vm-aot-asan-(linux|mac)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {},
+    "vm-ubsan-(linux|mac|win)-(debug|product|release)-(ia32|x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {},
+    "vm-aot-asan-(linux|mac|win)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {},
     "vm-aot-lsan-(linux|mac)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {},
     "vm-aot-msan-linux-(debug|product|release)-(x64|arm64|simarm64|simriscv64)": {},
     "vm-aot-tsan-(linux|mac)-(debug|product|release)-(x64|arm64|simarm64|simriscv64)": {},
-    "vm-aot-ubsan-(linux|mac)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {},
+    "vm-aot-ubsan-(linux|mac|win)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {},
     "dart2js-(linux|win)-chrome": {
       "options": {
         "use-sdk": true
@@ -1372,40 +1372,14 @@
     {
       "builders": [
         "vm-asan-linux-release-x64",
+        "vm-asan-mac-release-x64",
+        "vm-asan-win-release-x64",
         "vm-msan-linux-release-x64",
         "vm-tsan-linux-release-x64",
         "vm-ubsan-linux-release-x64"
       ],
       "meta": {
-        "description": "This configuration is used by the VM/JIT builders with sanitizers."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "runtime"
-          ]
-        },
-        {
-          "name": "vm tests",
-          "arguments": [
-            "-nvm-${sanitizer}-${system}-${mode}-${arch}"
-          ],
-          "fileset": "vm",
-          "shards": 8
-        }
-      ]
-    },
-    {
-      "builders": [
-        "vm-aot-asan-linux-release-x64",
-        "vm-aot-msan-linux-release-x64",
-        "vm-aot-tsan-linux-release-x64",
-        "vm-aot-ubsan-linux-release-x64"
-      ],
-      "meta": {
-        "description": "This configuration is used by the VM/AOT builders with sanitizers."
+        "description": "This configuration is used by the X64 sanitizers."
       },
       "steps": [
         {
@@ -1418,12 +1392,20 @@
           ]
         },
         {
-          "name": "vm tests",
+          "name": "vm tests (jit)",
+          "arguments": [
+            "-nvm-${sanitizer}-${system}-${mode}-${arch}"
+          ],
+          "fileset": "vm",
+          "shards": 6
+        },
+        {
+          "name": "vm tests (aot)",
           "arguments": [
             "-nvm-aot-${sanitizer}-${system}-${mode}-${arch}"
           ],
           "fileset": "vm",
-          "shards": 12
+          "shards": 14
         }
       ]
     },
@@ -1447,7 +1429,7 @@
           ]
         },
         {
-          "name": "vm tests",
+          "name": "vm tests (jit)",
           "arguments": [
             "-nvm-${sanitizer}-${system}-${mode}-${arch}",
             "ffi",
@@ -1457,7 +1439,7 @@
           "shards": 1
         },
         {
-          "name": "vm tests",
+          "name": "vm tests (aot)",
           "arguments": [
             "-nvm-aot-${sanitizer}-${system}-${mode}-${arch}",
             "ffi",
@@ -2387,7 +2369,7 @@
         "vm-reload-linux-release-x64"
       ],
       "meta": {
-        "description": "This is the configuration for the kernel hot reload builders."
+        "description": "This is the configuration for the hot reload builders."
       },
       "steps": [
         {
@@ -2398,51 +2380,17 @@
           ]
         },
         {
-          "name": "vm tests",
+          "name": "vm tests (identity reload)",
           "arguments": [
-            "-nvm-reload-${system}-${mode}-${arch}",
-            "corelib",
-            "ffi",
-            "language",
-            "lib",
-            "samples",
-            "standalone",
-            "utils",
-            "vm"
+            "-nvm-reload-${system}-${mode}-${arch}"
           ],
           "fileset": "vm",
           "shards": 10
-        }
-      ]
-    },
-    {
-      "builders": [
-        "vm-reload-rollback-linux-debug-x64",
-        "vm-reload-rollback-linux-release-x64"
-      ],
-      "meta": {
-        "description": "This is the configuration for kernel reload rollback builders."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "runtime"
-          ]
         },
         {
-          "name": "vm tests",
+          "name": "vm tests (reload rollback)",
           "arguments": [
-            "-nvm-reload-rollback-linux-${mode}-${arch}",
-            "corelib",
-            "ffi",
-            "language",
-            "lib",
-            "samples",
-            "standalone",
-            "utils",
-            "vm"
+            "-nvm-reload-rollback-linux-${mode}-${arch}"
           ],
           "fileset": "vm",
           "shards": 10
@@ -3624,7 +3572,6 @@
     },
     {
       "builders": [
-        "iso-stress-linux",
         "iso-stress-linux-x64",
         "iso-stress-linux-arm64"
       ],
@@ -3633,52 +3580,25 @@
       },
       "steps": [
         {
-          "name": "Build Dart VM - JIT and AOT - gen_snapshot",
+          "name": "build dart (debug)",
           "script": "tools/build.py",
           "arguments": [
-            "--mode=debug,release",
-            "gen_snapshot"
-          ]
-        },
-        {
-          "name": "Build Dart VM - JIT and AOT - runtime/bin:dart, run_vm_tests",
-          "script": "tools/build.py",
-          "arguments": [
-            "--mode=debug,release",
-            "runtime/bin:dart",
-            "runtime/bin:run_vm_tests"
-          ]
-        },
-        {
-          "name": "Build Dart VM - JIT and AOT - runtime, dartaotruntime",
-          "script": "tools/build.py",
-          "arguments": [
-            "--mode=debug,release",
+            "--mode=debug",
             "runtime",
             "dartaotruntime"
           ]
         },
         {
-          "name": "Build Dart VM - JIT and AOT (Release TSAN) - gen_snapshot",
+          "name": "build dart (release)",
           "script": "tools/build.py",
           "arguments": [
             "--mode=release",
-            "--sanitizer=tsan",
-            "gen_snapshot"
+            "runtime",
+            "dartaotruntime"
           ]
         },
         {
-          "name": "Build Dart VM - JIT and AOT (Release TSAN)- runtime/bin:dart, run_vm_tests",
-          "script": "tools/build.py",
-          "arguments": [
-            "--mode=release",
-            "--sanitizer=tsan",
-            "runtime/bin:dart",
-            "runtime/bin:run_vm_tests"
-          ]
-        },
-        {
-          "name": "Build Dart VM - JIT and AOT (Release TSAN) - runtime, dartaotruntime",
+          "name": "build dart (release tsan)",
           "script": "tools/build.py",
           "arguments": [
             "--mode=release",
@@ -3729,7 +3649,7 @@
             "--arch=${arch}",
             "--copy-coredumps"
           ],
-          "shards": 10,
+          "shards": 4,
           "fileset": "vm"
         }
       ]

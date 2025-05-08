@@ -4,10 +4,12 @@
 
 library get_object_rpc_test;
 
-import 'dart:typed_data';
 import 'dart:convert' show base64Decode;
-import 'package:observatory/service_io.dart';
+import 'dart:typed_data';
+
 import 'package:test/test.dart';
+
+import 'package:observatory/service_io.dart';
 import 'test_helper.dart';
 
 abstract class _DummyAbstractBaseClass {
@@ -15,9 +17,9 @@ abstract class _DummyAbstractBaseClass {
 }
 
 class _DummyClass extends _DummyAbstractBaseClass {
-  static var dummyVar = 11;
+  static var dummyVar = 11; // ignore: unused_field
   final List<String> dummyList = new List<String>.filled(20, '');
-  static var dummyVarWithInit = foo();
+  static var dummyVarWithInit = foo(); // ignore: unused_field
   late String dummyLateVarWithInit = 'bar';
   late String dummyLateVar;
   @override

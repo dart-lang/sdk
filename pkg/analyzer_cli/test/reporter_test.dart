@@ -4,10 +4,12 @@
 
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_cli/src/ansi.dart' as ansi;
 import 'package:analyzer_cli/src/error_formatter.dart';
 import 'package:test/test.dart' hide ErrorFormatter;
@@ -115,7 +117,7 @@ ErrorsResultImpl mockResult(DiagnosticType type, DiagnosticSeverity severity) {
   var lineInfo = MockLineInfo(defaultLocation: location);
 
   // File
-  var resourceProvider = MemoryResourceProvider();
+  ResourceProvider resourceProvider = MemoryResourceProvider();
   var path = '/foo/bar/baz.dart';
   var file = resourceProvider.getFile(resourceProvider.convertPath(path));
 

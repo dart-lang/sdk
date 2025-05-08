@@ -313,7 +313,10 @@ class FfiTransformer extends Transformer {
   final Procedure nativeCallbackFunctionProcedure;
   final Procedure nativeAsyncCallbackFunctionProcedure;
   final Procedure createNativeCallableIsolateLocalProcedure;
+  final Procedure createNativeCallableIsolateGroupSharedProcedure;
   final Procedure nativeIsolateLocalCallbackFunctionProcedure;
+  final Procedure nativeIsolateGroupSharedCallbackFunctionProcedure;
+  final Procedure nativeIsolateGroupSharedClosureFunctionProcedure;
   final Map<NativeType, Procedure> loadMethods;
   final Map<NativeType, Procedure> loadUnalignedMethods;
   final Map<NativeType, Procedure> storeMethods;
@@ -337,7 +340,9 @@ class FfiTransformer extends Transformer {
   final Class rawRecvPortClass;
   final Class nativeCallableClass;
   final Procedure nativeCallableIsolateLocalConstructor;
+  final Procedure nativeCallableIsolateGroupSharedConstructor;
   final Constructor nativeCallablePrivateIsolateLocalConstructor;
+  final Constructor nativeCallablePrivateIsolateGroupSharedConstructor;
   final Procedure nativeCallableListenerConstructor;
   final Constructor nativeCallablePrivateListenerConstructor;
   final Field nativeCallablePortField;
@@ -821,6 +826,11 @@ class FfiTransformer extends Transformer {
         'dart:ffi',
         '_createNativeCallableIsolateLocal',
       ),
+      createNativeCallableIsolateGroupSharedProcedure = index
+          .getTopLevelProcedure(
+            'dart:ffi',
+            '_createNativeCallableIsolateGroupShared',
+          ),
       nativeCallbackFunctionProcedure = index.getTopLevelProcedure(
         'dart:ffi',
         '_nativeCallbackFunction',
@@ -833,6 +843,16 @@ class FfiTransformer extends Transformer {
         'dart:ffi',
         '_nativeIsolateLocalCallbackFunction',
       ),
+      nativeIsolateGroupSharedCallbackFunctionProcedure = index
+          .getTopLevelProcedure(
+            'dart:ffi',
+            '_nativeIsolateGroupSharedCallbackFunction',
+          ),
+      nativeIsolateGroupSharedClosureFunctionProcedure = index
+          .getTopLevelProcedure(
+            'dart:ffi',
+            '_nativeIsolateGroupSharedClosureFunction',
+          ),
       nativeTypesClasses = nativeTypeClassNames.map(
         (nativeType, name) =>
             MapEntry(nativeType, index.getClass('dart:ffi', name)),
@@ -937,6 +957,11 @@ class FfiTransformer extends Transformer {
         'NativeCallable',
         'isolateLocal',
       ),
+      nativeCallableIsolateGroupSharedConstructor = index.getProcedure(
+        'dart:ffi',
+        'NativeCallable',
+        'isolateGroupShared',
+      ),
       nativeCallablePrivateIsolateLocalConstructor = index.getConstructor(
         'dart:ffi',
         '_NativeCallableIsolateLocal',
@@ -950,6 +975,11 @@ class FfiTransformer extends Transformer {
       nativeCallablePrivateListenerConstructor = index.getConstructor(
         'dart:ffi',
         '_NativeCallableListener',
+        '',
+      ),
+      nativeCallablePrivateIsolateGroupSharedConstructor = index.getConstructor(
+        'dart:ffi',
+        '_NativeCallableIsolateGroupShared',
         '',
       ),
       nativeCallablePortField = index.getField(

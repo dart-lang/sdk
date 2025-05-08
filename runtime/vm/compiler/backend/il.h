@@ -5918,7 +5918,7 @@ class DropTempsInstr : public Definition {
 class MakeTempInstr : public TemplateDefinition<0, NoThrow, Pure> {
  public:
   explicit MakeTempInstr(Zone* zone)
-      : null_(new(zone) ConstantInstr(Object::ZoneHandle())) {
+      : null_(new (zone) ConstantInstr(Object::ZoneHandle())) {
     // Note: We put ConstantInstr inside MakeTemp to simplify code generation:
     // having ConstantInstr allows us to use Location::Constant(null_) as an
     // output location for this instruction.
@@ -6710,12 +6710,13 @@ class LoadStaticFieldInstr : public TemplateLoadField<0> {
   DISALLOW_COPY_AND_ASSIGN(LoadStaticFieldInstr);
 };
 
-class StoreStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
+class StoreStaticFieldInstr : public TemplateDefinition<1, Throws> {
  public:
   StoreStaticFieldInstr(const Field& field,
                         Value* value,
-                        const InstructionSource& source)
-      : TemplateDefinition(source),
+                        const InstructionSource& source,
+                        intptr_t deopt_id)
+      : TemplateDefinition(source, deopt_id),
         field_(field),
         token_pos_(source.token_pos) {
     DEBUG_ASSERT(field.IsNotTemporaryScopedHandle());
@@ -6731,6 +6732,9 @@ class StoreStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
   Value* value() const { return inputs_[kValuePos]; }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
+    return FLAG_experimental_shared_data;
+  }
 
   // Currently CSE/LICM don't operate on any instructions that can be affected
   // by stores/loads. LoadOptimizer handles loads separately. Hence stores
@@ -6738,6 +6742,9 @@ class StoreStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool MayHaveVisibleEffect() const { return true; }
+
+  virtual bool CanTriggerGC() const { return FLAG_experimental_shared_data; }
+  virtual bool MayThrow() const { return FLAG_experimental_shared_data; }
 
   virtual TokenPosition token_pos() const { return token_pos_; }
 

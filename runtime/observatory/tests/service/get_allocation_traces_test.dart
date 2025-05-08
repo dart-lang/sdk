@@ -3,10 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:developer';
-import 'package:observatory/models.dart' as M;
-import 'package:observatory/service_io.dart';
-import 'package:observatory/sample_profile.dart';
+
 import 'package:test/test.dart';
+
+import 'package:observatory/models.dart' as M;
+import 'package:observatory/sample_profile.dart';
+import 'package:observatory/service_io.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
@@ -39,7 +41,7 @@ void test() {
 
 var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
-  stoppedAtLine(27),
+  stoppedAtLine(29),
 
   // Initial.
   (Isolate isolate) async {
@@ -55,7 +57,7 @@ var tests = <IsolateTest>[
 
   resumeIsolate,
   hasStoppedAtBreakpoint,
-  stoppedAtLine(34),
+  stoppedAtLine(36),
 
   // Allocation profile.
   (Isolate isolate) async {
@@ -110,7 +112,7 @@ var tests = <IsolateTest>[
 
   resumeIsolate,
   hasStoppedAtBreakpoint,
-  stoppedAtLine(37),
+  stoppedAtLine(39),
 
   (Isolate isolate) async {
     // Ensure the allocation of `Bar()` was recorded.

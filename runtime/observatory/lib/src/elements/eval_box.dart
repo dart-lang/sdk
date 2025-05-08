@@ -4,12 +4,15 @@
 
 library eval_box_element;
 
-import 'dart:html';
 import 'dart:async';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/helpers/any_ref.dart';
-import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 
 class EvalBoxElement extends CustomElement implements Renderable {
   late RenderingScheduler<EvalBoxElement> _r;
@@ -56,80 +59,79 @@ class EvalBoxElement extends CustomElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = <Element>[];
+    removeChildren();
     _results.clear();
   }
 
   void render() {
-    children = <Element>[
-      new DivElement()
-        ..classes = ['quicks']
-        ..children = _quickExpressions
-            .map<Element>((q) => new ButtonElement()
-              ..text = q
+    setChildren(<HTMLElement>[
+      new HTMLDivElement()
+        ..className = 'quicks'
+        ..appendChildren(
+            _quickExpressions.map<HTMLElement>((q) => new HTMLButtonElement()
+              ..textContent = q
               ..onClick.listen((_) {
                 _expression = q;
                 _run();
-              }))
-            .toList(),
-      new DivElement()
-        ..classes = ['heading']
-        ..children = <Element>[
-          new FormElement()
+              }))),
+      new HTMLDivElement()
+        ..className = 'heading'
+        ..appendChildren(<HTMLElement>[
+          new HTMLFormElement()
             ..autocomplete = 'on'
-            ..children = <Element>[
+            ..appendChildren(<HTMLElement>[
               _multiline ? _createEvalTextArea() : _createEvalTextBox(),
-              new SpanElement()
-                ..classes = ['buttons']
-                ..children = <Element>[
+              new HTMLSpanElement()
+                ..className = 'buttons'
+                ..appendChildren(<HTMLElement>[
                   _createEvalButton(),
                   _createMultilineCheckbox(),
-                  new SpanElement()..text = 'Multi-line'
-                ]
-            ]
-        ],
-      new TableElement()
-        ..children = _results.reversed
-            .map<Element>((result) => new TableRowElement()
-              ..children = <Element>[
-                new TableCellElement()
-                  ..classes = ['historyExpr']
-                  ..children = <Element>[
-                    new ButtonElement()
-                      ..text = result.expression
+                  new HTMLSpanElement()..textContent = 'Multi-line'
+                ])
+            ])
+        ]),
+      new HTMLTableElement()
+        ..appendChildren(_results.reversed
+            .map<HTMLElement>((result) => new HTMLTableRowElement()
+              ..appendChildren(<HTMLElement>[
+                new HTMLTableCellElement.td()
+                  ..className = 'historyExpr'
+                  ..appendChildren(<HTMLElement>[
+                    new HTMLButtonElement()
+                      ..textContent = result.expression
                       ..onClick.listen((_) {
                         _expression = result.expression;
                         _r.dirty();
                       })
-                  ],
-                new TableCellElement()
-                  ..classes = ['historyValue']
-                  ..children = <Element>[
+                  ]),
+                new HTMLTableCellElement.td()
+                  ..className = 'historyValue'
+                  ..appendChildren(<HTMLElement>[
                     result.isPending
-                        ? (new SpanElement()..text = 'Pending...')
+                        ? (new HTMLSpanElement()..textContent = 'Pending...')
                         : anyRef(_isolate, result.value, _objects,
                             queue: _r.queue)
-                  ],
-                new TableCellElement()
-                  ..classes = ['historyDelete']
-                  ..children = <Element>[
-                    new ButtonElement()
-                      ..text = '✖ Remove'
+                  ]),
+                new HTMLTableCellElement.td()
+                  ..className = 'historyDelete'
+                  ..appendChildren(<HTMLElement>[
+                    new HTMLButtonElement()
+                      ..textContent = '✖ Remove'
                       ..onClick.listen((_) {
                         _results.remove(result);
                         _r.dirty();
                       })
-                  ]
-              ])
-            .toList()
-    ];
+                  ])
+              ]))
+            .toList())
+    ]);
   }
 
-  TextAreaElement _createEvalTextArea() {
-    var area = new TextAreaElement()
-      ..classes = ['textbox']
+  HTMLTextAreaElement _createEvalTextArea() {
+    var area = new HTMLTextAreaElement()
+      ..className = 'textbox'
       ..placeholder = 'evaluate an expression'
-      ..value = _expression
+      ..value = _expression ?? ''
       ..onKeyUp.where((e) => e.key == '\n').listen((e) {
         e.preventDefault();
         _run();
@@ -140,12 +142,13 @@ class EvalBoxElement extends CustomElement implements Renderable {
     return area;
   }
 
-  TextInputElement _createEvalTextBox() {
-    _expression = (_expression ?? '').split('\n')[0];
-    var textbox = new TextInputElement()
-      ..classes = ['textbox']
+  HTMLInputElement _createEvalTextBox() {
+    final expression = (_expression ?? '').split('\n')[0];
+    _expression = expression;
+    var textbox = new HTMLInputElement()
+      ..className = 'textbox'
       ..placeholder = 'evaluate an expression'
-      ..value = _expression
+      ..value = expression
       ..onKeyUp.where((e) => e.key == '\n').listen((e) {
         e.preventDefault();
         _run();
@@ -156,9 +159,9 @@ class EvalBoxElement extends CustomElement implements Renderable {
     return textbox;
   }
 
-  ButtonElement _createEvalButton() {
-    final button = new ButtonElement()
-      ..text = 'Evaluate'
+  HTMLButtonElement _createEvalButton() {
+    final button = new HTMLButtonElement()
+      ..textContent = 'Evaluate'
       ..onClick.listen((e) {
         e.preventDefault();
         _run();
@@ -166,11 +169,13 @@ class EvalBoxElement extends CustomElement implements Renderable {
     return button;
   }
 
-  CheckboxInputElement _createMultilineCheckbox() {
-    final checkbox = new CheckboxInputElement()..checked = _multiline;
+  HTMLInputElement _createMultilineCheckbox() {
+    final checkbox = new HTMLInputElement()
+      ..type = 'checkbox'
+      ..checked = _multiline;
     checkbox.onClick.listen((e) {
       e.preventDefault();
-      _multiline = checkbox.checked!;
+      _multiline = checkbox.checked;
       _r.dirty();
     });
     return checkbox;

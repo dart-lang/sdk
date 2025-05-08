@@ -175,15 +175,15 @@ class HInstructionStringifier implements HVisitor<String> {
         .isDefinitelyTrue) {
       prefix = 'x';
     } else if (instruction
-        .isExtendableArray(_abstractValueDomain)
+        .isGrowableArray(_abstractValueDomain)
         .isDefinitelyTrue) {
-      prefix = 'e';
+      prefix = 'g';
     } else if (instruction
-        .isFixedArray(_abstractValueDomain)
-        .isDefinitelyTrue) {
+        .isGrowableArray(_abstractValueDomain)
+        .isDefinitelyFalse) {
       prefix = 'f';
     } else if (instruction
-        .isMutableArray(_abstractValueDomain)
+        .isModifiableArray(_abstractValueDomain)
         .isDefinitelyTrue) {
       prefix = 'm';
     } else if (instruction.isArray(_abstractValueDomain).isDefinitelyTrue) {

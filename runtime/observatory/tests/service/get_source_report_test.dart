@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:observatory/service_io.dart';
-import 'package:test/test.dart';
-import 'test_helper.dart';
-import 'service_test_common.dart';
 import 'dart:developer';
+
+import 'package:test/test.dart';
+
+import 'package:observatory/service_io.dart';
+import 'service_test_common.dart';
+import 'test_helper.dart';
 
 int globalVar = 100;
 
@@ -73,12 +75,12 @@ var tests = <IsolateTest>[
 
     var expectedRange = {
       'scriptIndex': 0,
-      'startPos': 424,
-      'endPos': 568,
+      'startPos': 426,
+      'endPos': 570,
       'compiled': true,
       'coverage': {
-        'hits': [424, 474, 525, 554],
-        'misses': [487],
+        'hits': [426, 476, 527, 556],
+        'misses': [489],
       }
     };
 

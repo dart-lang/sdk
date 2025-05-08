@@ -335,7 +335,7 @@ class Package implements Comparable<Package> {
         final uriPath = entity.uri.path;
         const excludedPaths = {
           'pkg/analyzer_cli/test/data/',
-          'pkg/analyzer_utilities/lib/test/mock_packages/package_content/',
+          'pkg/analyzer_testing/lib/mock_packages/package_content/',
           'pkg/front_end/test/id_testing/data/',
           'pkg/front_end/test/enable_non_nullable/data/',
           'pkg/front_end/test/language_versioning/data/',

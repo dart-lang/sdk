@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:test/expect.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -45,6 +46,18 @@ const x = const A<bool Function()>();
 
 int Function(int a)? y;
 ''');
+  }
+
+  test_element_enclosingElement2() async {
+    await assertNoErrorsInCode('''
+void f(
+  void Function() a,
+) {}
+''');
+
+    var node = findNode.singleGenericFunctionType;
+    var element = node.declaredFragment!.element;
+    expect(element.enclosingElement2, same(result.libraryElement2));
   }
 
   test_metadata_typeParameter() async {

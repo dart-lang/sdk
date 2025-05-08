@@ -4,11 +4,13 @@
 
 library isolate_ref_element;
 
-import 'dart:html';
 import 'dart:async';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M show IsolateRef, EventRepository;
-import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class IsolateRefElement extends CustomElement implements Renderable {
@@ -48,17 +50,18 @@ class IsolateRefElement extends CustomElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = <Element>[];
+    removeChildren();
     _r.disable(notify: true);
     _updatesSubscription.cancel();
   }
 
   void render() {
     final isolateType = isolate.isSystemIsolate! ? 'System Isolate' : 'Isolate';
-    children = <Element>[
-      new AnchorElement(href: Uris.inspect(isolate))
+    children = <HTMLElement>[
+      new HTMLAnchorElement()
+        ..href = Uris.inspect(isolate)
         ..text = '$isolateType ${isolate.number} (${isolate.name})'
-        ..classes = ['isolate-ref']
+        ..className = 'isolate-ref'
     ];
   }
 }

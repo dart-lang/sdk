@@ -7,7 +7,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/dart/analysis/driver_event.dart' as events;
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
@@ -176,8 +176,18 @@ class DriverEventsPrinter {
     }
   }
 
-  void _writeAnalysisError(AnalysisError e) {
-    sink.writelnWithIndent('${e.offset} +${e.length} ${e.errorCode.name}');
+  void _writeAnalyzeFileEvent(events.AnalyzeFile object) {
+    if (!configuration.withAnalyzeFileEvents) {
+      return;
+    }
+
+    sink.writelnWithIndent('[operation] analyzeFile');
+    sink.withIndent(() {
+      var file = object.file.resource;
+      sink.writelnWithIndent('file: ${file.posixPath}');
+      var libraryFile = object.library.file.resource;
+      sink.writelnWithIndent('library: ${libraryFile.posixPath}');
+    });
   }
 
   void _writeCannotReuseLinkedBundle(events.CannotReuseLinkedBundle event) {
@@ -187,7 +197,15 @@ class DriverEventsPrinter {
     });
   }
 
+  void _writeDiagnostic(Diagnostic d) {
+    sink.writelnWithIndent('${d.offset} +${d.length} ${d.errorCode.name}');
+  }
+
   void _writeErrorsEvent(GetErrorsEvent event) {
+    if (!configuration.withGetErrorsEvents) {
+      return;
+    }
+
     _writeGetEvent(event);
     sink.withIndent(() {
       _writeErrorsResult(event.result);
@@ -218,7 +236,7 @@ class DriverEventsPrinter {
             sink.writeln('---');
           }
 
-          sink.writeElements('errors', result.errors, _writeAnalysisError);
+          sink.writeElements('errors', result.errors, _writeDiagnostic);
         });
       default:
         throw UnimplementedError('${result.runtimeType}');
@@ -496,13 +514,7 @@ class DriverEventsPrinter {
     var object = event.object;
     switch (object) {
       case events.AnalyzeFile():
-        sink.writelnWithIndent('[operation] analyzeFile');
-        sink.withIndent(() {
-          var file = object.file.resource;
-          sink.writelnWithIndent('file: ${file.posixPath}');
-          var libraryFile = object.library.file.resource;
-          sink.writelnWithIndent('library: ${libraryFile.posixPath}');
-        });
+        _writeAnalyzeFileEvent(object);
       case events.AnalyzedLibrary():
         sink.writelnWithIndent('[operation] analyzedLibrary');
         sink.withIndent(() {
@@ -610,11 +622,13 @@ class DriverEventsPrinterConfiguration {
   var unitElementConfiguration = UnitElementPrinterConfiguration();
   var errorsConfiguration = ErrorsResultPrinterConfiguration();
   var elementTextConfiguration = ElementTextConfiguration();
-  var withResultRequirements = false;
+  var withAnalyzeFileEvents = true;
+  var withGetErrorsEvents = true;
   var withGetLibraryByUri = true;
   var withElementManifests = false;
   var withLibraryManifest = false;
   var withLinkBundleEvents = false;
+  var withResultRequirements = false;
   var withSchedulerStatus = true;
   var withStreamResolvedUnitResults = true;
   var requirements = RequirementPrinterConfiguration();
@@ -1276,8 +1290,8 @@ class ResolvedUnitResultPrinter {
     }
   }
 
-  void _writeAnalysisError(AnalysisError e) {
-    sink.writelnWithIndent('${e.offset} +${e.length} ${e.errorCode.name}');
+  void _writeDiagnostic(Diagnostic d) {
+    sink.writelnWithIndent('${d.offset} +${d.length} ${d.errorCode.name}');
   }
 
   void _writeResolvedUnitResult(ResolvedUnitResultImpl result) {
@@ -1313,7 +1327,7 @@ class ResolvedUnitResultPrinter {
         sink.writeln('---');
       }
 
-      sink.writeElements('errors', result.errors, _writeAnalysisError);
+      sink.writeElements('errors', result.errors, _writeDiagnostic);
 
       var nodeToWrite = configuration.nodeSelector(result);
       if (nodeToWrite != null) {

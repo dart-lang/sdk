@@ -2104,8 +2104,12 @@ void GuardFieldLengthInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* StoreStaticFieldInstr::MakeLocationSummary(Zone* zone,
                                                             bool opt) const {
-  LocationSummary* locs =
-      new (zone) LocationSummary(zone, 1, 1, LocationSummary::kNoCall);
+  const bool can_call_to_throw =
+      FLAG_experimental_shared_data && !field().is_shared();
+  LocationSummary* locs = new (zone)
+      LocationSummary(zone, 1, 1,
+                      can_call_to_throw ? LocationSummary::kCallOnSlowPath
+                                        : LocationSummary::kNoCall);
   locs->set_in(0, value()->NeedsWriteBarrier() ? Location::WritableRegister()
                                                : Location::RequiresRegister());
   locs->set_temp(0, Location::RequiresRegister());
@@ -2113,10 +2117,24 @@ LocationSummary* StoreStaticFieldInstr::MakeLocationSummary(Zone* zone,
 }
 
 void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register value = locs()->in(0).reg();
+  Register in = locs()->in(0).reg();
   Register temp = locs()->temp(0).reg();
 
   compiler->used_static_fields().Add(&field());
+
+  if (FLAG_experimental_shared_data && !field().is_shared()) {
+    ThrowErrorSlowPathCode* slow_path = new FieldAccessErrorSlowPath(this);
+    if (value()->NeedsWriteBarrier()) {
+      // Value input is a writable register and should be manually preserved
+      // across allocation slow-path.  Add it to live_registers set which
+      // determines which registers to preserve.
+      locs()->live_registers()->Add(Location::RegisterLocation(in));
+    }
+    compiler->AddSlowPathCode(slow_path);
+
+    __ LoadIsolate(temp);
+    __ BranchIfZero(temp, slow_path->entry_label());
+  }
 
   __ movl(temp,
           compiler::Address(
@@ -2127,7 +2145,7 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Note: static fields ids won't be changed by hot-reload.
   __ movl(
       compiler::Address(temp, compiler::target::FieldTable::OffsetOf(field())),
-      value);
+      in);
 }
 
 LocationSummary* InstanceOfInstr::MakeLocationSummary(Zone* zone,

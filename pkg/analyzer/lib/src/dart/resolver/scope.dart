@@ -139,9 +139,7 @@ class Namespace {
 class NamespaceBuilder {
   /// Create a namespace representing the export namespace of the given
   /// [export].
-  Namespace createExportNamespaceForDirective2(
-    LibraryExportElementImpl export,
-  ) {
+  Namespace createExportNamespaceForDirective2(LibraryExportImpl export) {
     var exportedLibrary = export.exportedLibrary2;
     if (exportedLibrary == null) {
       //

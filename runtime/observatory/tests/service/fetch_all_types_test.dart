@@ -18,7 +18,7 @@ var tests = <IsolateTest>[
 
       Class cls = entry["class"];
       print(cls);
-      dynamic rawInstanceSet = await isolate.invokeRpcNoUpgrade(
+      await isolate.invokeRpcNoUpgrade(
           'getInstances', {'objectId': cls.id, 'limit': 10});
       dynamic instanceSet = await isolate.getInstances(cls, 10);
       for (var instance in instanceSet.instances) {

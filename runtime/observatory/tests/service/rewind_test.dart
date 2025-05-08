@@ -3,17 +3,19 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:developer';
-import 'package:observatory/service_io.dart';
+
 import 'package:test/test.dart';
+
+import 'package:observatory/service_io.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
-int LINE_A = 33;
-int LINE_B = 38;
-int LINE_C = 41;
-int LINE_D = 45;
+int LINE_A = 35;
+int LINE_B = 40;
+int LINE_C = 43;
+int LINE_D = 47;
 
-int LINE_0 = 31;
+int LINE_0 = 33;
 
 int global = 0;
 

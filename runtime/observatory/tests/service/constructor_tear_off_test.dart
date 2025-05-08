@@ -4,9 +4,9 @@
 
 // @dart=2.15
 
-import 'package:observatory/service_common.dart';
 import 'package:test/test.dart';
 
+import 'package:observatory/service_common.dart';
 import 'test_helper.dart';
 
 class Foo {

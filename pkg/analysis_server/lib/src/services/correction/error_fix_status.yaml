@@ -426,8 +426,6 @@ CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT:
   status: needsEvaluation
 CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION:
   status: needsEvaluation
-CompileTimeErrorCode.CONST_EVAL_NULL_AWARE_ACCESS:
-  status: needsEvaluation
 CompileTimeErrorCode.CONST_EVAL_PRIMITIVE_EQUALITY:
   status: needsEvaluation
 CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS:
@@ -1673,6 +1671,8 @@ CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION:
   since: 2.15
 CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR:
   status: hasFix
+CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_DOT_SHORTHAND_CONSTRUCTOR:
+  status: needsEvaluation
 CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM:
   status: noFix
   since: 2.17
@@ -1868,8 +1868,6 @@ LintCode.analyzer_public_api_bad_type:
 LintCode.analyzer_public_api_exports_non_public_name:
   status: noFix
 LintCode.analyzer_public_api_impl_in_public_api:
-  status: noFix
-LintCode.analyzer_use_new_elements:
   status: noFix
 LintCode.annotate_overrides:
   status: hasFix

@@ -159,7 +159,7 @@ final class PubspecValidationContext {
   /// Report an error for the given node.
   void reportErrorForNode(
     YamlNode node,
-    ErrorCode errorCode, [
+    DiagnosticCode diagnosticCode, [
     List<Object>? arguments,
     List<DiagnosticMessage>? messages,
     Object? data,
@@ -168,7 +168,7 @@ final class PubspecValidationContext {
     reporter.atOffset(
       offset: span.start.offset,
       length: span.length,
-      errorCode: errorCode,
+      errorCode: diagnosticCode,
       arguments: arguments,
       contextMessages: messages,
       data: data,

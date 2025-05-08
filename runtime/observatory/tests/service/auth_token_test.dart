@@ -5,9 +5,11 @@
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io' as io;
+
 import 'package:expect/expect.dart';
-import 'package:observatory/service_io.dart' as S;
 import 'package:test/test.dart';
+
+import 'package:observatory/service_io.dart' as S;
 import 'test_helper.dart';
 
 Future<Null> testeeBefore() async {
@@ -27,7 +29,7 @@ Future<Null> testeeBefore() async {
   var url = Uri.parse('http://localhost:$port');
   var httpClient = new io.HttpClient();
   try {
-    var request = await httpClient.getUrl(url);
+    await httpClient.getUrl(url);
     fail('expected exception');
   } catch (e) {
     // Expected
@@ -35,7 +37,7 @@ Future<Null> testeeBefore() async {
 
   // Try connecting to the server with the auth token, it should succeed.
   try {
-    var request = await httpClient.getUrl(info.serverUri!);
+    await httpClient.getUrl(info.serverUri!);
   } catch (e) {
     fail('could not connect');
   }

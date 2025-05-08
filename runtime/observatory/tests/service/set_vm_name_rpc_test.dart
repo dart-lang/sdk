@@ -4,8 +4,10 @@
 // VMOptions=--vm-name=Walter
 
 import 'dart:async';
-import 'package:observatory/service_io.dart';
+
 import 'package:test/test.dart';
+
+import 'package:observatory/service_io.dart';
 import 'test_helper.dart';
 
 var tests = <VMTest>[

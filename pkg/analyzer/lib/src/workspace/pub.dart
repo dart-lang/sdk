@@ -416,9 +416,6 @@ class PubPackage extends WorkspacePackage {
 
   final String? pubspecContent;
 
-  // TODO(scheglov): remove when we are done migrating
-  final String? analyzerUseNewElementsContent;
-
   final Pubspec? pubspec;
 
   final File pubspecFile;
@@ -446,11 +443,6 @@ class PubPackage extends WorkspacePackage {
       pubspecFile,
       pubspec,
       packageName,
-      analyzerUseNewElementsContent: _fileContentOrNull(
-        pubspecFile.parent.getChildAssumingFile(
-          'analyzer_use_new_elements.txt',
-        ),
-      ),
     );
   }
 
@@ -460,9 +452,8 @@ class PubPackage extends WorkspacePackage {
     this.pubspecContent,
     this.pubspecFile,
     this.pubspec,
-    this._name, {
-    required this.analyzerUseNewElementsContent,
-  });
+    this._name,
+  );
 
   /// The version range for the SDK specified for this package , or `null` if
   /// it is ill-formatted or not set.

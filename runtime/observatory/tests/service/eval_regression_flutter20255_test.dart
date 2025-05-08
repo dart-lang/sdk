@@ -5,9 +5,9 @@
 import 'dart:async';
 import 'dart:developer';
 
-import 'package:observatory/service_io.dart';
 import 'package:test/test.dart';
 
+import 'package:observatory/service_io.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 

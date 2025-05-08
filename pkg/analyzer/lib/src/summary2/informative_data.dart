@@ -356,9 +356,9 @@ class InformativeDataApplier {
     }
   }
 
-  void _applyToExports(List<LibraryExportElementImpl> exports, _InfoUnit info) {
+  void _applyToExports(List<LibraryExportImpl> exports, _InfoUnit info) {
     forCorrespondingPairs(exports, info.exports, (element, info) {
-      element.nameOffset = info.nameOffset;
+      element.exportKeywordOffset = info.nameOffset;
       _applyToCombinators(element.combinators, info.combinators);
     });
   }
@@ -575,10 +575,9 @@ class InformativeDataApplier {
     );
   }
 
-  void _applyToImports(List<LibraryImportElementImpl> imports, _InfoUnit info) {
+  void _applyToImports(List<LibraryImportImpl> imports, _InfoUnit info) {
     forCorrespondingPairs(imports, info.imports, (element, info) {
-      element.nameOffset = info.nameOffset;
-
+      element.importKeywordOffset = info.nameOffset;
       if (element.prefix2 case var prefixFragment?) {
         prefixFragment.nameOffset2 = info.prefixOffset2;
         prefixFragment.offset = info.prefixOffset;
@@ -1993,9 +1992,9 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
     }
   }
 
-  void applyToExports(List<LibraryExportElementImpl> elements) {
+  void applyToExports(List<LibraryExportImpl> elements) {
     for (var element in elements) {
-      applyToMetadata(element);
+      applyToMetadataList(element.metadata2.annotations);
     }
   }
 
@@ -2009,28 +2008,26 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
     }
   }
 
-  void applyToImports(List<LibraryImportElementImpl> elements) {
+  void applyToImports(List<LibraryImportImpl> elements) {
     for (var element in elements) {
-      applyToMetadata(element);
+      applyToMetadataList(element.metadata2.annotations);
     }
   }
 
   void applyToMetadata(FragmentImpl element) {
-    for (var annotation in element.metadata) {
+    applyToMetadataList(element.metadata);
+  }
+
+  void applyToMetadataList(List<ElementAnnotationImpl> metadata) {
+    for (var annotation in metadata) {
       var node = annotation.annotationAst;
       node.accept(this);
     }
   }
 
-  void applyToPartDirectives(List<PartElementImpl> elements) {
+  void applyToParts(List<PartIncludeImpl> elements) {
     for (var element in elements) {
-      applyToMetadata(element);
-    }
-  }
-
-  void applyToParts(List<PartElementImpl> elements) {
-    for (var element in elements) {
-      applyToMetadata(element);
+      applyToMetadataList(element.metadata2.annotations);
     }
   }
 

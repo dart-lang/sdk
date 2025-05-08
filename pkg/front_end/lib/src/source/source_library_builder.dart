@@ -884,8 +884,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (declaration is SourceClassBuilder) {
       Class cls = declaration.build(coreLibrary);
       if (!declaration.isAugmentation) {
-        if (declaration.isDuplicate ||
-            declaration.isConflictingAugmentationMember) {
+        if (declaration.isDuplicate) {
           cls.name = '${cls.name}'
               '#${declaration.duplicateIndex}';
         }
@@ -962,19 +961,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (member is Field) {
       member.isStatic = true;
       if (!declaration.isDuplicate) {
-        if (declaration.isConflictingAugmentationMember) {
-          // Coverage-ignore-block(suite): Not run.
-          member.name = new Name('${member.name.text}', member.name.library);
-        }
         library.addField(member);
       }
     } else if (member is Procedure) {
       member.isStatic = true;
       if (!declaration.isDuplicate && !declaration.isConflictingSetter) {
-        if (declaration.isConflictingAugmentationMember) {
-          // Coverage-ignore-block(suite): Not run.
-          member.name = new Name('${member.name.text}', member.name.library);
-        }
         library.addProcedure(member);
       }
     } else {

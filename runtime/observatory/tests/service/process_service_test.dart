@@ -7,10 +7,10 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io' as io;
 
-import 'package:observatory/service_io.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
+import 'package:observatory/service_io.dart';
 import 'test_helper.dart';
 
 final dartJITBinary = path.join(path.dirname(io.Platform.resolvedExecutable),

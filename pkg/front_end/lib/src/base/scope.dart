@@ -482,14 +482,6 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   bool get isConflictingSetter => false;
 
   @override
-  bool get isConflictingAugmentationMember => false;
-
-  @override
-  void set isConflictingAugmentationMember(bool value) {
-    throw new UnsupportedError('$runtimeType.isConflictingAugmentationMember=');
-  }
-
-  @override
   DeclarationBuilder get declarationBuilder {
     throw new UnsupportedError('$runtimeType.declarationBuilder');
   }
@@ -551,16 +543,6 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   void checkTypes(SourceLibraryBuilder library, NameSpace nameSpace,
       TypeEnvironment typeEnvironment) {
     assert(false, "Unexpected call to $runtimeType.checkVariance.");
-  }
-
-  @override
-  bool get isAugmentation {
-    throw new UnsupportedError('$runtimeType.isAugmentation');
-  }
-
-  @override
-  AugmentSuperTarget? get augmentSuperTarget {
-    throw new UnsupportedError('$runtimeType.augmentSuperTarget}');
   }
 }
 
@@ -789,7 +771,7 @@ class FilteredIterator<T extends Builder> implements Iterator<T> {
 
   bool _include(Builder element) {
     if (!includeDuplicates &&
-        (element.isDuplicate || element.isConflictingAugmentationMember)) {
+        (element.isDuplicate)) {
       return false;
     }
     return element is T;
@@ -822,7 +804,7 @@ class FilteredNameIterator<T extends Builder> implements NameIterator<T> {
 
   bool _include(Builder element) {
     if (!includeDuplicates &&
-        (element.isDuplicate || element.isConflictingAugmentationMember)) {
+        (element.isDuplicate)) {
       return false;
     }
     return element is T;
@@ -871,19 +853,6 @@ extension NameIteratorExtension<T extends Builder> on NameIterator<T> {
     while (moveNext()) {
       f(name, current);
     }
-  }
-}
-
-extension on Builder {
-  bool get isConflictingAugmentationMember {
-    Builder self = this;
-    if (self is SourceMemberBuilder) {
-      return self.isConflictingAugmentationMember;
-    } else if (self is SourceClassBuilder) {
-      return self.isConflictingAugmentationMember;
-    }
-    // TODO(johnniwinther): Handle all cases here.
-    return false;
   }
 }
 

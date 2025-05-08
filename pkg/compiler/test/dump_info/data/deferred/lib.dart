@@ -29,7 +29,7 @@
     "external": false
   },
   "returnType": "dynamic",
-  "inferredReturnType": "Value([exact=JSString|powerset={I}], value: \"\", powerset: {I})",
+  "inferredReturnType": "Value([exact=JSString|powerset={I}{O}{I}], value: \"\", powerset: {I}{O}{I})",
   "parameters": [],
   "sideEffects": "SideEffects(reads nothing; writes nothing)",
   "inlinedCount": 0,
@@ -54,11 +54,11 @@ defaultArg() => "";
     "external": false
   },
   "returnType": "dynamic",
-  "inferredReturnType": "[null|subclass=Object|powerset={null}{IN}]",
+  "inferredReturnType": "[null|subclass=Object|powerset={null}{IN}{GFUO}{IMN}]",
   "parameters": [
     {
       "name": "x",
-      "type": "[subclass=Closure|powerset={N}]",
+      "type": "[subclass=Closure|powerset={N}{O}{N}]",
       "declaredType": "dynamic"
     }
   ],

@@ -4,36 +4,36 @@
 
 class _SECRET {
   const _SECRET();
-  /*member: _SECRET.toString:Value([exact=JSString|powerset={I}], value: "SECRET!", powerset: {I})*/
+  /*member: _SECRET.toString:Value([exact=JSString|powerset={I}{O}{I}], value: "SECRET!", powerset: {I}{O}{I})*/
   @override
   String toString() => "SECRET!";
 }
 
 class C {
-  /*member: C.x:[exact=JSUInt31|powerset={I}]*/
+  /*member: C.x:[exact=JSUInt31|powerset={I}{O}{N}]*/
   final int x;
 
-  /*member: C.y:Union([exact=JSString|powerset={I}], [exact=_SECRET|powerset={N}], powerset: {IN})*/
+  /*member: C.y:Union([exact=JSString|powerset={I}{O}{I}], [exact=_SECRET|powerset={N}{O}{N}], powerset: {IN}{O}{IN})*/
   final y;
 
-  /*member: C.a:[exact=C|powerset={N}]*/
+  /*member: C.a:[empty|powerset=empty]*/
   C.a(
-    int /*[exact=JSUInt31|powerset={I}]*/ x, [
-    var /*Union([exact=JSString|powerset={I}], [exact=_SECRET|powerset={N}], powerset: {IN})*/ b =
+    int /*[exact=JSUInt31|powerset={I}{O}{N}]*/ x, [
+    var /*Union([exact=JSString|powerset={I}{O}{I}], [exact=_SECRET|powerset={N}{O}{N}], powerset: {IN}{O}{IN})*/ b =
         const _SECRET(),
   ]) : this.x = x,
        this.y = b;
 
-  /*member: C.b:[exact=C|powerset={N}]*/
+  /*member: C.b:[empty|powerset=empty]*/
   C.b(
-    int /*[exact=JSUInt31|powerset={I}]*/ x, {
-    var /*Union([exact=JSString|powerset={I}], [exact=_SECRET|powerset={N}], powerset: {IN})*/ b =
+    int /*[exact=JSUInt31|powerset={I}{O}{N}]*/ x, {
+    var /*Union([exact=JSString|powerset={I}{O}{I}], [exact=_SECRET|powerset={N}{O}{N}], powerset: {IN}{O}{IN})*/ b =
         const _SECRET(),
   }) : this.x = x,
        this.y = b;
 
-  /*member: C.toString:[exact=JSString|powerset={I}]*/
+  /*member: C.toString:[exact=JSString|powerset={I}{O}{I}]*/
   @override
   String toString() =>
-      "C(${ /*[exact=D|powerset={N}]*/ x},${ /*[exact=D|powerset={N}]*/ y})";
+      "C(${ /*[exact=D|powerset={N}{O}{N}]*/ x},${ /*[exact=D|powerset={N}{O}{N}]*/ y})";
 }

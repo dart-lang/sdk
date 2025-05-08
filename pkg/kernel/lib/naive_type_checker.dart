@@ -82,8 +82,10 @@ ${superMember} is a ${_memberKind(superMember)}
             ? ownMember.isCovariantByDeclaration
             : ownMember
                 .function!.positionalParameters[0].isCovariantByDeclaration;
-        if (!_isValidParameterOverride(
-            isCovariantByDeclaration, ownType, superType)) {
+        if (!_isValidParameterOverride(ownType, superType,
+            isCovariantByDeclaration: isCovariantByDeclaration,
+            isSuperNoSuchMethodForwarder: superMember is Procedure &&
+                superMember.isNoSuchMethodForwarder)) {
           if (isCovariantByDeclaration) {
             return failures.reportInvalidOverride(ownMember, superMember, '''
 ${ownType} is neither a subtype nor supertype of ${superType}
@@ -203,9 +205,10 @@ ${ownType} is not a subtype of ${superType}
       final VariableDeclaration superParameter =
           superFunction.positionalParameters[i];
       if (!_isValidParameterOverride(
-          ownParameter.isCovariantByDeclaration,
           ownSubstitution.substituteType(ownParameter.type),
-          superSubstitution.substituteType(superParameter.type))) {
+          superSubstitution.substituteType(superParameter.type),
+          isCovariantByDeclaration: ownParameter.isCovariantByDeclaration,
+          isSuperNoSuchMethodForwarder: superMember.isNoSuchMethodForwarder)) {
         return '''
 type of parameter ${ownParameter.name} is incompatible
 override declares ${ownParameter.type}
@@ -232,9 +235,10 @@ super method declares ${superParameter.type}
       }
 
       if (!_isValidParameterOverride(
-          ownParameter.isCovariantByDeclaration,
           ownSubstitution.substituteType(ownParameter.type),
-          superSubstitution.substituteType(superParameter.type))) {
+          superSubstitution.substituteType(superParameter.type),
+          isCovariantByDeclaration: ownParameter.isCovariantByDeclaration,
+          isSuperNoSuchMethodForwarder: superMember.isNoSuchMethodForwarder)) {
         return '''
 type of parameter ${ownParameter.name} is incompatible
 override declares ${ownParameter.type}
@@ -249,14 +253,27 @@ super method declares ${superParameter.type}
   /// Checks whether parameter with [ownParameterType] type is a valid override
   /// for parameter with [superParameterType] type taking into account its
   /// covariance and applying type parameter [substitution] if necessary.
-  bool _isValidParameterOverride(bool isCovariantByDeclaration,
-      DartType ownParameterType, DartType superParameterType) {
+  bool _isValidParameterOverride(
+      DartType ownParameterType, DartType superParameterType,
+      {required bool isCovariantByDeclaration,
+      required bool isSuperNoSuchMethodForwarder}) {
     if (_isSubtypeOf(superParameterType, ownParameterType)) {
       return true;
     } else if (isCovariantByDeclaration &&
         _isSubtypeOf(ownParameterType, superParameterType)) {
       return true;
     } else {
+      // In noSuchMethod forwarders some types of parameters are adjusted to be
+      // nullable. This is a workaround for the backends, and the corresponding
+      // type mismatch should be ignored by the verifier.
+      if (isSuperNoSuchMethodForwarder) {
+        return _isValidParameterOverride(
+            ownParameterType.withDeclaredNullability(Nullability.nullable),
+            superParameterType,
+            isCovariantByDeclaration: isCovariantByDeclaration,
+            isSuperNoSuchMethodForwarder: false);
+      }
+
       return false;
     }
   }

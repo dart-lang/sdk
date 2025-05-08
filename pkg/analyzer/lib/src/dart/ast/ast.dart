@@ -99,6 +99,11 @@ final class AdjacentStringsImpl extends StringLiteralImpl
       strings[i]._appendStringValue(buffer);
     }
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return _strings._elementContainingRange(rangeOffset, rangeEnd);
+  }
 }
 
 /// An AST node that can be annotated with either a documentation comment, a
@@ -158,6 +163,14 @@ sealed class AnnotatedNodeImpl extends AstNodeImpl with _AnnotatedNodeMixin {
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_comment?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _comment;
+    }
+    return _metadata._elementContainingRange(rangeOffset, rangeEnd);
   }
 }
 
@@ -356,6 +369,22 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
     _constructorName?.accept(visitor);
     _arguments?.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_name._containsOffset(rangeOffset, rangeEnd)) {
+      return _name;
+    } else if (_typeArguments?._containsOffset(rangeOffset, rangeEnd) ??
+        false) {
+      return _typeArguments;
+    } else if (_constructorName?._containsOffset(rangeOffset, rangeEnd) ??
+        false) {
+      return _constructorName;
+    } else if (_arguments?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _arguments;
+    }
+    return null;
+  }
 }
 
 /// A list of arguments in the invocation of an executable element (that is, a
@@ -450,6 +479,11 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   @override
   void visitChildren(AstVisitor visitor) {
     _arguments.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return _arguments._elementContainingRange(rangeOffset, rangeEnd);
   }
 
   /// Returns the parameter element representing the parameter to which the
@@ -557,6 +591,16 @@ final class AsExpressionImpl extends ExpressionImpl implements AsExpression {
     _expression.accept(visitor);
     _type.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_expression._containsOffset(rangeOffset, rangeEnd)) {
+      return _expression;
+    } else if (_type._containsOffset(rangeOffset, rangeEnd)) {
+      return _type;
+    }
+    return null;
+  }
 }
 
 /// An assert in the initializer list of a constructor.
@@ -636,6 +680,16 @@ final class AssertInitializerImpl extends ConstructorInitializerImpl
   void visitChildren(AstVisitor visitor) {
     _condition.accept(visitor);
     message?.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_condition._containsOffset(rangeOffset, rangeEnd)) {
+      return _condition;
+    } else if (_message?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _message;
+    }
+    return null;
   }
 }
 
@@ -748,6 +802,16 @@ final class AssertStatementImpl extends StatementImpl
     _condition.accept(visitor);
     message?.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_condition._containsOffset(rangeOffset, rangeEnd)) {
+      return _condition;
+    } else if (_message?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _message;
+    }
+    return null;
+  }
 }
 
 /// A variable pattern in [PatternAssignment].
@@ -813,7 +877,14 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
   }
 
   @override
-  void visitChildren(AstVisitor visitor) {}
+  void visitChildren(AstVisitor visitor) {
+    // There are no children to visit.
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
+  }
 }
 
 /// An assignment expression.
@@ -933,6 +1004,16 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   void visitChildren(AstVisitor visitor) {
     _leftHandSide.accept(visitor);
     _rightHandSide.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_leftHandSide._containsOffset(rangeOffset, rangeEnd)) {
+      return _leftHandSide;
+    } else if (_rightHandSide._containsOffset(rangeOffset, rangeEnd)) {
+      return _rightHandSide;
+    }
+    return null;
   }
 
   @override
@@ -1128,6 +1209,46 @@ sealed class AstNodeImpl implements AstNode {
   T _becomeParentOf<T extends AstNodeImpl?>(T child) {
     child?._parent = this;
     return child;
+  }
+
+  /// Returns the child of this node that completely contains the range.
+  ///
+  /// Returns `null` if none of the children contain the range (which means that
+  /// this node is the covering node).
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd);
+
+  /// Returns whether this node contains the range from [rangeOffset] to
+  /// [rangeEnd].
+  ///
+  /// When the range is an insertion point between two adjacent tokens, one of
+  /// which belongs to this node and the other to a different node, then this
+  /// node is considered to contain the insertion point unless the token that
+  /// doesn't belonging to this node is an identifier.
+  bool _containsOffset(int rangeOffset, int rangeEnd) {
+    // Cache some values to avoid computing them multiple times.
+    var beginToken = this.beginToken;
+    var offset = beginToken.offset;
+    var endToken = this.endToken;
+    var end = endToken.end;
+    // Handle the special insertion point cases.
+    if (rangeOffset == rangeEnd) {
+      if (rangeOffset == offset) {
+        var previous = beginToken.previous;
+        if (previous != null &&
+            rangeOffset == previous.end &&
+            previous.isIdentifier) {
+          return false;
+        }
+      }
+      if (rangeOffset == end) {
+        var next = endToken.next;
+        if (next != null && rangeOffset == next.offset && next.isIdentifier) {
+          return false;
+        }
+      }
+    }
+    // Handle the general case.
+    return offset <= rangeOffset && end >= rangeEnd;
   }
 }
 
@@ -1592,6 +1713,11 @@ final class AugmentedExpressionImpl extends ExpressionImpl
   void visitChildren(AstVisitor visitor) {
     // There are no children to visit.
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
+  }
 }
 
 /// Invocation of the augmented function, constructor, or method.
@@ -1673,6 +1799,16 @@ final class AugmentedInvocationImpl extends ExpressionImpl
     typeArguments?.accept(visitor);
     arguments.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (typeArguments?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return typeArguments;
+    } else if (arguments._containsOffset(rangeOffset, rangeEnd)) {
+      return arguments;
+    }
+    return null;
+  }
 }
 
 /// An await expression.
@@ -1738,6 +1874,14 @@ final class AwaitExpressionImpl extends ExpressionImpl
   @override
   void visitChildren(AstVisitor visitor) {
     _expression.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_expression._containsOffset(rangeOffset, rangeEnd)) {
+      return _expression;
+    }
+    return null;
   }
 }
 
@@ -1830,6 +1974,16 @@ final class BinaryExpressionImpl extends ExpressionImpl
   void visitChildren(AstVisitor visitor) {
     _leftOperand.accept(visitor);
     _rightOperand.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_leftOperand._containsOffset(rangeOffset, rangeEnd)) {
+      return _leftOperand;
+    } else if (_rightOperand._containsOffset(rangeOffset, rangeEnd)) {
+      return _rightOperand;
+    }
+    return null;
   }
 }
 
@@ -1929,6 +2083,14 @@ final class BlockFunctionBodyImpl extends FunctionBodyImpl
   void visitChildren(AstVisitor visitor) {
     _block.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_block._containsOffset(rangeOffset, rangeEnd)) {
+      return _block;
+    }
+    return null;
+  }
 }
 
 final class BlockImpl extends StatementImpl
@@ -1973,6 +2135,11 @@ final class BlockImpl extends StatementImpl
   @override
   void visitChildren(AstVisitor visitor) {
     _statements.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return _statements._elementContainingRange(rangeOffset, rangeEnd);
   }
 }
 
@@ -2023,6 +2190,11 @@ final class BooleanLiteralImpl extends LiteralImpl implements BooleanLiteral {
   @override
   void visitChildren(AstVisitor visitor) {
     // There are no children to visit.
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
   }
 }
 
@@ -2105,6 +2277,14 @@ final class BreakStatementImpl extends StatementImpl implements BreakStatement {
   @override
   void visitChildren(AstVisitor visitor) {
     _label?.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_label?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _label;
+    }
+    return null;
   }
 }
 
@@ -2203,6 +2383,14 @@ final class CascadeExpressionImpl extends ExpressionImpl
   }
 
   @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_target._containsOffset(rangeOffset, rangeEnd)) {
+      return _target;
+    }
+    return _cascadeSections._elementContainingRange(rangeOffset, rangeEnd);
+  }
+
+  @override
   bool _extendsNullShorting(Expression descendant) {
     // Null shorting that occurs in a cascade section does not extend to the
     // full cascade expression.
@@ -2254,6 +2442,14 @@ final class CaseClauseImpl extends AstNodeImpl
   @override
   void visitChildren(AstVisitor visitor) {
     guardedPattern.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (guardedPattern._containsOffset(rangeOffset, rangeEnd)) {
+      return guardedPattern;
+    }
+    return null;
   }
 }
 
@@ -2354,6 +2550,16 @@ final class CastPatternImpl extends DartPatternImpl implements CastPattern {
   void visitChildren(AstVisitor visitor) {
     pattern.accept(visitor);
     type.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (pattern._containsOffset(rangeOffset, rangeEnd)) {
+      return pattern;
+    } else if (type._containsOffset(rangeOffset, rangeEnd)) {
+      return type;
+    }
+    return null;
   }
 }
 
@@ -2521,6 +2727,22 @@ final class CatchClauseImpl extends AstNodeImpl implements CatchClause {
     _stackTraceParameter?.accept(visitor);
     _body.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_exceptionType?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _exceptionType;
+    } else if (_exceptionParameter?._containsOffset(rangeOffset, rangeEnd) ??
+        false) {
+      return _exceptionParameter;
+    } else if (_stackTraceParameter?._containsOffset(rangeOffset, rangeEnd) ??
+        false) {
+      return _stackTraceParameter;
+    } else if (_body._containsOffset(rangeOffset, rangeEnd)) {
+      return _body;
+    }
+    return null;
+  }
 }
 
 /// An 'exception' or 'stackTrace' parameter in [CatchClause].
@@ -2573,7 +2795,14 @@ final class CatchClauseParameterImpl extends AstNodeImpl
   }
 
   @override
-  void visitChildren(AstVisitor visitor) {}
+  void visitChildren(AstVisitor visitor) {
+    // There are no children to visit.
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
+  }
 }
 
 /// A helper class to allow iteration of child entities of an AST node.
@@ -2858,6 +3087,27 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     nativeClause?.accept(visitor);
     members.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    var childFromSuper = super._childContainingRange(rangeOffset, rangeEnd);
+    if (childFromSuper != null) {
+      return childFromSuper;
+    }
+    if (typeParameters?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return typeParameters;
+    } else if (extendsClause?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return extendsClause;
+    } else if (withClause?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return withClause;
+    } else if (implementsClause?._containsOffset(rangeOffset, rangeEnd) ??
+        false) {
+      return implementsClause;
+    } else if (nativeClause?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return nativeClause;
+    }
+    return members._elementContainingRange(rangeOffset, rangeEnd);
+  }
 }
 
 /// A node that declares a name within the scope of a class, enum, extension,
@@ -3071,6 +3321,25 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
     _withClause.accept(visitor);
     _implementsClause?.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    var childFromSuper = super._childContainingRange(rangeOffset, rangeEnd);
+    if (childFromSuper != null) {
+      return childFromSuper;
+    }
+    if (typeParameters?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return typeParameters;
+    } else if (_superclass._containsOffset(rangeOffset, rangeEnd)) {
+      return _superclass;
+    } else if (withClause._containsOffset(rangeOffset, rangeEnd)) {
+      return withClause;
+    } else if (implementsClause?._containsOffset(rangeOffset, rangeEnd) ??
+        false) {
+      return implementsClause;
+    }
+    return null;
+  }
 }
 
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
@@ -3211,6 +3480,11 @@ final class CommentImpl extends AstNodeImpl
   void visitChildren(AstVisitor visitor) {
     _references.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return _references._elementContainingRange(rangeOffset, rangeEnd);
+  }
 }
 
 /// An interface for an [Expression] which can make up a [CommentReference].
@@ -3293,6 +3567,14 @@ final class CommentReferenceImpl extends AstNodeImpl
   void visitChildren(AstVisitor visitor) {
     _expression.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_expression._containsOffset(rangeOffset, rangeEnd)) {
+      return _expression;
+    }
+    return null;
+  }
 }
 
 /// A compilation unit.
@@ -3366,6 +3648,15 @@ abstract final class CompilationUnit implements AstNode {
   /// A list containing all of the directives and declarations in this
   /// compilation unit, sorted in lexical order.
   List<AstNode> get sortedDirectivesAndDeclarations;
+
+  /// Returns the minimal covering node for the range of characters beginning at
+  /// the [offset] with the given [length].
+  ///
+  /// Returns `null` if the range is outside the range covered by the receiver.
+  ///
+  /// The minimal covering node is the node, rooted at the receiver, with the
+  /// shortest length whose range completely includes the given range.
+  AstNode? nodeCovering({required int offset, int length = 0});
 }
 
 final class CompilationUnitImpl extends AstNodeImpl
@@ -3497,6 +3788,22 @@ final class CompilationUnitImpl extends AstNodeImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitCompilationUnit(this);
 
   @override
+  AstNode? nodeCovering({required int offset, int length = 0}) {
+    var end = offset + length;
+
+    if (offset < 0 || end > this.end) {
+      return null;
+    }
+    AstNodeImpl previousNode = this;
+    var currentNode = previousNode._childContainingRange(offset, end);
+    while (currentNode != null) {
+      previousNode = currentNode;
+      currentNode = previousNode._childContainingRange(offset, end);
+    }
+    return previousNode;
+  }
+
+  @override
   void visitChildren(AstVisitor visitor) {
     _scriptTag?.accept(visitor);
     if (_directivesAreBeforeDeclarations) {
@@ -3510,6 +3817,15 @@ final class CompilationUnitImpl extends AstNodeImpl
         child.accept(visitor);
       }
     }
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_scriptTag?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _scriptTag;
+    }
+    return _directives._elementContainingRange(rangeOffset, rangeEnd) ??
+        _declarations._elementContainingRange(rangeOffset, rangeEnd);
   }
 }
 
@@ -3713,6 +4029,18 @@ final class ConditionalExpressionImpl extends ExpressionImpl
     _thenExpression.accept(visitor);
     _elseExpression.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_condition._containsOffset(rangeOffset, rangeEnd)) {
+      return _condition;
+    } else if (_thenExpression._containsOffset(rangeOffset, rangeEnd)) {
+      return _thenExpression;
+    } else if (_elseExpression._containsOffset(rangeOffset, rangeEnd)) {
+      return _elseExpression;
+    }
+    return null;
+  }
 }
 
 /// A configuration in either an import or export directive.
@@ -3841,6 +4169,18 @@ final class ConfigurationImpl extends AstNodeImpl implements Configuration {
     _value?.accept(visitor);
     _uri.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_name._containsOffset(rangeOffset, rangeEnd)) {
+      return _name;
+    } else if (_value?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _value;
+    } else if (_uri._containsOffset(rangeOffset, rangeEnd)) {
+      return _uri;
+    }
+    return null;
+  }
 }
 
 final class ConstantContextForExpressionImpl extends AstNodeImpl {
@@ -3951,6 +4291,14 @@ final class ConstantPatternImpl extends DartPatternImpl
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (expression._containsOffset(rangeOffset, rangeEnd)) {
+      return expression;
+    }
+    return null;
   }
 }
 
@@ -4204,6 +4552,25 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     _redirectedConstructor?.accept(visitor);
     _body.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    var childFromSuper = super._childContainingRange(rangeOffset, rangeEnd);
+    if (childFromSuper != null) {
+      return childFromSuper;
+    }
+    if (_returnType._containsOffset(rangeOffset, rangeEnd)) {
+      return _returnType;
+    } else if (_parameters._containsOffset(rangeOffset, rangeEnd)) {
+      return _parameters;
+    } else if (_redirectedConstructor?._containsOffset(rangeOffset, rangeEnd) ??
+        false) {
+      return _redirectedConstructor;
+    } else if (_body._containsOffset(rangeOffset, rangeEnd)) {
+      return _body;
+    }
+    return _initializers._elementContainingRange(rangeOffset, rangeEnd);
+  }
 }
 
 /// The initialization of a field within a constructor's initialization list.
@@ -4305,6 +4672,16 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
     _fieldName.accept(visitor);
     _expression.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_fieldName._containsOffset(rangeOffset, rangeEnd)) {
+      return _fieldName;
+    } else if (_expression._containsOffset(rangeOffset, rangeEnd)) {
+      return _expression;
+    }
+    return null;
+  }
 }
 
 /// A node that can occur in the initializer list of a constructor declaration.
@@ -4403,6 +4780,16 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
     _type.accept(visitor);
     _name?.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_type._containsOffset(rangeOffset, rangeEnd)) {
+      return _type;
+    } else if (_name?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _name;
+    }
+    return null;
+  }
 }
 
 /// An expression representing a reference to a constructor.
@@ -4461,6 +4848,14 @@ final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
   void visitChildren(AstVisitor visitor) {
     constructorName.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (constructorName._containsOffset(rangeOffset, rangeEnd)) {
+      return constructorName;
+    }
+    return null;
+  }
 }
 
 /// An AST node that makes reference to a constructor.
@@ -4518,7 +4913,17 @@ final class ConstructorSelectorImpl extends AstNodeImpl
   }
 
   @override
-  void visitChildren(AstVisitor visitor) {}
+  void visitChildren(AstVisitor visitor) {
+    // There are no children to visit.
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (name._containsOffset(rangeOffset, rangeEnd)) {
+      return name;
+    }
+    return null;
+  }
 }
 
 /// A continue statement.
@@ -4599,6 +5004,14 @@ final class ContinueStatementImpl extends StatementImpl
   @override
   void visitChildren(AstVisitor visitor) {
     _label?.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_label?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _label;
+    }
+    return null;
   }
 }
 
@@ -4825,6 +5238,18 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
     super.visitChildren(visitor);
     _type?.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    var childFromSuper = super._childContainingRange(rangeOffset, rangeEnd);
+    if (childFromSuper != null) {
+      return childFromSuper;
+    }
+    if (_type?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _type;
+    }
+    return null;
+  }
 }
 
 /// A variable pattern that declares a variable.
@@ -4944,6 +5369,14 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
   @override
   void visitChildren(AstVisitor visitor) {
     type?.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (type?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return type;
+    }
+    return null;
   }
 }
 
@@ -5065,6 +5498,16 @@ final class DefaultFormalParameterImpl extends FormalParameterImpl
     _parameter.accept(visitor);
     _defaultValue?.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_parameter._containsOffset(rangeOffset, rangeEnd)) {
+      return _parameter;
+    } else if (_defaultValue?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _defaultValue;
+    }
+    return null;
+  }
 }
 
 /// A node that represents a directive.
@@ -5079,8 +5522,6 @@ final class DefaultFormalParameterImpl extends FormalParameterImpl
 sealed class Directive implements AnnotatedNode {}
 
 sealed class DirectiveImpl extends AnnotatedNodeImpl implements Directive {
-  FragmentImpl? element;
-
   /// Initializes a newly create directive.
   ///
   /// Either or both of the [comment] and [metadata] can be `null` if the
@@ -5189,6 +5630,16 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
   void visitChildren(AstVisitor visitor) {
     _body.accept(visitor);
     _condition.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_body._containsOffset(rangeOffset, rangeEnd)) {
+      return _body;
+    } else if (_condition._containsOffset(rangeOffset, rangeEnd)) {
+      return _condition;
+    }
+    return null;
   }
 }
 
@@ -5299,6 +5750,18 @@ final class DotShorthandConstructorInvocationImpl
     typeArguments?.accept(visitor);
     argumentList.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (constructorName._containsOffset(rangeOffset, rangeEnd)) {
+      return constructorName;
+    } else if (typeArguments?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return typeArguments;
+    } else if (argumentList._containsOffset(rangeOffset, rangeEnd)) {
+      return argumentList;
+    }
+    return null;
+  }
 }
 
 /// A node that represents a dot shorthand static method or constructor
@@ -5378,6 +5841,18 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
     typeArguments?.accept(visitor);
     argumentList.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (memberName._containsOffset(rangeOffset, rangeEnd)) {
+      return memberName;
+    } else if (typeArguments?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return typeArguments;
+    } else if (argumentList._containsOffset(rangeOffset, rangeEnd)) {
+      return argumentList;
+    }
+    return null;
+  }
 }
 
 base mixin DotShorthandMixin on ExpressionImpl {
@@ -5454,6 +5929,14 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
   void visitChildren(AstVisitor visitor) {
     propertyName.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (propertyName._containsOffset(rangeOffset, rangeEnd)) {
+      return propertyName;
+    }
+    return null;
+  }
 }
 
 /// A dotted name, used in a configuration within an import or export directive.
@@ -5496,6 +5979,11 @@ final class DottedNameImpl extends AstNodeImpl implements DottedName {
   @override
   void visitChildren(AstVisitor visitor) {
     _components.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return _components._elementContainingRange(rangeOffset, rangeEnd);
   }
 }
 
@@ -5548,6 +6036,11 @@ final class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
   void visitChildren(AstVisitor visitor) {
     // There are no children to visit.
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
+  }
 }
 
 /// An empty function body.
@@ -5590,7 +6083,12 @@ final class EmptyFunctionBodyImpl extends FunctionBodyImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    // Empty function bodies have no children.
+    // There are no children to visit.
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
   }
 }
 
@@ -5630,6 +6128,11 @@ final class EmptyStatementImpl extends StatementImpl implements EmptyStatement {
   @override
   void visitChildren(AstVisitor visitor) {
     // There are no children to visit.
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
   }
 }
 
@@ -5697,6 +6200,19 @@ final class EnumConstantArgumentsImpl extends AstNodeImpl
     typeArguments?.accept(visitor);
     constructorSelector?.accept(visitor);
     argumentList.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (typeArguments?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return typeArguments;
+    } else if (constructorSelector?._containsOffset(rangeOffset, rangeEnd) ??
+        false) {
+      return constructorSelector;
+    } else if (argumentList._containsOffset(rangeOffset, rangeEnd)) {
+      return argumentList;
+    }
+    return null;
   }
 }
 
@@ -5779,6 +6295,18 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     arguments?.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    var childFromSuper = super._childContainingRange(rangeOffset, rangeEnd);
+    if (childFromSuper != null) {
+      return childFromSuper;
+    }
+    if (arguments?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return arguments;
+    }
+    return null;
   }
 }
 
@@ -5951,6 +6479,24 @@ final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
     _constants.accept(visitor);
     _members.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    var childFromSuper = super._childContainingRange(rangeOffset, rangeEnd);
+    if (childFromSuper != null) {
+      return childFromSuper;
+    }
+    if (_typeParameters?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _typeParameters;
+    } else if (_withClause?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _withClause;
+    } else if (_implementsClause?._containsOffset(rangeOffset, rangeEnd) ??
+        false) {
+      return _implementsClause;
+    }
+    return _constants._elementContainingRange(rangeOffset, rangeEnd) ??
+        _members._elementContainingRange(rangeOffset, rangeEnd);
+  }
 }
 
 /// An export directive.
@@ -5974,6 +6520,9 @@ final class ExportDirectiveImpl extends NamespaceDirectiveImpl
   @override
   final Token exportKeyword;
 
+  @override
+  LibraryExportImpl? libraryExport;
+
   /// Initializes a newly created export directive.
   ///
   /// Either or both of the [comment] and [metadata] can be `null` if the
@@ -5993,12 +6542,6 @@ final class ExportDirectiveImpl extends NamespaceDirectiveImpl
   @override
   Token get firstTokenAfterCommentAndMetadata => exportKeyword;
 
-  @experimental
-  @override
-  LibraryExportElementImpl? get libraryExport {
-    return element as LibraryExportElementImpl?;
-  }
-
   @override
   ChildEntities get _childEntities =>
       super._childEntities
@@ -6016,6 +6559,16 @@ final class ExportDirectiveImpl extends NamespaceDirectiveImpl
     configurations.accept(visitor);
     super.visitChildren(visitor);
     combinators.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    var childFromSuper = super._childContainingRange(rangeOffset, rangeEnd);
+    if (childFromSuper != null) {
+      return childFromSuper;
+    }
+    return configurations._elementContainingRange(rangeOffset, rangeEnd) ??
+        combinators._elementContainingRange(rangeOffset, rangeEnd);
   }
 }
 
@@ -6199,6 +6752,14 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
   @override
   void visitChildren(AstVisitor visitor) {
     _expression.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_expression._containsOffset(rangeOffset, rangeEnd)) {
+      return _expression;
+    }
+    return null;
   }
 }
 
@@ -6430,6 +6991,14 @@ final class ExpressionStatementImpl extends StatementImpl
   void visitChildren(AstVisitor visitor) {
     _expression.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_expression._containsOffset(rangeOffset, rangeEnd)) {
+      return _expression;
+    }
+    return null;
+  }
 }
 
 /// The "extends" clause in a class declaration.
@@ -6484,6 +7053,14 @@ final class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
   @override
   void visitChildren(AstVisitor visitor) {
     _superclass.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_superclass._containsOffset(rangeOffset, rangeEnd)) {
+      return _superclass;
+    }
+    return null;
   }
 }
 
@@ -6618,6 +7195,20 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
     onClause?.accept(visitor);
     _members.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    var childFromSuper = super._childContainingRange(rangeOffset, rangeEnd);
+    if (childFromSuper != null) {
+      return childFromSuper;
+    }
+    if (_typeParameters?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _typeParameters;
+    } else if (onClause?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return onClause;
+    }
+    return _members._elementContainingRange(rangeOffset, rangeEnd);
+  }
 }
 
 /// The `on` clause in an extension declaration.
@@ -6664,6 +7255,14 @@ final class ExtensionOnClauseImpl extends AstNodeImpl
   @override
   void visitChildren(AstVisitor visitor) {
     extendedType.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (extendedType._containsOffset(rangeOffset, rangeEnd)) {
+      return extendedType;
+    }
+    return null;
   }
 }
 
@@ -6797,6 +7396,18 @@ final class ExtensionOverrideImpl extends ExpressionImpl
     importPrefix?.accept(visitor);
     _typeArguments?.accept(visitor);
     _argumentList.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (importPrefix?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return importPrefix;
+    } else if (typeArguments?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return typeArguments;
+    } else if (_argumentList._containsOffset(rangeOffset, rangeEnd)) {
+      return _argumentList;
+    }
+    return null;
   }
 }
 
@@ -6940,6 +7551,23 @@ final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
     implementsClause?.accept(visitor);
     members.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    var childFromSuper = super._childContainingRange(rangeOffset, rangeEnd);
+    if (childFromSuper != null) {
+      return childFromSuper;
+    }
+    if (typeParameters?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return typeParameters;
+    } else if (representation._containsOffset(rangeOffset, rangeEnd)) {
+      return representation;
+    } else if (implementsClause?._containsOffset(rangeOffset, rangeEnd) ??
+        false) {
+      return implementsClause;
+    }
+    return members._elementContainingRange(rangeOffset, rangeEnd);
+  }
 }
 
 /// The declaration of one or more fields of the same type.
@@ -7077,6 +7705,18 @@ final class FieldDeclarationImpl extends ClassMemberImpl
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     _fieldList.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    var childFromSuper = super._childContainingRange(rangeOffset, rangeEnd);
+    if (childFromSuper != null) {
+      return childFromSuper;
+    }
+    if (_fieldList._containsOffset(rangeOffset, rangeEnd)) {
+      return _fieldList;
+    }
+    return null;
   }
 }
 
@@ -7259,6 +7899,23 @@ final class FieldFormalParameterImpl extends NormalFormalParameterImpl
     _typeParameters?.accept(visitor);
     _parameters?.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    var childFromSuper = super._childContainingRange(rangeOffset, rangeEnd);
+    if (childFromSuper != null) {
+      return childFromSuper;
+    }
+    if (_type?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _type;
+    } else if (_typeParameters?._containsOffset(rangeOffset, rangeEnd) ??
+        false) {
+      return _typeParameters;
+    } else if (_parameters?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _parameters;
+    }
+    return null;
+  }
 }
 
 /// The parts of a for-each loop that control the iteration.
@@ -7306,6 +7963,14 @@ sealed class ForEachPartsImpl extends ForLoopPartsImpl implements ForEachParts {
   @override
   void visitChildren(AstVisitor visitor) {
     _iterable.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_iterable._containsOffset(rangeOffset, rangeEnd)) {
+      return _iterable;
+    }
+    return null;
   }
 }
 
@@ -7359,6 +8024,18 @@ final class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
     _loopVariable.accept(visitor);
     super.visitChildren(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    var childFromSuper = super._childContainingRange(rangeOffset, rangeEnd);
+    if (childFromSuper != null) {
+      return childFromSuper;
+    }
+    if (_loopVariable._containsOffset(rangeOffset, rangeEnd)) {
+      return _loopVariable;
+    }
+    return null;
+  }
 }
 
 /// The parts of a for-each loop that control the iteration when the loop
@@ -7410,6 +8087,16 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   void visitChildren(AstVisitor visitor) {
     _identifier.accept(visitor);
     _iterable.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_identifier._containsOffset(rangeOffset, rangeEnd)) {
+      return _identifier;
+    } else if (_iterable._containsOffset(rangeOffset, rangeEnd)) {
+      return _iterable;
+    }
+    return null;
   }
 }
 
@@ -7490,6 +8177,18 @@ final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
     _metadata.accept(visitor);
     pattern.accept(visitor);
     super.visitChildren(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    var childFromSuper = super._childContainingRange(rangeOffset, rangeEnd);
+    if (childFromSuper != null) {
+      return childFromSuper;
+    }
+    if (pattern._containsOffset(rangeOffset, rangeEnd)) {
+      return pattern;
+    }
+    return _metadata._elementContainingRange(rangeOffset, rangeEnd);
   }
 }
 
@@ -7579,6 +8278,16 @@ final class ForElementImpl extends CollectionElementImpl
   void visitChildren(AstVisitor visitor) {
     _forLoopParts.accept(visitor);
     _body.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_forLoopParts._containsOffset(rangeOffset, rangeEnd)) {
+      return _forLoopParts;
+    } else if (_body._containsOffset(rangeOffset, rangeEnd)) {
+      return _body;
+    }
+    return null;
   }
 }
 
@@ -7874,6 +8583,11 @@ final class FormalParameterListImpl extends AstNodeImpl
   void visitChildren(AstVisitor visitor) {
     _parameters.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return _parameters._elementContainingRange(rangeOffset, rangeEnd);
+  }
 }
 
 /// The parts of a for loop that control the iteration.
@@ -7951,6 +8665,14 @@ sealed class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
     _condition?.accept(visitor);
     _updaters.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_condition?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _condition;
+    }
+    return _updaters._elementContainingRange(rangeOffset, rangeEnd);
+  }
 }
 
 /// The parts of a for loop that control the iteration when there are one or
@@ -8008,6 +8730,20 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
   void visitChildren(AstVisitor visitor) {
     _variableList.accept(visitor);
     super.visitChildren(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    // The order is important here when recovering when everything except the
+    // variable list is synthetic.
+    if (_variableList._containsOffset(rangeOffset, rangeEnd)) {
+      return _variableList;
+    }
+    var childFromSuper = super._childContainingRange(rangeOffset, rangeEnd);
+    if (childFromSuper != null) {
+      return childFromSuper;
+    }
+    return null;
   }
 }
 
@@ -8069,6 +8805,18 @@ final class ForPartsWithExpressionImpl extends ForPartsImpl
     _initialization?.accept(visitor);
     super.visitChildren(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    var childFromSuper = super._childContainingRange(rangeOffset, rangeEnd);
+    if (childFromSuper != null) {
+      return childFromSuper;
+    }
+    if (_initialization?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _initialization;
+    }
+    return null;
+  }
 }
 
 /// The parts of a for loop that control the iteration when there's a pattern
@@ -8113,6 +8861,18 @@ final class ForPartsWithPatternImpl extends ForPartsImpl
   void visitChildren(AstVisitor visitor) {
     variables.accept(visitor);
     super.visitChildren(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    var childFromSuper = super._childContainingRange(rangeOffset, rangeEnd);
+    if (childFromSuper != null) {
+      return childFromSuper;
+    }
+    if (variables._containsOffset(rangeOffset, rangeEnd)) {
+      return variables;
+    }
+    return null;
   }
 }
 
@@ -8199,6 +8959,16 @@ final class ForStatementImpl extends StatementImpl
   void visitChildren(AstVisitor visitor) {
     _forLoopParts.accept(visitor);
     _body.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_forLoopParts._containsOffset(rangeOffset, rangeEnd)) {
+      return _forLoopParts;
+    } else if (_body._containsOffset(rangeOffset, rangeEnd)) {
+      return _body;
+    }
+    return null;
   }
 }
 
@@ -8428,6 +9198,20 @@ final class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
     _returnType?.accept(visitor);
     _functionExpression.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    var childFromSuper = super._childContainingRange(rangeOffset, rangeEnd);
+    if (childFromSuper != null) {
+      return childFromSuper;
+    }
+    if (_returnType?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _returnType;
+    } else if (_functionExpression._containsOffset(rangeOffset, rangeEnd)) {
+      return _functionExpression;
+    }
+    return null;
+  }
 }
 
 /// A [FunctionDeclaration] used as a statement.
@@ -8472,6 +9256,14 @@ final class FunctionDeclarationStatementImpl extends StatementImpl
   @override
   void visitChildren(AstVisitor visitor) {
     _functionDeclaration.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_functionDeclaration._containsOffset(rangeOffset, rangeEnd)) {
+      return _functionDeclaration;
+    }
+    return null;
   }
 }
 
@@ -8592,6 +9384,18 @@ final class FunctionExpressionImpl extends ExpressionImpl
     _parameters?.accept(visitor);
     _body.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_typeParameters?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _typeParameters;
+    } else if (_parameters?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _parameters;
+    } else if (_body._containsOffset(rangeOffset, rangeEnd)) {
+      return _body;
+    }
+    return null;
+  }
 }
 
 /// The invocation of a function resulting from evaluating an expression.
@@ -8675,6 +9479,19 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
     _function.accept(visitor);
     _typeArguments?.accept(visitor);
     _argumentList.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_function._containsOffset(rangeOffset, rangeEnd)) {
+      return _function;
+    } else if (_typeArguments?._containsOffset(rangeOffset, rangeEnd) ??
+        false) {
+      return _typeArguments;
+    } else if (_argumentList._containsOffset(rangeOffset, rangeEnd)) {
+      return _argumentList;
+    }
+    return null;
   }
 
   @override
@@ -8774,6 +9591,16 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
   void visitChildren(AstVisitor visitor) {
     function.accept(visitor);
     typeArguments?.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (function._containsOffset(rangeOffset, rangeEnd)) {
+      return function;
+    } else if (typeArguments?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return typeArguments;
+    }
+    return null;
   }
 }
 
@@ -8881,6 +9708,23 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
     _returnType?.accept(visitor);
     _typeParameters?.accept(visitor);
     _parameters.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    var childFromSuper = super._childContainingRange(rangeOffset, rangeEnd);
+    if (childFromSuper != null) {
+      return childFromSuper;
+    }
+    if (_returnType?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _returnType;
+    } else if (_typeParameters?._containsOffset(rangeOffset, rangeEnd) ??
+        false) {
+      return _typeParameters;
+    } else if (_parameters._containsOffset(rangeOffset, rangeEnd)) {
+      return _parameters;
+    }
+    return null;
   }
 }
 
@@ -9005,6 +9849,23 @@ final class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
     _returnType?.accept(visitor);
     _typeParameters?.accept(visitor);
     _parameters.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    var childFromSuper = super._childContainingRange(rangeOffset, rangeEnd);
+    if (childFromSuper != null) {
+      return childFromSuper;
+    }
+    if (_returnType?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _returnType;
+    } else if (_typeParameters?._containsOffset(rangeOffset, rangeEnd) ??
+        false) {
+      return _typeParameters;
+    } else if (_parameters._containsOffset(rangeOffset, rangeEnd)) {
+      return _parameters;
+    }
+    return null;
   }
 }
 
@@ -9143,6 +10004,19 @@ final class GenericFunctionTypeImpl extends TypeAnnotationImpl
     _typeParameters?.accept(visitor);
     _parameters.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_returnType?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _returnType;
+    } else if (_typeParameters?._containsOffset(rangeOffset, rangeEnd) ??
+        false) {
+      return _typeParameters;
+    } else if (_parameters._containsOffset(rangeOffset, rangeEnd)) {
+      return _parameters;
+    }
+    return null;
+  }
 }
 
 /// A generic type alias.
@@ -9248,6 +10122,20 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
     _typeParameters?.accept(visitor);
     _type.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    var childFromSuper = super._childContainingRange(rangeOffset, rangeEnd);
+    if (childFromSuper != null) {
+      return childFromSuper;
+    }
+    if (_typeParameters?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _typeParameters;
+    } else if (_type._containsOffset(rangeOffset, rangeEnd)) {
+      return _type;
+    }
+    return null;
+  }
 }
 
 /// The pattern with an optional [WhenClause].
@@ -9299,6 +10187,16 @@ final class GuardedPatternImpl extends AstNodeImpl implements GuardedPattern {
     pattern.accept(visitor);
     whenClause?.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (pattern._containsOffset(rangeOffset, rangeEnd)) {
+      return pattern;
+    } else if (whenClause?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return whenClause;
+    }
+    return null;
+  }
 }
 
 /// A combinator that restricts the names being imported to those that aren't
@@ -9342,6 +10240,11 @@ final class HideCombinatorImpl extends CombinatorImpl
   @override
   void visitChildren(AstVisitor visitor) {
     _hiddenNames.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return _hiddenNames._elementContainingRange(rangeOffset, rangeEnd);
   }
 }
 
@@ -9513,6 +10416,20 @@ final class IfElementImpl extends CollectionElementImpl
     _thenElement.accept(visitor);
     _elseElement?.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (expression._containsOffset(rangeOffset, rangeEnd)) {
+      return expression;
+    } else if (caseClause?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return caseClause;
+    } else if (_thenElement._containsOffset(rangeOffset, rangeEnd)) {
+      return _thenElement;
+    } else if (_elseElement?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _elseElement;
+    }
+    return null;
+  }
 }
 
 sealed class IfElementOrStatementImpl<E extends AstNodeImpl>
@@ -9674,6 +10591,21 @@ final class IfStatementImpl extends StatementImpl
     _thenStatement.accept(visitor);
     _elseStatement?.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_expression._containsOffset(rangeOffset, rangeEnd)) {
+      return _expression;
+    } else if (caseClause?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return caseClause;
+    } else if (_thenStatement._containsOffset(rangeOffset, rangeEnd)) {
+      return _thenStatement;
+    } else if (_elseStatement?._containsOffset(rangeOffset, rangeEnd) ??
+        false) {
+      return _elseStatement;
+    }
+    return null;
+  }
 }
 
 /// The "implements" clause in an class declaration.
@@ -9726,6 +10658,11 @@ final class ImplementsClauseImpl extends AstNodeImpl
   @override
   void visitChildren(AstVisitor visitor) {
     _interfaces.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return _interfaces._elementContainingRange(rangeOffset, rangeEnd);
   }
 }
 
@@ -9819,6 +10756,16 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
     expression.accept(visitor);
     typeArguments?.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (expression._containsOffset(rangeOffset, rangeEnd)) {
+      return expression;
+    } else if (typeArguments?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return typeArguments;
+    }
+    return null;
+  }
 }
 
 /// An import directive.
@@ -9865,6 +10812,9 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
 
   SimpleIdentifierImpl? _prefix;
 
+  @override
+  LibraryImportImpl? libraryImport;
+
   /// Initializes a newly created import directive.
   ///
   /// Either or both of the [comment] and [metadata] can be `null` if the
@@ -9894,12 +10844,6 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
   @override
   Token get firstTokenAfterCommentAndMetadata => importKeyword;
 
-  @experimental
-  @override
-  LibraryImportElementImpl? get libraryImport {
-    return element as LibraryImportElementImpl?;
-  }
-
   @override
   SimpleIdentifierImpl? get prefix => _prefix;
 
@@ -9928,6 +10872,19 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
     configurations.accept(visitor);
     _prefix?.accept(visitor);
     combinators.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    var childFromSuper = super._childContainingRange(rangeOffset, rangeEnd);
+    if (childFromSuper != null) {
+      return childFromSuper;
+    }
+    if (_prefix?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _prefix;
+    }
+    return configurations._elementContainingRange(rangeOffset, rangeEnd) ??
+        combinators._elementContainingRange(rangeOffset, rangeEnd);
   }
 
   /// Returns `true` if the non-URI components of the two directives are
@@ -10034,7 +10991,14 @@ final class ImportPrefixReferenceImpl extends AstNodeImpl
   }
 
   @override
-  void visitChildren(AstVisitor visitor) {}
+  void visitChildren(AstVisitor visitor) {
+    // There are no children to visit.
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
+  }
 }
 
 /// An index expression.
@@ -10299,6 +11263,16 @@ final class IndexExpressionImpl extends ExpressionImpl
   }
 
   @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_target?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _target;
+    } else if (_index._containsOffset(rangeOffset, rangeEnd)) {
+      return _index;
+    }
+    return null;
+  }
+
+  @override
   bool _extendsNullShorting(Expression descendant) =>
       identical(descendant, _target);
 }
@@ -10431,6 +11405,19 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
     _typeArguments?.accept(visitor);
     _argumentList.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_constructorName._containsOffset(rangeOffset, rangeEnd)) {
+      return _constructorName;
+    } else if (_typeArguments?._containsOffset(rangeOffset, rangeEnd) ??
+        false) {
+      return _typeArguments;
+    } else if (_argumentList._containsOffset(rangeOffset, rangeEnd)) {
+      return _argumentList;
+    }
+    return null;
+  }
 }
 
 /// An integer literal expression.
@@ -10497,6 +11484,11 @@ final class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
   @override
   void visitChildren(AstVisitor visitor) {
     // There are no children to visit.
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
   }
 
   static bool isValidAsDouble(String source) {
@@ -10636,6 +11628,14 @@ final class InterpolationExpressionImpl extends InterpolationElementImpl
   void visitChildren(AstVisitor visitor) {
     _expression.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_expression._containsOffset(rangeOffset, rangeEnd)) {
+      return _expression;
+    }
+    return null;
+  }
 }
 
 /// A non-empty substring of an interpolated string.
@@ -10701,7 +11701,14 @@ final class InterpolationStringImpl extends InterpolationElementImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitInterpolationString(this);
 
   @override
-  void visitChildren(AstVisitor visitor) {}
+  void visitChildren(AstVisitor visitor) {
+    // There are no children to visit.
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
+  }
 }
 
 /// The invocation of a function or method.
@@ -10872,6 +11879,16 @@ final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
     _expression.accept(visitor);
     _type.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_expression._containsOffset(rangeOffset, rangeEnd)) {
+      return _expression;
+    } else if (_type._containsOffset(rangeOffset, rangeEnd)) {
+      return _type;
+    }
+    return null;
+  }
 }
 
 /// A label on either a [LabeledStatement] or a [NamedExpression].
@@ -10958,6 +11975,14 @@ final class LabeledStatementImpl extends StatementImpl
     _labels.accept(visitor);
     _statement.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_statement._containsOffset(rangeOffset, rangeEnd)) {
+      return _statement;
+    }
+    return _labels._elementContainingRange(rangeOffset, rangeEnd);
+  }
 }
 
 final class LabelImpl extends AstNodeImpl implements Label {
@@ -11002,6 +12027,14 @@ final class LabelImpl extends AstNodeImpl implements Label {
   void visitChildren(AstVisitor visitor) {
     _label.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_label._containsOffset(rangeOffset, rangeEnd)) {
+      return _label;
+    }
+    return null;
+  }
 }
 
 /// A library directive.
@@ -11037,6 +12070,9 @@ final class LibraryDirectiveImpl extends DirectiveImpl
   @override
   final Token semicolon;
 
+  @override
+  LibraryElementImpl? element2;
+
   /// Initializes a newly created library directive.
   ///
   /// Either or both of the [comment] and [metadata] can be `null` if the
@@ -11050,10 +12086,6 @@ final class LibraryDirectiveImpl extends DirectiveImpl
   }) : _name = name {
     _becomeParentOf(_name);
   }
-
-  @experimental
-  @override
-  LibraryElementImpl? get element2 => element as LibraryElementImpl?;
 
   @override
   Token get endToken => semicolon;
@@ -11082,6 +12114,18 @@ final class LibraryDirectiveImpl extends DirectiveImpl
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     _name?.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    var childFromSuper = super._childContainingRange(rangeOffset, rangeEnd);
+    if (childFromSuper != null) {
+      return childFromSuper;
+    }
+    if (_name?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _name;
+    }
+    return null;
   }
 }
 
@@ -11152,6 +12196,11 @@ final class LibraryIdentifierImpl extends IdentifierImpl
   @override
   void visitChildren(AstVisitor visitor) {
     _components.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return _components._elementContainingRange(rangeOffset, rangeEnd);
   }
 }
 
@@ -11238,6 +12287,15 @@ final class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     _elements.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    var childFromSuper = super._childContainingRange(rangeOffset, rangeEnd);
+    if (childFromSuper != null) {
+      return childFromSuper;
+    }
+    return _elements._elementContainingRange(rangeOffset, rangeEnd);
   }
 }
 
@@ -11349,6 +12407,17 @@ final class ListPatternImpl extends DartPatternImpl implements ListPattern {
   void visitChildren(AstVisitor visitor) {
     typeArguments?.accept(visitor);
     elements.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (typeArguments?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return typeArguments;
+    }
+    return (elements as NodeListImpl)._elementContainingRange(
+      rangeOffset,
+      rangeEnd,
+    );
   }
 }
 
@@ -11464,6 +12533,16 @@ final class LogicalAndPatternImpl extends DartPatternImpl
     leftOperand.accept(visitor);
     rightOperand.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (leftOperand._containsOffset(rangeOffset, rangeEnd)) {
+      return leftOperand;
+    } else if (rightOperand._containsOffset(rangeOffset, rangeEnd)) {
+      return rightOperand;
+    }
+    return null;
+  }
 }
 
 /// A logical-or pattern.
@@ -11549,6 +12628,16 @@ final class LogicalOrPatternImpl extends DartPatternImpl
   void visitChildren(AstVisitor visitor) {
     leftOperand.accept(visitor);
     rightOperand.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (leftOperand._containsOffset(rangeOffset, rangeEnd)) {
+      return leftOperand;
+    } else if (rightOperand._containsOffset(rangeOffset, rangeEnd)) {
+      return rightOperand;
+    }
+    return null;
   }
 }
 
@@ -11650,6 +12739,16 @@ final class MapLiteralEntryImpl extends CollectionElementImpl
     _key.accept(visitor);
     _value.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_key._containsOffset(rangeOffset, rangeEnd)) {
+      return _key;
+    } else if (_value._containsOffset(rangeOffset, rangeEnd)) {
+      return _value;
+    }
+    return null;
+  }
 }
 
 /// A map pattern.
@@ -11745,6 +12844,16 @@ final class MapPatternEntryImpl extends AstNodeImpl
     key.accept(visitor);
     value.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_key._containsOffset(rangeOffset, rangeEnd)) {
+      return _key;
+    } else if (value._containsOffset(rangeOffset, rangeEnd)) {
+      return value;
+    }
+    return null;
+  }
 }
 
 final class MapPatternImpl extends DartPatternImpl implements MapPattern {
@@ -11825,6 +12934,17 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
   void visitChildren(AstVisitor visitor) {
     typeArguments?.accept(visitor);
     elements.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (typeArguments?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return typeArguments;
+    }
+    return (elements as NodeListImpl)._elementContainingRange(
+      rangeOffset,
+      rangeEnd,
+    );
   }
 }
 
@@ -12014,6 +13134,25 @@ final class MethodDeclarationImpl extends ClassMemberImpl
     typeParameters?.accept(visitor);
     parameters?.accept(visitor);
     body.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    var childFromSuper = super._childContainingRange(rangeOffset, rangeEnd);
+    if (childFromSuper != null) {
+      return childFromSuper;
+    }
+    if (returnType?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return returnType;
+    } else if (typeParameters?._containsOffset(rangeOffset, rangeEnd) ??
+        false) {
+      return typeParameters;
+    } else if (parameters?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return parameters;
+    } else if (body._containsOffset(rangeOffset, rangeEnd)) {
+      return body;
+    }
+    return null;
   }
 }
 
@@ -12208,6 +13347,20 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   }
 
   @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_target?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _target;
+    } else if (_methodName._containsOffset(rangeOffset, rangeEnd)) {
+      return _methodName;
+    } else if (typeArguments?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return typeArguments;
+    } else if (_argumentList._containsOffset(rangeOffset, rangeEnd)) {
+      return _argumentList;
+    }
+    return null;
+  }
+
+  @override
   bool _extendsNullShorting(Expression descendant) =>
       identical(descendant, _target);
 }
@@ -12353,6 +13506,23 @@ final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
     implementsClause?.accept(visitor);
     members.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    var childFromSuper = super._childContainingRange(rangeOffset, rangeEnd);
+    if (childFromSuper != null) {
+      return childFromSuper;
+    }
+    if (typeParameters?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return typeParameters;
+    } else if (onClause?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return onClause;
+    } else if (implementsClause?._containsOffset(rangeOffset, rangeEnd) ??
+        false) {
+      return implementsClause;
+    }
+    return members._elementContainingRange(rangeOffset, rangeEnd);
+  }
 }
 
 /// The "on" clause in a mixin declaration.
@@ -12404,6 +13574,14 @@ final class MixinOnClauseImpl extends AstNodeImpl implements MixinOnClause {
   @override
   void visitChildren(AstVisitor visitor) {
     _superclassConstraints.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return _superclassConstraints._elementContainingRange(
+      rangeOffset,
+      rangeEnd,
+    );
   }
 }
 
@@ -12516,6 +13694,16 @@ final class NamedExpressionImpl extends ExpressionImpl
   void visitChildren(AstVisitor visitor) {
     _name.accept(visitor);
     _expression.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_name._containsOffset(rangeOffset, rangeEnd)) {
+      return _name;
+    } else if (_expression._containsOffset(rangeOffset, rangeEnd)) {
+      return _expression;
+    }
+    return null;
   }
 }
 
@@ -12637,6 +13825,16 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
     importPrefix?.accept(visitor);
     typeArguments?.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (importPrefix?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return importPrefix;
+    } else if (typeArguments?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return typeArguments;
+    }
+    return null;
+  }
 }
 
 /// A node that represents a directive that impacts the namespace of a library.
@@ -12740,6 +13938,14 @@ final class NativeClauseImpl extends AstNodeImpl implements NativeClause {
   void visitChildren(AstVisitor visitor) {
     name?.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (name?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return name;
+    }
+    return null;
+  }
 }
 
 /// A function body that consists of a native keyword followed by a string
@@ -12810,6 +14016,14 @@ final class NativeFunctionBodyImpl extends FunctionBodyImpl
   @override
   void visitChildren(AstVisitor visitor) {
     _stringLiteral?.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_stringLiteral?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _stringLiteral;
+    }
+    return null;
   }
 }
 
@@ -12958,6 +14172,30 @@ final class NodeListImpl<E extends AstNode>
     throw UnsupportedError("Cannot resize NodeList.");
   }
 
+  /// Returns the child of this node that completely contains the range.
+  ///
+  /// Returns `null` if none of the children contain the range (which means that
+  /// this node is the covering node).
+  AstNodeImpl? _elementContainingRange(int rangeOffset, int rangeEnd) {
+    var left = 0;
+    var right = _elements.length - 1;
+    while (left <= right) {
+      var middle = left + ((right - left) / 2).truncate();
+      var candidate = _elements[middle] as AstNodeImpl;
+      if (candidate._containsOffset(rangeOffset, rangeEnd)) {
+        return candidate;
+      }
+      if (rangeEnd <= candidate.offset) {
+        right = middle - 1;
+      } else if (candidate.end <= rangeOffset) {
+        left = middle + 1;
+      } else {
+        return null;
+      }
+    }
+    return null;
+  }
+
   /// Set the [owner] of this container, and populate it with [elements].
   void _initialize(AstNodeImpl owner, List<E>? elements) {
     _owner = owner;
@@ -13037,6 +14275,14 @@ sealed class NormalFormalParameterImpl extends FormalParameterImpl
     //
     _visitCommentAndAnnotations(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_comment?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _comment;
+    }
+    return _metadata._elementContainingRange(rangeOffset, rangeEnd);
+  }
 }
 
 /// A null-assert pattern.
@@ -13112,6 +14358,14 @@ final class NullAssertPatternImpl extends DartPatternImpl
   void visitChildren(AstVisitor visitor) {
     pattern.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (pattern._containsOffset(rangeOffset, rangeEnd)) {
+      return pattern;
+    }
+    return null;
+  }
 }
 
 /// A null-aware element in a list or set literal.
@@ -13173,6 +14427,14 @@ final class NullAwareElementImpl extends CollectionElementImpl
   @override
   void visitChildren(AstVisitor visitor) {
     _value.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_value._containsOffset(rangeOffset, rangeEnd)) {
+      return _value;
+    }
+    return null;
   }
 }
 
@@ -13249,6 +14511,14 @@ final class NullCheckPatternImpl extends DartPatternImpl
   void visitChildren(AstVisitor visitor) {
     pattern.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (pattern._containsOffset(rangeOffset, rangeEnd)) {
+      return pattern;
+    }
+    return null;
+  }
 }
 
 /// A null literal expression.
@@ -13289,6 +14559,11 @@ final class NullLiteralImpl extends LiteralImpl implements NullLiteral {
   @override
   void visitChildren(AstVisitor visitor) {
     // There are no children to visit.
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
   }
 }
 
@@ -13442,6 +14717,17 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
     type.accept(visitor);
     fields.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (type._containsOffset(rangeOffset, rangeEnd)) {
+      return type;
+    }
+    return (fields as NodeListImpl)._elementContainingRange(
+      rangeOffset,
+      rangeEnd,
+    );
+  }
 }
 
 /// A parenthesized expression.
@@ -13525,6 +14811,14 @@ final class ParenthesizedExpressionImpl extends ExpressionImpl
   @override
   void visitChildren(AstVisitor visitor) {
     _expression.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_expression._containsOffset(rangeOffset, rangeEnd)) {
+      return _expression;
+    }
+    return null;
   }
 }
 
@@ -13617,6 +14911,14 @@ final class ParenthesizedPatternImpl extends DartPatternImpl
   void visitChildren(AstVisitor visitor) {
     pattern.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (pattern._containsOffset(rangeOffset, rangeEnd)) {
+      return pattern;
+    }
+    return null;
+  }
 }
 
 /// A part directive.
@@ -13652,6 +14954,9 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
   @override
   final Token semicolon;
 
+  @override
+  PartIncludeImpl? partInclude;
+
   /// Initializes a newly created part directive.
   ///
   /// Either or both of the [comment] and [metadata] can be `null` if the
@@ -13673,10 +14978,6 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
   @override
   Token get firstTokenAfterCommentAndMetadata => partKeyword;
 
-  @experimental
-  @override
-  PartElementImpl? get partInclude => element as PartElementImpl?;
-
   @override
   ChildEntities get _childEntities =>
       super._childEntities
@@ -13692,6 +14993,15 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     configurations.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    var childFromSuper = super._childContainingRange(rangeOffset, rangeEnd);
+    if (childFromSuper != null) {
+      return childFromSuper;
+    }
+    return configurations._elementContainingRange(rangeOffset, rangeEnd);
   }
 }
 
@@ -13791,6 +15101,20 @@ final class PartOfDirectiveImpl extends DirectiveImpl
     _libraryName?.accept(visitor);
     _uri?.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    var childFromSuper = super._childContainingRange(rangeOffset, rangeEnd);
+    if (childFromSuper != null) {
+      return childFromSuper;
+    }
+    if (_libraryName?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _libraryName;
+    } else if (_uri?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _uri;
+    }
+    return null;
+  }
 }
 
 /// A pattern assignment.
@@ -13870,6 +15194,16 @@ final class PatternAssignmentImpl extends ExpressionImpl
     pattern.accept(visitor);
     expression.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (pattern._containsOffset(rangeOffset, rangeEnd)) {
+      return pattern;
+    } else if (expression._containsOffset(rangeOffset, rangeEnd)) {
+      return expression;
+    }
+    return null;
+  }
 }
 
 /// A field in an object or record pattern.
@@ -13946,6 +15280,16 @@ final class PatternFieldImpl extends AstNodeImpl implements PatternField {
     name?.accept(visitor);
     pattern.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (name?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return name;
+    } else if (pattern._containsOffset(rangeOffset, rangeEnd)) {
+      return pattern;
+    }
+    return null;
+  }
 }
 
 /// A field name in an object or record pattern field.
@@ -13989,6 +15333,11 @@ final class PatternFieldNameImpl extends AstNodeImpl
   @override
   void visitChildren(AstVisitor visitor) {
     // There are no children to visit.
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
   }
 }
 
@@ -14082,6 +15431,20 @@ final class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
     pattern.accept(visitor);
     expression.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    var childFromSuper = super._childContainingRange(rangeOffset, rangeEnd);
+    if (childFromSuper != null) {
+      return childFromSuper;
+    }
+    if (pattern._containsOffset(rangeOffset, rangeEnd)) {
+      return pattern;
+    } else if (expression._containsOffset(rangeOffset, rangeEnd)) {
+      return expression;
+    }
+    return null;
+  }
 }
 
 /// A pattern variable declaration statement.
@@ -14131,6 +15494,14 @@ final class PatternVariableDeclarationStatementImpl extends StatementImpl
   @override
   void visitChildren(AstVisitor visitor) {
     declaration.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (declaration._containsOffset(rangeOffset, rangeEnd)) {
+      return declaration;
+    }
+    return null;
   }
 }
 
@@ -14229,6 +15600,14 @@ final class PostfixExpressionImpl extends ExpressionImpl
   @override
   void visitChildren(AstVisitor visitor) {
     _operand.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_operand._containsOffset(rangeOffset, rangeEnd)) {
+      return _operand;
+    }
+    return null;
   }
 
   @override
@@ -14341,6 +15720,16 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
     _prefix.accept(visitor);
     _identifier.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_prefix._containsOffset(rangeOffset, rangeEnd)) {
+      return _prefix;
+    } else if (_identifier._containsOffset(rangeOffset, rangeEnd)) {
+      return _identifier;
+    }
+    return null;
+  }
 }
 
 /// A prefix unary expression.
@@ -14438,6 +15827,14 @@ final class PrefixExpressionImpl extends ExpressionImpl
   @override
   void visitChildren(AstVisitor visitor) {
     _operand.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_operand._containsOffset(rangeOffset, rangeEnd)) {
+      return _operand;
+    }
+    return null;
   }
 
   @override
@@ -14597,6 +15994,16 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
   }
 
   @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_target?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _target;
+    } else if (_propertyName._containsOffset(rangeOffset, rangeEnd)) {
+      return _propertyName;
+    }
+    return null;
+  }
+
+  @override
   bool _extendsNullShorting(Expression descendant) =>
       identical(descendant, _target);
 }
@@ -14683,6 +16090,11 @@ final class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
   @override
   void visitChildren(AstVisitor visitor) {
     _fields.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return _fields._elementContainingRange(rangeOffset, rangeEnd);
   }
 }
 
@@ -14787,6 +16199,14 @@ final class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
   void visitChildren(AstVisitor visitor) {
     fields.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return (fields as NodeListImpl)._elementContainingRange(
+      rangeOffset,
+      rangeEnd,
+    );
+  }
 }
 
 /// A record type.
@@ -14867,6 +16287,14 @@ sealed class RecordTypeAnnotationFieldImpl extends AstNodeImpl
     metadata.accept(visitor);
     type.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (type._containsOffset(rangeOffset, rangeEnd)) {
+      return type;
+    }
+    return metadata._elementContainingRange(rangeOffset, rangeEnd);
+  }
 }
 
 final class RecordTypeAnnotationImpl extends TypeAnnotationImpl
@@ -14925,6 +16353,14 @@ final class RecordTypeAnnotationImpl extends TypeAnnotationImpl
   void visitChildren(AstVisitor visitor) {
     positionalFields.accept(visitor);
     namedFields?.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (namedFields?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return namedFields;
+    }
+    return positionalFields._elementContainingRange(rangeOffset, rangeEnd);
   }
 }
 
@@ -15008,6 +16444,11 @@ final class RecordTypeAnnotationNamedFieldsImpl extends AstNodeImpl
   @override
   void visitChildren(AstVisitor visitor) {
     fields.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return fields._elementContainingRange(rangeOffset, rangeEnd);
   }
 }
 
@@ -15126,6 +16567,16 @@ final class RedirectingConstructorInvocationImpl
     _constructorName?.accept(visitor);
     _argumentList.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_constructorName?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _constructorName;
+    } else if (_argumentList._containsOffset(rangeOffset, rangeEnd)) {
+      return _argumentList;
+    }
+    return null;
+  }
 }
 
 /// A relational pattern.
@@ -15217,6 +16668,14 @@ final class RelationalPatternImpl extends DartPatternImpl
   void visitChildren(AstVisitor visitor) {
     operand.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (operand._containsOffset(rangeOffset, rangeEnd)) {
+      return operand;
+    }
+    return null;
+  }
 }
 
 /// The name of the primary constructor of an extension type.
@@ -15258,7 +16717,14 @@ final class RepresentationConstructorNameImpl extends AstNodeImpl
   }
 
   @override
-  void visitChildren(AstVisitor visitor) {}
+  void visitChildren(AstVisitor visitor) {
+    // There are no children to visit.
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
+  }
 }
 
 /// The declaration of an extension type representation.
@@ -15364,6 +16830,16 @@ final class RepresentationDeclarationImpl extends AstNodeImpl
     fieldMetadata.accept(visitor);
     fieldType.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (constructorName?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return constructorName;
+    } else if (fieldType._containsOffset(rangeOffset, rangeEnd)) {
+      return fieldType;
+    }
+    return fieldMetadata._elementContainingRange(rangeOffset, rangeEnd);
+  }
 }
 
 /// A rest pattern element.
@@ -15415,6 +16891,14 @@ final class RestPatternElementImpl extends AstNodeImpl
   void visitChildren(AstVisitor visitor) {
     pattern?.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (pattern?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return pattern;
+    }
+    return null;
+  }
 }
 
 /// A rethrow expression.
@@ -15459,6 +16943,11 @@ final class RethrowExpressionImpl extends ExpressionImpl
   @override
   void visitChildren(AstVisitor visitor) {
     // There are no children to visit.
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
   }
 }
 
@@ -15527,6 +17016,14 @@ final class ReturnStatementImpl extends StatementImpl
   void visitChildren(AstVisitor visitor) {
     _expression?.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_expression?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _expression;
+    }
+    return null;
+  }
 }
 
 /// A resolved dot shorthand invocation.
@@ -15569,6 +17066,11 @@ final class ScriptTagImpl extends AstNodeImpl implements ScriptTag {
   @override
   void visitChildren(AstVisitor visitor) {
     // There are no children to visit.
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
   }
 }
 
@@ -15732,6 +17234,15 @@ final class SetOrMapLiteralImpl extends TypedLiteralImpl
     super.visitChildren(visitor);
     _elements.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    var childFromSuper = super._childContainingRange(rangeOffset, rangeEnd);
+    if (childFromSuper != null) {
+      return childFromSuper;
+    }
+    return _elements._elementContainingRange(rangeOffset, rangeEnd);
+  }
 }
 
 /// A combinator that restricts the names being imported to those in a given
@@ -15777,6 +17288,11 @@ final class ShowCombinatorImpl extends CombinatorImpl
   @override
   void visitChildren(AstVisitor visitor) {
     _shownNames.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return _shownNames._elementContainingRange(rangeOffset, rangeEnd);
   }
 }
 
@@ -15865,6 +17381,18 @@ final class SimpleFormalParameterImpl extends NormalFormalParameterImpl
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     _type?.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    var childFromSuper = super._childContainingRange(rangeOffset, rangeEnd);
+    if (childFromSuper != null) {
+      return childFromSuper;
+    }
+    if (_type?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _type;
+    }
+    return null;
   }
 }
 
@@ -16085,6 +17613,11 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   void visitChildren(AstVisitor visitor) {
     // There are no children to visit.
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
+  }
 }
 
 /// A string literal expression that doesn't contain any interpolations.
@@ -16175,6 +17708,11 @@ final class SimpleStringLiteralImpl extends SingleStringLiteralImpl
   @override
   void _appendStringValue(StringBuffer buffer) {
     buffer.write(value);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
   }
 }
 
@@ -16279,6 +17817,14 @@ final class SpreadElementImpl extends AstNodeImpl
   @override
   void visitChildren(AstVisitor visitor) {
     _expression.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_expression._containsOffset(rangeOffset, rangeEnd)) {
+      return _expression;
+    }
+    return null;
   }
 }
 
@@ -16424,6 +17970,11 @@ final class StringInterpolationImpl extends SingleStringLiteralImpl
   @override
   void _appendStringValue(StringBuffer buffer) {
     throw ArgumentError();
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return _elements._elementContainingRange(rangeOffset, rangeEnd);
   }
 }
 
@@ -16641,6 +18192,16 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
     _constructorName?.accept(visitor);
     _argumentList.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_constructorName?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _constructorName;
+    } else if (_argumentList._containsOffset(rangeOffset, rangeEnd)) {
+      return _argumentList;
+    }
+    return null;
+  }
 }
 
 /// A super expression.
@@ -16685,6 +18246,11 @@ final class SuperExpressionImpl extends ExpressionImpl
   @override
   void visitChildren(AstVisitor visitor) {
     // There are no children to visit.
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
   }
 }
 
@@ -16856,6 +18422,23 @@ final class SuperFormalParameterImpl extends NormalFormalParameterImpl
     _typeParameters?.accept(visitor);
     _parameters?.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    var childFromSuper = super._childContainingRange(rangeOffset, rangeEnd);
+    if (childFromSuper != null) {
+      return childFromSuper;
+    }
+    if (_type?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _type;
+    } else if (_typeParameters?._containsOffset(rangeOffset, rangeEnd) ??
+        false) {
+      return _typeParameters;
+    } else if (_parameters?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _parameters;
+    }
+    return null;
+  }
 }
 
 /// A case in a switch statement.
@@ -16909,6 +18492,15 @@ final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
     _expression.accept(visitor);
     statements.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_expression._containsOffset(rangeOffset, rangeEnd)) {
+      return _expression;
+    }
+    return labels._elementContainingRange(rangeOffset, rangeEnd) ??
+        statements._elementContainingRange(rangeOffset, rangeEnd);
+  }
 }
 
 /// The default case in a switch statement.
@@ -16945,6 +18537,12 @@ final class SwitchDefaultImpl extends SwitchMemberImpl
   void visitChildren(AstVisitor visitor) {
     labels.accept(visitor);
     statements.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return labels._elementContainingRange(rangeOffset, rangeEnd) ??
+        statements._elementContainingRange(rangeOffset, rangeEnd);
   }
 }
 
@@ -17043,6 +18641,16 @@ final class SwitchExpressionCaseImpl extends AstNodeImpl
     guardedPattern.accept(visitor);
     expression.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (guardedPattern._containsOffset(rangeOffset, rangeEnd)) {
+      return guardedPattern;
+    } else if (_expression._containsOffset(rangeOffset, rangeEnd)) {
+      return _expression;
+    }
+    return null;
+  }
 }
 
 final class SwitchExpressionImpl extends ExpressionImpl
@@ -17119,6 +18727,14 @@ final class SwitchExpressionImpl extends ExpressionImpl
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
     cases.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_expression._containsOffset(rangeOffset, rangeEnd)) {
+      return _expression;
+    }
+    return cases._elementContainingRange(rangeOffset, rangeEnd);
   }
 }
 
@@ -17245,6 +18861,15 @@ final class SwitchPatternCaseImpl extends SwitchMemberImpl
     guardedPattern.accept(visitor);
     statements.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (guardedPattern._containsOffset(rangeOffset, rangeEnd)) {
+      return guardedPattern;
+    }
+    return labels._elementContainingRange(rangeOffset, rangeEnd) ??
+        statements._elementContainingRange(rangeOffset, rangeEnd);
+  }
 }
 
 /// A switch statement.
@@ -17365,6 +18990,14 @@ final class SwitchStatementImpl extends StatementImpl
     _members.accept(visitor);
   }
 
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_expression._containsOffset(rangeOffset, rangeEnd)) {
+      return _expression;
+    }
+    return _members._elementContainingRange(rangeOffset, rangeEnd);
+  }
+
   List<SwitchStatementCaseGroup> _computeMemberGroups() {
     var groups = <SwitchStatementCaseGroup>[];
     var groupMembers = <SwitchMemberImpl>[];
@@ -17433,6 +19066,11 @@ final class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
   void visitChildren(AstVisitor visitor) {
     // There are no children to visit.
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
+  }
 }
 
 /// An identifier that can be used to look up names in the lexical scope when
@@ -17493,6 +19131,11 @@ final class ThisExpressionImpl extends ExpressionImpl
   @override
   void visitChildren(AstVisitor visitor) {
     // There are no children to visit.
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
   }
 }
 
@@ -17559,6 +19202,14 @@ final class ThrowExpressionImpl extends ExpressionImpl
   @override
   void visitChildren(AstVisitor visitor) {
     _expression.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_expression._containsOffset(rangeOffset, rangeEnd)) {
+      return _expression;
+    }
+    return null;
   }
 }
 
@@ -17652,6 +19303,18 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     _variableList.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    var childFromSuper = super._childContainingRange(rangeOffset, rangeEnd);
+    if (childFromSuper != null) {
+      return childFromSuper;
+    }
+    if (_variableList._containsOffset(rangeOffset, rangeEnd)) {
+      return _variableList;
+    }
+    return null;
   }
 }
 
@@ -17761,6 +19424,16 @@ final class TryStatementImpl extends StatementImpl implements TryStatement {
     _body.accept(visitor);
     _catchClauses.accept(visitor);
     _finallyBlock?.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_body._containsOffset(rangeOffset, rangeEnd)) {
+      return _body;
+    } else if (_finallyBlock?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _finallyBlock;
+    }
+    return _catchClauses._elementContainingRange(rangeOffset, rangeEnd);
   }
 }
 
@@ -17896,6 +19569,11 @@ final class TypeArgumentListImpl extends AstNodeImpl
   void visitChildren(AstVisitor visitor) {
     _arguments.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return _arguments._elementContainingRange(rangeOffset, rangeEnd);
+  }
 }
 
 /// A literal that has a type associated with it.
@@ -17960,6 +19638,14 @@ sealed class TypedLiteralImpl extends LiteralImpl implements TypedLiteral {
   @override
   void visitChildren(AstVisitor visitor) {
     _typeArguments?.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_typeArguments?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _typeArguments;
+    }
+    return null;
   }
 }
 
@@ -18026,6 +19712,14 @@ final class TypeLiteralImpl extends CommentReferableExpressionImpl
   @override
   void visitChildren(AstVisitor visitor) {
     _typeName.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_typeName._containsOffset(rangeOffset, rangeEnd)) {
+      return _typeName;
+    }
+    return null;
   }
 }
 
@@ -18115,6 +19809,18 @@ final class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
     super.visitChildren(visitor);
     _bound?.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    var childFromSuper = super._childContainingRange(rangeOffset, rangeEnd);
+    if (childFromSuper != null) {
+      return childFromSuper;
+    }
+    if (_bound?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _bound;
+    }
+    return null;
+  }
 }
 
 /// Type parameters within a declaration.
@@ -18175,6 +19881,11 @@ final class TypeParameterListImpl extends AstNodeImpl
   void visitChildren(AstVisitor visitor) {
     _typeParameters.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return _typeParameters._elementContainingRange(rangeOffset, rangeEnd);
+  }
 }
 
 /// A directive that references a URI.
@@ -18217,6 +19928,18 @@ sealed class UriBasedDirectiveImpl extends DirectiveImpl
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     _uri.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    var childFromSuper = super._childContainingRange(rangeOffset, rangeEnd);
+    if (childFromSuper != null) {
+      return childFromSuper;
+    }
+    if (_uri._containsOffset(rangeOffset, rangeEnd)) {
+      return _uri;
+    }
+    return null;
   }
 
   /// Validate this directive, but don't check for existence.
@@ -18428,6 +20151,18 @@ final class VariableDeclarationImpl extends DeclarationImpl
     super.visitChildren(visitor);
     _initializer?.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    var childFromSuper = super._childContainingRange(rangeOffset, rangeEnd);
+    if (childFromSuper != null) {
+      return childFromSuper;
+    }
+    if (_initializer?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _initializer;
+    }
+    return null;
+  }
 }
 
 /// The declaration of one or more variables of the same type.
@@ -18554,6 +20289,18 @@ final class VariableDeclarationListImpl extends AnnotatedNodeImpl
     _type?.accept(visitor);
     _variables.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    var childFromSuper = super._childContainingRange(rangeOffset, rangeEnd);
+    if (childFromSuper != null) {
+      return childFromSuper;
+    }
+    if (_type?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _type;
+    }
+    return _variables._elementContainingRange(rangeOffset, rangeEnd);
+  }
 }
 
 /// A list of variables that are being declared in a context where a statement
@@ -18611,6 +20358,14 @@ final class VariableDeclarationStatementImpl extends StatementImpl
   @override
   void visitChildren(AstVisitor visitor) {
     _variableList.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_variableList._containsOffset(rangeOffset, rangeEnd)) {
+      return _variableList;
+    }
+    return null;
   }
 }
 
@@ -18690,6 +20445,14 @@ final class WhenClauseImpl extends AstNodeImpl implements WhenClause {
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (expression._containsOffset(rangeOffset, rangeEnd)) {
+      return expression;
+    }
+    return null;
   }
 }
 
@@ -18778,6 +20541,16 @@ final class WhileStatementImpl extends StatementImpl implements WhileStatement {
   void visitChildren(AstVisitor visitor) {
     _condition.accept(visitor);
     _body.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_condition._containsOffset(rangeOffset, rangeEnd)) {
+      return _condition;
+    } else if (_body._containsOffset(rangeOffset, rangeEnd)) {
+      return _body;
+    }
+    return null;
   }
 }
 
@@ -18882,6 +20655,14 @@ final class WildcardPatternImpl extends DartPatternImpl
   void visitChildren(AstVisitor visitor) {
     type?.accept(visitor);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (type?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return type;
+    }
+    return null;
+  }
 }
 
 /// The with clause in a class declaration.
@@ -18933,6 +20714,11 @@ final class WithClauseImpl extends AstNodeImpl implements WithClause {
   @override
   void visitChildren(AstVisitor visitor) {
     _mixinTypes.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return _mixinTypes._elementContainingRange(rangeOffset, rangeEnd);
   }
 }
 
@@ -19010,6 +20796,14 @@ final class YieldStatementImpl extends StatementImpl implements YieldStatement {
   @override
   void visitChildren(AstVisitor visitor) {
     _expression.accept(visitor);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_expression._containsOffset(rangeOffset, rangeEnd)) {
+      return _expression;
+    }
+    return null;
   }
 }
 

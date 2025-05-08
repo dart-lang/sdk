@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:observatory/service_io.dart';
-
 import 'service_test_common.dart';
 import 'test_helper.dart';
 

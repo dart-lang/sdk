@@ -42,12 +42,10 @@ import 'environment.dart';
 import 'inferrer/abstract_value_domain.dart';
 import 'inferrer/abstract_value_strategy.dart';
 import 'inferrer/computable.dart' show ComputableAbstractValueStrategy;
-import 'inferrer/powersets/powersets.dart' show PowersetStrategy;
 import 'inferrer/trivial.dart' show TrivialAbstractValueStrategy;
 import 'inferrer/typemasks/masks.dart' show TypeMaskStrategy;
 import 'inferrer/types.dart'
     show GlobalTypeInferenceResults, GlobalTypeInferenceTask;
-import 'inferrer/wrapped.dart' show WrappedAbstractValueStrategy;
 import 'io/source_information.dart';
 import 'js_backend/codegen_inputs.dart' show CodegenInputs;
 import 'js_backend/enqueuer.dart';
@@ -165,13 +163,6 @@ class Compiler {
         options.useTrivialAbstractValueDomain
             ? const TrivialAbstractValueStrategy()
             : const TypeMaskStrategy();
-    if (options.experimentalWrapped || options.testMode) {
-      abstractValueStrategy = WrappedAbstractValueStrategy(
-        abstractValueStrategy,
-      );
-    } else if (options.experimentalPowersets) {
-      abstractValueStrategy = PowersetStrategy(abstractValueStrategy);
-    }
     if (options.debugGlobalInference) {
       abstractValueStrategy = ComputableAbstractValueStrategy(
         abstractValueStrategy,

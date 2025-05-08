@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:observatory/service_io.dart';
-import 'package:test/test.dart';
-import 'test_helper.dart';
-import 'service_test_common.dart';
 import 'dart:developer';
 
+import 'package:test/test.dart';
+
+import 'package:observatory/service_io.dart';
 import "get_source_report_with_mixin_lib2.dart";
 import "get_source_report_with_mixin_lib3.dart";
+import 'service_test_common.dart';
+import 'test_helper.dart';
 
 const String lib1Filename = "get_source_report_with_mixin_lib1";
 const String lib3Filename = "get_source_report_with_mixin_lib3";

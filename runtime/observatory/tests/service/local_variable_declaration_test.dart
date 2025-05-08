@@ -3,20 +3,22 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--verbose_debug
 
-import 'package:observatory/service_io.dart';
+import 'dart:developer';
+
 import 'package:test/test.dart';
+
+import 'package:observatory/service_io.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
-import 'dart:developer';
 
 testParameters(int jjjj, int oooo, [int? hhhh, int? nnnn]) {
   debugger();
 }
 
 testMain() {
-  int? xxx, yyyy, zzzzz;
+  int? xxx, yyyy, zzzzz; // ignore: unused_local_variable
   for (int i = 0; i < 1; i++) {
-    var foo = () {};
+    var foo = () {}; // ignore: unused_local_variable
     debugger();
   }
   var bar = () {

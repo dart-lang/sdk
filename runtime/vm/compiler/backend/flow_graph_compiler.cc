@@ -3273,6 +3273,11 @@ void LateInitializationErrorSlowPath::EmitSharedStubCall(
 #endif
 }
 
+void FieldAccessErrorSlowPath::PushArgumentsForRuntimeCall(
+    FlowGraphCompiler* compiler) {
+  __ PushObject(Field::ZoneHandle(OriginalField()));
+}
+
 void FlowGraphCompiler::EmitNativeMove(
     const compiler::ffi::NativeLocation& destination,
     const compiler::ffi::NativeLocation& source,

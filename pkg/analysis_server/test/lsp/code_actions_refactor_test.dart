@@ -12,7 +12,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../tool/lsp_spec/matchers.dart';
-import '../utils/lsp_protocol_extensions.dart';
 import '../utils/test_code_extensions.dart';
 import 'code_actions_abstract.dart';
 import 'request_helpers_mixin.dart';
@@ -255,22 +254,12 @@ void f() {
     ofKind(CodeActionKind kind) =>
         getCodeActions(mainFileUri, range: code.range.range, kinds: [kind]);
 
-    // Helper that requests CodeActions for [kind] and ensures all results
-    // returned have either an equal kind, or a kind that is prefixed with the
-    // requested kind followed by a dot.
-    Future<void> checkResults(CodeActionKind kind) async {
-      var results = await ofKind(kind);
-      for (var result in results) {
-        var resultKind = result.asCodeActionLiteral.kind;
-        expect('$resultKind', anyOf([equals('$kind'), startsWith('$kind.')]));
-      }
-    }
-
-    // Check a few of each that will produces multiple matches and no matches.
-    await checkResults(CodeActionKind.Refactor);
-    await checkResults(CodeActionKind.RefactorExtract);
-    await checkResults(CodeActionKind('refactor.extract.foo'));
-    await checkResults(CodeActionKind.RefactorRewrite);
+    // The code above will return a 'refactor.extract' (as well as some other
+    // refactors, but not rewrite).
+    expect(await ofKind(CodeActionKind.Refactor), isNotEmpty);
+    expect(await ofKind(CodeActionKind.RefactorExtract), isNotEmpty);
+    expect(await ofKind(CodeActionKind('refactor.extract.foo')), isEmpty);
+    expect(await ofKind(CodeActionKind.RefactorRewrite), isEmpty);
   }
 
   Future<void> test_generatesNames() async {

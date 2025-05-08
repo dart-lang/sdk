@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'test_helper.dart';
 import 'service_test_common.dart';
+import 'test_helper.dart';
 
 const int LINE_A = 12;
 const String file = "next_through_for_loop_with_break_and_continue_test.dart";
@@ -26,39 +26,39 @@ List<String> stops = [];
 List<String> expected = [
   // Initialization (on '='), loop start (on '='),
   // first iteration (on '<', on '==', on '==', on '++')
-  "$file:${LINE_A+0}:13",
-  "$file:${LINE_A+1}:14",
-  "$file:${LINE_A+1}:21",
-  "$file:${LINE_A+2}:11",
-  "$file:${LINE_A+5}:11",
-  "$file:${LINE_A+8}:10",
+  "$file:${LINE_A + 0}:13",
+  "$file:${LINE_A + 1}:14",
+  "$file:${LINE_A + 1}:21",
+  "$file:${LINE_A + 2}:11",
+  "$file:${LINE_A + 5}:11",
+  "$file:${LINE_A + 8}:10",
 
   // Second iteration of loop: Full run
   // (on '++', on '<', on '==', on '==', on '++')
-  "$file:${LINE_A+1}:27",
-  "$file:${LINE_A+1}:21",
-  "$file:${LINE_A+2}:11",
-  "$file:${LINE_A+5}:11",
-  "$file:${LINE_A+8}:10",
+  "$file:${LINE_A + 1}:27",
+  "$file:${LINE_A + 1}:21",
+  "$file:${LINE_A + 2}:11",
+  "$file:${LINE_A + 5}:11",
+  "$file:${LINE_A + 8}:10",
 
   // Third iteration of loop: continue
   // (on '++', on '<', on '==', on 'continue')
-  "$file:${LINE_A+1}:27",
-  "$file:${LINE_A+1}:21",
-  "$file:${LINE_A+2}:11",
-  "$file:${LINE_A+3}:7",
+  "$file:${LINE_A + 1}:27",
+  "$file:${LINE_A + 1}:21",
+  "$file:${LINE_A + 2}:11",
+  "$file:${LINE_A + 3}:7",
 
   // Forth iteration of loop: break
   // (on '++', on '<', on '==' on '==', on 'break')
-  "$file:${LINE_A+1}:27",
-  "$file:${LINE_A+1}:21",
-  "$file:${LINE_A+2}:11",
-  "$file:${LINE_A+5}:11",
-  "$file:${LINE_A+6}:7",
+  "$file:${LINE_A + 1}:27",
+  "$file:${LINE_A + 1}:21",
+  "$file:${LINE_A + 2}:11",
+  "$file:${LINE_A + 5}:11",
+  "$file:${LINE_A + 6}:7",
 
   // End (on call to 'print' and on ending '}')
-  "$file:${LINE_A+10}:3",
-  "$file:${LINE_A+11}:1"
+  "$file:${LINE_A + 10}:3",
+  "$file:${LINE_A + 11}:1"
 ];
 
 var tests = <IsolateTest>[

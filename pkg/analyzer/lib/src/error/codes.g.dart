@@ -20,7 +20,7 @@ library;
 
 import "package:analyzer/error/error.dart";
 
-class CompileTimeErrorCode extends ErrorCode {
+class CompileTimeErrorCode extends DiagnosticCode {
   ///  No parameters.
   static const CompileTimeErrorCode
   ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER = CompileTimeErrorCode(
@@ -1023,12 +1023,6 @@ class CompileTimeErrorCode extends ErrorCode {
       CompileTimeErrorCode(
         'CONST_EVAL_METHOD_INVOCATION',
         "Methods can't be invoked in constant expressions.",
-      );
-
-  static const CompileTimeErrorCode CONST_EVAL_NULL_AWARE_ACCESS =
-      CompileTimeErrorCode(
-        'CONST_EVAL_NULL_AWARE_ACCESS',
-        "Null-aware property access can't be used in a constant expression.",
       );
 
   ///  See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
@@ -5923,6 +5917,20 @@ class CompileTimeErrorCode extends ErrorCode {
       );
 
   ///  Parameters:
+  ///  0: the name of the class being instantiated
+  ///  1: the name of the constructor being invoked
+  static const CompileTimeErrorCode
+  WRONG_NUMBER_OF_TYPE_ARGUMENTS_DOT_SHORTHAND_CONSTRUCTOR = CompileTimeErrorCode(
+    'WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR',
+    "The constructor '{0}.{1}` doesn't have type parameters.",
+    correctionMessage:
+        "Try removing the type arguments, or adding a class name, followed by "
+        "the type arguments, then the constructor name.",
+    hasPublishedDocs: true,
+    uniqueName: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS_DOT_SHORTHAND_CONSTRUCTOR',
+  );
+
+  ///  Parameters:
   ///  0: the number of type parameters that were declared
   ///  1: the number of type arguments provided
   static const CompileTimeErrorCode WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM =
@@ -6087,7 +6095,7 @@ class CompileTimeErrorCode extends ErrorCode {
   DiagnosticType get type => DiagnosticType.COMPILE_TIME_ERROR;
 }
 
-class StaticWarningCode extends ErrorCode {
+class StaticWarningCode extends DiagnosticCode {
   ///  No parameters.
   static const StaticWarningCode DEAD_NULL_AWARE_EXPRESSION = StaticWarningCode(
     'DEAD_NULL_AWARE_EXPRESSION',
@@ -6216,7 +6224,7 @@ class StaticWarningCode extends ErrorCode {
   DiagnosticType get type => DiagnosticType.STATIC_WARNING;
 }
 
-class WarningCode extends ErrorCode {
+class WarningCode extends DiagnosticCode {
   ///  Parameters:
   ///  0: the name of the actual argument type
   ///  1: the name of the expected function return type

@@ -6,7 +6,7 @@ abstract class B {
   call<T>();
 }
 
-/*member: C.:[exact=C|powerset={N}]*/
+/*member: C.:[exact=C|powerset={N}{O}{N}]*/
 class C implements B {
   /*member: C.call:[null|powerset={null}]*/
   call<T>() => print(T);
@@ -15,27 +15,27 @@ class C implements B {
 abstract class A {}
 
 class Wrapper {
-  /*member: Wrapper.:[exact=Wrapper|powerset={N}]*/
+  /*member: Wrapper.:[exact=Wrapper|powerset={N}{O}{N}]*/
   Wrapper(
-    this. /*[exact=C|powerset={N}]*/ b,
-    this. /*[exact=C|powerset={N}]*/ call,
+    this. /*[exact=C|powerset={N}{O}{N}]*/ b,
+    this. /*[exact=C|powerset={N}{O}{N}]*/ call,
   );
-  /*member: Wrapper.b:[exact=C|powerset={N}]*/
+  /*member: Wrapper.b:[exact=C|powerset={N}{O}{N}]*/
   final B b;
-  /*member: Wrapper.call:[exact=C|powerset={N}]*/
+  /*member: Wrapper.call:[exact=C|powerset={N}{O}{N}]*/
   final B call;
 }
 
 /*member: main:[null|powerset={null}]*/
 void main() {
   B b = C();
-  b/*invoke: [exact=C|powerset={N}]*/ <A>();
-  Wrapper(b, b).b<A> /*invoke: [exact=Wrapper|powerset={N}]*/ ();
-  (Wrapper(b, b). /*[exact=Wrapper|powerset={N}]*/ b)<
+  b/*invoke: [exact=C|powerset={N}{O}{N}]*/ <A>();
+  Wrapper(b, b).b<A> /*invoke: [exact=Wrapper|powerset={N}{O}{N}]*/ ();
+  (Wrapper(b, b). /*[exact=Wrapper|powerset={N}{O}{N}]*/ b)<
     A
-  > /*invoke: [exact=C|powerset={N}]*/ ();
-  Wrapper(b, b).call<A> /*invoke: [exact=Wrapper|powerset={N}]*/ ();
-  (Wrapper(b, b). /*[exact=Wrapper|powerset={N}]*/ call)<
+  > /*invoke: [exact=C|powerset={N}{O}{N}]*/ ();
+  Wrapper(b, b).call<A> /*invoke: [exact=Wrapper|powerset={N}{O}{N}]*/ ();
+  (Wrapper(b, b). /*[exact=Wrapper|powerset={N}{O}{N}]*/ call)<
     A
-  > /*invoke: [exact=C|powerset={N}]*/ ();
+  > /*invoke: [exact=C|powerset={N}{O}{N}]*/ ();
 }

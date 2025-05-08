@@ -58,7 +58,7 @@ class Todo {
  * The error code indicating a marker in code for work that needs to be finished
  * or revisited.
  */
-class TodoCode extends ErrorCode {
+class TodoCode extends DiagnosticCode {
   /**
    * A standard TODO comment marked as TODO.
    */

@@ -36,9 +36,6 @@ class Flags {
   static const String experimentalTrackAllocations =
       '--experimental-track-allocations';
 
-  static const String experimentalWrapped = '--experimental-wrapped';
-  static const String experimentalPowersets = '--experimental-powersets';
-
   // Temporary experiment for code generation of locals for frequently used
   // 'this' and constants.
   static const String experimentLocalNames = '--experiment-code-1';
@@ -190,6 +187,8 @@ class Flags {
 
   static const String disableDiagnosticByteCache =
       '--disable-diagnostic-byte-cache';
+
+  static const enableDeferredLoadingEventLog = '--log-deferred-loading-events';
 
   // `--no-shipping` and `--canary` control sets of flags. For simplicity, these
   // flags live in options.dart.

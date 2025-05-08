@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'test_helper.dart';
 import 'service_test_common.dart';
+import 'test_helper.dart';
 
 const int LINE_A = 12;
 const String file = "next_through_assign_call_test.dart";
@@ -30,22 +30,22 @@ foo() {
 
 List<String> stops = [];
 List<String> expected = [
-  "$file:${LINE_A+0}:8", // on variable 'a'
-  "$file:${LINE_A+1}:8", // on variable 'b'
-  "$file:${LINE_A+2}:11", // on call to 'foo'
-  "$file:${LINE_A+3}:3", // on call to 'print'
-  "$file:${LINE_A+4}:3", // on call to 'print'
-  "$file:${LINE_A+5}:7", // on call to 'foo'
-  "$file:${LINE_A+6}:3", // on call to 'print'
-  "$file:${LINE_A+7}:12", // on call to 'foo'
-  "$file:${LINE_A+8}:3", // on call to 'print'
-  "$file:${LINE_A+9}:12", // on first call to 'foo'
-  "$file:${LINE_A+9}:19", // on variable 'f'
-  "$file:${LINE_A+9}:26", // on second call to 'foo'
-  "$file:${LINE_A+10}:3", // on call to 'print'
-  "$file:${LINE_A+11}:3", // on call to 'print'
-  "$file:${LINE_A+12}:3", // on call to 'print'
-  "$file:${LINE_A+13}:1" // on ending '}'
+  "$file:${LINE_A + 0}:8", // on variable 'a'
+  "$file:${LINE_A + 1}:8", // on variable 'b'
+  "$file:${LINE_A + 2}:11", // on call to 'foo'
+  "$file:${LINE_A + 3}:3", // on call to 'print'
+  "$file:${LINE_A + 4}:3", // on call to 'print'
+  "$file:${LINE_A + 5}:7", // on call to 'foo'
+  "$file:${LINE_A + 6}:3", // on call to 'print'
+  "$file:${LINE_A + 7}:12", // on call to 'foo'
+  "$file:${LINE_A + 8}:3", // on call to 'print'
+  "$file:${LINE_A + 9}:12", // on first call to 'foo'
+  "$file:${LINE_A + 9}:19", // on variable 'f'
+  "$file:${LINE_A + 9}:26", // on second call to 'foo'
+  "$file:${LINE_A + 10}:3", // on call to 'print'
+  "$file:${LINE_A + 11}:3", // on call to 'print'
+  "$file:${LINE_A + 12}:3", // on call to 'print'
+  "$file:${LINE_A + 13}:1" // on ending '}'
 ];
 
 var tests = <IsolateTest>[

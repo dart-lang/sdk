@@ -11,7 +11,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/utilities/extensions/ast.dart';
 
 /// Returns the container for [element] that should be used in Call Hierarchy.
 ///

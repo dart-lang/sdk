@@ -3,12 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'test_helper.dart';
-import 'service_test_common.dart';
-import 'package:observatory/service_io.dart';
+
 import 'package:test/test.dart';
 
-const int LINE_A = 19, LINE_B = 38;
+import 'package:observatory/service_io.dart';
+import 'service_test_common.dart';
+import 'test_helper.dart';
+
+const int LINE_A = 21, LINE_B = 40;
 
 var _lock;
 var _lockEnabled = true;

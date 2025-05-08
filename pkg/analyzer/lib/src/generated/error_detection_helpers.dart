@@ -43,7 +43,7 @@ mixin ErrorDetectionHelpers {
     Expression expression,
     TypeImpl expectedStaticType,
     TypeImpl actualStaticType,
-    ErrorCode errorCode, {
+    DiagnosticCode diagnosticCode, {
     Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted,
   }) {
     if (expectedStaticType is! VoidType &&
@@ -55,7 +55,7 @@ mixin ErrorDetectionHelpers {
       expression,
       actualStaticType,
       expectedStaticType,
-      errorCode,
+      diagnosticCode,
       whyNotPromoted: whyNotPromoted,
     );
   }
@@ -82,7 +82,7 @@ mixin ErrorDetectionHelpers {
     Expression expression,
     TypeImpl actualStaticType,
     TypeImpl expectedStaticType,
-    ErrorCode errorCode, {
+    DiagnosticCode diagnosticCode, {
     Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted,
   }) {
     if (expectedStaticType is! VoidType &&
@@ -123,7 +123,7 @@ mixin ErrorDetectionHelpers {
           return;
         }
       }
-      if (errorCode == CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE) {
+      if (diagnosticCode == CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE) {
         var additionalInfo = <String>[];
         if (expectedStaticType is RecordTypeImpl &&
             actualStaticType is RecordTypeImpl) {
@@ -160,7 +160,7 @@ mixin ErrorDetectionHelpers {
         }
         errorReporter.atNode(
           getErrorNode(expression),
-          errorCode,
+          diagnosticCode,
           arguments: [
             actualStaticType,
             expectedStaticType,
@@ -175,7 +175,7 @@ mixin ErrorDetectionHelpers {
       }
       errorReporter.atNode(
         getErrorNode(expression),
-        errorCode,
+        diagnosticCode,
         arguments: [actualStaticType, expectedStaticType],
         contextMessages: computeWhyNotPromotedMessages(
           expression,

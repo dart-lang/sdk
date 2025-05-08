@@ -4,9 +4,9 @@
 
 library set_library_debuggable_rpc_test;
 
-import 'package:observatory/service_io.dart';
 import 'package:test/test.dart';
 
+import 'package:observatory/service_io.dart';
 import 'test_helper.dart';
 
 var tests = <IsolateTest>[

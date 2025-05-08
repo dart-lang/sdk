@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/cider/document_symbols.dart';
-import 'package:analyzer_utilities/test/mock_packages/mock_packages.dart';
+import 'package:analyzer_testing/mock_packages/mock_packages.dart';
 import 'package:test/expect.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 

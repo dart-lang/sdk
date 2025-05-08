@@ -6,12 +6,12 @@
 import 'dart:async';
 import 'dart:developer';
 
-import 'test_helper.dart';
-import 'service_test_common.dart';
+import 'package:test/test.dart';
 
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/service_io.dart';
-import 'package:test/test.dart';
+import 'service_test_common.dart';
+import 'test_helper.dart';
 
 const int LINE_0 = 22;
 const int LINE_A = 23;

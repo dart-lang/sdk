@@ -54,7 +54,6 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/version.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
-import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:collection/collection.dart';
 
 class AnalysisForCompletionResult {
@@ -789,7 +788,7 @@ class LibraryAnalyzer {
         );
       } else if (directive is LibraryDirectiveImpl) {
         if (fileKind == _library) {
-          directive.element = _libraryElement;
+          directive.element2 = _libraryElement;
         }
       } else if (directive is PartDirectiveImpl) {
         var index = partIndex++;
@@ -800,9 +799,6 @@ class LibraryAnalyzer {
           partElement: fileElement.parts[index],
           errorReporter: containerErrorReporter,
         );
-      } else if (directive is PartOfDirectiveImpl) {
-        // TODO(scheglov): this should be LibraryFragment.
-        directive.element = _libraryElement;
       }
     }
 
@@ -922,11 +918,11 @@ class LibraryAnalyzer {
 
   void _resolveLibraryExportDirective({
     required ExportDirectiveImpl directive,
-    required LibraryExportElementImpl element,
+    required LibraryExportImpl element,
     required LibraryExportState state,
     required ErrorReporter errorReporter,
   }) {
-    directive.element = element;
+    directive.libraryExport = element;
     _resolveUriConfigurations(
       configurationNodes: directive.configurations,
       configurationUris: state.uris.configurations,
@@ -977,11 +973,11 @@ class LibraryAnalyzer {
 
   void _resolveLibraryImportDirective({
     required ImportDirectiveImpl directive,
-    required LibraryImportElementImpl element,
+    required LibraryImportImpl element,
     required LibraryImportState state,
     required ErrorReporter errorReporter,
   }) {
-    directive.element = element;
+    directive.libraryImport = element;
     directive.prefix?.element = element.prefix2?.element;
     _resolveUriConfigurations(
       configurationNodes: directive.configurations,
@@ -998,10 +994,10 @@ class LibraryAnalyzer {
     required FileAnalysis enclosingFile,
     required PartDirectiveImpl? directive,
     required PartIncludeState partState,
-    required PartElementImpl partElement,
+    required PartIncludeImpl partElement,
     required ErrorReporter errorReporter,
   }) {
-    directive?.element = partElement;
+    directive?.partInclude = partElement;
 
     void reportOnDirectiveUri(
       DiagnosticCode diagnosticCode, {

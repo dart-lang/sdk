@@ -5,8 +5,8 @@
 import 'dart:async';
 
 import 'package:observatory/models.dart' as M show Sentinel, SentinelKind;
-import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 
 class SentinelValueElement extends CustomElement implements Renderable {
   late RenderingScheduler<SentinelValueElement> _r;
@@ -36,12 +36,12 @@ class SentinelValueElement extends CustomElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    text = '';
+    innerText = '';
     title = '';
   }
 
   void render() {
-    text = _sentinel.valueAsString;
+    innerText = _sentinel.valueAsString;
     title = _sentinelKindToDescription(_sentinel.kind);
   }
 

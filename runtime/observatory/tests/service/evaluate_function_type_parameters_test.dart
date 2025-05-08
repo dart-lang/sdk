@@ -3,8 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:developer';
-import 'package:observatory/service_io.dart';
+
 import 'package:test/test.dart';
+
+import 'package:observatory/service_io.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
@@ -47,7 +49,7 @@ var tests = <IsolateTest>[
     var stack = await isolate.getStack();
     var topFrame = 0;
     expect(stack.type, equals('Stack'));
-    expect(await stack['frames'][topFrame].location.getLine(), 12);
+    expect(await stack['frames'][topFrame].location.getLine(), 14);
 
     Instance result =
         await isolate.evalFrame(topFrame, "S.toString()") as Instance;
@@ -61,7 +63,7 @@ var tests = <IsolateTest>[
     var stack = await isolate.getStack();
     var topFrame = 0;
     expect(stack.type, equals('Stack'));
-    expect(await stack['frames'][topFrame].location.getLine(), 15);
+    expect(await stack['frames'][topFrame].location.getLine(), 17);
 
     Instance result =
         await isolate.evalFrame(topFrame, "TBool.toString()") as Instance;
@@ -97,7 +99,7 @@ var tests = <IsolateTest>[
     var stack = await isolate.getStack();
     var topFrame = 0;
     expect(stack.type, equals('Stack'));
-    expect(await stack['frames'][topFrame].location.getLine(), 21);
+    expect(await stack['frames'][topFrame].location.getLine(), 23);
 
     Instance result =
         await isolate.evalFrame(topFrame, "S.toString()") as Instance;
@@ -111,7 +113,7 @@ var tests = <IsolateTest>[
     var stack = await isolate.getStack();
     var topFrame = 0;
     expect(stack.type, equals('Stack'));
-    expect(await stack['frames'][topFrame].location.getLine(), 29);
+    expect(await stack['frames'][topFrame].location.getLine(), 31);
 
     Instance result =
         await isolate.evalFrame(topFrame, "T.toString()") as Instance;
@@ -129,7 +131,7 @@ var tests = <IsolateTest>[
     var stack = await isolate.getStack();
     var topFrame = 0;
     expect(stack.type, equals('Stack'));
-    expect(await stack['frames'][topFrame].location.getLine(), 33);
+    expect(await stack['frames'][topFrame].location.getLine(), 35);
 
     Instance result =
         await isolate.evalFrame(topFrame, "T.toString()") as Instance;

@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/lsp/extensions/code_action.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
@@ -14,7 +15,6 @@ import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../utils/lsp_protocol_extensions.dart';
 import '../utils/test_code_extensions.dart';
 import 'code_actions_abstract.dart';
 
@@ -312,9 +312,10 @@ Future foo;
     ofKind(CodeActionKind kind) =>
         getCodeActions(mainFileUri, range: code.range.range, kinds: [kind]);
 
-    // The code above will return a quickfix.remove.unusedImport
+    // The code above will return a 'quickfix.remove.unusedImport'.
     expect(await ofKind(CodeActionKind.QuickFix), isNotEmpty);
     expect(await ofKind(CodeActionKind('quickfix.remove')), isNotEmpty);
+    expect(await ofKind(CodeActionKind('quickfix.remove.foo')), isEmpty);
     expect(await ofKind(CodeActionKind('quickfix.other')), isEmpty);
     expect(await ofKind(CodeActionKind.Refactor), isEmpty);
   }

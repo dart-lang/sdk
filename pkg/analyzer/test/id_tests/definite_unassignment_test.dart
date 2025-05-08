@@ -8,7 +8,7 @@ import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -49,9 +49,9 @@ class _DefiniteAssignmentDataComputer extends DataComputer<String> {
     TestConfig config,
     TestingData testingData,
     Id id,
-    List<AnalysisError> errors,
+    List<Diagnostic> diagnostics,
   ) {
-    var errorCodes = errors
+    var errorCodes = diagnostics
         .map((e) => e.errorCode)
         .where(
           (errorCode) =>

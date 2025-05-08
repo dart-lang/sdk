@@ -427,7 +427,7 @@ class LibraryBuilder {
         }).toFixedList();
   }
 
-  LibraryExportElementImpl _buildLibraryExport(LibraryExportState state) {
+  LibraryExportImpl _buildLibraryExport(LibraryExportState state) {
     var combinators = _buildCombinators(state.unlinked.combinators);
 
     DirectiveUri uri;
@@ -488,14 +488,14 @@ class LibraryBuilder {
         }
     }
 
-    return LibraryExportElementImpl(
+    return LibraryExportImpl(
       combinators: combinators,
       exportKeywordOffset: state.unlinked.exportKeywordOffset,
       uri: uri,
     );
   }
 
-  LibraryImportElementImpl _buildLibraryImport({
+  LibraryImportImpl _buildLibraryImport({
     required LibraryFragmentImpl containerUnit,
     required LibraryImportState state,
   }) {
@@ -568,12 +568,13 @@ class LibraryBuilder {
         }
     }
 
-    return LibraryImportElementImpl(
+    return LibraryImportImpl(
+      isSynthetic: state.isSyntheticDartCore,
       combinators: combinators,
       importKeywordOffset: state.unlinked.importKeywordOffset,
       prefix2: prefixFragment,
       uri: uri,
-    )..isSynthetic = state.isSyntheticDartCore;
+    );
   }
 
   PrefixFragmentImpl _buildLibraryImportPrefixFragment({
@@ -607,7 +608,7 @@ class LibraryBuilder {
     return fragment;
   }
 
-  PartElementImpl _buildPartInclude({
+  PartIncludeImpl _buildPartInclude({
     required LibraryElementImpl containerLibrary,
     required LibraryFragmentImpl containerUnit,
     required file_state.PartIncludeState state,
@@ -680,7 +681,7 @@ class LibraryBuilder {
         }
     }
 
-    return PartElementImpl(uri: directiveUri);
+    return PartIncludeImpl(uri: directiveUri);
   }
 
   /// We want to have stable references for `loadLibrary` function. But we

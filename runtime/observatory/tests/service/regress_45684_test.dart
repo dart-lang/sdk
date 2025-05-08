@@ -7,8 +7,8 @@
 // Check that a try/finally is not treated as a try/catch:
 // http://dartbug.com/45684.
 
-import 'test_helper.dart';
 import 'service_test_common.dart';
+import 'test_helper.dart';
 
 const int LINE_A = 25;
 

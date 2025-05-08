@@ -145,7 +145,7 @@ void* RegExpUnparser::VisitDisjunction(RegExpDisjunction* that, void* data) {
   OS::PrintErr("(|");
   for (intptr_t i = 0; i < that->alternatives()->length(); i++) {
     OS::PrintErr(" ");
-    (*that->alternatives())[i]->Accept(this, data);
+    (*that->alternatives())[i] -> Accept(this, data);
   }
   OS::PrintErr(")");
   return nullptr;
@@ -155,7 +155,7 @@ void* RegExpUnparser::VisitAlternative(RegExpAlternative* that, void* data) {
   OS::PrintErr("(:");
   for (intptr_t i = 0; i < that->nodes()->length(); i++) {
     OS::PrintErr(" ");
-    (*that->nodes())[i]->Accept(this, data);
+    (*that->nodes())[i] -> Accept(this, data);
   }
   OS::PrintErr(")");
   return nullptr;

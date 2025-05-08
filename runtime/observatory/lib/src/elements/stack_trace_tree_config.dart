@@ -3,10 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:html';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
-import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 
 enum ProfileTreeMode {
   code,
@@ -97,61 +100,61 @@ class StackTraceTreeConfigElement extends CustomElement implements Renderable {
   }
 
   void render() {
-    children = <Element>[
-      new DivElement()
-        ..classes = ['content-centered-big']
-        ..children = <Element>[
-          new HeadingElement.h2()..text = 'Tree display',
-          new HRElement(),
-          new DivElement()
-            ..classes = ['row']
-            ..children = <Element>[
-              new DivElement()
-                ..classes = ['memberList']
-                ..children = _createMembers()
-            ]
-        ]
+    children = <HTMLElement>[
+      new HTMLDivElement()
+        ..className = 'content-centered-big'
+        ..appendChildren(<HTMLElement>[
+          new HTMLHeadingElement.h2()..textContent = 'Tree display',
+          new HTMLHRElement(),
+          new HTMLDivElement()
+            ..className = 'row'
+            ..appendChildren(<HTMLElement>[
+              new HTMLDivElement()
+                ..className = 'memberList'
+                ..appendChildren(_createMembers())
+            ])
+        ])
     ];
   }
 
-  List<Element> _createMembers() {
-    var members = <Element>[];
+  List<HTMLElement> _createMembers() {
+    var members = <HTMLElement>[];
     if (_showMode) {
-      members.add(new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'Mode',
-          new DivElement()
-            ..classes = ['memberValue']
-            ..children = _createModeSelect()
-        ]);
+      members.add(new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'Mode',
+          new HTMLDivElement()
+            ..className = 'memberValue'
+            ..appendChildren(_createModeSelect())
+        ]));
     }
     if (_showDirection) {
-      members.add(new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'Call Tree Direction',
-          new SpanElement()
-            ..classes = ['memberValue']
-            ..children = _createDirectionSelect()
-        ]);
+      members.add(new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'Call Tree Direction',
+          new HTMLSpanElement()
+            ..className = 'memberValue'
+            ..appendChildren(_createDirectionSelect())
+        ]));
     }
     if (showFilter) {
-      members.add(new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'Call Tree Filter'
+      members.add(new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'Call Tree Filter'
             ..title = 'case-sensitive substring match',
-          new SpanElement()
-            ..classes = ['memberValue']
-            ..children = _createFilter()
-        ]);
+          new HTMLSpanElement()
+            ..className = 'memberValue'
+            ..appendChildren(_createFilter())
+        ]));
     }
     return members;
   }
@@ -164,23 +167,22 @@ class StackTraceTreeConfigElement extends CustomElement implements Renderable {
     }
   }
 
-  List<Element> _createModeSelect() {
-    var s;
+  List<HTMLElement> _createModeSelect() {
+    final s = HTMLSelectElement()
+      ..className = 'mode-select'
+      ..value = modeToString(_mode)
+      ..appendChildren(ProfileTreeMode.values.map((mode) => HTMLOptionElement()
+        ..value = modeToString(mode)
+        ..selected = _mode == mode
+        ..text = modeToString(mode)));
     return [
-      s = new SelectElement()
-        ..classes = ['mode-select']
-        ..value = modeToString(_mode)
-        ..children = ProfileTreeMode.values.map((mode) {
-          return new OptionElement(
-              value: modeToString(mode), selected: _mode == mode)
-            ..text = modeToString(mode);
-        }).toList(growable: false)
+      s
         ..onChange.listen((_) {
           _mode = ProfileTreeMode.values[s.selectedIndex];
           _r.dirty();
         })
         ..onChange.map(_toEvent).listen(_triggerModeChange),
-      new SpanElement()..text = ' $modeDescription'
+      HTMLSpanElement()..textContent = ' $modeDescription'
     ];
   }
 
@@ -192,31 +194,31 @@ class StackTraceTreeConfigElement extends CustomElement implements Renderable {
     }
   }
 
-  List<Element> _createDirectionSelect() {
-    var s;
+  List<HTMLElement> _createDirectionSelect() {
+    final s = HTMLSelectElement()
+      ..className = 'direction-select'
+      ..value = directionToString(_direction)
+      ..appendChildren(M.ProfileTreeDirection.values.map((direction) {
+        return HTMLOptionElement()
+          ..value = directionToString(direction)
+          ..selected = _direction == direction
+          ..text = directionToString(direction);
+      }));
     return [
-      s = new SelectElement()
-        ..classes = ['direction-select']
-        ..value = directionToString(_direction)
-        ..children = M.ProfileTreeDirection.values.map((direction) {
-          return new OptionElement(
-              value: directionToString(direction),
-              selected: _direction == direction)
-            ..text = directionToString(direction);
-        }).toList(growable: false)
+      s
         ..onChange.listen((_) {
           _direction = M.ProfileTreeDirection.values[s.selectedIndex];
           _r.dirty();
         })
         ..onChange.map(_toEvent).listen(_triggerDirectionChange),
-      new SpanElement()..text = ' $directionDescription'
+      new HTMLSpanElement()..textContent = ' $directionDescription'
     ];
   }
 
-  List<Element> _createFilter() {
+  List<HTMLElement> _createFilter() {
     var t;
     return [
-      t = new TextInputElement()
+      t = new HTMLInputElement()
         ..placeholder = 'Search filter'
         ..value = filter
         ..onChange.listen((_) {

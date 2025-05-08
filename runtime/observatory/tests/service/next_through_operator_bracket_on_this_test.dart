@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'test_helper.dart';
 import 'service_test_common.dart';
+import 'test_helper.dart';
 
 const int LINE = 15;
 const String file = "next_through_operator_bracket_on_this_test.dart";
@@ -25,9 +25,9 @@ code() {
 
 List<String> stops = [];
 List<String> expected = [
-  "$file:${LINE+0}:9", // on '['
-  "$file:${LINE+1}:16", // on '['
-  "$file:${LINE+1}:5", // on 'return'
+  "$file:${LINE + 0}:9", // on '['
+  "$file:${LINE + 1}:16", // on '['
+  "$file:${LINE + 1}:5", // on 'return'
 ];
 
 var tests = <IsolateTest>[

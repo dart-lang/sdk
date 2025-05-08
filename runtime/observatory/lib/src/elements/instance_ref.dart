@@ -2,14 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:html';
 import 'dart:async';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/curly_block.dart';
 import 'package:observatory/src/elements/field_ref.dart';
 import 'package:observatory/src/elements/helpers/any_ref.dart';
-import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/utils.dart';
 
@@ -51,7 +54,7 @@ class InstanceRefElement extends CustomElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = <Element>[];
+    removeChildren();
     _r.disable(notify: true);
   }
 
@@ -60,12 +63,12 @@ class InstanceRefElement extends CustomElement implements Renderable {
 
     if (_expandable && _hasValue()) {
       content.addAll([
-        new SpanElement()..text = ' ',
+        new HTMLSpanElement()..textContent = ' ',
         (new CurlyBlockElement(expanded: _expanded, queue: _r.queue)
-              ..content = <Element>[
-                new DivElement()
-                  ..classes = ['indent']
-                  ..children = _createValue()
+              ..content = <HTMLElement>[
+                new HTMLDivElement()
+                  ..className = 'indent'
+                  ..appendChildren(_createValue())
               ]
               ..onToggle.listen((e) async {
                 _expanded = e.control.expanded;
@@ -87,12 +90,12 @@ class InstanceRefElement extends CustomElement implements Renderable {
     _r.dirty();
   }
 
-  List<Element> _createShowMoreButton() {
+  List<HTMLElement> _createShowMoreButton() {
     if (_loadedInstance!.count == null) {
       return [];
     }
     final count = _loadedInstance!.count;
-    final button = new ButtonElement()..text = 'show next ${count}';
+    final button = new HTMLButtonElement()..textContent = 'show next ${count}';
     button.onClick.listen((_) async {
       button.disabled = true;
       _loadedInstance =
@@ -102,7 +105,7 @@ class InstanceRefElement extends CustomElement implements Renderable {
     return [button];
   }
 
-  List<Element> _createLink() {
+  List<HTMLElement> _createLink() {
     switch (_instance.kind) {
       case M.InstanceKind.vNull:
       case M.InstanceKind.bool:
@@ -112,12 +115,14 @@ class InstanceRefElement extends CustomElement implements Renderable {
       case M.InstanceKind.float64x2:
       case M.InstanceKind.int32x4:
         return [
-          new AnchorElement(href: Uris.inspect(_isolate, object: _instance))
-            ..text = _instance.valueAsString
+          new HTMLAnchorElement()
+            ..href = Uris.inspect(_isolate, object: _instance)
+            ..text = _instance.valueAsString ?? ''
         ];
       case M.InstanceKind.string:
         return [
-          new AnchorElement(href: Uris.inspect(_isolate, object: _instance))
+          new HTMLAnchorElement()
+            ..href = Uris.inspect(_isolate, object: _instance)
             ..text = Utils.formatStringAsLiteral(
                 _instance.valueAsString!, _instance.valueAsStringIsTruncated!)
         ];
@@ -126,54 +131,62 @@ class InstanceRefElement extends CustomElement implements Renderable {
       case M.InstanceKind.typeParameter:
       case M.InstanceKind.recordType:
         return [
-          new AnchorElement(href: Uris.inspect(_isolate, object: _instance))
-            ..text = _instance.name
+          new HTMLAnchorElement()
+            ..href = Uris.inspect(_isolate, object: _instance)
+            ..text = _instance.name ?? ''
         ];
       case M.InstanceKind.closure:
         return [
-          new AnchorElement(href: Uris.inspect(_isolate, object: _instance))
-            ..children = <Element>[
-              new SpanElement()
-                ..classes = ['emphasize']
-                ..text = 'Closure',
-              new SpanElement()..text = ' (${_instance.closureFunction!.name})'
-            ]
+          new HTMLAnchorElement()
+            ..href = Uris.inspect(_isolate, object: _instance)
+            ..appendChildren(<HTMLElement>[
+              new HTMLSpanElement()
+                ..className = 'emphasize'
+                ..textContent = 'Closure',
+              new HTMLSpanElement()
+                ..textContent = ' (${_instance.closureFunction!.name})'
+            ])
         ];
       case M.InstanceKind.regExp:
         return [
-          new AnchorElement(href: Uris.inspect(_isolate, object: _instance))
-            ..children = <Element>[
-              new SpanElement()
-                ..classes = ['emphasize']
-                ..text = _instance.clazz!.name,
-              new SpanElement()..text = ' (${_instance.pattern!.valueAsString})'
-            ]
+          new HTMLAnchorElement()
+            ..href = Uris.inspect(_isolate, object: _instance)
+            ..appendChildren(<HTMLElement>[
+              new HTMLSpanElement()
+                ..className = 'emphasize'
+                ..textContent = _instance.clazz!.name ?? '',
+              new HTMLSpanElement()
+                ..textContent = ' (${_instance.pattern!.valueAsString})'
+            ])
         ];
       case M.InstanceKind.userTag:
         return [
-          new AnchorElement(href: Uris.inspect(_isolate, object: _instance))
-            ..children = <Element>[
-              new SpanElement()
-                ..classes = ['emphasize']
-                ..text = _instance.clazz!.name,
-              new SpanElement()..text = ' (${_instance.name})'
-            ]
+          new HTMLAnchorElement()
+            ..href = Uris.inspect(_isolate, object: _instance)
+            ..appendChildren(<HTMLElement>[
+              new HTMLSpanElement()
+                ..className = 'emphasize'
+                ..textContent = _instance.clazz!.name ?? '',
+              new HTMLSpanElement()..textContent = ' (${_instance.name})'
+            ])
         ];
       case M.InstanceKind.stackTrace:
         return [
-          new AnchorElement(href: Uris.inspect(_isolate, object: _instance))
-            ..children = <Element>[
-              new SpanElement()
-                ..classes = ['emphasize']
-                ..text = _instance.clazz!.name,
-            ]
+          new HTMLAnchorElement()
+            ..href = Uris.inspect(_isolate, object: _instance)
+            ..appendChildren(<HTMLElement>[
+              new HTMLSpanElement()
+                ..className = 'emphasize'
+                ..textContent = _instance.clazz!.name ?? '',
+            ])
         ];
       case M.InstanceKind.plainInstance:
       case M.InstanceKind.receivePort:
         return [
-          new AnchorElement(href: Uris.inspect(_isolate, object: _instance))
-            ..classes = ['emphasize']
-            ..text = _instance.clazz!.name
+          new HTMLAnchorElement()
+            ..href = Uris.inspect(_isolate, object: _instance)
+            ..className = 'emphasize'
+            ..text = _instance.clazz!.name ?? ''
         ];
       case M.InstanceKind.list:
       case M.InstanceKind.map:
@@ -193,13 +206,14 @@ class InstanceRefElement extends CustomElement implements Renderable {
       case M.InstanceKind.float32x4List:
       case M.InstanceKind.float64x2List:
         return [
-          new AnchorElement(href: Uris.inspect(_isolate, object: _instance))
-            ..children = <Element>[
-              new SpanElement()
-                ..classes = ['emphasize']
-                ..text = _instance.clazz!.name,
-              new SpanElement()..text = ' (${_instance.length})'
-            ]
+          new HTMLAnchorElement()
+            ..href = Uris.inspect(_isolate, object: _instance)
+            ..appendChildren(<HTMLElement>[
+              new HTMLSpanElement()
+                ..className = 'emphasize'
+                ..textContent = _instance.clazz!.name ?? '',
+              new HTMLSpanElement()..textContent = ' (${_instance.length})'
+            ])
         ];
       case M.InstanceKind.mirrorReference:
       case M.InstanceKind.weakProperty:
@@ -209,9 +223,10 @@ class InstanceRefElement extends CustomElement implements Renderable {
       case M.InstanceKind.weakReference:
       case M.InstanceKind.record:
         return [
-          new AnchorElement(href: Uris.inspect(_isolate, object: _instance))
-            ..classes = ['emphasize']
-            ..text = _instance.clazz!.name
+          HTMLAnchorElement()
+            ..href = Uris.inspect(_isolate, object: _instance)
+            ..className = 'emphasize'
+            ..textContent = _instance.clazz!.name ?? ''
         ];
       default:
         throw new Exception('Unknown InstanceKind: ${_instance.kind}');
@@ -254,78 +269,78 @@ class InstanceRefElement extends CustomElement implements Renderable {
     }
   }
 
-  List<Element> _createValue() {
+  List<HTMLElement> _createValue() {
     if (_loadedInstance == null) {
-      return [new SpanElement()..text = 'Loading...'];
+      return [new HTMLSpanElement()..textContent = 'Loading...'];
     }
     switch (_instance.kind) {
       case M.InstanceKind.closure:
         {
-          var members = <Element>[];
+          var members = <HTMLElement>[];
           if (_loadedInstance!.closureFunction != null) {
-            members.add(new DivElement()
-              ..children = <Element>[
-                new SpanElement()..text = 'function = ',
+            members.add(new HTMLDivElement()
+              ..appendChildren(<HTMLElement>[
+                new HTMLSpanElement()..textContent = 'function = ',
                 anyRef(_isolate, _loadedInstance!.closureFunction, _objects,
                     queue: _r.queue)
-              ]);
+              ]));
           }
           if (_loadedInstance!.closureContext != null) {
-            members.add(new DivElement()
-              ..children = <Element>[
-                new SpanElement()..text = 'context = ',
+            members.add(new HTMLDivElement()
+              ..appendChildren(<HTMLElement>[
+                new HTMLSpanElement()..textContent = 'context = ',
                 anyRef(_isolate, _loadedInstance!.closureContext, _objects,
                     queue: _r.queue)
-              ]);
+              ]));
           }
           if (_loadedInstance!.closureReceiver != null) {
-            members.add(new DivElement()
-              ..children = <Element>[
-                new SpanElement()..text = 'receiver = ',
+            members.add(new HTMLDivElement()
+              ..appendChildren(<HTMLElement>[
+                new HTMLSpanElement()..textContent = 'receiver = ',
                 anyRef(_isolate, _loadedInstance!.closureReceiver, _objects,
                     queue: _r.queue)
-              ]);
+              ]));
           }
           return members;
         }
       case M.InstanceKind.plainInstance:
         return _loadedInstance!.fields!
-            .map<Element>((f) => new DivElement()
-              ..children = <Element>[
+            .map<HTMLElement>((f) => new HTMLDivElement()
+              ..appendChildren(<HTMLElement>[
                 new FieldRefElement(_isolate, f.decl!, _objects,
                         queue: _r.queue)
                     .element,
-                new SpanElement()..text = ' = ',
+                new HTMLSpanElement()..textContent = ' = ',
                 anyRef(_isolate, f.value, _objects, queue: _r.queue)
-              ])
+              ]))
             .toList();
       case M.InstanceKind.list:
         var index = 0;
         return _loadedInstance!.elements!
-            .map<Element>((element) => new DivElement()
-              ..children = <Element>[
-                new SpanElement()..text = '[ ${index++} ] : ',
+            .map<HTMLElement>((element) => new HTMLDivElement()
+              ..appendChildren(<HTMLElement>[
+                new HTMLSpanElement()..textContent = '[ ${index++} ] : ',
                 anyRef(_isolate, element, _objects, queue: _r.queue)
-              ])
+              ]))
             .toList()
           ..addAll(_createShowMoreButton());
       case M.InstanceKind.map:
         return _loadedInstance!.associations!
-            .map<Element>((association) => new DivElement()
-              ..children = <Element>[
-                new SpanElement()..text = '[ ',
+            .map<HTMLElement>((association) => new HTMLDivElement()
+              ..appendChildren(<HTMLElement>[
+                new HTMLSpanElement()..textContent = '[ ',
                 anyRef(_isolate, association.key, _objects, queue: _r.queue),
-                new SpanElement()..text = ' ] : ',
+                new HTMLSpanElement()..textContent = ' ] : ',
                 anyRef(_isolate, association.value, _objects, queue: _r.queue)
-              ])
+              ]))
             .toList()
           ..addAll(_createShowMoreButton());
       case M.InstanceKind.set:
         return _loadedInstance!.elements!
-            .map<Element>((element) => new DivElement()
-              ..children = <Element>[
+            .map<HTMLElement>((element) => new HTMLDivElement()
+              ..appendChildren(<HTMLElement>[
                 anyRef(_isolate, element, _objects, queue: _r.queue)
-              ])
+              ]))
             .toList()
           ..addAll(_createShowMoreButton());
       case M.InstanceKind.uint8ClampedList:
@@ -344,70 +359,71 @@ class InstanceRefElement extends CustomElement implements Renderable {
       case M.InstanceKind.float64x2List:
         var index = 0;
         return _loadedInstance!.typedElements!
-            .map<Element>((e) => new DivElement()..text = '[ ${index++} ] : $e')
+            .map<HTMLElement>((e) =>
+                new HTMLDivElement()..textContent = '[ ${index++} ] : $e')
             .toList()
           ..addAll(_createShowMoreButton());
       case M.InstanceKind.mirrorReference:
         return [
-          new SpanElement()..text = '<referent> : ',
+          new HTMLSpanElement()..textContent = '<referent> : ',
           anyRef(_isolate, _loadedInstance!.referent, _objects, queue: _r.queue)
         ];
       case M.InstanceKind.stackTrace:
         return [
-          new DivElement()
-            ..classes = ['stackTraceBox']
-            ..text = _instance.valueAsString
+          new HTMLDivElement()
+            ..className = 'stackTraceBox'
+            ..textContent = _instance.valueAsString ?? ''
         ];
       case M.InstanceKind.weakReference:
         return [
-          new SpanElement()..text = '<target> : ',
+          new HTMLSpanElement()..textContent = '<target> : ',
           anyRef(_isolate, _loadedInstance!.target, _objects, queue: _r.queue)
         ];
       case M.InstanceKind.weakProperty:
         return [
-          new SpanElement()..text = '<key> : ',
+          new HTMLSpanElement()..textContent = '<key> : ',
           anyRef(_isolate, _loadedInstance!.key!, _objects, queue: _r.queue),
-          new BRElement(),
-          new SpanElement()..text = '<value> : ',
+          new HTMLBRElement(),
+          new HTMLSpanElement()..textContent = '<value> : ',
           anyRef(_isolate, _loadedInstance!.value!, _objects, queue: _r.queue),
         ];
       case M.InstanceKind.recordType:
         final fields = _loadedInstance!.fields!.toList();
         return [
           for (int i = 0; i < fields.length; ++i) ...[
-            new SpanElement()..text = '${fields[i].name} = ',
+            new HTMLSpanElement()..textContent = '${fields[i].name} = ',
             new InstanceRefElement(
                     _isolate, fields[i].value!.asValue!, _objects,
                     queue: _r.queue)
                 .element,
-            if (i + 1 != fields.length) new BRElement(),
+            if (i + 1 != fields.length) new HTMLBRElement(),
           ]
         ];
       case M.InstanceKind.finalizer:
         return [
-          new SpanElement()..text = 'callback = ',
+          new HTMLSpanElement()..textContent = 'callback = ',
           anyRef(_isolate, _loadedInstance!.callback!, _objects,
               queue: _r.queue),
-          new BRElement(),
-          new SpanElement()..text = 'allEntries = ',
+          new HTMLBRElement(),
+          new HTMLSpanElement()..textContent = 'allEntries = ',
           anyRef(_isolate, _loadedInstance!.allEntries!, _objects,
               queue: _r.queue),
         ];
       case M.InstanceKind.nativeFinalizer:
         return [
-          new SpanElement()..text = 'allEntries = ',
+          new HTMLSpanElement()..textContent = 'allEntries = ',
           anyRef(_isolate, _loadedInstance!.allEntries!, _objects,
               queue: _r.queue),
         ];
       case M.InstanceKind.finalizerEntry:
         return [
-          new SpanElement()..text = 'value = ',
+          new HTMLSpanElement()..textContent = 'value = ',
           anyRef(_isolate, _loadedInstance!.value!, _objects, queue: _r.queue),
-          new BRElement(),
-          new SpanElement()..text = 'detach = ',
+          new HTMLBRElement(),
+          new HTMLSpanElement()..textContent = 'detach = ',
           anyRef(_isolate, _loadedInstance!.detach!, _objects, queue: _r.queue),
-          new BRElement(),
-          new SpanElement()..text = 'token = ',
+          new HTMLBRElement(),
+          new HTMLSpanElement()..textContent = 'token = ',
           anyRef(_isolate, _loadedInstance!.token!, _objects, queue: _r.queue),
         ];
       default:

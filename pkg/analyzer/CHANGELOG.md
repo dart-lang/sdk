@@ -8,8 +8,9 @@
 * Deprecate `XyzElement2` classes; use `XyzElement` instead.
 * Deprecate `AnalysisError.correction` field; use
   `AnalysisError.correctionMessage` instead.
-* Deprecate `ErrorType`; use `DiagnosticType` instead.
+* Deprecate `ErrorCode`; use `DiagnosticCode` instead.
 * Deprecate `ErrorSeverity`; use `DiagnosticSeverity` instead.
+* Deprecate `ErrorType`; use `DiagnosticType` instead.
 * Change `ElementDirective` from `sealed` to `abstract`.
   This allows the analyzer to have an internal implementation
   class corresponding to `ElementDirective`.

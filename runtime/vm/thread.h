@@ -140,6 +140,10 @@ class Thread;
     StubCode::WriteErrorSharedWithoutFPURegs().ptr(), nullptr)                 \
   V(CodePtr, write_error_shared_with_fpu_regs_stub_,                           \
     StubCode::WriteErrorSharedWithFPURegs().ptr(), nullptr)                    \
+  V(CodePtr, field_access_error_shared_without_fpu_regs_stub_,                 \
+    StubCode::FieldAccessErrorSharedWithoutFPURegs().ptr(), nullptr)           \
+  V(CodePtr, field_access_error_shared_with_fpu_regs_stub_,                    \
+    StubCode::FieldAccessErrorSharedWithFPURegs().ptr(), nullptr)              \
   V(CodePtr, allocate_mint_with_fpu_regs_stub_,                                \
     StubCode::AllocateMintSharedWithFPURegs().ptr(), nullptr)                  \
   V(CodePtr, allocate_mint_without_fpu_regs_stub_,                             \
@@ -360,9 +364,9 @@ class MutatorThreadVisitor {
 
 // A VM thread; may be executing Dart code or performing helper tasks like
 // garbage collection or compilation. The Thread structure associated with
-// a thread is allocated by EnsureInit before entering an isolate, and destroyed
-// automatically when the underlying OS thread exits. NOTE: On Windows, CleanUp
-// must currently be called manually (issue 23474).
+// a thread is allocated by ThreadRegistry::GetFromFreelistLocked either
+// before entering an isolate or entering an isolate group, and destroyed
+// automatically when the underlying OS thread exits.
 class Thread : public ThreadState {
  public:
   // The kind of task this thread is performing. Sampled by the profiler.
@@ -377,6 +381,7 @@ class Thread : public ThreadState {
     kSampleBlockTask,
     kIncrementalCompactorTask,
     kSpawnTask,
+    kIsolateGroupSharedCallbackTask,
   };
 
   ~Thread();

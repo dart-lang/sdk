@@ -51,7 +51,7 @@ class AnalysisDomainBlazeTest extends _AnalysisDomainTest {
 
   Future<void> test_fileSystem_changeFile_buildFile_legacy() async {
     // Make it a Blaze package.
-    newBlazeBuildFile(myPackageRootPath, r'''
+    newBazelBuildFile(myPackageRootPath, r'''
 # foo
 ''');
 
@@ -70,7 +70,7 @@ AnalysisErrors
 ''');
 
     // Change BUILD file, nothing interesting.
-    newBlazeBuildFile(myPackageRootPath, r'''
+    newBazelBuildFile(myPackageRootPath, r'''
 # bar
 ''');
 
@@ -2263,7 +2263,7 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     // `analysis_options.yaml`.
     newAnalysisOptionsYamlFile(
       join(workspaceRootPath, 'package1', 'nestedFolder1'),
-      analysisOptionsContent(include: '../analysis_options.yaml'),
+      analysisOptionsContent(includes: ['../analysis_options.yaml']),
     );
 
     // Write the single package config at the root that can resolve both

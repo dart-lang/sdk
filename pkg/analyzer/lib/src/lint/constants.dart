@@ -39,7 +39,7 @@ class _ConstantAnalysisErrorListener extends AnalysisErrorListener {
 
   @override
   void onError(Diagnostic error) {
-    ErrorCode errorCode = error.errorCode;
+    DiagnosticCode errorCode = error.errorCode;
     if (errorCode is CompileTimeErrorCode) {
       switch (errorCode) {
         case CompileTimeErrorCode
@@ -49,7 +49,6 @@ class _ConstantAnalysisErrorListener extends AnalysisErrorListener {
         case CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD:
         case CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD:
         case CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION:
-        case CompileTimeErrorCode.CONST_EVAL_NULL_AWARE_ACCESS:
         case CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS:
         case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL:
         case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT:

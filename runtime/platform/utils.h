@@ -492,15 +492,13 @@ class Utils {
 #ifdef __GNUC__
   __attribute__((no_sanitize("float-divide-by-zero")))
 #endif
-  static inline float
-  DivideAllowZero(float a, float b) {
+  static inline float DivideAllowZero(float a, float b) {
     return a / b;
   }
 #ifdef __GNUC__
   __attribute__((no_sanitize("float-divide-by-zero")))
 #endif
-  static inline double
-  DivideAllowZero(double a, double b) {
+  static inline double DivideAllowZero(double a, double b) {
     return a / b;
   }
 

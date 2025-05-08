@@ -167,7 +167,7 @@ reports and made a number of fixes in response to that.
 
 [tall style]: https://github.com/dart-lang/dart_style/issues/1253
 
-### Features
+##### Features
 
 Some users strongly prefer the old behavior where a trailing comma will be
 preserved by the formatter and force the surrounding construct to split. That
@@ -182,12 +182,12 @@ formatter:
 This is similar to how trailing commas work in the old short style formatter
 applied to code before language version 3.7.
 
-### Bug fixes
+##### Bug fixes
 
 * Don't add a trailing comma in lists that don't allow it, even when there is
   a trailing comment (#1639).
 
-### Style changes
+##### Style changes
 
 The following style changes are language versioned and only affect code whose
 language version is 3.8 or later. Dart code at 3.7 or earlier is formatted the

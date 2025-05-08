@@ -9,7 +9,6 @@ import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/test_utilities/find_element2.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
-import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:test/test.dart';
 
 import 'abstract_context.dart';

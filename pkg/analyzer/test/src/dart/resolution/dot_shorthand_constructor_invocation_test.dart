@@ -519,4 +519,62 @@ DotShorthandConstructorInvocation
   staticType: C
 ''');
   }
+
+  test_typeParameters() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  C();
+}
+
+void main() {
+  C c = .new<int>();
+  print(c);
+}
+''',
+      [
+        error(
+          CompileTimeErrorCode
+              .WRONG_NUMBER_OF_TYPE_ARGUMENTS_DOT_SHORTHAND_CONSTRUCTOR,
+          46,
+          5,
+        ),
+      ],
+    );
+  }
+
+  test_typeParameters_const() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  const C();
+}
+
+void main() {
+  C c = const .new<int>();
+  print(c);
+}
+''',
+      [
+        error(
+          CompileTimeErrorCode
+              .WRONG_NUMBER_OF_TYPE_ARGUMENTS_DOT_SHORTHAND_CONSTRUCTOR,
+          58,
+          5,
+        ),
+      ],
+    );
+  }
+
+  test_typeParameters_missingContext() async {
+    await assertErrorsInCode(
+      r'''
+void main() {
+  var c = const .new<int>();
+  print(c);
+}
+''',
+      [error(CompileTimeErrorCode.DOT_SHORTHAND_MISSING_CONTEXT, 24, 17)],
+    );
+  }
 }

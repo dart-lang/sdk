@@ -7,6 +7,7 @@ import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analysis_server_plugin/edit/fix/fix.dart';
 import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
 import 'package:analysis_server_plugin/src/correction/fix_in_file_processor.dart';
+import 'package:analysis_server_plugin/src/correction/ignore_diagnostic.dart';
 import 'package:analysis_server_plugin/src/correction/performance.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/java_core.dart';
@@ -17,7 +18,10 @@ Future<List<Fix>> computeFixes(DartFixContext context,
     {FixPerformance? performance,
     Set<String>? skipAlreadyCalculatedIfNonNull}) async {
   return [
-    ...await FixProcessor(context, performance: performance).compute(),
+    ...await FixProcessor(context,
+            performance: performance,
+            alreadyCalculated: skipAlreadyCalculatedIfNonNull)
+        .compute(),
     ...await FixInFileProcessor(context,
             alreadyCalculated: skipAlreadyCalculatedIfNonNull)
         .compute(),
@@ -36,10 +40,21 @@ class FixProcessor {
   final FixPerformance? _performance;
   final Stopwatch _timer = Stopwatch();
 
+  final Set<String>? alreadyCalculated;
+
   final List<Fix> _fixes = <Fix>[];
 
-  FixProcessor(this._fixContext, {FixPerformance? performance})
-      : _performance = performance;
+  /// If passing [alreadyCalculated] for calculations where we know the output
+  /// will be the same, a result will only be calculated if one hasn't been
+  /// calculated already (for a similar situation). If calculating the Set will
+  /// be ammended with this information.
+  /// If not passing [alreadyCalculated] the calculation will always be
+  /// performed.
+  FixProcessor(
+    this._fixContext, {
+    FixPerformance? performance,
+    this.alreadyCalculated,
+  }) : _performance = performance;
 
   Future<List<Fix>> compute() async {
     _timer.start();
@@ -137,7 +152,17 @@ class FixProcessor {
         errorCode is HintCode ||
         errorCode is WarningCode) {
       for (var generator in registeredFixGenerators.ignoreProducerGenerators) {
-        await compute(generator(context: context));
+        var producer = generator(context: context);
+        if (producer.fixKind == ignoreErrorAnalysisFileKind) {
+          if (alreadyCalculated?.add('${generator.hashCode}|'
+                  '${ignoreErrorAnalysisFileKind.id}|'
+                  '${error.errorCode.name}') ==
+              false) {
+            // We did this before and was asked to not do it again. Skip.
+            continue;
+          }
+        }
+        await compute(producer);
       }
     }
   }

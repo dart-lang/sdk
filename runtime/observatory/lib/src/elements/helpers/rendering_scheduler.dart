@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:observatory/src/elements/helpers/rendering_queue.dart';
+
 export 'package:observatory/src/elements/helpers/rendering_queue.dart';
 
 /// A generic renderable object.
@@ -33,7 +34,7 @@ class RenderingScheduler<T extends Renderable> implements RenderingTask {
   bool _notificationScheduled = false;
   bool _waitForBarrier = false;
 
-  /// Element managed by this scheduler.
+  /// HTMLElement managed by this scheduler.
   final T element;
 
   /// Queue used for rendering operations.

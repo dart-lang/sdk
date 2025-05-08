@@ -240,7 +240,7 @@ class Configuration {
     var sanitizer = enumOption("sanitizer", Sanitizer.names, Sanitizer.find);
 
     // Fill in any missing values using defaults when possible.
-    architecture ??= Architecture.x64;
+    architecture ??= Architecture.host;
     system ??= System.host;
     nnbdMode ??= NnbdMode.strong;
     sanitizer ??= Sanitizer.none;
@@ -765,6 +765,19 @@ class Architecture extends NamedEnum {
 
   static final Architecture host = _computeHost();
   static Architecture _computeHost() {
+    if (!const bool.hasEnvironment('dart.library.ffi')){
+      // We're inside a test which very likely uses the `isXConfiguration`
+      // getters from  `package:expect/config.dart` which makes us
+      // try to guess the [Configuration]`s architecture if it wasn't passed as
+      // part of `const String.fromEnvironment("test_runner.configuration")`.
+      //
+      // A web app runs inside a browser doesn't have an architecture. Strictly
+      // speaking we should *not* ask for "whats the current architecture" if
+      // we are running on the web, as there's no answer.
+      //
+      // For now, fake it by returning x64 on the web.
+      return Architecture.x64;
+    }
     String? arch;
     if (Platform.isWindows) {
       arch = Platform.environment["PROCESSOR_ARCHITECTURE"];

@@ -44,10 +44,10 @@ getStaticFieldUninitialized() => Class1.field;
 /// Static get of an initialized top level field.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _field2:[exact=JSUInt31|powerset={I}]*/
+/*member: _field2:[exact=JSUInt31|powerset={I}{O}{N}]*/
 var _field2 = 42;
 
-/*member: getTopLevelFieldInitialized:[exact=JSUInt31|powerset={I}]*/
+/*member: getTopLevelFieldInitialized:[exact=JSUInt31|powerset={I}{O}{N}]*/
 getTopLevelFieldInitialized() => _field2;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -55,11 +55,11 @@ getTopLevelFieldInitialized() => _field2;
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class2 {
-  /*member: Class2.field:[exact=JSUInt31|powerset={I}]*/
+  /*member: Class2.field:[exact=JSUInt31|powerset={I}{O}{N}]*/
   static var field = 42;
 }
 
-/*member: getStaticFieldInitialized:[exact=JSUInt31|powerset={I}]*/
+/*member: getStaticFieldInitialized:[exact=JSUInt31|powerset={I}{O}{N}]*/
 getStaticFieldInitialized() => Class2.field;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -67,13 +67,13 @@ getStaticFieldInitialized() => Class2.field;
 /// null.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _method3:[exact=JSUInt31|powerset={I}]*/
+/*member: _method3:[exact=JSUInt31|powerset={I}{O}{N}]*/
 _method3() => 42;
 
-/*member: _field3:[null|exact=JSUInt31|powerset={null}{I}]*/
+/*member: _field3:[null|exact=JSUInt31|powerset={null}{I}{O}{N}]*/
 var _field3 = _method3();
 
-/*member: getTopLevelFieldInitializedPotentiallyNull:[null|exact=JSUInt31|powerset={null}{I}]*/
+/*member: getTopLevelFieldInitializedPotentiallyNull:[null|exact=JSUInt31|powerset={null}{I}{O}{N}]*/
 getTopLevelFieldInitializedPotentiallyNull() => _field3;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -81,24 +81,24 @@ getTopLevelFieldInitializedPotentiallyNull() => _field3;
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class3 {
-  /*member: Class3.method:[exact=JSUInt31|powerset={I}]*/
+  /*member: Class3.method:[exact=JSUInt31|powerset={I}{O}{N}]*/
   static method() => 42;
 
-  /*member: Class3.field:[null|exact=JSUInt31|powerset={null}{I}]*/
+  /*member: Class3.field:[null|exact=JSUInt31|powerset={null}{I}{O}{N}]*/
   static var field = method();
 }
 
-/*member: getStaticFieldInitializedPotentiallyNull:[null|exact=JSUInt31|powerset={null}{I}]*/
+/*member: getStaticFieldInitializedPotentiallyNull:[null|exact=JSUInt31|powerset={null}{I}{O}{N}]*/
 getStaticFieldInitializedPotentiallyNull() => Class3.field;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Static get of a top level method.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _method4:[exact=JSUInt31|powerset={I}]*/
+/*member: _method4:[exact=JSUInt31|powerset={I}{O}{N}]*/
 _method4() => 42;
 
-/*member: getTopLevelMethod:[subclass=Closure|powerset={N}]*/
+/*member: getTopLevelMethod:[subclass=Closure|powerset={N}{O}{N}]*/
 getTopLevelMethod() => _method4;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -106,21 +106,21 @@ getTopLevelMethod() => _method4;
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class4 {
-  /*member: Class4.method:[exact=JSUInt31|powerset={I}]*/
+  /*member: Class4.method:[exact=JSUInt31|powerset={I}{O}{N}]*/
   static method() => 42;
 }
 
-/*member: getStaticMethod:[subclass=Closure|powerset={N}]*/
+/*member: getStaticMethod:[subclass=Closure|powerset={N}{O}{N}]*/
 getStaticMethod() => Class4.method;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Static get of a top level getter.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _getter1:[exact=JSUInt31|powerset={I}]*/
+/*member: _getter1:[exact=JSUInt31|powerset={I}{O}{N}]*/
 get _getter1 => 42;
 
-/*member: getTopLevelGetter:[exact=JSUInt31|powerset={I}]*/
+/*member: getTopLevelGetter:[exact=JSUInt31|powerset={I}{O}{N}]*/
 getTopLevelGetter() => _getter1;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -128,9 +128,9 @@ getTopLevelGetter() => _getter1;
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class5 {
-  /*member: Class5.getter:[exact=JSUInt31|powerset={I}]*/
+  /*member: Class5.getter:[exact=JSUInt31|powerset={I}{O}{N}]*/
   static get getter => 42;
 }
 
-/*member: getStaticGetter:[exact=JSUInt31|powerset={I}]*/
+/*member: getStaticGetter:[exact=JSUInt31|powerset={I}{O}{N}]*/
 getStaticGetter() => Class5.getter;

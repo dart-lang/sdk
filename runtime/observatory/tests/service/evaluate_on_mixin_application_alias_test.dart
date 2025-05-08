@@ -5,13 +5,14 @@
 // Check the VM correctly undoes the layers of mixin application to report the
 // evaluation scope the frontend as the original mixin.
 
-import 'package:observatory/service_io.dart';
 import 'package:test/test.dart';
+
+import 'package:observatory/service_io.dart';
 import 'test_helper.dart';
 
 class S {}
 
-class M {
+mixin M {
   static String? foo;
   bar() {
     foo = "theExpectedValue";

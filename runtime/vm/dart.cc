@@ -860,6 +860,15 @@ ErrorPtr Dart::InitIsolateGroupFromSnapshot(
     if (!error.IsNull()) {
       return error.ptr();
     }
+    {
+      // Initialize sentinel field table, which should have sentinel values for
+      // all fields.
+      auto len = IG->initial_field_table()->Capacity();
+      IG->sentinel_field_table()->AllocateIndex(len);
+      for (intptr_t i = 0; i < len; i++) {
+        IG->sentinel_field_table()->SetAt(i, Object::sentinel().ptr());
+      }
+    }
 
     T->SetupDartMutatorStateDependingOnSnapshot(IG);
 
@@ -1039,6 +1048,7 @@ char* Dart::FeaturesString(IsolateGroup* isolate_group,
 
     ADD_FLAG(tsan, FLAG_target_thread_sanitizer)
     ADD_FLAG(msan, FLAG_target_memory_sanitizer)
+    ADD_FLAG(shared_data, FLAG_experimental_shared_data)
 
     if (kind == Snapshot::kFullJIT) {
       // Enabling assertions affects deopt ids.

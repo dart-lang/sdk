@@ -27,7 +27,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
-import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -244,7 +243,7 @@ final class CorrectionProducerContext {
   })  : _libraryResult = libraryResult,
         _unitResult = unitResult,
         _sessionHelper = AnalysisSessionHelper(unitResult.session),
-        _utils = CorrectionUtils(unitResult),
+        _utils = dartFixContext?.correctionUtils ?? CorrectionUtils(unitResult),
         _applyingBulkFixes = applyingBulkFixes,
         _diagnostic = diagnostic,
         _token = token,

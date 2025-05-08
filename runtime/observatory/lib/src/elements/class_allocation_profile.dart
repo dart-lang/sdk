@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:html';
 import 'dart:async';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/cpu_profile/virtual_tree.dart';
-import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/sample_buffer_control.dart';
 import 'package:observatory/src/elements/stack_trace_tree_config.dart';
 
@@ -58,16 +60,16 @@ class ClassAllocationProfileElement extends CustomElement
   @override
   void detached() {
     super.detached();
-    children = <Element>[];
+    removeChildren();
     _r.disable(notify: true);
   }
 
   void render() {
     if (_progress == null) {
-      children = const [];
+      removeChildren();
       return;
     }
-    final content = <HtmlElement>[
+    final content = <HTMLElement>[
       (new SampleBufferControlElement(_vm, _progress!, _progressStream,
               selectedTag: _tag, queue: _r.queue)
             ..onTagChange.listen((e) {
@@ -79,7 +81,7 @@ class ClassAllocationProfileElement extends CustomElement
     if (_progress!.status == M.SampleProfileLoadingStatus.loaded) {
       late CpuProfileVirtualTreeElement tree;
       content.addAll([
-        new BRElement(),
+        new HTMLBRElement(),
         (new StackTraceTreeConfigElement(
                 mode: _mode,
                 direction: _direction,
@@ -92,13 +94,14 @@ class ClassAllocationProfileElement extends CustomElement
                 _direction = tree.direction = e.element.direction;
               }))
             .element,
-        new BRElement(),
+        new HTMLBRElement(),
         (tree = new CpuProfileVirtualTreeElement(_isolate, _progress!.profile,
                 queue: _r.queue))
             .element
       ]);
     }
-    children = content;
+    removeChildren();
+    appendChildren(content);
   }
 
   Future _request({bool forceFetch = false}) async {

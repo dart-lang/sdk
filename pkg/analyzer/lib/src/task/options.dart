@@ -429,7 +429,7 @@ class _AnalyzerTopLevelOptionsValidator extends _TopLevelOptionValidator {
 class _CannotIgnoreOptionValidator extends OptionsValidator {
   /// Lazily populated set of error codes.
   static final Set<String> _errorCodes =
-      errorCodeValues.map((ErrorCode code) => code.name).toSet();
+      errorCodeValues.map((DiagnosticCode code) => code.name).toSet();
 
   /// The error code names that existed, but were removed.
   /// We don't want to report these, this breaks clients.
@@ -673,9 +673,9 @@ class _ErrorFilterOptionValidator extends OptionsValidator {
   static final String legalValueString =
       legalValues.quotedAndCommaSeparatedWithAnd;
 
-  /// Lazily populated set of error codes.
-  static final Set<String> _errorCodes =
-      errorCodeValues.map((ErrorCode code) => code.name).toSet();
+  /// Lazily populated set of diagnostic codes.
+  static final Set<String> _diagnosticCodes =
+      errorCodeValues.map((DiagnosticCode code) => code.name).toSet();
 
   /// The error code names that existed, but were removed.
   /// We don't want to report these, this breaks clients.
@@ -698,7 +698,7 @@ class _ErrorFilterOptionValidator extends OptionsValidator {
           String? value;
           if (k is YamlScalar) {
             value = toUpperCase(k.value);
-            if (!_errorCodes.contains(value) &&
+            if (!_diagnosticCodes.contains(value) &&
                 !_lintCodes.contains(value) &&
                 !_removedErrorCodes.contains(value)) {
               reporter.atSourceSpan(

@@ -3,9 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
-import 'package:observatory/service_io.dart';
+
 import 'package:test/test.dart';
 
+import 'package:observatory/service_io.dart';
 import 'test_helper.dart';
 
 var tests = <VMTest>[

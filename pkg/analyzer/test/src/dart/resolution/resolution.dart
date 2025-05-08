@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
@@ -196,11 +197,11 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }
 
   void assertErrorsInList(
-    List<AnalysisError> errors,
+    List<Diagnostic> diagnostics,
     List<ExpectedError> expectedErrors,
   ) {
     GatheringErrorListener errorListener = GatheringErrorListener();
-    errorListener.addAll(errors);
+    errorListener.addAll(diagnostics);
     errorListener.assertErrors(expectedErrors);
   }
 

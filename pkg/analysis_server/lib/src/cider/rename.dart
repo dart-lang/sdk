@@ -18,7 +18,6 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
-import 'package:analyzer/utilities/extensions/ast.dart';
 
 class CanRenameResponse {
   final LineInfo lineInfo;

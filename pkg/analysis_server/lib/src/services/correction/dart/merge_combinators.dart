@@ -95,7 +95,7 @@ class _MergeCombinators extends ResolvedCorrectionProducer {
     Map<String, Element> namespace;
     Namespace? originalNamespace;
     switch (directive) {
-      case ExportDirective(:LibraryExportElementImpl libraryExport):
+      case ExportDirective(:LibraryExportImpl libraryExport):
         element = libraryExport.exportedLibrary2;
         if (element is! LibraryElementImpl) {
           return;
@@ -154,7 +154,7 @@ class _MergeCombinators extends ResolvedCorrectionProducer {
     });
   }
 
-  Namespace _currentNamespace(LibraryExportElementImpl libraryExport) {
+  Namespace _currentNamespace(LibraryExportImpl libraryExport) {
     return namespaceBuilder.createExportNamespaceForDirective2(libraryExport);
   }
 

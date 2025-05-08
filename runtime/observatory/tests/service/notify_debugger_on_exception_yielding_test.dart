@@ -6,8 +6,8 @@
 
 // See: https://github.com/dart-lang/sdk/issues/45673
 
-import 'test_helper.dart';
 import 'service_test_common.dart';
+import 'test_helper.dart';
 
 const int LINE_A = 19;
 const int LINE_B = 29;

@@ -583,3 +583,25 @@ Future<void> runVMTests(
     );
   }
 }
+
+/// Runs the given [testBody] against the [VmService] at [serviceUri].
+///
+/// The test will fail if connection goes away prematurely.
+Future<void> withServiceConnection(
+    Uri serviceUri, Future<void> Function(VmService) testBody) async {
+  var disposed = false;
+  final service = await vmServiceConnectUri(serviceUri.toString());
+  await Future.wait([
+    () async {
+      try {
+        await testBody(service);
+      } finally {
+        disposed = true;
+        await service.dispose();
+      }
+    }(),
+    service.onDone.then((_) {
+      expect(disposed, isTrue);
+    }),
+  ], eagerError: true);
+}

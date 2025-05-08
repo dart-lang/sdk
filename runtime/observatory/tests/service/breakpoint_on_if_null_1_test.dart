@@ -4,8 +4,8 @@
 
 library breakpoint_in_parts_class;
 
-import 'test_helper.dart';
 import 'service_test_common.dart';
+import 'test_helper.dart';
 
 const int LINE = 18;
 const String file = "breakpoint_on_if_null_1_test.dart";

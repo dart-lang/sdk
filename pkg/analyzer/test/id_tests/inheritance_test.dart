@@ -9,7 +9,7 @@ import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
@@ -63,9 +63,9 @@ class _InheritanceDataComputer extends DataComputer<String> {
     TestConfig config,
     TestingData testingData,
     Id id,
-    List<AnalysisError> errors,
+    List<Diagnostic> diagnostics,
   ) {
-    return errors.map((e) => e.errorCode).join(',');
+    return diagnostics.map((e) => e.errorCode).join(',');
   }
 
   @override

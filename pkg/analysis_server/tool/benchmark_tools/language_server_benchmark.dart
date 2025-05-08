@@ -283,6 +283,7 @@ abstract class DartLanguageServerBenchmark {
           '--port=9102',
           ...cacheFolderArgs,
         ]);
+      case LaunchFrom.AotWithPerf:
       case LaunchFrom.Aot:
         File serverFile = File.fromUri(
           repoDir.resolve('pkg/analysis_server/bin/server.aot'),
@@ -298,12 +299,22 @@ abstract class DartLanguageServerBenchmark {
         if (!aotRuntime.existsSync()) {
           throw "Couldn't find 'dartaotruntime' expected it at $aotRuntime";
         }
+
         p = await Process.start(aotRuntime.path, [
           serverFile.path,
           lsp ? '--protocol=lsp' : '--protocol=analyzer',
           '--port=9102',
           ...cacheFolderArgs,
         ]);
+
+        if (launchFrom == LaunchFrom.AotWithPerf) {
+          await Process.start('perf', [
+            'record',
+            '-p',
+            '${p.pid}',
+            '-g',
+          ], mode: ProcessStartMode.inheritStdio);
+        }
     }
 
     // ignore: unawaited_futures
@@ -487,7 +498,7 @@ class DurationInfo {
   DurationInfo(this.name, this.duration);
 }
 
-enum LaunchFrom { Source, Dart, Aot }
+enum LaunchFrom { Source, Dart, Aot, AotWithPerf }
 
 class MemoryInfo {
   final String name;

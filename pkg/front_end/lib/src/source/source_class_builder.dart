@@ -130,21 +130,6 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   final IndexedClass? indexedClass;
 
-  bool? _isConflictingAugmentationMember;
-
-  /// Returns `true` if this class is a class declared in an augmentation
-  /// library that conflicts with a declaration in the origin library.
-  bool get isConflictingAugmentationMember {
-    return _isConflictingAugmentationMember ??= false;
-  }
-
-  // Coverage-ignore(suite): Not run.
-  void set isConflictingAugmentationMember(bool value) {
-    assert(_isConflictingAugmentationMember == null,
-        '$this.isConflictingAugmentationMember has already been fixed.');
-    _isConflictingAugmentationMember = value;
-  }
-
   final ClassDeclaration _introductory;
   List<ClassDeclaration> _augmentations;
 
@@ -1296,16 +1281,6 @@ class SourceClassBuilder extends ClassBuilderImpl
   void _addMemberToClass(SourceMemberBuilder memberBuilder, Member member) {
     member.parent = cls;
     if (!memberBuilder.isDuplicate && !memberBuilder.isConflictingSetter) {
-      if (memberBuilder.isConflictingAugmentationMember) {
-        // Coverage-ignore-block(suite): Not run.
-        if (member is Field && member.isStatic ||
-            member is Procedure && member.isStatic) {
-          member.name = new Name('${member.name}', member.name.library);
-        } else {
-          return;
-        }
-      }
-
       if (member is Procedure) {
         cls.addProcedure(member);
       } else if (member is Field) {

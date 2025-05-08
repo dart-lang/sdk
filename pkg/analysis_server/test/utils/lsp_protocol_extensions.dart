@@ -21,16 +21,20 @@ extension CodeActionExtensions on CodeAction {
     );
   }
 
-  /// The [Command] for this [CodeAction], whether it's a [CodeActionLiteral]
-  /// or a [Command].
-  Command? get command {
-    return map((literal) => literal.command, (command) => command);
+  /// Whether this [CodeAction] is a [CodeActionLiteral].
+  bool get isCodeActionLiteral {
+    return map(
+      (_) => true, // literal
+      (_) => false, // command
+    );
   }
 
-  /// The title for this [CodeAction], whether it's a [CodeActionLiteral]
-  /// or a [Command].
-  String get title {
-    return map((literal) => literal.title, (command) => command.title);
+  /// Whether this [CodeAction] is a [Command].
+  bool get isCommand {
+    return map(
+      (_) => false, // literal
+      (_) => true, // command
+    );
   }
 }
 

@@ -6,8 +6,8 @@
 
 // See: https://github.com/flutter/flutter/issues/17007
 
-import 'test_helper.dart';
 import 'service_test_common.dart';
+import 'test_helper.dart';
 
 const int LINE_A = 16;
 const int LINE_B = 32;

@@ -1,6 +1,8 @@
 // Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+// VMOptions=
+// VMOptions=-Ddisable.interrupts.to.test.sample.block.processor=true
 
 import 'dart:async';
 import 'dart:io';
@@ -8,7 +10,6 @@ import 'dart:io';
 import 'package:dds/dds.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
-import 'package:vm_service/vm_service_io.dart';
 import 'common/test_helper.dart';
 
 void main() {
@@ -41,90 +42,100 @@ void main() {
         } else {
           serviceUri = serviceUri.replace(scheme: 'ws', path: 'ws');
         }
-        final service = await vmServiceConnectUri(serviceUri.toString());
-        final otherService = await vmServiceConnectUri(serviceUri.toString());
-
-        IsolateRef isolate;
-        while (true) {
-          final vm = await service.getVM();
-          if (vm.isolates!.isNotEmpty) {
-            isolate = vm.isolates!.first;
-            try {
-              isolate = await service.getIsolate(isolate.id!);
-              if ((isolate as Isolate).runnable!) {
-                break;
-              }
-            } on SentinelException {
-              // ignore
-            }
-          }
-          await Future.delayed(const Duration(seconds: 1));
-        }
-        expect(isolate, isNotNull);
-
-        final expectedUserTags = <String>{};
-
-        Future<void> listenForSamples() {
-          late StreamSubscription sub;
-          final completer = Completer<void>();
-          int i = 0;
-          sub = service.onProfilerEvent.listen(
-            (event) async {
-              if (event.kind == EventKind.kCpuSamples &&
-                  event.isolate!.id! == isolate.id!) {
-                expect(expectedUserTags.isNotEmpty, true);
-                ++i;
-                if (i > 3) {
-                  if (!completer.isCompleted) {
-                    await sub.cancel();
-                    completer.complete();
+        await withServiceConnection(serviceUri, (service) async {
+          await withServiceConnection(serviceUri, (otherService) async {
+            IsolateRef isolate;
+            while (true) {
+              final vm = await service.getVM();
+              if (vm.isolates!.isNotEmpty) {
+                isolate = vm.isolates!.first;
+                try {
+                  isolate = await service.getIsolate(isolate.id!);
+                  if ((isolate as Isolate).runnable!) {
+                    break;
                   }
-                  return;
+                } on SentinelException {
+                  // ignore
                 }
-                expect(event.cpuSamples, isNotNull);
-                final sampleCount = event.cpuSamples!.samples!
-                    .where((e) => expectedUserTags.contains(e.userTag))
-                    .length;
-                expect(sampleCount, event.cpuSamples!.samples!.length);
               }
-            },
-          );
-          if (expectedUserTags.isEmpty) {
-            return Future.delayed(const Duration(seconds: 2)).then(
-              (_) async => await sub.cancel(),
-            );
-          }
-          return completer.future;
-        }
+              await Future.delayed(const Duration(seconds: 1));
+            }
+            expect(isolate, isNotNull);
 
-        await service.streamListen(EventStreams.kProfiler);
-        Future<void> subscription = listenForSamples();
-        await service.resume(isolate.id!);
-        await subscription;
-        await service.pause(isolate.id!);
+            final expectedUserTags = <String>{};
 
-        expectedUserTags.add('Testing');
-        await service.streamCpuSamplesWithUserTag(expectedUserTags.toList());
-        subscription = listenForSamples();
-        await service.resume(isolate.id!);
-        await subscription;
-        await service.pause(isolate.id!);
+            Future<void> listenForSamples() {
+              late StreamSubscription sub;
+              final completer = Completer<void>();
+              int i = 0;
+              sub = service.onProfilerEvent.listen(
+                (event) async {
+                  if (event.kind == EventKind.kCpuSamples &&
+                      event.isolate!.id! == isolate.id!) {
+                    expect(expectedUserTags.isNotEmpty, true);
+                    ++i;
+                    if (i > 3) {
+                      if (!completer.isCompleted) {
+                        await sub.cancel();
+                        completer.complete();
+                      }
+                      return;
+                    }
+                    expect(event.cpuSamples, isNotNull);
+                    final sampleCount = event.cpuSamples!.samples!
+                        .where((e) => expectedUserTags.contains(e.userTag))
+                        .length;
+                    expect(sampleCount, event.cpuSamples!.samples!.length);
+                  }
+                },
+                onDone: () {
+                  if (!completer.isCompleted) {
+                    completer.completeError(
+                        StateError('unexpected end of the profiler stream'));
+                  }
+                },
+                onError: (e) {
+                  completer.completeError(e);
+                },
+              );
+              if (expectedUserTags.isEmpty) {
+                return Future.delayed(const Duration(seconds: 2)).then(
+                  (_) async => await sub.cancel(),
+                );
+              }
+              return completer.future;
+            }
 
-        expectedUserTags.add('Baz');
-        await service.streamCpuSamplesWithUserTag(expectedUserTags.toList());
-        subscription = listenForSamples();
-        await service.resume(isolate.id!);
-        await subscription;
-        await service.pause(isolate.id!);
+            await service.streamListen(EventStreams.kProfiler);
+            Future<void> subscription = listenForSamples();
+            await service.resume(isolate.id!);
+            await subscription;
+            await service.pause(isolate.id!);
 
-        expectedUserTags.clear();
-        await service.streamCpuSamplesWithUserTag(expectedUserTags.toList());
-        subscription = listenForSamples();
-        await service.resume(isolate.id!);
-        await subscription;
+            expectedUserTags.add('Testing');
+            await service
+                .streamCpuSamplesWithUserTag(expectedUserTags.toList());
+            subscription = listenForSamples();
+            await service.resume(isolate.id!);
+            await subscription;
+            await service.pause(isolate.id!);
 
-        await service.dispose();
-        await otherService.dispose();
+            expectedUserTags.add('Baz');
+            await service
+                .streamCpuSamplesWithUserTag(expectedUserTags.toList());
+            subscription = listenForSamples();
+            await service.resume(isolate.id!);
+            await subscription;
+            await service.pause(isolate.id!);
+
+            expectedUserTags.clear();
+            await service
+                .streamCpuSamplesWithUserTag(expectedUserTags.toList());
+            subscription = listenForSamples();
+            await service.resume(isolate.id!);
+            await subscription;
+          });
+        });
       },
       timeout: Timeout.none,
     );

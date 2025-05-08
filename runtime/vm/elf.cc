@@ -1178,7 +1178,7 @@ Elf::Elf(Zone* zone, BaseWriteStream* stream, Type type, Dwarf* dwarf)
       unwrapped_stream_(stream),
       type_(type),
       dwarf_(dwarf),
-      section_table_(new(zone) SectionTable(zone)) {
+      section_table_(new (zone) SectionTable(zone)) {
   // Separate debugging information should always have a Dwarf object.
   ASSERT(type_ == Type::Snapshot || dwarf_ != nullptr);
   // Assumed by various offset logic in this file.
@@ -1263,7 +1263,7 @@ class DwarfElfStream : public DwarfWriteStream {
   DwarfElfStream(Zone* zone, NonStreamingWriteStream* stream)
       : zone_(ASSERT_NOTNULL(zone)),
         stream_(ASSERT_NOTNULL(stream)),
-        relocations_(new(zone) ZoneGrowableArray<Elf::Relocation>()) {}
+        relocations_(new (zone) ZoneGrowableArray<Elf::Relocation>()) {}
 
   const uint8_t* buffer() const { return stream_->buffer(); }
   intptr_t bytes_written() const { return stream_->bytes_written(); }

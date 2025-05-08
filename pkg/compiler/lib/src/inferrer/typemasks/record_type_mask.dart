@@ -40,6 +40,11 @@ class RecordTypeMask extends TypeMask {
       powerset,
       TypeMaskInterceptorProperty.notInterceptor,
     );
+    powerset = _arrayDomain.add(powerset, TypeMaskArrayProperty.other);
+    powerset = _indexableDomain.add(
+      powerset,
+      TypeMaskIndexableProperty.notIndexable,
+    );
     return createRecordWithPowerset(domain, types, shape, powerset);
   }
 

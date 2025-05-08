@@ -8,8 +8,9 @@ import 'dart:io' show Platform;
 
 import 'package:observatory_test_package/has_part.dart' as hasPart;
 import 'package:path/path.dart' as path;
-import 'test_helper.dart';
+
 import 'service_test_common.dart';
+import 'test_helper.dart';
 
 // Chop off the file name.
 String baseDirectory = path.dirname(Platform.script.path) + '/';

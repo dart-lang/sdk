@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:logging/logging.dart';
+
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/service.dart' as S;
 

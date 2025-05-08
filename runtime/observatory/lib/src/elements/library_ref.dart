@@ -4,11 +4,13 @@
 
 library library_ref_element;
 
-import 'dart:html';
 import 'dart:async';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M show IsolateRef, LibraryRef;
-import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class LibraryRefElement extends CustomElement implements Renderable {
@@ -43,13 +45,14 @@ class LibraryRefElement extends CustomElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = <Element>[];
+    removeChildren();
   }
 
   void render() {
     final name = _library.name;
-    children = <Element>[
-      new AnchorElement(href: Uris.inspect(_isolate, object: _library))
+    children = <HTMLElement>[
+      new HTMLAnchorElement()
+        ..href = Uris.inspect(_isolate, object: _library)
         ..text = (name == null || name.isEmpty) ? 'unnamed' : name
     ];
   }

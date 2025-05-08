@@ -2201,7 +2201,11 @@ class _HttpClientConnection {
         // We assume the response is not here, until we have send the request.
         if (_nextResponseCompleter == null) {
           throw HttpException(
-            "Unexpected response (unsolicited response without request).",
+            "Unexpected response (unsolicited response without request). This "
+            "can be caused when a malformed request is sent to the server "
+            "(e.g. a GET request containing a body) or if the server is not "
+            "correctly implemented. Future requests to this server, using the "
+            "same HttpClient, are likely to fail.",
             uri: _currentUri,
           );
         }

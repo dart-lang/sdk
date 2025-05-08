@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
+import 'package:test/test.dart';
+
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/service_io.dart';
-import 'package:test/test.dart';
 import 'test_helper.dart';
-import 'dart:async';
 
 void testMain() {
   print('Hello');

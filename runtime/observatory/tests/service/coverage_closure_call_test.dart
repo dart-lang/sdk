@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:observatory/service_io.dart';
-import 'package:test/test.dart';
-import 'test_helper.dart';
-import 'service_test_common.dart';
 import 'dart:developer';
+
+import 'package:test/test.dart';
+
+import 'package:observatory/service_io.dart';
+import 'service_test_common.dart';
+import 'test_helper.dart';
 
 String leafFunction(void Function() f) {
   f();
@@ -45,12 +47,12 @@ var tests = <IsolateTest>[
 
     var expectedRange = {
       'scriptIndex': 0,
-      'startPos': 384,
-      'endPos': 458,
+      'startPos': 386,
+      'endPos': 460,
       'compiled': true,
       'coverage': {
         'hits': [],
-        'misses': [384, 428]
+        'misses': [386, 430]
       }
     };
 
@@ -86,11 +88,11 @@ var tests = <IsolateTest>[
 
     var expectedRange = {
       'scriptIndex': 0,
-      'startPos': 384,
-      'endPos': 458,
+      'startPos': 386,
+      'endPos': 460,
       'compiled': true,
       'coverage': {
-        'hits': [384, 428],
+        'hits': [386, 430],
         'misses': []
       }
     };

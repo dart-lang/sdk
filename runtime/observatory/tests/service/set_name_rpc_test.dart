@@ -3,10 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--vm-name=Walter
 
-import 'package:observatory/service_io.dart';
-import 'package:test/test.dart';
-import 'test_helper.dart';
 import 'dart:async';
+
+import 'package:test/test.dart';
+
+import 'package:observatory/service_io.dart';
+import 'test_helper.dart';
 
 var tests = <IsolateTest>[
   (Isolate isolate) async {

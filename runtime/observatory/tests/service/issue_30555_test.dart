@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:isolate" as dart;
 import 'dart:async';
 import 'dart:developer';
-import 'package:observatory/service_io.dart';
+
 import 'package:test/test.dart';
+
+import 'package:observatory/service_io.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
-
-import "dart:isolate" as dart;
 
 void isolate(dart.SendPort port) {
   dart.RawReceivePort receive = new dart.RawReceivePort((_) {
@@ -122,7 +123,6 @@ var tests = <IsolateTest>[
         default:
           fail("Shouldn't get here, the second isolate resumed even though it "
               "was not expect to do it");
-          break;
       }
       step++;
     });

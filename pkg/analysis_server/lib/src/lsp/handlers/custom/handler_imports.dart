@@ -13,7 +13,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/utilities/extensions/results.dart';
-import 'package:analyzer/utilities/extensions/ast.dart';
 
 class ImportsHandler
     extends SharedMessageHandler<TextDocumentPositionParams, List<Location>?> {

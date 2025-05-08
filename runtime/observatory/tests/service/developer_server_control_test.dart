@@ -4,7 +4,9 @@
 
 import 'dart:async';
 import 'dart:developer';
+
 import 'package:expect/expect.dart';
+
 import 'package:observatory/service_io.dart' as S;
 import 'test_helper.dart';
 

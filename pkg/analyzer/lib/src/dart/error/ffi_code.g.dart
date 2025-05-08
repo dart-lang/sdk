@@ -20,7 +20,7 @@ library;
 
 import "package:analyzer/error/error.dart";
 
-class FfiCode extends ErrorCode {
+class FfiCode extends DiagnosticCode {
   ///  No parameters.
   static const FfiCode ABI_SPECIFIC_INTEGER_INVALID = FfiCode(
     'ABI_SPECIFIC_INTEGER_INVALID',

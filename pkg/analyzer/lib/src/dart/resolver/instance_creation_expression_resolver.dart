@@ -91,6 +91,19 @@ class InstanceCreationExpressionResolver {
           );
         }
       }
+
+      var typeArguments = node.typeArguments;
+      if (typeArguments != null) {
+        _resolver.errorReporter.atNode(
+          typeArguments,
+          CompileTimeErrorCode
+              .WRONG_NUMBER_OF_TYPE_ARGUMENTS_DOT_SHORTHAND_CONSTRUCTOR,
+          arguments: [
+            dotShorthandContextType.getDisplayString(),
+            node.constructorName.name,
+          ],
+        );
+      }
     } else {
       _resolver.errorReporter.atNode(
         node,

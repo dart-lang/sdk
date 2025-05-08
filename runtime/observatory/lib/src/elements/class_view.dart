@@ -5,7 +5,9 @@
 library class_view_element;
 
 import 'dart:async';
-import 'dart:html';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/class_allocation_profile.dart';
 import 'package:observatory/src/elements/class_instances.dart';
@@ -16,9 +18,10 @@ import 'package:observatory/src/elements/eval_box.dart';
 import 'package:observatory/src/elements/field_ref.dart';
 import 'package:observatory/src/elements/function_ref.dart';
 import 'package:observatory/src/elements/helpers/any_ref.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/instance_ref.dart';
 import 'package:observatory/src/elements/library_ref.dart';
 import 'package:observatory/src/elements/nav/class_menu.dart';
@@ -111,7 +114,7 @@ class ClassViewElement extends CustomElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = <Element>[];
+    removeChildren();
   }
 
   ObjectCommonElement? _common;
@@ -134,8 +137,8 @@ class ClassViewElement extends CustomElement implements Renderable {
     if (_cls.isPatch!) {
       header += 'patch ';
     }
-    children = <Element>[
-      navBar(<Element>[
+    setChildren(<HTMLElement>[
+      navBar(<HTMLElement>[
         new NavTopMenuElement(queue: _r.queue).element,
         new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element,
@@ -160,304 +163,296 @@ class ClassViewElement extends CustomElement implements Renderable {
             .element,
         new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
-      new DivElement()
-        ..classes = ['content-centered-big']
-        ..children = <Element>[
-          new HeadingElement.h2()..text = '$header class ${_cls.name}',
-          new HRElement(),
+      new HTMLDivElement()
+        ..className = 'content-centered-big'
+        ..appendChildren(<HTMLElement>[
+          new HTMLHeadingElement.h2()
+            ..textContent = '$header class ${_cls.name}',
+          new HTMLHRElement(),
           _common!.element,
-          new BRElement(),
-          new DivElement()
-            ..classes = ['memberList']
-            ..children = _createMembers(),
-          new DivElement()
-            ..children = _cls.error == null
+          new HTMLBRElement(),
+          new HTMLDivElement()
+            ..className = 'memberList'
+            ..appendChildren(_createMembers()),
+          new HTMLDivElement()
+            ..appendChildren(_cls.error == null
                 ? const []
                 : [
-                    new HRElement(),
+                    new HTMLHRElement(),
                     new ErrorRefElement(_cls.error!, queue: _r.queue).element
-                  ],
-          new HRElement(),
+                  ]),
+          new HTMLHRElement(),
           new EvalBoxElement(_isolate, _cls, _objects, _eval, queue: _r.queue)
               .element,
-          new HRElement(),
-          new HeadingElement.h2()..text = 'Fields & Functions',
-          new DivElement()
-            ..classes = ['memberList']
-            ..children = _createElements(),
-          new HRElement(),
-          new HeadingElement.h2()..text = 'Instances',
-          new DivElement()..children = [_classInstances!.element],
-          new HRElement(),
-          new HeadingElement.h2()..text = 'Allocations',
-          new DivElement()
-            ..classes = ['memberList']
-            ..children = <Element>[
-              new DivElement()
-                ..classes = ['memberName']
-                ..text = 'Tracing allocations?	',
-              new DivElement()
-                ..classes = ['memberValue']
-                ..children = _cls.traceAllocations!
+          new HTMLHRElement(),
+          new HTMLHeadingElement.h2()..textContent = 'Fields & Functions',
+          new HTMLDivElement()
+            ..className = 'memberList'
+            ..appendChildren(_createElements()),
+          new HTMLHRElement(),
+          new HTMLHeadingElement.h2()..textContent = 'Instances',
+          new HTMLDivElement()..appendChild(_classInstances!.element),
+          new HTMLHRElement(),
+          new HTMLHeadingElement.h2()..textContent = 'Allocations',
+          new HTMLDivElement()
+            ..className = 'memberList'
+            ..appendChildren(<HTMLElement>[
+              new HTMLDivElement()
+                ..className = 'memberName'
+                ..textContent = 'Tracing allocations?	',
+              new HTMLDivElement()
+                ..className = 'memberValue'
+                ..appendChildren(_cls.traceAllocations!
                     ? [
-                        new SpanElement()..text = 'Yes ',
-                        new ButtonElement()
-                          ..text = 'disable'
+                        new HTMLSpanElement()..textContent = 'Yes ',
+                        new HTMLButtonElement()
+                          ..textContent = 'disable'
                           ..onClick.listen((e) async {
-                            (e.target as ButtonElement).disabled = true;
+                            (e.target as HTMLButtonElement).disabled = true;
                             await _profiles.disable(_isolate, _cls);
                             _loadProfile = true;
                             _refresh();
                           })
                       ]
                     : [
-                        new SpanElement()..text = 'No ',
-                        new ButtonElement()
-                          ..text = 'enable'
+                        new HTMLSpanElement()..textContent = 'No ',
+                        new HTMLButtonElement()
+                          ..textContent = 'enable'
                           ..onClick.listen((e) async {
-                            (e.target as ButtonElement).disabled = true;
+                            (e.target as HTMLButtonElement).disabled = true;
                             await _profiles.enable(_isolate, _cls);
                             _refresh();
                           })
-                      ]
-            ],
-          new DivElement()
-            ..children = _loadProfile
+                      ])
+            ]),
+          new HTMLDivElement()
+            ..appendChildren(_loadProfile
                 ? [
                     new ClassAllocationProfileElement(
                             _vm, _isolate, _cls, _profiles,
                             queue: _r.queue)
                         .element
                   ]
-                : const [],
-          new DivElement()
-            ..children = _cls.location != null
+                : const []),
+          new HTMLDivElement()
+            ..appendChildren(_cls.location != null
                 ? [
-                    new HRElement(),
+                    new HTMLHRElement(),
                     new SourceInsetElement(_isolate, _cls.location!, _scripts,
                             _objects, _events,
                             queue: _r.queue)
                         .element
                   ]
-                : const [],
-        ]
-    ];
+                : const []),
+        ])
+    ]);
   }
 
   bool? _fieldsExpanded;
   bool? _functionsExpanded;
 
-  List<Element> _createMembers() {
-    final members = <Element>[];
+  List<HTMLElement> _createMembers() {
+    final members = <HTMLElement>[];
     if (_cls.library != null) {
-      members.add(new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'library',
-          new DivElement()
-            ..classes = ['memberValue']
-            ..children = <Element>[
+      members.add(new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'library',
+          new HTMLDivElement()
+            ..className = 'memberValue'
+            ..appendChildren(<HTMLElement>[
               new LibraryRefElement(_isolate, _cls.library!, queue: _r.queue)
                   .element
-            ]
-        ]);
+            ])
+        ]));
     }
     if (_cls.location != null) {
-      members.add(new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'script',
-          new DivElement()
-            ..classes = ['memberValue']
-            ..children = <Element>[
+      members.add(new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'script',
+          new HTMLDivElement()
+            ..className = 'memberValue'
+            ..appendChildren(<HTMLElement>[
               new SourceLinkElement(_isolate, _cls.location!, _scripts,
                       queue: _r.queue)
                   .element
-            ]
-        ]);
+            ])
+        ]));
     }
     if (_cls.superclass != null) {
-      members.add(new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'superclass',
-          new DivElement()
-            ..classes = ['memberValue']
-            ..children = <Element>[
+      members.add(new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'superclass',
+          new HTMLDivElement()
+            ..className = 'memberValue'
+            ..appendChildren(<HTMLElement>[
               new ClassRefElement(_isolate, _cls.superclass!, queue: _r.queue)
                   .element
-            ]
-        ]);
+            ])
+        ]));
     }
     if (_cls.superType != null) {
-      members.add(new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'supertype',
-          new DivElement()
-            ..classes = ['memberValue']
-            ..children = <Element>[
+      members.add(new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'supertype',
+          new HTMLDivElement()
+            ..className = 'memberValue'
+            ..appendChildren(<HTMLElement>[
               new InstanceRefElement(_isolate, _cls.superType!, _objects,
                       queue: _r.queue)
                   .element
-            ]
-        ]);
+            ])
+        ]));
     }
     if (cls.mixin != null) {
-      members.add(new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'mixin',
-          new DivElement()
-            ..classes = ['memberValue']
-            ..children = <Element>[
+      members.add(new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'mixin',
+          new HTMLDivElement()
+            ..className = 'memberValue'
+            ..appendChildren(<HTMLElement>[
               new InstanceRefElement(_isolate, _cls.mixin!, _objects,
                       queue: _r.queue)
                   .element
-            ]
-        ]);
+            ])
+        ]));
     }
     if (_cls.subclasses!.length > 0) {
-      members.add(new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'extended by',
-          new DivElement()
-            ..classes = ['memberValue']
-            ..children = (_cls.subclasses!
-                .expand((subcls) => <Element>[
-                      new ClassRefElement(_isolate, subcls, queue: _r.queue)
-                          .element,
-                      new SpanElement()..text = ', '
-                    ])
-                .toList()
+      members.add(new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'extended by',
+          new HTMLDivElement()
+            ..className = 'memberValue'
+            ..appendChildren((_cls.subclasses!.expand((subcls) => <HTMLElement>[
+                  new ClassRefElement(_isolate, subcls, queue: _r.queue)
+                      .element,
+                  new HTMLSpanElement()..textContent = ', '
+                ])).toList()
               ..removeLast())
-        ]);
+        ]));
     }
 
-    members.add(new BRElement());
+    members.add(new HTMLBRElement());
 
     if (_cls.interfaces!.length > 0) {
-      members.add(new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'implements',
-          new DivElement()
-            ..classes = ['memberValue']
-            ..children = (_cls.interfaces!
-                .expand((interf) => <Element>[
-                      new InstanceRefElement(_isolate, interf, _objects,
-                              queue: _r.queue)
-                          .element,
-                      new SpanElement()..text = ', '
-                    ])
-                .toList()
+      members.add(new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'implements',
+          new HTMLDivElement()
+            ..className = 'memberValue'
+            ..appendChildren((_cls.interfaces!.expand((interf) => <HTMLElement>[
+                  new InstanceRefElement(_isolate, interf, _objects,
+                          queue: _r.queue)
+                      .element,
+                  new HTMLSpanElement()..textContent = ', '
+                ])).toList()
               ..removeLast())
-        ]);
+        ]));
     }
     if (_cls.name != _cls.vmName) {
-      members.add(new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'vm name',
-          new DivElement()
-            ..classes = ['memberValue']
-            ..text = '${_cls.vmName}'
-        ]);
+      members.add(new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'vm name',
+          new HTMLDivElement()
+            ..className = 'memberValue'
+            ..textContent = '${_cls.vmName}'
+        ]));
     }
     return members;
   }
 
-  List<Element> _createElements() {
-    final members = <Element>[];
+  List<HTMLElement> _createElements() {
+    final members = <HTMLElement>[];
     if (_classFields != null && _classFields!.isNotEmpty) {
       final fields = _classFields!.toList();
       _fieldsExpanded = _fieldsExpanded ?? (fields.length <= 8);
-      members.add(new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'fields ${fields.length}',
-          new DivElement()
-            ..classes = ['memberValue']
-            ..children = <Element>[
+      members.add(new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'fields ${fields.length}',
+          new HTMLDivElement()
+            ..className = 'memberValue'
+            ..appendChildren(<HTMLElement>[
               (new CurlyBlockElement(expanded: _fieldsExpanded!)
                     ..onToggle
                         .listen((e) => _fieldsExpanded = e.control.expanded)
-                    ..content = <Element>[
-                      new DivElement()
-                        ..classes = ['memberList']
-                        ..children = (fields
-                            .map<Element>((f) => new DivElement()
-                              ..classes = ['memberItem']
-                              ..children = <Element>[
-                                new DivElement()
-                                  ..classes = ['memberName']
-                                  ..children = <Element>[
+                    ..content = <HTMLElement>[
+                      new HTMLDivElement()
+                        ..className = 'memberList'
+                        ..appendChildren(
+                            fields.map<HTMLElement>((f) => new HTMLDivElement()
+                              ..className = 'memberItem'
+                              ..appendChildren(<HTMLElement>[
+                                new HTMLDivElement()
+                                  ..className = 'memberName'
+                                  ..appendChildren(<HTMLElement>[
                                     new FieldRefElement(_isolate, f, _objects,
                                             queue: _r.queue)
                                         .element
-                                  ],
-                                new DivElement()
-                                  ..classes = ['memberValue']
-                                  ..children = f.staticValue == null
+                                  ]),
+                                new HTMLDivElement()
+                                  ..className = 'memberValue'
+                                  ..appendChildren(f.staticValue == null
                                       ? const []
                                       : [
                                           anyRef(
                                               _isolate, f.staticValue, _objects,
                                               queue: _r.queue)
-                                        ]
-                              ])
-                            .toList())
+                                        ])
+                              ])))
                     ])
                   .element
-            ]
-        ]);
+            ])
+        ]));
     }
 
     if (_cls.functions!.isNotEmpty) {
       final functions = _cls.functions!.toList();
       _functionsExpanded = _functionsExpanded ?? (functions.length <= 8);
-      members.add(new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'functions (${functions.length})',
-          new DivElement()
-            ..classes = ['memberValue']
-            ..children = <Element>[
-              (new CurlyBlockElement(expanded: _functionsExpanded!)
-                    ..onToggle
-                        .listen((e) => _functionsExpanded = e.control.expanded)
-                    ..content = (functions
-                        .map<Element>((f) => new DivElement()
-                          ..classes = ['indent']
-                          ..children = <Element>[
+      members.add(new HTMLDivElement()
+        ..className = 'memberItem'
+        ..appendChildren(<HTMLElement>[
+          new HTMLDivElement()
+            ..className = 'memberName'
+            ..textContent = 'functions (${functions.length})',
+          new HTMLDivElement()
+            ..className = 'memberValue'
+            ..appendChild((new CurlyBlockElement(expanded: _functionsExpanded!)
+                  ..onToggle
+                      .listen((e) => _functionsExpanded = e.control.expanded)
+                  ..content = (functions.map<HTMLElement>((f) =>
+                      new HTMLDivElement()
+                        ..className = 'indent'
+                        ..appendChild(
                             new FunctionRefElement(_isolate, f, queue: _r.queue)
-                                .element
-                          ])
-                        .toList()))
-                  .element
-            ]
-        ]);
+                                .element))))
+                .element)
+        ]));
     }
     return members;
   }

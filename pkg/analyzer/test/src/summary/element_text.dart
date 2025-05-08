@@ -1281,13 +1281,12 @@ class _Element2Writer extends _AbstractElementWriter {
     });
   }
 
-  void _writeLibraryExport(LibraryExportElementImpl e) {
+  void _writeLibraryExport(LibraryExportImpl e) {
     _sink.writeIndentedLine(() {
       _writeDirectiveUri(e.uri);
     });
 
     _sink.withIndent(() {
-      _writeReference(e);
       _writeMetadata(e.metadata2);
       _writeNamespaceCombinators(e.combinators);
     });
@@ -1358,7 +1357,7 @@ class _Element2Writer extends _AbstractElementWriter {
     });
   }
 
-  void _writeLibraryImport(LibraryImportElementImpl e) {
+  void _writeLibraryImport(LibraryImportImpl e) {
     _sink.writeIndentedLine(() {
       _writeDirectiveUri(e.uri);
       _sink.writeIf(e.isSynthetic, ' synthetic');
@@ -1510,7 +1509,7 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
   }
 
-  void _writePartInclude(PartElementImpl e) {
+  void _writePartInclude(PartIncludeImpl e) {
     _sink.writelnWithIndent(_idMap[e]);
 
     _sink.withIndent(() {
@@ -2044,7 +2043,7 @@ class _IdMap {
   final Map<Expression, String> expressionMap = Map.identity();
   final Map<FragmentImpl, String> fieldMap = Map.identity();
   final Map<FragmentImpl, String> getterMap = Map.identity();
-  final Map<FragmentImpl, String> partMap = Map.identity();
+  final Map<PartIncludeImpl, String> partMap = Map.identity();
   final Map<FragmentImpl, String> setterMap = Map.identity();
 
   String operator [](Object object) {
@@ -2056,7 +2055,7 @@ class _IdMap {
       return fieldMap[object] ??= 'variable_${fieldMap.length}';
     } else if (object is PropertyAccessorFragmentImpl && object.isGetter) {
       return getterMap[object] ??= 'getter_${getterMap.length}';
-    } else if (object is PartElementImpl) {
+    } else if (object is PartIncludeImpl) {
       return partMap[object] ??= 'part_${partMap.length}';
     } else if (object is PropertyAccessorFragmentImpl && object.isSetter) {
       return setterMap[object] ??= 'setter_${setterMap.length}';

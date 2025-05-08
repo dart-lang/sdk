@@ -5,7 +5,9 @@
 library library_view_element;
 
 import 'dart:async';
-import 'dart:html';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/class_ref.dart';
 import 'package:observatory/src/elements/curly_block.dart';
@@ -13,9 +15,10 @@ import 'package:observatory/src/elements/eval_box.dart';
 import 'package:observatory/src/elements/field_ref.dart';
 import 'package:observatory/src/elements/function_ref.dart';
 import 'package:observatory/src/elements/helpers/any_ref.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/element_utils.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/library_ref.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/library_menu.dart';
@@ -24,8 +27,8 @@ import 'package:observatory/src/elements/nav/refresh.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/object_common.dart';
-import 'package:observatory/src/elements/script_ref.dart';
 import 'package:observatory/src/elements/script_inset.dart';
+import 'package:observatory/src/elements/script_ref.dart';
 
 class LibraryViewElement extends CustomElement implements Renderable {
   late RenderingScheduler<LibraryViewElement> _r;
@@ -101,14 +104,14 @@ class LibraryViewElement extends CustomElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = <Element>[];
+    removeChildren();
   }
 
   void render() {
     final rootScript = library.rootScript;
 
-    children = <Element>[
-      navBar(<Element>[
+    children = <HTMLElement>[
+      navBar(<HTMLElement>[
         new NavTopMenuElement(queue: _r.queue).element,
         new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element,
@@ -121,61 +124,61 @@ class LibraryViewElement extends CustomElement implements Renderable {
             .element,
         new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
-      new DivElement()
-        ..classes = ['content-centered-big']
-        ..children = <Element>[
-          new HeadingElement.h2()..text = 'Library',
-          new HRElement(),
+      new HTMLDivElement()
+        ..className = 'content-centered-big'
+        ..appendChildren(<HTMLElement>[
+          new HTMLHeadingElement.h2()..textContent = 'Library',
+          new HTMLHRElement(),
           new ObjectCommonElement(_isolate, _library, _retainedSizes,
                   _reachableSizes, _references, _retainingPaths, _objects,
                   queue: _r.queue)
               .element,
-          new DivElement()
-            ..classes = ['memberList']
-            ..children = <Element>[
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = <Element>[
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..text = 'uri',
-                  new DivElement()
-                    ..classes = ['memberValue']
-                    ..text = _library.uri
-                ],
-              new DivElement()
-                ..classes = ['memberItem']
-                ..children = <Element>[
-                  new DivElement()
-                    ..classes = ['memberName']
-                    ..text = 'vm name',
-                  new DivElement()
-                    ..classes = ['memberValue']
-                    ..text = _library.vmName
-                ]
-            ],
-          new HRElement(),
+          new HTMLDivElement()
+            ..className = 'memberList'
+            ..appendChildren(<HTMLElement>[
+              new HTMLDivElement()
+                ..className = 'memberItem'
+                ..appendChildren(<HTMLElement>[
+                  new HTMLDivElement()
+                    ..className = 'memberName'
+                    ..textContent = 'uri',
+                  new HTMLDivElement()
+                    ..className = 'memberValue'
+                    ..textContent = _library.uri ?? ''
+                ]),
+              new HTMLDivElement()
+                ..className = 'memberItem'
+                ..appendChildren(<HTMLElement>[
+                  new HTMLDivElement()
+                    ..className = 'memberName'
+                    ..textContent = 'vm name',
+                  new HTMLDivElement()
+                    ..className = 'memberValue'
+                    ..textContent = _library.vmName ?? ''
+                ])
+            ]),
+          new HTMLHRElement(),
           new EvalBoxElement(_isolate, _library, _objects, _eval,
                   queue: _r.queue)
               .element,
-          new HRElement(),
+          new HTMLHRElement(),
           _createDependencies(),
-          new BRElement(),
+          new HTMLBRElement(),
           _createScripts(),
-          new BRElement(),
+          new HTMLBRElement(),
           _createClasses(),
-          new BRElement(),
+          new HTMLBRElement(),
           _createVariables(),
-          new BRElement(),
+          new HTMLBRElement(),
           _createFunctions(),
           if (rootScript != null) ...[
-            new HRElement(),
+            new HTMLHRElement(),
             new ScriptInsetElement(
                     _isolate, rootScript, _scripts, _objects, _events,
                     queue: _r.queue)
                 .element
           ],
-        ]
+        ])
     ];
   }
 
@@ -188,129 +191,131 @@ class LibraryViewElement extends CustomElement implements Renderable {
     _r.dirty();
   }
 
-  Element _createDependencies() {
+  HTMLElement _createDependencies() {
     if (_library.dependencies!.isEmpty) {
-      return new SpanElement();
+      return new HTMLSpanElement();
     }
     final dependencies = _library.dependencies!.toList();
-    return new DivElement()
-      ..children = <Element>[
-        new SpanElement()..text = 'dependencies (${dependencies.length}) ',
+    return new HTMLDivElement()
+      ..appendChildren(<HTMLElement>[
+        new HTMLSpanElement()
+          ..textContent = 'dependencies (${dependencies.length}) ',
         (new CurlyBlockElement(queue: _r.queue)
               ..content = dependencies
-                  .map<Element>((d) => new DivElement()
-                    ..classes = ['indent']
-                    ..children = <Element>[
-                      new SpanElement()
-                        ..text = d.isImport ? 'import ' : 'export ',
+                  .map<HTMLElement>((d) => new HTMLDivElement()
+                    ..className = 'indent'
+                    ..appendChildren(<HTMLElement>[
+                      new HTMLSpanElement()
+                        ..textContent = d.isImport ? 'import ' : 'export ',
                       new LibraryRefElement(_isolate, d.target, queue: _r.queue)
                           .element,
-                      new SpanElement()
-                        ..text = d.prefix == null ? '' : ' as ${d.prefix}',
-                      new SpanElement()..text = d.isDeferred ? ' deferred' : '',
-                    ])
+                      new HTMLSpanElement()
+                        ..textContent =
+                            d.prefix == null ? '' : ' as ${d.prefix}',
+                      new HTMLSpanElement()
+                        ..textContent = d.isDeferred ? ' deferred' : '',
+                    ]))
                   .toList())
             .element
-      ];
+      ]);
   }
 
-  Element _createScripts() {
+  HTMLElement _createScripts() {
     if (_library.scripts!.isEmpty) {
-      return new SpanElement();
+      return new HTMLSpanElement();
     }
     final scripts = _library.scripts!.toList();
-    return new DivElement()
-      ..children = <Element>[
-        new SpanElement()..text = 'scripts (${scripts.length}) ',
+    return new HTMLDivElement()
+      ..appendChildren(<HTMLElement>[
+        new HTMLSpanElement()..textContent = 'scripts (${scripts.length}) ',
         (new CurlyBlockElement(queue: _r.queue)
               ..content = scripts
-                  .map<Element>((s) => new DivElement()
-                    ..classes = ['indent']
-                    ..children = <Element>[
+                  .map<HTMLElement>((s) => new HTMLDivElement()
+                    ..className = 'indent'
+                    ..appendChildren(<HTMLElement>[
                       new ScriptRefElement(_isolate, s, queue: _r.queue).element
-                    ])
+                    ]))
                   .toList())
             .element
-      ];
+      ]);
   }
 
-  Element _createClasses() {
+  HTMLElement _createClasses() {
     if (_library.classes!.isEmpty) {
-      return new SpanElement();
+      return new HTMLSpanElement();
     }
     final classes = _library.classes!.toList();
-    return new DivElement()
-      ..children = <Element>[
-        new SpanElement()..text = 'classes (${classes.length}) ',
+    return new HTMLDivElement()
+      ..appendChildren(<HTMLElement>[
+        new HTMLSpanElement()..textContent = 'classes (${classes.length}) ',
         (new CurlyBlockElement(queue: _r.queue)
               ..content = classes
-                  .map<Element>((c) => new DivElement()
-                    ..classes = ['indent']
-                    ..children = <Element>[
+                  .map<HTMLElement>((c) => new HTMLDivElement()
+                    ..className = 'indent'
+                    ..appendChildren(<HTMLElement>[
                       new ClassRefElement(_isolate, c, queue: _r.queue).element
-                    ])
+                    ]))
                   .toList())
             .element
-      ];
+      ]);
   }
 
-  Element _createVariables() {
+  HTMLElement _createVariables() {
     if (_library.variables!.isEmpty) {
-      return new SpanElement();
+      return new HTMLSpanElement();
     }
     final variables = _library.variables!.toList();
-    return new DivElement()
-      ..children = <Element>[
-        new SpanElement()..text = 'variables (${variables.length}) ',
+    return new HTMLDivElement()
+      ..appendChildren(<HTMLElement>[
+        new HTMLSpanElement()..textContent = 'variables (${variables.length}) ',
         (new CurlyBlockElement(queue: _r.queue)
-              ..content = <Element>[
+              ..content = <HTMLElement>[
                 _variables == null
-                    ? (new SpanElement()..text = 'loading...')
-                    : (new DivElement()
-                      ..classes = ['indent', 'memberList']
-                      ..children = _variables!
-                          .map<Element>((f) => new DivElement()
-                            ..classes = ['memberItem']
-                            ..children = <Element>[
-                              new DivElement()
-                                ..classes = ['memberName']
-                                ..children = <Element>[
+                    ? (new HTMLSpanElement()..textContent = 'loading...')
+                    : (new HTMLDivElement()
+                      ..className = 'indent memberList'
+                      ..appendChildren(_variables!
+                          .map<HTMLElement>((f) => new HTMLDivElement()
+                            ..className = 'memberItem'
+                            ..appendChildren(<HTMLElement>[
+                              new HTMLDivElement()
+                                ..className = 'memberName'
+                                ..appendChildren(<HTMLElement>[
                                   new FieldRefElement(_isolate, f, _objects,
                                           queue: _r.queue)
                                       .element
-                                ],
-                              new DivElement()
-                                ..classes = ['memberValue']
-                                ..children = <Element>[
-                                  new SpanElement()..text = ' = ',
+                                ]),
+                              new HTMLDivElement()
+                                ..className = 'memberValue'
+                                ..appendChildren(<HTMLElement>[
+                                  new HTMLSpanElement()..textContent = ' = ',
                                   anyRef(_isolate, f.staticValue, _objects,
                                       queue: _r.queue)
-                                ]
-                            ])
-                          .toList())
+                                ])
+                            ]))))
               ])
             .element
-      ];
+      ]);
   }
 
-  Element _createFunctions() {
+  HTMLElement _createFunctions() {
     if (_library.functions!.isEmpty) {
-      return new SpanElement();
+      return new HTMLSpanElement();
     }
     final functions = _library.functions!.toList();
-    return new DivElement()
-      ..children = <Element>[
-        new SpanElement()..text = 'functions (${functions.length}) ',
+    return new HTMLDivElement()
+      ..appendChildren(<HTMLElement>[
+        new HTMLSpanElement()..textContent = 'functions (${functions.length}) ',
         (new CurlyBlockElement(queue: _r.queue)
               ..content = functions
-                  .map<Element>((f) => new DivElement()
-                    ..classes = ['indent']
-                    ..children = <Element>[
+                  .map<HTMLElement>((f) => new HTMLDivElement()
+                    ..className = 'indent'
+                    ..appendChildren(<HTMLElement>[
                       new FunctionRefElement(_isolate, f, queue: _r.queue)
                           .element
-                    ])
+                    ]))
                   .toList())
             .element
-      ];
+      ]);
   }
 }

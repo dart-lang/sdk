@@ -2,13 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:html';
 import 'dart:async';
+
+import 'package:web/web.dart';
+
+import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/nav_menu.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
+
 import 'package:observatory/models.dart' as M
     show IsolateRef, IsolateRepository, EventRepository;
-import 'package:observatory/src/elements/helpers/nav_menu.dart';
-import 'package:observatory/src/elements/helpers/custom_element.dart';
-import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 
 class ReloadEvent {
   final NavReloadElement element;
@@ -53,44 +56,38 @@ class NavReloadElement extends CustomElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = <Element>[];
+    removeChildren();
     _sub!.cancel();
     _sub = null;
     _r.disable(notify: true);
   }
 
   void render() {
-    final children = <Element>[];
+    removeChildren();
     if (_isolates.reloadSourcesServices.isEmpty) {
-      children.add(new LIElement()
-        ..children = <Element>[
-          new ButtonElement()
-            ..text = 'Reload Source'
-            ..disabled = _disabled
-            ..onClick.listen((_) => _reload())
-        ]);
+      children.add(new HTMLLIElement()
+        ..appendChild(new HTMLButtonElement()
+          ..textContent = 'Reload Source'
+          ..disabled = _disabled
+          ..onClick.listen((_) => _reload())));
     } else if (_isolates.reloadSourcesServices.length == 1) {
-      children.add(new LIElement()
-        ..children = <Element>[
-          new ButtonElement()
-            ..text = 'Reload Source'
-            ..disabled = _disabled
-            ..onClick
-                .listen((_) => _reload(_isolates.reloadSourcesServices.single))
-        ]);
+      children.add(new HTMLLIElement()
+        ..appendChild(new HTMLButtonElement()
+          ..textContent = 'Reload Source'
+          ..disabled = _disabled
+          ..onClick
+              .listen((_) => _reload(_isolates.reloadSourcesServices.single))));
     } else {
-      final content = _isolates.reloadSourcesServices
-          .map((s) => new LIElement()
-            ..children = <Element>[
-              new ButtonElement()
-                ..text = s.alias
-                ..disabled = _disabled
-                ..onClick.listen((_) => _reload(s))
-            ])
-          .toList();
+      final List<HTMLElement> content = _isolates.reloadSourcesServices
+          .map((final s) => (new HTMLLIElement()
+            ..appendChild(new HTMLButtonElement()
+              ..textContent = s.alias
+              ..disabled = _disabled
+              ..onClick.listen((_) => _reload(s)))) as HTMLElement)
+          .toList(growable: false);
       children.add(navMenu('Reload Source', content: content));
     }
-    this.children = children;
+    setChildren(children);
   }
 
   Future _reload([service]) async {

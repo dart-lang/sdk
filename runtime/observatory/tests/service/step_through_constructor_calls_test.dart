@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'test_helper.dart';
 import 'service_test_common.dart';
+import 'test_helper.dart';
 
 const int LINE = 12;
 const String file = "step_through_constructor_calls_test.dart";
@@ -34,30 +34,30 @@ class Foo {
 
 List<String> stops = [];
 List<String> expected = [
-  "$file:${LINE+0}:18", // on 'Foo'
-  "$file:${LINE+15}:12", // on '(' in 'const Foo() : x = 1;'
-  "$file:${LINE+15}:22", // on ';' in same line
-  "$file:${LINE+1}:14", // on 'x'
-  "$file:${LINE+1}:3", // on print
-  "$file:${LINE+2}:18", // on 'Foo'
-  "$file:${LINE+17}:18", // on '(' in 'const Foo.named() : x = 2;'
-  "$file:${LINE+17}:28", // on ';' in same line
-  "$file:${LINE+3}:14", // on 'x'
-  "$file:${LINE+3}:3", // on print
-  "$file:${LINE+4}:12", // on '='
-  "$file:${LINE+5}:14", // on 'x'
-  "$file:${LINE+5}:3", // on print
-  "$file:${LINE+6}:12", // on '='
-  "$file:${LINE+7}:14", // on 'x'
-  "$file:${LINE+7}:3", // on print
-  "$file:${LINE+8}:18", // on 'Foo'
-  "$file:${LINE+19}:54", // on 'ccccccccccccc'
-  "$file:${LINE+20}:22", // on first '+'
-  "$file:${LINE+20}:35", // on second '+'
-  "$file:${LINE+20}:50", // on ';'
-  "$file:${LINE+9}:14", // on 'x'
-  "$file:${LINE+9}:3", // on print
-  "$file:${LINE+10}:1" // on ending '}'
+  "$file:${LINE + 0}:18", // on 'Foo'
+  "$file:${LINE + 15}:12", // on '(' in 'const Foo() : x = 1;'
+  "$file:${LINE + 15}:22", // on ';' in same line
+  "$file:${LINE + 1}:14", // on 'x'
+  "$file:${LINE + 1}:3", // on print
+  "$file:${LINE + 2}:18", // on 'Foo'
+  "$file:${LINE + 17}:18", // on '(' in 'const Foo.named() : x = 2;'
+  "$file:${LINE + 17}:28", // on ';' in same line
+  "$file:${LINE + 3}:14", // on 'x'
+  "$file:${LINE + 3}:3", // on print
+  "$file:${LINE + 4}:12", // on '='
+  "$file:${LINE + 5}:14", // on 'x'
+  "$file:${LINE + 5}:3", // on print
+  "$file:${LINE + 6}:12", // on '='
+  "$file:${LINE + 7}:14", // on 'x'
+  "$file:${LINE + 7}:3", // on print
+  "$file:${LINE + 8}:18", // on 'Foo'
+  "$file:${LINE + 19}:54", // on 'ccccccccccccc'
+  "$file:${LINE + 20}:22", // on first '+'
+  "$file:${LINE + 20}:35", // on second '+'
+  "$file:${LINE + 20}:50", // on ';'
+  "$file:${LINE + 9}:14", // on 'x'
+  "$file:${LINE + 9}:3", // on print
+  "$file:${LINE + 10}:1" // on ending '}'
 ];
 
 var tests = <IsolateTest>[

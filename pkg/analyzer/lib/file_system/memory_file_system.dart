@@ -57,6 +57,7 @@ class MemoryResourceProvider implements ResourceProvider {
   ///
   /// This is a utility method for testing; paths passed in to other methods in
   /// this class are never converted automatically.
+  @Deprecated("Use 'ResourceProviderExtensions.convertPath' directly")
   String convertPath(String filePath) =>
       ResourceProviderExtensions(this).convertPath(filePath);
 
@@ -135,7 +136,9 @@ class MemoryResourceProvider implements ResourceProvider {
 
   @override
   Folder getStateLocation(String pluginId) {
-    var path = convertPath('/user/home/$pluginId');
+    var path = ResourceProviderExtensions(
+      this,
+    ).convertPath('/user/home/$pluginId');
     return newFolder(path);
   }
 

@@ -5,13 +5,15 @@
 library cpu_profile_element;
 
 import 'dart:async';
-import 'dart:html';
+
+import 'package:web/web.dart';
+
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/cpu_profile/virtual_tree.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
@@ -73,12 +75,12 @@ class CpuProfileElement extends CustomElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = <Element>[];
+    removeChildren();
   }
 
   void render() {
-    var content = <Element>[
-      navBar(<Element>[
+    var content = <HTMLElement>[
+      navBar(<HTMLElement>[
         new NavTopMenuElement(queue: _r.queue).element,
         new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element,
@@ -92,7 +94,7 @@ class CpuProfileElement extends CustomElement implements Renderable {
       ]),
     ];
     if (_progress == null) {
-      children = content;
+      setChildren(content);
       return;
     }
     content.add((new SampleBufferControlElement(
@@ -106,7 +108,7 @@ class CpuProfileElement extends CustomElement implements Renderable {
     if (_progress!.status == M.SampleProfileLoadingStatus.loaded) {
       late CpuProfileVirtualTreeElement tree;
       content.addAll([
-        new BRElement(),
+        new HTMLBRElement(),
         (new StackTraceTreeConfigElement(
                 mode: _mode,
                 direction: _direction,
@@ -129,13 +131,13 @@ class CpuProfileElement extends CustomElement implements Renderable {
                 _direction = tree.direction = e.element.direction;
               }))
             .element,
-        new BRElement(),
+        new HTMLBRElement(),
         (tree = new CpuProfileVirtualTreeElement(_isolate, _progress!.profile,
                 queue: _r.queue))
             .element
       ]);
     }
-    children = content;
+    setChildren(content);
   }
 
   Future _request({bool clear = false, bool forceFetch = false}) async {

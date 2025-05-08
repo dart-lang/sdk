@@ -59,6 +59,16 @@ void StubCodeCompiler::GenerateInitLateStaticFieldStub(bool is_final,
 
   __ EnterStubFrame();
 
+  Label throw_since_no_isolate_is_present;
+  if (FLAG_experimental_shared_data) {
+    if (!is_shared) {
+      // This stub is also called from mutator thread running without an
+      // isolate and attempts to load value from isolate static field.
+      __ LoadIsolate(kScratchReg);
+      __ BranchIfZero(kScratchReg, &throw_since_no_isolate_is_present);
+    }
+  }
+
   __ Comment("Calling initializer function");
   __ PushRegister(kFieldReg);
   __ LoadCompressedFieldFromOffset(
@@ -98,6 +108,23 @@ void StubCodeCompiler::GenerateInitLateStaticFieldStub(bool is_final,
     __ CallRuntime(kLateFieldAssignedDuringInitializationErrorRuntimeEntry,
                    /*argument_count=*/1);
     __ Breakpoint();
+  }
+
+  if (FLAG_experimental_shared_data) {
+    if (!is_shared) {
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+      // We are jumping over LeaveStubFrame so restore LR state to match one
+      // at the jump point.
+      __ set_lr_state(compiler::LRState::OnEntry().EnterFrame());
+#endif  // defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+      // Throw FieldAccessError
+      __ Bind(&throw_since_no_isolate_is_present);
+      __ PushObject(NullObject());  // Make room for (unused) result.
+      __ PushRegister(kFieldReg);
+      __ CallRuntime(kStaticFieldAccessedWithoutIsolateErrorRuntimeEntry,
+                     /*argument_count=*/1);
+      __ Breakpoint();
+    }
   }
 }
 
@@ -1646,6 +1673,30 @@ void StubCodeCompiler::GenerateWriteErrorSharedWithoutFPURegsStub() {
 
 void StubCodeCompiler::GenerateWriteErrorSharedWithFPURegsStub() {
   GenerateWriteError(/*with_fpu_regs=*/true);
+}
+
+void StubCodeCompiler::GenerateFieldAccessError(bool with_fpu_regs) {
+  auto perform_runtime_call = [&]() {
+    __ PushRegister(FieldAccessErrorABI::kFieldReg);
+    __ CallRuntime(kStaticFieldAccessedWithoutIsolateErrorRuntimeEntry,
+                   /*argument_count=*/1);
+  };
+  GenerateSharedStubGeneric(
+      /*save_fpu_registers=*/with_fpu_regs,
+      with_fpu_regs
+          ? target::Thread::
+                field_access_error_shared_with_fpu_regs_stub_offset()
+          : target::Thread::
+                field_access_error_shared_without_fpu_regs_stub_offset(),
+      /*allow_return=*/false, perform_runtime_call);
+}
+
+void StubCodeCompiler::GenerateFieldAccessErrorSharedWithoutFPURegsStub() {
+  GenerateFieldAccessError(/*with_fpu_regs=*/false);
+}
+
+void StubCodeCompiler::GenerateFieldAccessErrorSharedWithFPURegsStub() {
+  GenerateFieldAccessError(/*with_fpu_regs=*/true);
 }
 
 void StubCodeCompiler::GenerateFrameAwaitingMaterializationStub() {

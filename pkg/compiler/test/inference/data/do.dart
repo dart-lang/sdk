@@ -20,20 +20,20 @@ main() {
 simpleDo() {
   var i = 0;
   do {
-    i = i /*invoke: [subclass=JSPositiveInt|powerset={I}]*/ + 1;
-  } while (i /*invoke: [subclass=JSPositiveInt|powerset={I}]*/ < 10);
-  i. /*invoke: [subclass=JSPositiveInt|powerset={I}]*/ abs();
+    i = i /*invoke: [subclass=JSPositiveInt|powerset={I}{O}{N}]*/ + 1;
+  } while (i /*invoke: [subclass=JSPositiveInt|powerset={I}{O}{N}]*/ < 10);
+  i. /*invoke: [subclass=JSPositiveInt|powerset={I}{O}{N}]*/ abs();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Do-while loop with null test.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: doNull:[exact=JSString|powerset={I}]*/
+/*member: doNull:[exact=JSString|powerset={I}{O}{I}]*/
 doNull() {
   var o;
   do {
-    o = o. /*invoke: [null|exact=JSString|powerset={null}{I}]*/ toString();
+    o = o. /*invoke: [null|exact=JSString|powerset={null}{I}{O}{I}]*/ toString();
   } while (o == null);
   return o;
 }
@@ -42,12 +42,12 @@ doNull() {
 /// Do-while loop with not-null test.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: doNotNull:[exact=JSString|powerset={I}]*/
+/*member: doNotNull:[exact=JSString|powerset={I}{O}{I}]*/
 doNotNull() {
   var o = '';
   do {
-    o = o. /*invoke: [exact=JSString|powerset={I}]*/ toString();
-  } while (o /*invoke: [exact=JSString|powerset={I}]*/ != null);
+    o = o. /*invoke: [exact=JSString|powerset={I}{O}{I}]*/ toString();
+  } while (o /*invoke: [exact=JSString|powerset={I}{O}{I}]*/ != null);
   return o;
 }
 
@@ -55,12 +55,12 @@ doNotNull() {
 /// Do-while loop with null test known to be false.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: doNullFalse:[exact=JSString|powerset={I}]*/
+/*member: doNullFalse:[exact=JSString|powerset={I}{O}{I}]*/
 doNullFalse() {
   var o = '';
   do {
-    o = o. /*invoke: [exact=JSString|powerset={I}]*/ toString();
-  } while (o /*invoke: [exact=JSString|powerset={I}]*/ == null);
+    o = o. /*invoke: [exact=JSString|powerset={I}{O}{I}]*/ toString();
+  } while (o /*invoke: [exact=JSString|powerset={I}{O}{I}]*/ == null);
   return o;
 }
 
@@ -68,11 +68,11 @@ doNullFalse() {
 /// Do-while loop with not-null test known to be true.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: doNotNullTrue:[exact=JSString|powerset={I}]*/
+/*member: doNotNullTrue:[exact=JSString|powerset={I}{O}{I}]*/
 doNotNullTrue() {
   var o = null;
   do {
-    o = o. /*invoke: [null|exact=JSString|powerset={null}{I}]*/ toString();
+    o = o. /*invoke: [null|exact=JSString|powerset={null}{I}{O}{I}]*/ toString();
   } while (o != null);
   return o;
 }
@@ -81,22 +81,22 @@ doNotNullTrue() {
 /// Do-while loop with not-null test that mixes field accesses.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: Class1.:[exact=Class1|powerset={N}]*/
+/*member: Class1.:[exact=Class1|powerset={N}{O}{N}]*/
 class Class1 {
-  /*member: Class1.field:[null|exact=Class2|powerset={null}{N}]*/
+  /*member: Class1.field:[null|exact=Class2|powerset={null}{N}{O}{N}]*/
   var field;
 }
 
-/*member: Class2.:[exact=Class2|powerset={N}]*/
+/*member: Class2.:[exact=Class2|powerset={N}{O}{N}]*/
 class Class2 {
-  /*member: Class2.field:[null|exact=Class1|powerset={null}{N}]*/
+  /*member: Class2.field:[null|exact=Class1|powerset={null}{N}{O}{N}]*/
   var field;
 }
 
-/*member: _doUnion:Union(null, [exact=Class1|powerset={N}], [exact=Class2|powerset={N}], powerset: {null}{N})*/
-_doUnion(/*[exact=Class1|powerset={N}]*/ o) {
+/*member: _doUnion:Union(null, [exact=Class1|powerset={N}{O}{N}], [exact=Class2|powerset={N}{O}{N}], powerset: {null}{N}{O}{N})*/
+_doUnion(/*[exact=Class1|powerset={N}{O}{N}]*/ o) {
   do {
-    o = o. /*Union(null, [exact=Class1|powerset={N}], [exact=Class2|powerset={N}], powerset: {null}{N})*/ field;
+    o = o. /*Union(null, [exact=Class1|powerset={N}{O}{N}], [exact=Class2|powerset={N}{O}{N}], powerset: {null}{N}{O}{N})*/ field;
   } while (o != null);
   return o;
 }
@@ -105,7 +105,7 @@ _doUnion(/*[exact=Class1|powerset={N}]*/ o) {
 doUnion() {
   var c1 = Class1();
   var c2 = Class2();
-  c1. /*update: [exact=Class1|powerset={N}]*/ field = c2;
-  c2. /*update: [exact=Class2|powerset={N}]*/ field = c1;
+  c1. /*update: [exact=Class1|powerset={N}{O}{N}]*/ field = c2;
+  c2. /*update: [exact=Class2|powerset={N}{O}{N}]*/ field = c1;
   _doUnion(c1);
 }

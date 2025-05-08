@@ -8,10 +8,11 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
+
 import 'package:expect/expect.dart';
-import 'package:observatory/service_io.dart';
 import 'package:test/test.dart';
 
+import 'package:observatory/service_io.dart';
 import 'test_helper.dart';
 
 final rng = Random();
@@ -46,7 +47,10 @@ Future<void> executeWithRandomDelay(Function f) =>
         .then((_) async {
       try {
         await f();
-      } on HttpException catch (_) {} on SocketException catch (_) {} on StateError catch (_) {} on OSError catch (_) {}
+      } on HttpException catch (_) {
+      } on SocketException catch (_) {
+      } on StateError catch (_) {
+      } on OSError catch (_) {}
     });
 
 Uri randomlyAddRequestParams(Uri uri) {

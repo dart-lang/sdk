@@ -3,11 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--no_background_compilation --optimization_counter_threshold=10
 
-import 'package:observatory/service_io.dart';
-import 'package:test/test.dart';
-import 'test_helper.dart';
-import 'service_test_common.dart';
 import 'dart:developer';
+
+import 'package:test/test.dart';
+
+import 'package:observatory/service_io.dart';
+import 'service_test_common.dart';
+import 'test_helper.dart';
 
 String optimizedFunction() {
   return 5.toString() + 3.toString();
@@ -37,11 +39,11 @@ var tests = <IsolateTest>[
 
     var expectedRange = {
       'scriptIndex': 0,
-      'startPos': 461,
-      'endPos': 528,
+      'startPos': 463,
+      'endPos': 530,
       'compiled': true,
       'coverage': {
-        'hits': [461, 501, 512, 516],
+        'hits': [463, 503, 514, 518],
         'misses': []
       }
     };

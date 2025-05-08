@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:logging/logging.dart';
+
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/service.dart';
 
@@ -60,7 +61,7 @@ class _WebSocketRequest {
       : completer = new Completer<Map>();
 }
 
-/// Minimal common interface for 'WebSocket' in [dart:io] and [dart:html].
+/// Minimal common interface for 'WebSocket' in [dart:io] and [package:web/web.dart].
 abstract class CommonWebSocket {
   Future<void> connect(WebSocketVMTarget target, void onOpen(),
       void onMessage(dynamic data), void onError(), void onClose());

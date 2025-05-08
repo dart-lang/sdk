@@ -4,13 +4,16 @@
 
 library code_ref_element;
 
-import 'dart:html';
 import 'dart:async';
+
+import 'package:web/web.dart';
+
+import 'package:observatory/src/elements/helpers/custom_element.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
+import 'package:observatory/src/elements/helpers/uris.dart';
+
 import 'package:observatory/models.dart' as M
     show IsolateRef, CodeRef, isSyntheticCode;
-import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/custom_element.dart';
-import 'package:observatory/src/elements/helpers/uris.dart';
 
 class CodeRefElement extends CustomElement implements Renderable {
   late RenderingScheduler<CodeRefElement> _r;
@@ -43,17 +46,17 @@ class CodeRefElement extends CustomElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = <Element>[];
+    removeChildren();
     _r.disable(notify: true);
   }
 
   void render() {
-    children = <Element>[
-      new AnchorElement(
-          href: ((M.isSyntheticCode(_code.kind)) || (_isolate == null))
-              ? null
-              : Uris.inspect(_isolate!, object: _code))
-        ..text = _code.name
-    ];
+    setChildren(<HTMLElement>[
+      new HTMLAnchorElement()
+        ..href = ((M.isSyntheticCode(_code.kind)) || (_isolate == null))
+            ? ''
+            : Uris.inspect(_isolate!, object: _code)
+        ..textContent = _code.name ?? ''
+    ]);
   }
 }

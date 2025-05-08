@@ -6,8 +6,9 @@ import 'dart:async';
 import 'dart:developer' as dev;
 import 'dart:isolate' as Core;
 
-import 'package:observatory/service_io.dart' as Service;
 import 'package:test/test.dart';
+
+import 'package:observatory/service_io.dart' as Service;
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
@@ -26,8 +27,8 @@ Future testeeMain() async {
   childIsolate = await Core.Isolate.spawn(spawnEntry, 0);
   // Assign the id for this isolate and it's child to strings so they can
   // be read by the tester.
-  selfId = dev.Service.getIsolateID(Core.Isolate.current)!;
-  childId = dev.Service.getIsolateID(childIsolate)!;
+  selfId = dev.Service.getIsolateId(Core.Isolate.current)!;
+  childId = dev.Service.getIsolateId(childIsolate)!;
   dev.debugger();
 }
 

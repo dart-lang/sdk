@@ -4,4 +4,4 @@
 
 import "breakpoints_with_mixin_lib3.dart";
 
-class Test2 extends Object with Foo {}
+class Test2 extends Object with FooMixin {}

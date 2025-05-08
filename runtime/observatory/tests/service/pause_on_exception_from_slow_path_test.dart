@@ -4,8 +4,8 @@
 // VMOptions=--deterministic --optimization-counter-threshold=1000
 
 import 'package:observatory/service_io.dart';
-import 'test_helper.dart';
 import 'service_test_common.dart';
+import 'test_helper.dart';
 
 class X {
   late String _y;

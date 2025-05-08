@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'test_helper.dart';
 import 'service_test_common.dart';
+import 'test_helper.dart';
 
 const int LINE_A = 15;
 const String file = "next_through_simple_linear_2_test.dart";
@@ -23,10 +23,10 @@ getB() => 42;
 List<String> stops = [];
 List<String> expected = [
   "$file:$LINE_A:3", // on call to 'print'
-  "$file:${LINE_A+1}:23", // on ')', i.e. before ';'
-  "$file:${LINE_A+1}:3", // on call to 'print'
-  "$file:${LINE_A+2}:3", // on call to 'print'
-  "$file:${LINE_A+3}:1" // on ending '}'
+  "$file:${LINE_A + 1}:23", // on ')', i.e. before ';'
+  "$file:${LINE_A + 1}:3", // on call to 'print'
+  "$file:${LINE_A + 2}:3", // on call to 'print'
+  "$file:${LINE_A + 3}:1" // on ending '}'
 ];
 
 var tests = <IsolateTest>[

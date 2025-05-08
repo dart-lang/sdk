@@ -7,12 +7,14 @@
 // This is to ensure that any possible tokens in that file are just comments
 // (i.e. not actual) positions in this file.
 
-import 'package:observatory/service_io.dart';
-import 'package:test/test.dart';
-import 'test_helper.dart';
-import 'service_test_common.dart';
 import 'dart:developer';
+
+import 'package:test/test.dart';
+
+import 'package:observatory/service_io.dart';
 import 'regress_34841_lib.dart';
+import 'service_test_common.dart';
+import 'test_helper.dart';
 
 class Bar extends Object with Foo {}
 

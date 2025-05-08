@@ -35,6 +35,9 @@ void BSS::Initialize(Thread* current, uword* bss_start, bool vm) {
   InitializeBSSEntry(Relocation::DLRT_ExitTemporaryIsolate,
                      reinterpret_cast<uword>(DLRT_ExitTemporaryIsolate),
                      bss_start);
+  InitializeBSSEntry(
+      Relocation::DLRT_ExitIsolateGroupSharedIsolate,
+      reinterpret_cast<uword>(DLRT_ExitIsolateGroupSharedIsolate), bss_start);
 }
 
 }  // namespace dart

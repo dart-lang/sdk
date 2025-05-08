@@ -5312,7 +5312,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       // argument?
       bool isFixedList = false;
 
-      if (_abstractValueDomain.isFixedArray(resultType).isDefinitelyTrue) {
+      if (_abstractValueDomain.isGrowableArray(resultType).isDefinitelyFalse) {
         // These constructors all take a length as the first argument.
         if (_commonElements.isNamedListConstructor('filled', function) ||
             _commonElements.isNamedListConstructor('generate', function) ||
@@ -7031,7 +7031,9 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       }
     }
 
-    if (node is ir.InstanceInvocation || node is ir.FunctionInvocation) {
+    if (node is ir.InstanceInvocation ||
+        node is ir.FunctionInvocation ||
+        node is ir.InstanceGet) {
       final staticType =
           _abstractValueDomain
               .createFromStaticType(_getStaticType(node as ir.Expression))
@@ -7042,9 +7044,9 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       // here.
       if (!_possiblyLegacyJavaScriptObject(selector, receiverType)) {
         invoke.staticType = staticType;
-        invoke.instructionType = _abstractValueDomain.intersection(
+        invoke.instructionType = invoke.computeInstructionType(
           resultType,
-          staticType,
+          _abstractValueDomain,
         );
       }
     }

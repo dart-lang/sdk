@@ -2111,6 +2111,78 @@ main(A<int> a) {
 ''');
   }
 
+  test_searchReferences_ParameterElement_generic_atDeclaration() async {
+    await resolveTestCode('''
+void f() {
+  B().m(p: null); // 1
+  B().m(p: null); // 2
+}
+
+class A<T> {
+  void m({T? p}) {} // 3
+}
+
+class B extends A<String> {}
+''');
+    var element = findElement2.parameter('p');
+    await assertElementReferencesText(element, r'''
+<testLibraryFragment>::@function::f
+  19 2:9 |p| REFERENCE qualified
+  42 3:9 |p| REFERENCE qualified
+''');
+  }
+
+  @FailingTest(
+      // When this test begins passing, the temporary test
+      // test_searchReferences_ParameterElement_generic_atInvocation_doesNotThrow_issue60005
+      // can be removed.
+      issue: 'https://github.com/dart-lang/sdk/issues/60200')
+  test_searchReferences_ParameterElement_generic_atInvocation() async {
+    await resolveTestCode('''
+void f() {
+  B().m(p: null); // 1
+  B().m(p: null); // 2
+}
+
+class A<T> {
+  void m({T? p}) {} // 3
+}
+
+class B extends A<String> {}
+''');
+    var element =
+        findNode.namedExpression('p: null); // 1').correspondingParameter!;
+    await assertElementReferencesText(element, r'''
+<testLibraryFragment>::@function::f
+  19 2:9 |p| REFERENCE qualified
+  42 3:9 |p| REFERENCE qualified
+''');
+  }
+
+  /// A temporary test to ensure the search does not throw, while
+  /// [test_searchReferences_ParameterElement_generic_atInvocation] is marked as
+  /// failing.
+  ///
+  /// This test can be removed once [test_searchReferences_ParameterElement_generic_atInvocation]
+  /// is passing.
+  test_searchReferences_ParameterElement_generic_atInvocation_doesNotThrow_issue60005() async {
+    await resolveTestCode('''
+void f() {
+  B().m(p: null); // 1
+  B().m(p: null); // 2
+}
+
+class A<T> {
+  void m({T? p}) {} // 3
+}
+
+class B extends A<String> {}
+''');
+    var element =
+        findNode.namedExpression('p: null); // 1').correspondingParameter!;
+    expect(driver.search.references(element, SearchedFiles()), completes);
+  }
+
   test_searchReferences_ParameterElement_ofConstructor_super_named() async {
     await resolveTestCode('''
 class A {

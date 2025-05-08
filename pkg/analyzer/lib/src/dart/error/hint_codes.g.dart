@@ -20,7 +20,7 @@ library;
 
 import "package:analyzer/error/error.dart";
 
-class HintCode extends ErrorCode {
+class HintCode extends DiagnosticCode {
   ///  No parameters.
   ///
   ///  Note: Since this diagnostic is only produced in pre-3.0 code, we do not

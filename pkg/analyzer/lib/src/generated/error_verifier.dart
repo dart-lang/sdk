@@ -1890,7 +1890,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// See [CompileTimeErrorCode.AMBIGUOUS_EXPORT].
   void _checkForAmbiguousExport(
     ExportDirectiveImpl directive,
-    LibraryExportElementImpl libraryExport,
+    LibraryExportImpl libraryExport,
     LibraryElementImpl? exportedLibrary,
   ) {
     if (exportedLibrary == null) {
@@ -2118,15 +2118,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   /// Verify that the given [token] is not a keyword, and generates the
-  /// given [errorCode] on the identifier if it is a keyword.
+  /// given [code] on the identifier if it is a keyword.
   ///
   /// See [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME],
   /// [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME],
   /// [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME], and
   /// [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME].
-  void _checkForBuiltInIdentifierAsName(Token token, ErrorCode errorCode) {
+  void _checkForBuiltInIdentifierAsName(Token token, DiagnosticCode code) {
     if (token.type.isKeyword && token.keyword?.isPseudo != true) {
-      errorReporter.atToken(token, errorCode, arguments: [token.lexeme]);
+      errorReporter.atToken(token, code, arguments: [token.lexeme]);
     }
   }
 
@@ -2773,21 +2773,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ) {
     var element = type.element3;
     if (element is ClassElement && element.isAbstract) {
-      var element = expression.constructorName.element;
-      if (element != null && !element.isFactory) {
-        bool isImplicit =
-            (expression as InstanceCreationExpressionImpl).isImplicit;
-        if (!isImplicit) {
-          errorReporter.atNode(
-            namedType,
-            CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS,
-          );
-        } else {
-          errorReporter.atNode(
-            namedType,
-            CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS,
-          );
-        }
+      var constructorElement = expression.constructorName.element;
+      if (constructorElement != null && !constructorElement.isFactory) {
+        errorReporter.atNode(
+          namedType,
+          CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS,
+        );
       }
     }
   }
@@ -3171,13 +3162,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// [CompileTimeErrorCode.MIXIN_DEFERRED_CLASS].
   bool _checkForExtendsOrImplementsDeferredClass(
     NamedType namedType,
-    ErrorCode errorCode,
+    DiagnosticCode code,
   ) {
     if (namedType.isSynthetic) {
       return false;
     }
     if (namedType.isDeferred) {
-      errorReporter.atNode(namedType, errorCode);
+      errorReporter.atNode(namedType, code);
       return true;
     }
     return false;
@@ -3192,7 +3183,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   // else.
   bool _checkForExtendsOrImplementsDisallowedClass(
     NamedType namedType,
-    ErrorCode errorCode,
+    DiagnosticCode code,
   ) {
     if (namedType.isSynthetic) {
       return false;
@@ -5075,7 +5066,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void _checkForRepeatedType(
     Set<InstanceElement> accumulatedElements,
     List<NamedType>? namedTypes,
-    ErrorCode errorCode,
+    DiagnosticCode code,
   ) {
     if (namedTypes == null) {
       return;
@@ -5087,11 +5078,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         var element = type.element3;
         var added = accumulatedElements.add(element);
         if (!added) {
-          errorReporter.atNode(
-            namedType,
-            errorCode,
-            arguments: [element.name3!],
-          );
+          errorReporter.atNode(namedType, code, arguments: [element.name3!]);
         }
       }
     }
@@ -5423,7 +5410,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             .map((parameter) => parameter.name3)
             .toSet();
 
-    void reportError(ErrorCode errorCode, List<Object> arguments) {
+    void reportError(DiagnosticCode code, List<Object> arguments) {
       Identifier returnType = constructor.returnType;
       var name = constructor.name;
       int offset = returnType.offset;
@@ -5431,7 +5418,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       errorReporter.atOffset(
         offset: offset,
         length: length,
-        errorCode: errorCode,
+        errorCode: code,
         arguments: arguments,
       );
     }
@@ -5472,35 +5459,35 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    ErrorCode errorCode;
+    DiagnosticCode code;
     Token endToken = operator;
     List<Object> arguments = const [];
     if (operator.type == TokenType.QUESTION) {
       if (nullAwareElementOrMapEntryKind == null) {
-        errorCode = StaticWarningCode.INVALID_NULL_AWARE_OPERATOR;
+        code = StaticWarningCode.INVALID_NULL_AWARE_OPERATOR;
         endToken = operator.next!;
         arguments = ['?[', '['];
       } else {
         switch (nullAwareElementOrMapEntryKind) {
           case _NullAwareElementOrMapEntryKind.element:
-            errorCode = StaticWarningCode.INVALID_NULL_AWARE_ELEMENT;
+            code = StaticWarningCode.INVALID_NULL_AWARE_ELEMENT;
           case _NullAwareElementOrMapEntryKind.mapEntryKey:
-            errorCode = StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_KEY;
+            code = StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_KEY;
           case _NullAwareElementOrMapEntryKind.mapEntryValue:
-            errorCode = StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_VALUE;
+            code = StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_VALUE;
         }
       }
     } else if (operator.type == TokenType.QUESTION_PERIOD) {
-      errorCode = StaticWarningCode.INVALID_NULL_AWARE_OPERATOR;
+      code = StaticWarningCode.INVALID_NULL_AWARE_OPERATOR;
       arguments = [operator.lexeme, '.'];
     } else if (operator.type == TokenType.QUESTION_PERIOD_PERIOD) {
-      errorCode = StaticWarningCode.INVALID_NULL_AWARE_OPERATOR;
+      code = StaticWarningCode.INVALID_NULL_AWARE_OPERATOR;
       arguments = [operator.lexeme, '..'];
     } else if (operator.type == TokenType.PERIOD_PERIOD_PERIOD_QUESTION) {
-      errorCode = StaticWarningCode.INVALID_NULL_AWARE_OPERATOR;
+      code = StaticWarningCode.INVALID_NULL_AWARE_OPERATOR;
       arguments = [operator.lexeme, '...'];
     } else if (operator.type == TokenType.BANG) {
-      errorCode = StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION;
+      code = StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION;
     } else {
       return;
     }
@@ -5548,7 +5535,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           errorReporter.atOffset(
             offset: operator.offset,
             length: endToken.end - operator.offset,
-            errorCode: errorCode,
+            errorCode: code,
             arguments: arguments,
           );
         }
@@ -5557,7 +5544,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     if (typeSystem.isStrictlyNonNullable(targetType)) {
-      if (errorCode == StaticWarningCode.INVALID_NULL_AWARE_OPERATOR) {
+      if (code == StaticWarningCode.INVALID_NULL_AWARE_OPERATOR) {
         var previousOperator = previousShortCircuitingOperator(target);
         if (previousOperator != null) {
           errorReporter.reportError(
@@ -5575,7 +5562,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       errorReporter.atOffset(
         offset: operator.offset,
         length: endToken.end - operator.offset,
-        errorCode: errorCode,
+        errorCode: code,
         arguments: arguments,
       );
     }

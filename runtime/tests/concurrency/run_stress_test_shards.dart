@@ -179,7 +179,7 @@ main(List<String> arguments) async {
       '--disable-dart-dev',
       '--no-inline-alloc',
       '--use-slow-path',
-      '--deoptimize-on-runtime-call-every=3',
+      '--deoptimize-on-runtime-call-every=300',
       'runtime/tests/concurrency/generated_stress_test.dart.jit.dill',
     ]),
     for (int i = 0; i < tsanShards; ++i)

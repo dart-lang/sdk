@@ -4,8 +4,8 @@
 
 // Regression: https://github.com/dart-lang/sdk/issues/37953
 
-import 'test_helper.dart';
 import 'service_test_common.dart';
+import 'test_helper.dart';
 
 Future<void> throwAsync() async {
   await Future.delayed(const Duration(milliseconds: 100));

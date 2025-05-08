@@ -19,7 +19,6 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer/src/utilities/fuzzy_matcher.dart';
-import 'package:analyzer/utilities/extensions/ast.dart';
 import 'package:collection/collection.dart';
 
 Fragment _getEnclosingFragment(
@@ -467,11 +466,8 @@ class Search {
     LibraryImport import,
     SearchedFiles searchedFiles,
   ) async {
-    var legacyElement = import as LibraryImportElementImpl;
-    var legacyResults = await _searchReferences_Import(
-      legacyElement,
-      searchedFiles,
-    );
+    import as LibraryImportImpl;
+    var legacyResults = await _searchReferences_Import(import, searchedFiles);
 
     return legacyResults.map((match) {
       return LibraryFragmentSearchMatch(
@@ -632,7 +628,11 @@ class Search {
       name = externalElement.enclosingElement2.displayName;
     }
 
-    var elementPath = element.firstFragment.libraryFragment!.source.fullName;
+    var elementPath = element.firstFragment.libraryFragment?.source.fullName;
+    if (elementPath == null) {
+      return;
+    }
+
     var elementFile = _driver.fsState.getExistingFromPath(elementPath);
     if (elementFile == null) {
       return;
@@ -833,16 +833,16 @@ class Search {
   }
 
   Future<List<SearchResult>> _searchReferences_Import(
-    LibraryImportElementImpl element,
+    LibraryImportImpl element,
     SearchedFiles searchedFiles,
   ) async {
-    String path = element.source.fullName;
+    String path = element.libraryFragment.source.fullName;
     if (!searchedFiles.add(path, this)) {
       return const <SearchResult>[];
     }
 
     List<SearchResult> results = <SearchResult>[];
-    LibraryElementImpl libraryElement = element.library;
+    LibraryElementImpl libraryElement = element.libraryFragment.element;
     for (var unitElement in libraryElement.units) {
       String unitPath = unitElement.source.fullName;
       var unitResult = await _driver.getResolvedUnit(unitPath);
@@ -871,8 +871,7 @@ class Search {
       if (unitResult is ResolvedUnitResultImpl) {
         var unit = unitResult.unit;
         for (var directive in unit.directives) {
-          if (directive is PartOfDirectiveImpl &&
-              directive.element == element) {
+          if (directive is PartOfDirectiveImpl) {
             var targetEntity = directive.libraryName ?? directive.uri;
             results.add(
               SearchResult._(
@@ -896,8 +895,8 @@ class Search {
     bool Function(AstNode n) isRootNode,
     SearchedFiles searchedFiles,
   ) async {
-    String path = element.firstFragment.libraryFragment!.source.fullName;
-    if (!searchedFiles.add(path, this)) {
+    String? path = element.firstFragment.libraryFragment?.source.fullName;
+    if (path == null || !searchedFiles.add(path, this)) {
       return const <SearchResult>[];
     }
 

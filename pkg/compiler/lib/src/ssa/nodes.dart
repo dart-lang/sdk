@@ -1255,14 +1255,11 @@ abstract class HInstruction implements SpannableWithEntity {
   AbstractBool isIndexablePrimitive(AbstractValueDomain domain) =>
       domain.isIndexablePrimitive(instructionType);
 
-  AbstractBool isFixedArray(AbstractValueDomain domain) =>
-      domain.isFixedArray(instructionType);
+  AbstractBool isGrowableArray(AbstractValueDomain domain) =>
+      domain.isGrowableArray(instructionType);
 
-  AbstractBool isExtendableArray(AbstractValueDomain domain) =>
-      domain.isExtendableArray(instructionType);
-
-  AbstractBool isMutableArray(AbstractValueDomain domain) =>
-      domain.isMutableArray(instructionType);
+  AbstractBool isModifiableArray(AbstractValueDomain domain) =>
+      domain.isModifiableArray(instructionType);
 
   AbstractBool isMutableIndexable(AbstractValueDomain domain) =>
       domain.isMutableIndexable(instructionType);
@@ -1963,6 +1960,20 @@ abstract class HInvokeDynamic extends HInvoke implements InstructionContext {
       _originalReceiverType,
       value,
     );
+  }
+
+  /// Returns [value] narrowed by the [staticType].
+  AbstractValue computeInstructionType(
+    AbstractValue value,
+    AbstractValueDomain abstractValueDomain,
+  ) {
+    if (staticType == null) return value;
+    final narrowed = abstractValueDomain.intersection(value, staticType!);
+    // Preserve the sentinel in [value] since the static type does not include
+    // a sentinel and the intersection would remove it.
+    return abstractValueDomain.isLateSentinel(value).isPotentiallyTrue
+        ? abstractValueDomain.includeLateSentinel(narrowed)
+        : narrowed;
   }
 
   @override

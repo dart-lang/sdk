@@ -581,102 +581,6 @@ class ProfileFunctionTable : public ZoneAllocated {
   DirectChainedHashMap<ProfileFunctionTableTrait> function_hash_;
 };
 
-ProfileFunction* ProfileCode::SetFunctionAndName(ProfileFunctionTable* table) {
-  ASSERT(function_ == nullptr);
-
-  ProfileFunction* function = nullptr;
-  if ((kind() == kReusedCode) || (kind() == kCollectedCode)) {
-    if (name() == nullptr) {
-      // Lazily set generated name.
-      GenerateAndSetSymbolName("[Collected]");
-    }
-    // Map these to a canonical unknown function.
-    function = table->GetUnknown();
-  } else if (kind() == kDartCode) {
-    ASSERT(!code_.IsNull());
-    const char* name = code_.QualifiedName();
-    const Object& obj = Object::Handle(code_.owner());
-    if (obj.IsFunction()) {
-      function = table->LookupOrAdd(Function::Cast(obj));
-    } else {
-      // A stub.
-      function = table->AddStub(start(), name);
-    }
-    SetName(name);
-  } else if (kind() == kNativeCode) {
-    if (name() == nullptr) {
-      // Lazily set generated name.
-      const intptr_t kBuffSize = 512;
-      char buff[kBuffSize];
-      uword dso_base;
-      const char* dso_name;
-      if (NativeSymbolResolver::LookupSharedObject(start(), &dso_base,
-                                                   &dso_name)) {
-        uword dso_offset = start() - dso_base;
-        Utils::SNPrint(&buff[0], kBuffSize - 1, "[Native] %s+0x%" Px, dso_name,
-                       dso_offset);
-        NativeSymbolResolver::FreeSymbolName(dso_name);
-      } else {
-        Utils::SNPrint(&buff[0], kBuffSize - 1, "[Native] %" Px, start());
-      }
-      SetName(buff);
-    }
-    function = table->AddNative(start(), name());
-  } else if (kind() == kTagCode) {
-    if (name() == nullptr) {
-      if (UserTags::IsUserTag(start())) {
-        const char* tag_name = UserTags::TagName(start());
-        ASSERT(tag_name != nullptr);
-        SetName(tag_name);
-      } else if (VMTag::IsVMTag(start()) || VMTag::IsRuntimeEntryTag(start()) ||
-                 VMTag::IsNativeEntryTag(start())) {
-        const char* tag_name = VMTag::TagName(start());
-        ASSERT(tag_name != nullptr);
-        SetName(tag_name);
-      } else {
-        switch (start()) {
-          case VMTag::kRootTagId:
-            SetName("Root");
-            break;
-          case VMTag::kTruncatedTagId:
-            SetName("[Truncated]");
-            break;
-          case VMTag::kNoneCodeTagId:
-            SetName("[No Code]");
-            break;
-          case VMTag::kOptimizedCodeTagId:
-            SetName("[Optimized Code]");
-            break;
-          case VMTag::kUnoptimizedCodeTagId:
-            SetName("[Unoptimized Code]");
-            break;
-          case VMTag::kNativeCodeTagId:
-            SetName("[Native Code]");
-            break;
-          case VMTag::kInlineStartCodeTagId:
-            SetName("[Inline Start]");
-            break;
-          case VMTag::kInlineEndCodeTagId:
-            SetName("[Inline End]");
-            break;
-          default:
-            UNIMPLEMENTED();
-            break;
-        }
-      }
-    }
-    function = table->AddTag(start(), name());
-  } else {
-    UNREACHABLE();
-  }
-  ASSERT(function != nullptr);
-
-  function->AddProfileCode(code_table_index());
-
-  function_ = function;
-  return function_;
-}
-
 intptr_t ProfileCodeTable::FindCodeIndexForPC(uword pc) const {
   intptr_t length = table_.length();
   if (length == 0) {
@@ -978,6 +882,10 @@ class ProfileBuilder : public ValueObject {
     SanitizeMinMaxTimes();
   }
 
+  Thread* thread() const { return thread_; }
+  Isolate* isolate() const { return isolate_; }
+  ProfileFunctionTable* function_table() const { return profile_->functions_; }
+
  private:
   // Returns true if |frame_index| in |sample| is using CPU.
   static bool IsExecutingFrame(ProcessedSample* sample, intptr_t frame_index) {
@@ -1117,25 +1025,24 @@ class ProfileBuilder : public ValueObject {
     ProfileCodeTable* live_table = profile_->live_code_;
     ProfileCodeTable* dead_table = profile_->dead_code_;
     ProfileCodeTable* tag_table = profile_->tag_code_;
-    ProfileFunctionTable* function_table = profile_->functions_;
     for (intptr_t i = 0; i < live_table->length(); i++) {
       ProfileCode* code = live_table->At(i);
       ASSERT(code != nullptr);
-      code->SetFunctionAndName(function_table);
+      code->SetFunctionAndName(this);
       thread_->CheckForSafepoint();
     }
 
     for (intptr_t i = 0; i < dead_table->length(); i++) {
       ProfileCode* code = dead_table->At(i);
       ASSERT(code != nullptr);
-      code->SetFunctionAndName(function_table);
+      code->SetFunctionAndName(this);
       thread_->CheckForSafepoint();
     }
 
     for (intptr_t i = 0; i < tag_table->length(); i++) {
       ProfileCode* code = tag_table->At(i);
       ASSERT(code != nullptr);
-      code->SetFunctionAndName(function_table);
+      code->SetFunctionAndName(this);
       thread_->CheckForSafepoint();
     }
   }
@@ -1373,7 +1280,7 @@ class ProfileBuilder : public ValueObject {
 
   bool IsPCInDartHeap(uword pc) {
     return vm_isolate_->group()->heap()->CodeContains(pc) ||
-           thread_->isolate()->group()->heap()->CodeContains(pc);
+           thread_->isolate_group()->heap()->CodeContains(pc);
   }
 
   ProfileCode* FindOrRegisterNativeProfileCode(uword pc) {
@@ -1481,6 +1388,104 @@ class ProfileBuilder : public ValueObject {
   ProfileInfoKind info_kind_;
 };  // ProfileBuilder.
 
+ProfileFunction* ProfileCode::SetFunctionAndName(ProfileBuilder* builder) {
+  ASSERT(function_ == nullptr);
+
+  auto table = builder->function_table();
+  ProfileFunction* function = nullptr;
+  if ((kind() == kReusedCode) || (kind() == kCollectedCode)) {
+    if (name() == nullptr) {
+      // Lazily set generated name.
+      GenerateAndSetSymbolName("[Collected]");
+    }
+    // Map these to a canonical unknown function.
+    function = table->GetUnknown();
+  } else if (kind() == kDartCode) {
+    ASSERT(!code_.IsNull());
+    const char* name = code_.QualifiedName();
+    const Object& obj = Object::Handle(code_.owner());
+    if (obj.IsFunction()) {
+      function = table->LookupOrAdd(Function::Cast(obj));
+    } else {
+      // A stub.
+      function = table->AddStub(start(), name);
+    }
+    SetName(name);
+  } else if (kind() == kNativeCode) {
+    if (name() == nullptr) {
+      // Lazily set generated name.
+      const intptr_t kBuffSize = 512;
+      char buff[kBuffSize];
+      uword dso_base;
+      const char* dso_name;
+      if (NativeSymbolResolver::LookupSharedObject(start(), &dso_base,
+                                                   &dso_name)) {
+        uword dso_offset = start() - dso_base;
+        Utils::SNPrint(&buff[0], kBuffSize - 1, "[Native] %s+0x%" Px, dso_name,
+                       dso_offset);
+        NativeSymbolResolver::FreeSymbolName(dso_name);
+      } else {
+        Utils::SNPrint(&buff[0], kBuffSize - 1, "[Native] %" Px, start());
+      }
+      SetName(buff);
+    }
+    function = table->AddNative(start(), name());
+  } else if (kind() == kTagCode) {
+    if (name() == nullptr) {
+      if (UserTags::IsUserTag(start())) {
+        const char* tag_name =
+            UserTags::TagName(builder->thread(), builder->isolate(), start());
+        ASSERT(tag_name != nullptr);
+        SetName(tag_name);
+      } else if (VMTag::IsVMTag(start()) || VMTag::IsRuntimeEntryTag(start()) ||
+                 VMTag::IsNativeEntryTag(start())) {
+        const char* tag_name = VMTag::TagName(start());
+        ASSERT(tag_name != nullptr);
+        SetName(tag_name);
+      } else {
+        switch (start()) {
+          case VMTag::kRootTagId:
+            SetName("Root");
+            break;
+          case VMTag::kTruncatedTagId:
+            SetName("[Truncated]");
+            break;
+          case VMTag::kNoneCodeTagId:
+            SetName("[No Code]");
+            break;
+          case VMTag::kOptimizedCodeTagId:
+            SetName("[Optimized Code]");
+            break;
+          case VMTag::kUnoptimizedCodeTagId:
+            SetName("[Unoptimized Code]");
+            break;
+          case VMTag::kNativeCodeTagId:
+            SetName("[Native Code]");
+            break;
+          case VMTag::kInlineStartCodeTagId:
+            SetName("[Inline Start]");
+            break;
+          case VMTag::kInlineEndCodeTagId:
+            SetName("[Inline End]");
+            break;
+          default:
+            UNIMPLEMENTED();
+            break;
+        }
+      }
+    }
+    function = table->AddTag(start(), name());
+  } else {
+    UNREACHABLE();
+  }
+  ASSERT(function != nullptr);
+
+  function->AddProfileCode(code_table_index());
+
+  function_ = function;
+  return function_;
+}
+
 Profile::Profile()
     : zone_(Thread::Current()->zone()),
       samples_(nullptr),
@@ -1498,6 +1503,8 @@ void Profile::Build(Thread* thread,
                     Isolate* isolate,
                     SampleFilter* filter,
                     SampleBlockBuffer* sample_buffer) {
+  thread_ = thread;
+  isolate_ = isolate;
   ASSERT(isolate != nullptr);
 
   // Disable thread interrupts while processing the buffer.
@@ -1763,7 +1770,8 @@ void Profile::PrintSamplesJSON(JSONObject* obj, bool code_samples) {
       sample_obj.AddProperty("runtimeEntryTag", true);
     }
     if (UserTags::IsUserTag(sample->user_tag())) {
-      sample_obj.AddProperty("userTag", UserTags::TagName(sample->user_tag()));
+      sample_obj.AddProperty("userTag", UserTags::TagName(thread(), isolate(),
+                                                          sample->user_tag()));
     }
     if (sample->truncated()) {
       sample_obj.AddProperty("truncated", true);

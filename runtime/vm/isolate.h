@@ -745,6 +745,16 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
     initial_field_table_ = field_table;
   }
 
+  FieldTable* sentinel_field_table() const {
+    return sentinel_field_table_.get();
+  }
+  std::shared_ptr<FieldTable> sentinel_field_table_shareable() {
+    return sentinel_field_table_;
+  }
+  void set_sentinel_field_table(std::shared_ptr<FieldTable> field_table) {
+    sentinel_field_table_ = field_table;
+  }
+
   FieldTable* shared_initial_field_table() const {
     return shared_initial_field_table_.get();
   }
@@ -900,6 +910,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   intptr_t dispatch_table_snapshot_size_ = 0;
   ArrayPtr saved_unlinked_calls_;
   std::shared_ptr<FieldTable> initial_field_table_;
+  std::shared_ptr<FieldTable> sentinel_field_table_;
   std::shared_ptr<FieldTable> shared_initial_field_table_;
   std::shared_ptr<FieldTable> shared_field_table_;
   AtomicBitFieldContainer<uint32_t> isolate_group_flags_;
@@ -1273,6 +1284,10 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
       const Function& trampoline,
       const Closure& target,
       bool keep_isolate_alive);
+  FfiCallbackMetadata::Trampoline CreateIsolateGroupSharedFfiCallback(
+      Zone* zone,
+      const Function& trampoline,
+      const Closure& target);
   void DeleteFfiCallback(FfiCallbackMetadata::Trampoline callback);
   void UpdateNativeCallableKeepIsolateAliveCounter(intptr_t delta);
   bool HasOpenNativeCallables();

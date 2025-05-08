@@ -10,7 +10,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
-import 'package:analyzer/utilities/extensions/ast.dart';
 
 /// A computer for the signature help information about the type parameters for
 /// the [TypeArgumentList] surrounding the specified offset of a Dart

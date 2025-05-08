@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'test_helper.dart';
 import 'service_test_common.dart';
+import 'test_helper.dart';
 
 const int LINE_A = 15;
 const int LINE_B = 18;
@@ -12,14 +12,14 @@ const int LINE_D = 22;
 
 testMain() {
   bool foo = false;
-  if (foo) {} // LINE_A
+  if (foo) {} // ignore:dead_code LINE_A
 
   const bar = false;
-  if (bar) {} // LINE_B
+  if (bar) {} // ignore:dead_code LINE_B
 
-  while (foo) {} // LINE_C
+  while (foo) {} // ignore:dead_code LINE_C
 
-  while (bar) {} // LINE_D
+  while (bar) {} // ignore:dead_code LINE_D
 }
 
 var tests = [

@@ -27,7 +27,7 @@ part of 'test.dart';
 part 'a.dart';
 ''');
     expect(
-      (findNode.part('part').partInclude! as PartElementImpl).enclosingUnit,
+      (findNode.part('part').partInclude! as PartIncludeImpl).libraryFragment,
       same(findNode.unit.declaredFragment),
     );
   }

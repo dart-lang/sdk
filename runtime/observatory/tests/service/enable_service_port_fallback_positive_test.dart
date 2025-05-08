@@ -4,8 +4,9 @@
 
 import 'dart:io';
 
-import 'package:observatory/service_io.dart';
 import 'package:test/test.dart';
+
+import 'package:observatory/service_io.dart';
 import 'test_helper.dart';
 
 // Tests that the --enable-service-port-fallback flag works correctly by trying to bind to

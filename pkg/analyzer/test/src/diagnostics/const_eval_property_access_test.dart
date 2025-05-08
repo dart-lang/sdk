@@ -90,13 +90,4 @@ const x = const C().t;
       [error(CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS, 59, 11)],
     );
   }
-
-  test_null_aware_property_access() async {
-    await assertErrorsInCode(
-      r'''
-const String? s = null;
-const int? c = s?.length;''',
-      [error(CompileTimeErrorCode.CONST_EVAL_NULL_AWARE_ACCESS, 39, 9)],
-    );
-  }
 }

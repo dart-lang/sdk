@@ -2,13 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:observatory/service_io.dart';
+import 'dart:mirrors' as mirrors;
+import 'dart:convert' deferred as convert;  // ignore: unused_import
+
 import 'package:test/test.dart';
+
+import 'package:observatory/service_io.dart';
 import 'test_helper.dart';
 
 export 'dart:collection';
-import 'dart:mirrors' as mirrors;
-import 'dart:convert' deferred as convert;
 
 var tests = <IsolateTest>[
   (Isolate isolate) async {

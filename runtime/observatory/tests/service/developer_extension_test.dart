@@ -5,10 +5,12 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
+
 import 'package:expect/expect.dart';
-import 'package:observatory/service_io.dart';
-import 'package:observatory/sample_profile.dart';
 import 'package:test/test.dart';
+
+import 'package:observatory/sample_profile.dart';
+import 'package:observatory/service_io.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 

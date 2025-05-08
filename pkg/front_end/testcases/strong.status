@@ -137,7 +137,6 @@ macros/scope_access: semiFuzzFailureOnForceRebuildBodies # probably augment impo
 
 dart2js/flutter_issue94561/main: SemiFuzzFailure
 dart2js/flutter_issue94561/main.no_link: SemiFuzzFailure
-static_field_lowering/opt_in: SemiFuzzFailure
 
 macros/augment_concrete: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/49414
 macros/duplicate_augment: semiFuzzFailureOnForceRebuildBodies

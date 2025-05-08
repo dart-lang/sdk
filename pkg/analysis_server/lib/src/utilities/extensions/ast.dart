@@ -14,7 +14,6 @@ import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
-import 'package:analyzer/utilities/extensions/ast.dart';
 
 class ThrowStatement {
   final ExpressionStatement statement;
