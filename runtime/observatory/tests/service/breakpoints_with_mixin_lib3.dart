@@ -13,3 +13,9 @@ class Bar {
     print("I should be breakable too!");
   }
 }
+
+mixin FooMixin {
+  foo() {
+    print("I should be breakable!");
+  }
+}

@@ -33,7 +33,6 @@ import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/object_common.dart';
 import 'package:observatory/src/elements/source_inset.dart';
 import 'package:observatory/src/elements/source_link.dart';
-import 'package:observatory/utils.dart';
 
 class ClassViewElement extends CustomElement implements Renderable {
   late RenderingScheduler<ClassViewElement> _r;

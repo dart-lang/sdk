@@ -7,7 +7,6 @@ import 'dart:math' as math;
 
 import 'package:web/web.dart';
 
-import 'package:observatory/app.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/element_utils.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';

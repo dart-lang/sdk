@@ -20,7 +20,6 @@ import 'package:observatory/service_html.dart';
 import 'package:observatory/src/elements/helpers/element_utils.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/tracer.dart';
-import 'package:observatory/utils.dart';
 
 export 'package:observatory/utils.dart';
 

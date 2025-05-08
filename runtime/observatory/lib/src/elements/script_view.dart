@@ -22,7 +22,6 @@ import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/object_common.dart';
 import 'package:observatory/src/elements/script_inset.dart';
-import 'package:observatory/utils.dart';
 
 class ScriptViewElement extends CustomElement implements Renderable {
   late RenderingScheduler<ScriptViewElement> _r;

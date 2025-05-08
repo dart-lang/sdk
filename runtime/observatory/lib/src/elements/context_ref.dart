@@ -13,7 +13,6 @@ import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/element_utils.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
-import 'package:observatory/utils.dart';
 
 class ContextRefElement extends CustomElement implements Renderable {
   late RenderingScheduler<ContextRefElement> _r;

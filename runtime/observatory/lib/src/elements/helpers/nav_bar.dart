@@ -5,7 +5,6 @@
 import 'package:web/web.dart';
 
 import 'package:observatory/src/elements/helpers/element_utils.dart';
-import 'package:observatory/utils.dart';
 
 HTMLElement navBar(List<HTMLElement> content) {
   return (document.createElement('nav')

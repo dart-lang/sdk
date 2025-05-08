@@ -29,7 +29,6 @@ import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/script_inset.dart';
 import 'package:observatory/src/elements/source_inset.dart';
-import 'package:observatory/utils.dart';
 
 class IsolateViewElement extends CustomElement implements Renderable {
   late RenderingScheduler<IsolateViewElement> _r;

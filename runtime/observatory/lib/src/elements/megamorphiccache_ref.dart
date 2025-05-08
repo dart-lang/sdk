@@ -10,7 +10,6 @@ import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/element_utils.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
-import 'package:observatory/utils.dart';
 
 import 'package:observatory/models.dart' as M
     show IsolateRef, MegamorphicCacheRef;

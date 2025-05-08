@@ -23,7 +23,7 @@ class Foo {}
 
 String doThrow() {
   throw "TheException";
-  return "end of doThrow";
+  return "end of doThrow"; // ignore: dead_code
 }
 
 Future<void> asyncThrower() async {

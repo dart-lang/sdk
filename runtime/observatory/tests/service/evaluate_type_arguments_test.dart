@@ -45,7 +45,7 @@ void testFunction() {
 }
 
 void fooxx<E extends String>(List<E> y) {
-  List<E> x = new List<E>.from(["hello"]);
+  List<E> x = new List<E>.from(["hello"]);  // ignore:unused_local_variable
 }
 
 var tests = <IsolateTest>[

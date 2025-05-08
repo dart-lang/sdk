@@ -21,7 +21,6 @@ import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
-import 'package:observatory/utils.dart';
 
 class TimelinePageElement extends CustomElement implements Renderable {
   late RenderingScheduler<TimelinePageElement> _r;

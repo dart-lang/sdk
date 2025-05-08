@@ -123,7 +123,6 @@ var tests = <IsolateTest>[
         default:
           fail("Shouldn't get here, the second isolate resumed even though it "
               "was not expect to do it");
-          break;
       }
       step++;
     });

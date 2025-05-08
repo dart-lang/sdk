@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:mirrors' as mirrors;
-import 'dart:convert' deferred as convert;
+import 'dart:convert' deferred as convert;  // ignore: unused_import
 
 import 'package:test/test.dart';
 

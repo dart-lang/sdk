@@ -12,7 +12,7 @@ import 'test_helper.dart';
 
 class S {}
 
-class M {
+mixin M {
   static String? foo;
   bar() {
     foo = "theExpectedValue";

@@ -8,7 +8,6 @@ import 'dart:async';
 
 import 'package:web/web.dart';
 
-import 'package:observatory/app.dart';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/class_ref.dart';
 import 'package:observatory/src/elements/containers/virtual_tree.dart';

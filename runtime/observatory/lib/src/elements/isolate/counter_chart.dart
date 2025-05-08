@@ -9,7 +9,6 @@ import 'package:web/web.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/element_utils.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/utils.dart';
 
 class IsolateCounterChartElement extends CustomElement implements Renderable {
   late RenderingScheduler<IsolateCounterChartElement> _r;

@@ -11,7 +11,6 @@ import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/element_utils.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
-import 'package:observatory/utils.dart';
 
 class ObjectPoolRefElement extends CustomElement implements Renderable {
   late RenderingScheduler<ObjectPoolRefElement> _r;

@@ -882,8 +882,6 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
         _createTreeMap(
             report, new ClassesShallowDiffTreeMap(this, items), null);
         break;
-      default:
-        break;
     }
     return report;
   }

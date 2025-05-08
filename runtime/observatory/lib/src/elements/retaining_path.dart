@@ -12,7 +12,6 @@ import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/element_utils.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/utils.dart';
 
 class RetainingPathElement extends CustomElement implements Renderable {
   late RenderingScheduler<RetainingPathElement> _r;

@@ -18,7 +18,6 @@ import 'package:observatory/src/elements/nav/refresh.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/object_common.dart';
-import 'package:observatory/utils.dart';
 
 class ObjectViewElement extends CustomElement implements Renderable {
   late RenderingScheduler<ObjectViewElement> _r;

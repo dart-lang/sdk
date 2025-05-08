@@ -16,7 +16,6 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
-import 'package:observatory/utils.dart';
 
 class IsolateReconnectElement extends CustomElement implements Renderable {
   late RenderingScheduler<IsolateReconnectElement> _r;

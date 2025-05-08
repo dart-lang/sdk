@@ -12,7 +12,6 @@ import 'package:observatory/src/elements/helpers/element_utils.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/nav/notify_event.dart';
 import 'package:observatory/src/elements/nav/notify_exception.dart';
-import 'package:observatory/utils.dart';
 
 class NavNotifyElement extends CustomElement implements Renderable {
   late RenderingScheduler<NavNotifyElement> _r;

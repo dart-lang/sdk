@@ -16,9 +16,9 @@ testParameters(int jjjj, int oooo, [int? hhhh, int? nnnn]) {
 }
 
 testMain() {
-  int? xxx, yyyy, zzzzz;
+  int? xxx, yyyy, zzzzz; // ignore: unused_local_variable
   for (int i = 0; i < 1; i++) {
-    var foo = () {};
+    var foo = () {}; // ignore: unused_local_variable
     debugger();
   }
   var bar = () {

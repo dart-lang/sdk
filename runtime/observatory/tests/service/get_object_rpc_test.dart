@@ -17,9 +17,9 @@ abstract class _DummyAbstractBaseClass {
 }
 
 class _DummyClass extends _DummyAbstractBaseClass {
-  static var dummyVar = 11;
+  static var dummyVar = 11; // ignore: unused_field
   final List<String> dummyList = new List<String>.filled(20, '');
-  static var dummyVarWithInit = foo();
+  static var dummyVarWithInit = foo(); // ignore: unused_field
   late String dummyLateVarWithInit = 'bar';
   late String dummyLateVar;
   @override

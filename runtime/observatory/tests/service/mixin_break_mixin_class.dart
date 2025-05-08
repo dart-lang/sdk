@@ -1,6 +1,6 @@
 library mixin_step_mixin_class;
 
-class HelloMixin {
+mixin HelloMixin {
   void sayHello() {
     print("Hello!");
   }

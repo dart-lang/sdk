@@ -11,7 +11,7 @@ const int LINE = 14;
 const String file = "next_through_await_for_test.dart";
 
 code() async {
-  int count = 0;
+  int count = 0; // ignore: unused_local_variable
   await for (var num in naturalsTo(2)) {
     print(num);
     count++;

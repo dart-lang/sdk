@@ -13,8 +13,6 @@ import 'test_helper.dart';
 
 import 'dart:_internal'; // ignore: import_internal_library, unused_import
 
-
-
 String examineStackExpression(String variableName) {
   // The returned string is the evaluation expression. We try to make it so that
   // the evaluated expression exercises OSR, Deopt, StackTrace.

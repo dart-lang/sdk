@@ -119,8 +119,6 @@ class CpuProfileVirtualTreeElement extends CustomElement implements Renderable {
           throw new Exception('Unknown ProfileTreeMode: $mode');
         }
         break;
-      default:
-        throw new Exception('Unknown SampleProfileType: $type');
     }
     if (filters != null) {
       tree = filters!.fold(tree, (dynamic tree, filter) {

@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:web/web.dart';
 
 import 'package:observatory/src/elements/helpers/element_utils.dart';
-import 'package:observatory/utils.dart';
 
 HTMLElement element(CustomElement e) => e.element;
 

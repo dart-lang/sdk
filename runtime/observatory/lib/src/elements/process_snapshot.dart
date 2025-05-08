@@ -429,8 +429,6 @@ class ProcessSnapshotElement extends CustomElement implements Renderable {
         _tree!.expand(root);
         report.add(_tree!.element);
         break;
-      default:
-        throw new Exception('Unknown ProcessSnapshotTreeMode: $_mode');
     }
 
     return report;

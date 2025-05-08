@@ -16,7 +16,6 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/vm_connect_target.dart';
-import 'package:observatory/utils.dart';
 
 class VMConnectElement extends CustomElement implements Renderable {
   late RenderingScheduler<VMConnectElement> _r;

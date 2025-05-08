@@ -1,7 +1,7 @@
 name: observatory
 
 environment:
-  sdk: ^2.19.0
+  sdk: ^3.5.0
 
 # dependencies:
 
