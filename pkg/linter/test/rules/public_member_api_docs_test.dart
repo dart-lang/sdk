@@ -346,6 +346,16 @@ mixin M {
     );
   }
 
+  /// https://github.com/dart-lang/linter/issues/5030
+  test_internalTopLevelVariable() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+@internal
+var f = 1;
+''');
+  }
+
   test_mixin_method() async {
     await assertDiagnostics(
       r'''
@@ -393,7 +403,7 @@ final class A extends S {}
 ''',
       [
         lint(13, 1),
-        // No lint on `S()` declaration
+        // No lint on `S()` constructor declaration.
         lint(39, 1),
       ],
     );
