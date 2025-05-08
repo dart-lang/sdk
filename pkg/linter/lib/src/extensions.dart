@@ -77,6 +77,14 @@ extension AstNodeExtension on AstNode {
   }
 
   bool get isInternal {
+    var self = this;
+    if (self is VariableDeclaration) {
+      var element = self.declaredFragment?.element;
+      if (element is TopLevelVariableElement) {
+        return element.metadata2.hasInternal;
+      }
+    }
+
     var parent = thisOrAncestorOfType<CompilationUnitMember>();
     if (parent == null) return false;
 
