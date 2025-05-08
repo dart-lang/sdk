@@ -5,21 +5,21 @@
 // We used to always nullify the element type of a list we are tracing in
 // the presence of a fixed length list constructor call.
 
-/*member: myList:Container([exact=JSExtendableArray|powerset={I}], element: Union([exact=JSString|powerset={I}], [subclass=JSNumber|powerset={I}], powerset: {I}), length: null, powerset: {I})*/
+/*member: myList:Container([exact=JSExtendableArray|powerset={I}{G}], element: Union([exact=JSString|powerset={I}{O}], [subclass=JSNumber|powerset={I}{O}], powerset: {I}{O}), length: null, powerset: {I}{G})*/
 var myList = [];
 
-/*member: otherList:Container([exact=JSExtendableArray|powerset={I}], element: Union([exact=JSString|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I}), length: 2, powerset: {I})*/
+/*member: otherList:Container([exact=JSExtendableArray|powerset={I}{G}], element: Union([exact=JSString|powerset={I}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {I}{O}), length: 2, powerset: {I}{G})*/
 var otherList = ['foo', 42];
 
 /*member: main:[null|powerset={null}]*/
 main() {
   dynamic a =
       otherList
-      /*Container([exact=JSExtendableArray|powerset={I}], element: Union([exact=JSString|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I}), length: 2, powerset: {I})*/
+      /*Container([exact=JSExtendableArray|powerset={I}{G}], element: Union([exact=JSString|powerset={I}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {I}{O}), length: 2, powerset: {I}{G})*/
       [0];
-  a /*invoke: Union([exact=JSString|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I})*/ +=
+  a /*invoke: Union([exact=JSString|powerset={I}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {I}{O})*/ +=
       54;
   myList.
-  /*invoke: Container([exact=JSExtendableArray|powerset={I}], element: Union([exact=JSString|powerset={I}], [subclass=JSNumber|powerset={I}], powerset: {I}), length: null, powerset: {I})*/
+  /*invoke: Container([exact=JSExtendableArray|powerset={I}{G}], element: Union([exact=JSString|powerset={I}{O}], [subclass=JSNumber|powerset={I}{O}], powerset: {I}{O}), length: null, powerset: {I}{G})*/
   add(a);
 }

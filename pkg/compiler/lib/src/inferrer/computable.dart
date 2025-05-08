@@ -286,20 +286,16 @@ class ComputableAbstractValueDomain with AbstractValueDomain {
       _wrappedDomain.isIndexablePrimitive(_unwrap(value));
 
   @override
-  AbstractBool isFixedArray(covariant ComputableAbstractValue value) =>
-      _wrappedDomain.isFixedArray(_unwrap(value));
-
-  @override
-  AbstractBool isExtendableArray(covariant ComputableAbstractValue value) =>
-      _wrappedDomain.isExtendableArray(_unwrap(value));
-
-  @override
-  AbstractBool isMutableArray(covariant ComputableAbstractValue value) =>
-      _wrappedDomain.isMutableArray(_unwrap(value));
-
-  @override
   AbstractBool isMutableIndexable(covariant ComputableAbstractValue value) =>
       _wrappedDomain.isMutableIndexable(_unwrap(value));
+
+  @override
+  AbstractBool isModifiableArray(covariant ComputableAbstractValue value) =>
+      _wrappedDomain.isModifiableArray(_unwrap(value));
+
+  @override
+  AbstractBool isGrowableArray(covariant ComputableAbstractValue value) =>
+      _wrappedDomain.isGrowableArray(_unwrap(value));
 
   @override
   AbstractBool isArray(covariant ComputableAbstractValue value) =>

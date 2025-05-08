@@ -10,7 +10,7 @@
 import 'lib.dart';
 
 mixin Mixin {
-  /*member: Mixin.foo:[exact=JSString|powerset={I}]*/
+  /*member: Mixin.foo:[exact=JSString|powerset={I}{O}]*/
   String get foo => "Mixin:$this";
 }
 
@@ -20,11 +20,11 @@ class D = C with Mixin;
 /*member: main:[null|powerset={null}]*/
 main() {
   // ignore: NEW_WITH_UNDEFINED_CONSTRUCTOR
-  print(new D.a(42). /*[exact=D|powerset={N}]*/ foo);
+  print(new D.a(42). /*[exact=D|powerset={N}{O}]*/ foo);
   // ignore: NEW_WITH_UNDEFINED_CONSTRUCTOR
-  print(new D.b(42). /*[exact=D|powerset={N}]*/ foo);
+  print(new D.b(42). /*[exact=D|powerset={N}{O}]*/ foo);
   // ignore: NEW_WITH_UNDEFINED_CONSTRUCTOR
-  print(new D.a(42, "overt"). /*[exact=D|powerset={N}]*/ foo);
+  print(new D.a(42, "overt"). /*[exact=D|powerset={N}{O}]*/ foo);
   // ignore: NEW_WITH_UNDEFINED_CONSTRUCTOR
-  print(new D.b(42, b: "odvert"). /*[exact=D|powerset={N}]*/ foo);
+  print(new D.b(42, b: "odvert"). /*[exact=D|powerset={N}{O}]*/ foo);
 }

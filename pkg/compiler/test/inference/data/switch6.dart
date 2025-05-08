@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*member: foo:[null|exact=JSUInt31|powerset={null}{I}]*/
-foo(int /*[subclass=JSInt|powerset={I}]*/ x) {
+/*member: foo:[null|exact=JSUInt31|powerset={null}{I}{O}]*/
+foo(int /*[subclass=JSInt|powerset={I}{O}]*/ x) {
   var a;
   do {
     // add extra locals scope
@@ -24,6 +24,6 @@ foo(int /*[subclass=JSInt|powerset={I}]*/ x) {
 main() {
   foo(
     new DateTime.now()
-        . /*[exact=DateTime|powerset={N}]*/ millisecondsSinceEpoch,
+        . /*[exact=DateTime|powerset={N}{O}]*/ millisecondsSinceEpoch,
   );
 }

@@ -7,22 +7,22 @@ import 'dart:typed_data';
 // TODO(johnniwinther): Fix inference for spec mode. List elements should not be
 // [empty].
 
-/*member: myList:Container([exact=NativeFloat32List|powerset={I}], element: [subclass=JSNumber|powerset={I}], length: 42, powerset: {I})*/
+/*member: myList:Container([exact=NativeFloat32List|powerset={I}{O}], element: [subclass=JSNumber|powerset={I}{O}], length: 42, powerset: {I}{O})*/
 var myList = Float32List(42);
 
-/*member: myOtherList:Container([exact=NativeUint8List|powerset={I}], element: [exact=JSUInt31|powerset={I}], length: 32, powerset: {I})*/
+/*member: myOtherList:Container([exact=NativeUint8List|powerset={I}{O}], element: [exact=JSUInt31|powerset={I}{O}], length: 32, powerset: {I}{O})*/
 var myOtherList = Uint8List(32);
 
-/*member: main:[subclass=JSNumber|powerset={I}]*/
+/*member: main:[subclass=JSNumber|powerset={I}{O}]*/
 main() {
   // ignore: unused_local_variable
   var a = Float32List(9);
   return myList
-      /*Container([exact=NativeFloat32List|powerset={I}], element: [subclass=JSNumber|powerset={I}], length: 42, powerset: {I})*/
+      /*Container([exact=NativeFloat32List|powerset={I}{O}], element: [subclass=JSNumber|powerset={I}{O}], length: 42, powerset: {I}{O})*/
       [0]
-      /*invoke: [subclass=JSNumber|powerset={I}]*/
+      /*invoke: [subclass=JSNumber|powerset={I}{O}]*/
       +
       myOtherList
-      /*Container([exact=NativeUint8List|powerset={I}], element: [exact=JSUInt31|powerset={I}], length: 32, powerset: {I})*/
+      /*Container([exact=NativeUint8List|powerset={I}{O}], element: [exact=JSUInt31|powerset={I}{O}], length: 32, powerset: {I}{O})*/
       [0];
 }

@@ -2,29 +2,29 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*member: method1:[exact=JSUInt31|powerset={I}]*/
+/*member: method1:[exact=JSUInt31|powerset={I}{O}]*/
 method1() {
   return 42;
 }
 
-/*member: method2:[exact=JSUInt31|powerset={I}]*/
+/*member: method2:[exact=JSUInt31|powerset={I}{O}]*/
 // Called only via [foo2] with a small integer.
-method2(/*[exact=JSUInt31|powerset={I}]*/ a) {
+method2(/*[exact=JSUInt31|powerset={I}{O}]*/ a) {
   return a;
 }
 
-/*member: foo1:[subclass=Closure|powerset={N}]*/
+/*member: foo1:[subclass=Closure|powerset={N}{O}]*/
 var foo1 = method1;
 
-/*member: foo2:[subclass=Closure|powerset={N}]*/
+/*member: foo2:[subclass=Closure|powerset={N}{O}]*/
 var foo2 = method2;
 
-/*member: returnInt1:[null|subclass=Object|powerset={null}{IN}]*/
+/*member: returnInt1:[null|subclass=Object|powerset={null}{IN}{GFUO}]*/
 returnInt1() {
   return foo1();
 }
 
-/*member: returnInt2:[null|subclass=Object|powerset={null}{IN}]*/
+/*member: returnInt2:[null|subclass=Object|powerset={null}{IN}{GFUO}]*/
 returnInt2() {
   return foo2(54);
 }

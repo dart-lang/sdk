@@ -22,7 +22,7 @@ unconditionalThrow() => throw 'foo';
 ////////////////////////////////////////////////////////////////////////////////
 
 /*member: _conditionalThrow:[null|powerset={null}]*/
-_conditionalThrow(/*[exact=JSBool|powerset={I}]*/ o) {
+_conditionalThrow(/*[exact=JSBool|powerset={I}{O}]*/ o) {
   if (o) throw 'foo';
 }
 
@@ -36,8 +36,8 @@ conditionalThrow() {
 /// Method that throws conditionally and return 0.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _conditionalThrowReturn:[exact=JSUInt31|powerset={I}]*/
-_conditionalThrowReturn(/*[exact=JSBool|powerset={I}]*/ o) {
+/*member: _conditionalThrowReturn:[exact=JSUInt31|powerset={I}{O}]*/
+_conditionalThrowReturn(/*[exact=JSBool|powerset={I}{O}]*/ o) {
   if (o) throw 'foo';
   return 0;
 }

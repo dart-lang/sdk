@@ -135,7 +135,7 @@ mixin Mixin {
   "parameters": [
     {
       "name": "t",
-      "type": "[exact=JSUInt31|powerset={I}]",
+      "type": "[exact=JSUInt31|powerset={I}{O}]",
       "declaredType": "int"
     }
   ],
@@ -218,7 +218,7 @@ mixin Mixin {
   "parameters": [
     {
       "name": "t",
-      "type": "Union([exact=JSString|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I})",
+      "type": "Union([exact=JSString|powerset={I}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {I}{O})",
       "declaredType": "int"
     }
   ],
@@ -296,7 +296,7 @@ class Clazz = Super<int> with Mixin;
     "external": false
   },
   "returnType": "Subclass",
-  "inferredReturnType": "[exact=Subclass|powerset={N}]",
+  "inferredReturnType": "[exact=Subclass|powerset={N}{O}]",
   "parameters": [],
   "sideEffects": "SideEffects(reads nothing; writes nothing)",
   "inlinedCount": 1,

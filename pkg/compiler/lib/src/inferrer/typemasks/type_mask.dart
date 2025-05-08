@@ -131,6 +131,68 @@ enum TypeMaskInterceptorProperty {
   String toString() => _mnemonic;
 }
 
+/// Arrays have certain binary properties that we may wish to track:
+/// * Growable vs. fixed-length
+/// * Modifiable vs. unmodifiable
+/// * Constant vs. non-constant (not covered here)
+/// However, these properties are not orthogonal to each other; rather, we have
+/// a linear ordering. Constant implies unmodifiable, and unmodifiable implies
+/// fixed-length. Conversely, growable implies modifiable, and modifiable
+/// implies non-constant.
+///
+/// We can visualize the space of arrays with the following diagram:
+///
+///   +------------------+----------+
+///   |   fixed-length   |          |
+///   | +--------------+ |          |
+///   | | unmodifiable | |          |
+///   | | +----------+ | | growable |
+///   | | | constant | | |          |
+///   | | +----------+ | |          |
+///   | +--------------+ |          |
+///   +------------------+----------+
+///
+/// A typemask representing a single concrete array will have exactly one of the
+/// following bits set, corresponding to the narrowest applicable label in the
+/// above diagram.
+///
+/// For example, a typemask representing an array that is fixed-length and
+/// unmodifiable will only have the `unmodifiable` bit set. If both
+/// `unmodifiable` and `fixedLength` are set, that does not represent a single
+/// array which is both unmodifiable and fixed-length. Rather, it indicates that
+/// the typemask represents a union of arrays, some of which are unmodifiable
+/// and some of which are fixed-length and modifiable.
+enum TypeMaskArrayProperty {
+  /// Growable, modifiable.
+  growable('G'),
+
+  /// Not growable, modifiable.
+  fixedLength('F'),
+
+  /// Not growable, not modifiable.
+  unmodifiable('U'),
+
+  /// Not an array.
+  other('O');
+
+  final String _mnemonic;
+
+  const TypeMaskArrayProperty(this._mnemonic);
+
+  @override
+  String toString() => _mnemonic;
+
+  static const growableValues = [growable];
+  static const fixedLengthValues = [fixedLength, unmodifiable];
+  static const modifiableValues = [growable, fixedLength];
+  static const unmodifiableValues = [unmodifiable];
+
+  static final _growableMask = _arrayDomain.fromValues(growableValues);
+  static final _fixedLengthMask = _arrayDomain.fromValues(fixedLengthValues);
+  static final _modifiableMask = _arrayDomain.fromValues(modifiableValues);
+  static final _unmodifiableMask = _arrayDomain.fromValues(unmodifiableValues);
+}
+
 // This domain is unique in that it tracks specific values which are not
 // otherwise encompassed in the [FlatTypeMask] representation. It is possible
 // for this domain to be empty if the type mask does not contain any special
@@ -157,9 +219,15 @@ final _interceptorDomain = EnumSetDomain<TypeMaskInterceptorProperty>(
   TypeMaskInterceptorProperty.values,
 );
 
+final _arrayDomain = EnumSetDomain<TypeMaskArrayProperty>(
+  _interceptorDomain.nextOffset,
+  TypeMaskArrayProperty.values,
+);
+
 final _powersetDomains = ComposedEnumSetDomains([
   _specialValueDomain,
   _interceptorDomain,
+  _arrayDomain,
 ]);
 
 Bitset _intersectPowersets(Bitset a, Bitset b) {
@@ -486,6 +554,9 @@ abstract class TypeMask implements AbstractValue {
   TypeMask withoutSpecialValues(CommonMasks domain) =>
       withPowerset(_specialValueDomain.clear(powerset), domain);
 
+  TypeMask withOnlySpecialValuesForTesting(CommonMasks domain) =>
+      withPowerset(_specialValueDomain.restrict(powerset), domain);
+
   /// Returns a nullable variant of this [TypeMask].
   TypeMask nullable(CommonMasks domain) => withPowerset(
     _specialValueDomain.add(powerset, TypeMaskSpecialValue.null_),
@@ -507,16 +578,6 @@ abstract class TypeMask implements AbstractValue {
     _specialValueDomain.remove(powerset, TypeMaskSpecialValue.lateSentinel),
     domain,
   );
-
-  TypeMask withInterceptorProperty(
-    TypeMaskInterceptorProperty property,
-    CommonMasks domain,
-  ) => withPowerset(_interceptorDomain.add(powerset, property), domain);
-
-  TypeMask withoutInterceptorProperty(
-    TypeMaskInterceptorProperty property,
-    CommonMasks domain,
-  ) => withPowerset(_interceptorDomain.remove(powerset, property), domain);
 
   /// Whether nothing matches this mask, not even null.
   bool get isEmpty;

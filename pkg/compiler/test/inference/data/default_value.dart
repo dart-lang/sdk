@@ -26,10 +26,10 @@ positionalWithNullDefaultOnLocal() {
   return local();
 }
 
-/*member: positionalWithOneDefaultOnLocal:[exact=JSUInt31|powerset={I}]*/
+/*member: positionalWithOneDefaultOnLocal:[exact=JSUInt31|powerset={I}{O}]*/
 positionalWithOneDefaultOnLocal() {
-  /*[exact=JSUInt31|powerset={I}]*/
-  local([/*[exact=JSUInt31|powerset={I}]*/ parameter = 1]) => parameter;
+  /*[exact=JSUInt31|powerset={I}{O}]*/
+  local([/*[exact=JSUInt31|powerset={I}{O}]*/ parameter = 1]) => parameter;
   return local();
 }
 
@@ -45,9 +45,9 @@ positionalWithNullDefaultOnStatic([
   return parameter;
 }
 
-/*member: positionalWithOneDefaultOnStatic:[exact=JSUInt31|powerset={I}]*/
+/*member: positionalWithOneDefaultOnStatic:[exact=JSUInt31|powerset={I}{O}]*/
 positionalWithOneDefaultOnStatic([
-  /*[exact=JSUInt31|powerset={I}]*/ parameter = 1,
+  /*[exact=JSUInt31|powerset={I}{O}]*/ parameter = 1,
 ]) {
   return parameter;
 }

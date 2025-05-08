@@ -233,7 +233,7 @@ class IndexAssignSpecializer extends InvokeDynamicSpecializer {
       needsMutableCheck = true;
     } else if (receiver.isArray(abstractValueDomain).isDefinitelyTrue) {
       needsMutableCheck =
-          receiver.isMutableArray(abstractValueDomain).isPotentiallyFalse;
+          receiver.isModifiableArray(abstractValueDomain).isPotentiallyFalse;
     } else {
       if (receiver.isMutableIndexable(abstractValueDomain).isPotentiallyFalse) {
         return null;
@@ -462,7 +462,7 @@ class RemoveLastSpecializer extends InvokeDynamicSpecializer {
   ) {
     HInstruction receiver = instruction.getDartReceiver(closedWorld);
     final abstractValueDomain = closedWorld.abstractValueDomain;
-    if (receiver.isExtendableArray(abstractValueDomain).isPotentiallyFalse) {
+    if (receiver.isGrowableArray(abstractValueDomain).isPotentiallyFalse) {
       return null;
     }
 

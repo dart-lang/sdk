@@ -10,42 +10,42 @@ main() {
   nonNullLocal();
 }
 
-/*member: staticField:[null|exact=JSUInt31|powerset={null}{I}]*/
+/*member: staticField:[null|exact=JSUInt31|powerset={null}{I}{O}]*/
 var staticField;
 
-/*member: nonNullStaticField:[exact=JSUInt31|powerset={I}]*/
+/*member: nonNullStaticField:[exact=JSUInt31|powerset={I}{O}]*/
 nonNullStaticField() => staticField ??= 42;
 
-/*member: Class1.:[exact=Class1|powerset={N}]*/
+/*member: Class1.:[exact=Class1|powerset={N}{O}]*/
 class Class1 {
-  /*member: Class1.field:[null|exact=JSUInt31|powerset={null}{I}]*/
+  /*member: Class1.field:[null|exact=JSUInt31|powerset={null}{I}{O}]*/
   var field;
 }
 
-/*member: nonNullInstanceField1:[exact=JSUInt31|powerset={I}]*/
+/*member: nonNullInstanceField1:[exact=JSUInt31|powerset={I}{O}]*/
 nonNullInstanceField1() {
   return Class1()
-      . /*[exact=Class1|powerset={N}]*/ /*update: [exact=Class1|powerset={N}]*/ field ??= 42;
+      . /*[exact=Class1|powerset={N}{O}]*/ /*update: [exact=Class1|powerset={N}{O}]*/ field ??= 42;
 }
 
-/*member: Class2.:[exact=Class2|powerset={N}]*/
+/*member: Class2.:[exact=Class2|powerset={N}{O}]*/
 class Class2 {
-  /*member: Class2.field:[null|exact=JSUInt31|powerset={null}{I}]*/
+  /*member: Class2.field:[null|exact=JSUInt31|powerset={null}{I}{O}]*/
   var field;
 
-  /*member: Class2.method:[exact=JSUInt31|powerset={I}]*/
+  /*member: Class2.method:[exact=JSUInt31|powerset={I}{O}]*/
   method() {
-    return /*[exact=Class2|powerset={N}]*/ /*update: [exact=Class2|powerset={N}]*/ field ??=
+    return /*[exact=Class2|powerset={N}{O}]*/ /*update: [exact=Class2|powerset={N}{O}]*/ field ??=
         42;
   }
 }
 
-/*member: nonNullInstanceField2:[exact=JSUInt31|powerset={I}]*/
+/*member: nonNullInstanceField2:[exact=JSUInt31|powerset={I}{O}]*/
 nonNullInstanceField2() {
-  return Class2(). /*invoke: [exact=Class2|powerset={N}]*/ method();
+  return Class2(). /*invoke: [exact=Class2|powerset={N}{O}]*/ method();
 }
 
-/*member: nonNullLocal:[exact=JSUInt31|powerset={I}]*/
+/*member: nonNullLocal:[exact=JSUInt31|powerset={I}{O}]*/
 nonNullLocal() {
   var local = null;
   return local ??= 42;

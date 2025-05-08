@@ -14,42 +14,42 @@ main() {
 // Invocation of super method.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: Super1.:[exact=Super1|powerset={N}]*/
+/*member: Super1.:[empty|powerset=empty]*/
 class Super1 {
-  /*member: Super1.method:[exact=JSUInt31|powerset={I}]*/
+  /*member: Super1.method:[exact=JSUInt31|powerset={I}{O}]*/
   method() => 42;
 }
 
-/*member: Sub1.:[exact=Sub1|powerset={N}]*/
+/*member: Sub1.:[exact=Sub1|powerset={N}{O}]*/
 class Sub1 extends Super1 {
-  /*member: Sub1.method:[subclass=JSPositiveInt|powerset={I}]*/
+  /*member: Sub1.method:[subclass=JSPositiveInt|powerset={I}{O}]*/
   method() {
     var a = super.method();
-    return a. /*invoke: [exact=JSUInt31|powerset={I}]*/ abs();
+    return a. /*invoke: [exact=JSUInt31|powerset={I}{O}]*/ abs();
   }
 }
 
 /*member: superMethodInvoke:[null|powerset={null}]*/
 superMethodInvoke() {
-  Sub1(). /*invoke: [exact=Sub1|powerset={N}]*/ method();
+  Sub1(). /*invoke: [exact=Sub1|powerset={N}{O}]*/ method();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Invocation of super field.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _method1:[exact=JSUInt31|powerset={I}]*/
+/*member: _method1:[exact=JSUInt31|powerset={I}{O}]*/
 _method1() => 42;
 
-/*member: Super2.:[exact=Super2|powerset={N}]*/
+/*member: Super2.:[empty|powerset=empty]*/
 class Super2 {
-  /*member: Super2.field:[subclass=Closure|powerset={N}]*/
+  /*member: Super2.field:[subclass=Closure|powerset={N}{O}]*/
   var field = _method1;
 }
 
-/*member: Sub2.:[exact=Sub2|powerset={N}]*/
+/*member: Sub2.:[exact=Sub2|powerset={N}{O}]*/
 class Sub2 extends Super2 {
-  /*member: Sub2.method:[null|subclass=Object|powerset={null}{IN}]*/
+  /*member: Sub2.method:[null|subclass=Object|powerset={null}{IN}{GFUO}]*/
   method() {
     return super.field();
   }
@@ -57,25 +57,25 @@ class Sub2 extends Super2 {
 
 /*member: superFieldInvoke:[null|powerset={null}]*/
 superFieldInvoke() {
-  Sub2(). /*invoke: [exact=Sub2|powerset={N}]*/ method();
+  Sub2(). /*invoke: [exact=Sub2|powerset={N}{O}]*/ method();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Invocation of super getter.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _method2:[exact=JSUInt31|powerset={I}]*/
+/*member: _method2:[exact=JSUInt31|powerset={I}{O}]*/
 _method2() => 42;
 
-/*member: Super3.:[exact=Super3|powerset={N}]*/
+/*member: Super3.:[empty|powerset=empty]*/
 class Super3 {
-  /*member: Super3.getter:[subclass=Closure|powerset={N}]*/
+  /*member: Super3.getter:[subclass=Closure|powerset={N}{O}]*/
   get getter => _method2;
 }
 
-/*member: Sub3.:[exact=Sub3|powerset={N}]*/
+/*member: Sub3.:[exact=Sub3|powerset={N}{O}]*/
 class Sub3 extends Super3 {
-  /*member: Sub3.method:[null|subclass=Object|powerset={null}{IN}]*/
+  /*member: Sub3.method:[null|subclass=Object|powerset={null}{IN}{GFUO}]*/
   method() {
     return super.getter();
   }
@@ -83,31 +83,31 @@ class Sub3 extends Super3 {
 
 /*member: superGetterInvoke:[null|powerset={null}]*/
 superGetterInvoke() {
-  Sub3(). /*invoke: [exact=Sub3|powerset={N}]*/ method();
+  Sub3(). /*invoke: [exact=Sub3|powerset={N}{O}]*/ method();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Invocation of abstract super method that overrides a concrete method.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: SuperSuper10.:[exact=SuperSuper10|powerset={N}]*/
+/*member: SuperSuper10.:[empty|powerset=empty]*/
 class SuperSuper10 {
-  /*member: SuperSuper10.method:[exact=JSUInt31|powerset={I}]*/
+  /*member: SuperSuper10.method:[exact=JSUInt31|powerset={I}{O}]*/
   method() => 42;
 }
 
-/*member: Super10.:[exact=Super10|powerset={N}]*/
+/*member: Super10.:[empty|powerset=empty]*/
 class Super10 extends SuperSuper10 {
   method();
 }
 
-/*member: Sub10.:[exact=Sub10|powerset={N}]*/
+/*member: Sub10.:[exact=Sub10|powerset={N}{O}]*/
 class Sub10 extends Super10 {
-  /*member: Sub10.method:[exact=JSUInt31|powerset={I}]*/
+  /*member: Sub10.method:[exact=JSUInt31|powerset={I}{O}]*/
   method() => super.method();
 }
 
 /*member: overridingAbstractSuperMethodInvoke:[null|powerset={null}]*/
 overridingAbstractSuperMethodInvoke() {
-  Sub10(). /*invoke: [exact=Sub10|powerset={N}]*/ method();
+  Sub10(). /*invoke: [exact=Sub10|powerset={N}{O}]*/ method();
 }

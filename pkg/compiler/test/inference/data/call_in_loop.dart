@@ -4,23 +4,23 @@
 
 /// Regression test for [ClosureCallSiteTypeInformation] in loops.
 
-/*member: Class.:[exact=Class|powerset={N}]*/
+/*member: Class.:[exact=Class|powerset={N}{O}]*/
 class Class<T> {
   /*member: Class.method:[null|powerset={null}]*/
   method() {
-    /*iterator: Container([exact=JSExtendableArray|powerset={I}], element: [empty|powerset=empty], length: 0, powerset: {I})*/
-    /*current: [exact=ArrayIterator|powerset={N}]*/
-    /*moveNext: [exact=ArrayIterator|powerset={N}]*/
+    /*iterator: Container([exact=JSExtendableArray|powerset={I}{G}], element: [empty|powerset=empty], length: 0, powerset: {I}{G})*/
+    /*current: [exact=ArrayIterator|powerset={N}{O}]*/
+    /*moveNext: [exact=ArrayIterator|powerset={N}{O}]*/
     for (var a in []) {
-      (T as dynamic) /*invoke: [exact=_Type|powerset={N}]*/ (a);
-      (Object as dynamic) /*invoke: [exact=_Type|powerset={N}]*/ ();
-      (this as dynamic) /*invoke: [exact=Class|powerset={N}]*/ ();
-      (1 as dynamic) /*invoke: [exact=JSUInt31|powerset={I}]*/ ();
+      (T as dynamic) /*invoke: [exact=_Type|powerset={N}{O}]*/ (a);
+      (Object as dynamic) /*invoke: [exact=_Type|powerset={N}{O}]*/ ();
+      (this as dynamic) /*invoke: [exact=Class|powerset={N}{O}]*/ ();
+      (1 as dynamic) /*invoke: [exact=JSUInt31|powerset={I}{O}]*/ ();
     }
   }
 }
 
 /*member: main:[null|powerset={null}]*/
 main() {
-  Class(). /*invoke: [exact=Class|powerset={N}]*/ method();
+  Class(). /*invoke: [exact=Class|powerset={N}{O}]*/ method();
 }

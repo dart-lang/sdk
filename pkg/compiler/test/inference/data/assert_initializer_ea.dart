@@ -3,12 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class X {
-  /*member: X.a:[exact=JSString|powerset={I}]*/
+  /*member: X.a:[exact=JSString|powerset={I}{O}]*/
   final dynamic a;
 
-  /*member: X.:[exact=X|powerset={N}]*/
+  /*member: X.:[exact=X|powerset={N}{O}]*/
   X(
-    Object /*Union([exact=JSExtendableArray|powerset={I}], [exact=JSString|powerset={I}], powerset: {I})*/
+    Object /*Union([exact=JSExtendableArray|powerset={I}{G}], [exact=JSString|powerset={I}{O}], powerset: {I}{GO})*/
     value,
   ) : assert(value is String),
       a = value;
@@ -16,10 +16,10 @@ class X {
 
 /*member: main:[null|powerset={null}]*/
 main() {
-  X(
-    'a',
-  ). /*[exact=X|powerset={N}]*/ a. /*[exact=JSString|powerset={I}]*/ length;
-  X([
-    1,
-  ]). /*[exact=X|powerset={N}]*/ a. /*[exact=JSString|powerset={I}]*/ length;
+  X('a')
+      . /*[exact=X|powerset={N}{O}]*/ a
+      . /*[exact=JSString|powerset={I}{O}]*/ length;
+  X([1])
+      . /*[exact=X|powerset={N}{O}]*/ a
+      . /*[exact=JSString|powerset={I}{O}]*/ length;
 }

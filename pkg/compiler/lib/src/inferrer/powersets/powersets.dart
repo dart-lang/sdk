@@ -619,31 +619,24 @@ class PowersetDomain with AbstractValueDomain {
       );
 
   @override
+  AbstractBool isGrowableArray(covariant PowersetValue value) =>
+      AbstractBool.strengthen(
+        _powersetBitsDomain.isGrowableArray(value._powersetBits),
+        _abstractValueDomain.isGrowableArray(value._abstractValue),
+      );
+
+  @override
+  AbstractBool isModifiableArray(covariant PowersetValue value) =>
+      AbstractBool.strengthen(
+        _powersetBitsDomain.isModifiableArray(value._powersetBits),
+        _abstractValueDomain.isModifiableArray(value._abstractValue),
+      );
+
+  @override
   AbstractBool isMutableIndexable(covariant PowersetValue value) =>
       AbstractBool.strengthen(
         _powersetBitsDomain.isMutableIndexable(value._powersetBits),
         _abstractValueDomain.isMutableIndexable(value._abstractValue),
-      );
-
-  @override
-  AbstractBool isMutableArray(covariant PowersetValue value) =>
-      AbstractBool.strengthen(
-        _powersetBitsDomain.isMutableArray(value._powersetBits),
-        _abstractValueDomain.isMutableArray(value._abstractValue),
-      );
-
-  @override
-  AbstractBool isExtendableArray(covariant PowersetValue value) =>
-      AbstractBool.strengthen(
-        _powersetBitsDomain.isExtendableArray(value._powersetBits),
-        _abstractValueDomain.isExtendableArray(value._abstractValue),
-      );
-
-  @override
-  AbstractBool isFixedArray(covariant PowersetValue value) =>
-      AbstractBool.strengthen(
-        _powersetBitsDomain.isFixedArray(value._powersetBits),
-        _abstractValueDomain.isFixedArray(value._abstractValue),
       );
 
   @override

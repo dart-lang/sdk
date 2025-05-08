@@ -103,7 +103,7 @@ class C {
   "outputUnit": "outputUnit/main",
   "parent": "class/memory:sdk/tests/web/native/main.dart::C",
   "children": [],
-  "inferredType": "[exact=Error|powerset={N}]",
+  "inferredType": "[exact=Error|powerset={N}{O}]",
   "code": "",
   "type": "dynamic"
 }],
@@ -118,7 +118,7 @@ class C {
   "outputUnit": "outputUnit/main",
   "parent": "class/memory:sdk/tests/web/native/main.dart::C",
   "children": [],
-  "inferredType": "[subclass=JSPositiveInt|powerset={I}]",
+  "inferredType": "[subclass=JSPositiveInt|powerset={I}{O}]",
   "code": "$.C_counter = 0;\n",
   "type": "int"
 }]*/
@@ -132,7 +132,7 @@ class C {
   "outputUnit": "outputUnit/main",
   "parent": "class/memory:sdk/tests/web/native/main.dart::C",
   "children": [],
-  "inferredType": "[exact=JSBool|powerset={I}]",
+  "inferredType": "[exact=JSBool|powerset={I}{O}]",
   "code": "_lazy($, \"C_y\", \"$get$C_y\", () => {\n      var t1 = $.C_counter + 1;\n      $.C_counter = t1;\n      return t1 === 4;\n    });\n",
   "type": "bool"
 }],
@@ -159,7 +159,7 @@ class C {
     "external": false
   },
   "returnType": "bool",
-  "inferredReturnType": "[exact=JSBool|powerset={I}]",
+  "inferredReturnType": "[exact=JSBool|powerset={I}{O}]",
   "parameters": [],
   "sideEffects": "SideEffects(reads static; writes static)",
   "inlinedCount": 1,
@@ -187,11 +187,11 @@ class C {
     "external": false
   },
   "returnType": "dynamic",
-  "inferredReturnType": "[exact=C|powerset={N}]",
+  "inferredReturnType": "[exact=C|powerset={N}{O}]",
   "parameters": [
     {
       "name": "message",
-      "type": "[exact=Error|powerset={N}]",
+      "type": "[exact=Error|powerset={N}{O}]",
       "declaredType": "Object"
     }
   ],
@@ -219,11 +219,11 @@ class C {
     "external": false
   },
   "returnType": "C",
-  "inferredReturnType": "[exact=C|powerset={N}]",
+  "inferredReturnType": "[exact=C|powerset={N}{O}]",
   "parameters": [
     {
       "name": "object",
-      "type": "[exact=JSUInt31|powerset={I}]",
+      "type": "[exact=JSUInt31|powerset={I}{O}]",
       "declaredType": "dynamic"
     }
   ],
@@ -302,7 +302,7 @@ class A {
   "outputUnit": "outputUnit/main",
   "parent": "class/memory:sdk/tests/web/native/main.dart::A",
   "children": [],
-  "inferredType": "Value([exact=JSString|powerset={I}], value: \"hello\", powerset: {I})",
+  "inferredType": "Value([exact=JSString|powerset={I}{O}], value: \"hello\", powerset: {I}{O})",
   "code": "",
   "type": "dynamic"
 }]*/
@@ -323,7 +323,7 @@ class A {
     "external": false
   },
   "returnType": "dynamic",
-  "inferredReturnType": "[exact=A|powerset={N}]",
+  "inferredReturnType": "[exact=A|powerset={N}{O}]",
   "parameters": [],
   "sideEffects": "SideEffects(reads nothing; writes nothing)",
   "inlinedCount": 1,
@@ -342,7 +342,7 @@ class A {
   "outputUnit": "outputUnit/main",
   "parent": "library/memory:sdk/tests/web/native/main.dart::",
   "children": [],
-  "inferredType": "Container([exact=JSUnmodifiableArray|powerset={I}], element: [exact=A|powerset={N}], length: 1, powerset: {I})",
+  "inferredType": "Container([exact=JSUnmodifiableArray|powerset={I}{U}], element: [exact=A|powerset={N}{O}], length: 1, powerset: {I}{U})",
   "code": "",
   "type": "List<A>"
 }]*/

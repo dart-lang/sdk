@@ -6,53 +6,53 @@
 
 /*member: testUnchangedFirst:[null|powerset={null}]*/
 void testUnchangedFirst(
-  /*Value([exact=JSBool|powerset={I}], value: true, powerset: {I})*/ x,
+  /*Value([exact=JSBool|powerset={I}{O}], value: true, powerset: {I}{O})*/ x,
 ) {}
 
 /*member: testFirst1:[null|powerset={null}]*/
-void testFirst1(/*[exact=JSBool|powerset={I}]*/ x) {}
+void testFirst1(/*[exact=JSBool|powerset={I}{O}]*/ x) {}
 
 /*member: testFirst2:[null|powerset={null}]*/
-void testFirst2(/*[exact=JSBool|powerset={I}]*/ x) {}
+void testFirst2(/*[exact=JSBool|powerset={I}{O}]*/ x) {}
 
 /*member: testUnchangedLast:[null|powerset={null}]*/
 void testUnchangedLast(
-  /*Value([exact=JSBool|powerset={I}], value: true, powerset: {I})*/ x,
+  /*Value([exact=JSBool|powerset={I}{O}], value: true, powerset: {I}{O})*/ x,
 ) {}
 
 /*member: testLast1:[null|powerset={null}]*/
-void testLast1(/*[exact=JSBool|powerset={I}]*/ x) {}
+void testLast1(/*[exact=JSBool|powerset={I}{O}]*/ x) {}
 
 /*member: testLast2:[null|powerset={null}]*/
-void testLast2(/*[exact=JSBool|powerset={I}]*/ x) {}
+void testLast2(/*[exact=JSBool|powerset={I}{O}]*/ x) {}
 
 /*member: main:[null|powerset={null}]*/
 main() {
   final List<Object> x = [true, true];
   testFirst1(
-    x. /*Container([exact=JSExtendableArray|powerset={I}], element: [exact=JSBool|powerset={I}], length: 2, powerset: {I})*/ first,
+    x. /*Container([exact=JSExtendableArray|powerset={I}{G}], element: [exact=JSBool|powerset={I}{O}], length: 2, powerset: {I}{G})*/ first,
   );
-  x. /*update: Container([exact=JSExtendableArray|powerset={I}], element: [exact=JSBool|powerset={I}], length: 2, powerset: {I})*/ first =
+  x. /*update: Container([exact=JSExtendableArray|powerset={I}{G}], element: [exact=JSBool|powerset={I}{O}], length: 2, powerset: {I}{G})*/ first =
       false;
   testFirst2(
-    x. /*Container([exact=JSExtendableArray|powerset={I}], element: [exact=JSBool|powerset={I}], length: 2, powerset: {I})*/ first,
+    x. /*Container([exact=JSExtendableArray|powerset={I}{G}], element: [exact=JSBool|powerset={I}{O}], length: 2, powerset: {I}{G})*/ first,
   );
 
   final List<Object> y = [true, true];
   testLast1(
-    y. /*Container([exact=JSExtendableArray|powerset={I}], element: [exact=JSBool|powerset={I}], length: 2, powerset: {I})*/ first,
+    y. /*Container([exact=JSExtendableArray|powerset={I}{G}], element: [exact=JSBool|powerset={I}{O}], length: 2, powerset: {I}{G})*/ first,
   );
-  y. /*update: Container([exact=JSExtendableArray|powerset={I}], element: [exact=JSBool|powerset={I}], length: 2, powerset: {I})*/ last =
+  y. /*update: Container([exact=JSExtendableArray|powerset={I}{G}], element: [exact=JSBool|powerset={I}{O}], length: 2, powerset: {I}{G})*/ last =
       false;
   testLast2(
-    y. /*Container([exact=JSExtendableArray|powerset={I}], element: [exact=JSBool|powerset={I}], length: 2, powerset: {I})*/ first,
+    y. /*Container([exact=JSExtendableArray|powerset={I}{G}], element: [exact=JSBool|powerset={I}{O}], length: 2, powerset: {I}{G})*/ first,
   );
 
   final List<Object> z = [true, true];
   testUnchangedFirst(
-    z. /*Container([exact=JSExtendableArray|powerset={I}], element: Value([exact=JSBool|powerset={I}], value: true, powerset: {I}), length: 2, powerset: {I})*/ first,
+    z. /*Container([exact=JSExtendableArray|powerset={I}{G}], element: Value([exact=JSBool|powerset={I}{O}], value: true, powerset: {I}{O}), length: 2, powerset: {I}{G})*/ first,
   );
   testUnchangedLast(
-    z. /*Container([exact=JSExtendableArray|powerset={I}], element: Value([exact=JSBool|powerset={I}], value: true, powerset: {I}), length: 2, powerset: {I})*/ last,
+    z. /*Container([exact=JSExtendableArray|powerset={I}{G}], element: Value([exact=JSBool|powerset={I}{O}], value: true, powerset: {I}{O}), length: 2, powerset: {I}{G})*/ last,
   );
 }

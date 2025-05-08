@@ -10,18 +10,18 @@ foo1() {
   var res, sum;
   for (
     int i = 0;
-    i /*invoke: [subclass=JSPositiveInt|powerset={I}]*/ != 3;
-    i /*invoke: [subclass=JSPositiveInt|powerset={I}]*/ ++
+    i /*invoke: [subclass=JSPositiveInt|powerset={I}{O}]*/ != 3;
+    i /*invoke: [subclass=JSPositiveInt|powerset={I}{O}]*/ ++
   ) {
     methods
-        . /*invoke: Container([exact=JSExtendableArray|powerset={I}], element: [subclass=Closure|powerset={N}], length: null, powerset: {I})*/ add(
-          /*[null|powerset={null}]*/ (int /*[exact=JSUInt31|powerset={I}]*/ x) {
+        . /*invoke: Container([exact=JSExtendableArray|powerset={I}{G}], element: [subclass=Closure|powerset={N}{O}], length: null, powerset: {I}{G})*/ add(
+          /*[null|powerset={null}]*/ (int /*[exact=JSUInt31|powerset={I}{O}]*/ x) {
             res = x;
-            sum = x /*invoke: [exact=JSUInt31|powerset={I}]*/ + i;
+            sum = x /*invoke: [exact=JSUInt31|powerset={I}{O}]*/ + i;
           },
         );
   }
-  methods /*Container([exact=JSExtendableArray|powerset={I}], element: [subclass=Closure|powerset={N}], length: null, powerset: {I})*/ [0](
+  methods /*Container([exact=JSExtendableArray|powerset={I}{G}], element: [subclass=Closure|powerset={N}{O}], length: null, powerset: {I}{G})*/ [0](
     499,
   );
   probe1res(res);
@@ -29,62 +29,62 @@ foo1() {
   probe1methods(methods);
 }
 
-/*member: probe1res:[null|exact=JSUInt31|powerset={null}{I}]*/
-probe1res(/*[null|exact=JSUInt31|powerset={null}{I}]*/ x) => x;
+/*member: probe1res:[null|exact=JSUInt31|powerset={null}{I}{O}]*/
+probe1res(/*[null|exact=JSUInt31|powerset={null}{I}{O}]*/ x) => x;
 
-/*member: probe1sum:[null|subclass=JSPositiveInt|powerset={null}{I}]*/
-probe1sum(/*[null|subclass=JSPositiveInt|powerset={null}{I}]*/ x) => x;
+/*member: probe1sum:[null|subclass=JSPositiveInt|powerset={null}{I}{O}]*/
+probe1sum(/*[null|subclass=JSPositiveInt|powerset={null}{I}{O}]*/ x) => x;
 
-/*member: probe1methods:Container([exact=JSExtendableArray|powerset={I}], element: [subclass=Closure|powerset={N}], length: null, powerset: {I})*/
+/*member: probe1methods:Container([exact=JSExtendableArray|powerset={I}{G}], element: [subclass=Closure|powerset={N}{O}], length: null, powerset: {I}{G})*/
 probe1methods(
-  /*Container([exact=JSExtendableArray|powerset={I}], element: [subclass=Closure|powerset={N}], length: null, powerset: {I})*/ x,
+  /*Container([exact=JSExtendableArray|powerset={I}{G}], element: [subclass=Closure|powerset={N}{O}], length: null, powerset: {I}{G})*/ x,
 ) => x;
 
-/*member: nonContainer:[exact=JSExtendableArray|powerset={I}]*/
-nonContainer(/*[exact=JSUInt31|powerset={I}]*/ choice) {
+/*member: nonContainer:[exact=JSExtendableArray|powerset={I}{G}]*/
+nonContainer(/*[exact=JSUInt31|powerset={I}{O}]*/ choice) {
   var m =
-      choice /*invoke: [exact=JSUInt31|powerset={I}]*/ == 0 ? [] : "<String>";
+      choice /*invoke: [exact=JSUInt31|powerset={I}{O}]*/ == 0 ? [] : "<String>";
   if (m is! List) throw 123;
   // The union then filter leaves us with a non-container type.
   return m;
 }
 
 /*member: foo2:[null|powerset={null}]*/
-foo2(int /*[exact=JSUInt31|powerset={I}]*/ choice) {
+foo2(int /*[exact=JSUInt31|powerset={I}{O}]*/ choice) {
   final methods = nonContainer(choice);
 
   /// ignore: unused_local_variable
   var res, sum;
   for (
     int i = 0;
-    i /*invoke: [subclass=JSPositiveInt|powerset={I}]*/ != 3;
-    i /*invoke: [subclass=JSPositiveInt|powerset={I}]*/ ++
+    i /*invoke: [subclass=JSPositiveInt|powerset={I}{O}]*/ != 3;
+    i /*invoke: [subclass=JSPositiveInt|powerset={I}{O}]*/ ++
   ) {
-    methods. /*invoke: [exact=JSExtendableArray|powerset={I}]*/ add(
+    methods. /*invoke: [exact=JSExtendableArray|powerset={I}{G}]*/ add(
       /*[null|powerset={null}]*/ (
         int
-        /*spec.[null|subclass=Object|powerset={null}{IN}]*/
-        /*prod.[subclass=JSInt|powerset={I}]*/
+        /*spec.[null|subclass=Object|powerset={null}{IN}{GFUO}]*/
+        /*prod.[subclass=JSInt|powerset={I}{O}]*/
         x,
       ) {
         res = x;
-        sum = x /*invoke: [subclass=JSInt|powerset={I}]*/ + i;
+        sum = x /*invoke: [subclass=JSInt|powerset={I}{O}]*/ + i;
       },
     );
   }
-  methods /*[exact=JSExtendableArray|powerset={I}]*/ [0](499);
+  methods /*[exact=JSExtendableArray|powerset={I}{G}]*/ [0](499);
   probe2res(res);
   probe2methods(methods);
 }
 
-/*member: probe2res:[null|subclass=JSInt|powerset={null}{I}]*/
+/*member: probe2res:[null|subclass=JSInt|powerset={null}{I}{O}]*/
 probe2res(
-  /*[null|subclass=JSInt|powerset={null}{I}]*/
+  /*[null|subclass=JSInt|powerset={null}{I}{O}]*/
   x,
 ) => x;
 
-/*member: probe2methods:[exact=JSExtendableArray|powerset={I}]*/
-probe2methods(/*[exact=JSExtendableArray|powerset={I}]*/ x) => x;
+/*member: probe2methods:[exact=JSExtendableArray|powerset={I}{G}]*/
+probe2methods(/*[exact=JSExtendableArray|powerset={I}{G}]*/ x) => x;
 
 /*member: main:[null|powerset={null}]*/
 main() {

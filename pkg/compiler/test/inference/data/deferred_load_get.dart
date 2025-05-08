@@ -6,12 +6,12 @@ import 'package:expect/expect.dart' deferred as expect;
 
 // Synthetic getter added by kernel.
 
-/*member: _#loadLibrary_expect:[exact=_Future|powerset={N}]*/
+/*member: _#loadLibrary_expect:[exact=_Future|powerset={N}{O}]*/
 
 /*member: main:[null|powerset={null}]*/
 main() {
   tearOffLoadLibrary();
 }
 
-/*member: tearOffLoadLibrary:[subclass=Closure|powerset={N}]*/
+/*member: tearOffLoadLibrary:[subclass=Closure|powerset={N}{O}]*/
 tearOffLoadLibrary() => expect.loadLibrary;

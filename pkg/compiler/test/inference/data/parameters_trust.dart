@@ -13,11 +13,11 @@ main() {
 // Test that we trust the explicit type of a parameter.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _trustParameters:[exact=JSUInt31|powerset={I}]*/
+/*member: _trustParameters:[exact=JSUInt31|powerset={I}{O}]*/
 _trustParameters(
   int
-  /*spec.Union([exact=JSString|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I})*/
-  /*prod.[exact=JSUInt31|powerset={I}]*/
+  /*spec.Union([exact=JSString|powerset={I}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {I}{O})*/
+  /*prod.[exact=JSUInt31|powerset={I}{O}]*/
   i,
 ) {
   return i;
@@ -27,5 +27,7 @@ _trustParameters(
 trustParameters() {
   dynamic f = _trustParameters;
   Expect.equals(0, f(0));
-  Expect.throws(/*[null|subclass=Object|powerset={null}{IN}]*/ () => f('foo'));
+  Expect.throws(
+    /*[null|subclass=Object|powerset={null}{IN}{GFUO}]*/ () => f('foo'),
+  );
 }

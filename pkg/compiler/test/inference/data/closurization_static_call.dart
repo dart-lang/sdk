@@ -12,23 +12,23 @@ main() {
 // '.call' method in the closed world.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: method:[exact=JSUInt31|powerset={I}]*/
+/*member: method:[exact=JSUInt31|powerset={I}{O}]*/
 method() => 42;
 
-/*member: Class.:[exact=Class|powerset={N}]*/
+/*member: Class.:[exact=Class|powerset={N}{O}]*/
 class Class {
-  /*member: Class.call:Value([exact=JSBool|powerset={I}], value: true, powerset: {I})*/
+  /*member: Class.call:Value([exact=JSBool|powerset={I}{O}], value: true, powerset: {I}{O})*/
   call() => true;
 }
 
-/*member: closurizedCallToString:[exact=JSString|powerset={I}]*/
+/*member: closurizedCallToString:[exact=JSString|powerset={I}{O}]*/
 closurizedCallToString() {
   var c = Class();
-  c. /*invoke: [exact=Class|powerset={N}]*/ call(); // Make `Class.call` live.
+  c. /*invoke: [exact=Class|powerset={N}{O}]*/ call(); // Make `Class.call` live.
   var local = method;
-  local. /*invoke: [subclass=Closure|powerset={N}]*/ toString();
+  local. /*invoke: [subclass=Closure|powerset={N}{O}]*/ toString();
   local();
-  local. /*invoke: [subclass=Closure|powerset={N}]*/ toString();
+  local. /*invoke: [subclass=Closure|powerset={N}{O}]*/ toString();
   local.call();
-  return local. /*invoke: [subclass=Closure|powerset={N}]*/ toString();
+  return local. /*invoke: [subclass=Closure|powerset={N}{O}]*/ toString();
 }

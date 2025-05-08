@@ -21,10 +21,10 @@ main() {
 /// Call default constructor of a field-less class.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: Class1.:[exact=Class1|powerset={N}]*/
+/*member: Class1.:[exact=Class1|powerset={N}{O}]*/
 class Class1 {}
 
-/*member: generativeConstructorCall:[exact=Class1|powerset={N}]*/
+/*member: generativeConstructorCall:[exact=Class1|powerset={N}{O}]*/
 generativeConstructorCall() => Class1();
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -32,13 +32,13 @@ generativeConstructorCall() => Class1();
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class3 {
-  /*member: Class3.:[exact=Class3|powerset={N}]*/
+  /*member: Class3.:[exact=Class3|powerset={N}{O}]*/
   factory Class3() => Class3.named();
-  /*member: Class3.named:[exact=Class3|powerset={N}]*/
+  /*member: Class3.named:[exact=Class3|powerset={N}{O}]*/
   Class3.named();
 }
 
-/*member: factoryConstructorCall2:[exact=Class3|powerset={N}]*/
+/*member: factoryConstructorCall2:[exact=Class3|powerset={N}{O}]*/
 factoryConstructorCall2() => Class3();
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -46,14 +46,14 @@ factoryConstructorCall2() => Class3();
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class4a {
-  /*member: Class4a.:[exact=Class4b|powerset={N}]*/
+  /*member: Class4a.:[exact=Class4b|powerset={N}{O}]*/
   factory Class4a() => Class4b();
 }
 
-/*member: Class4b.:[exact=Class4b|powerset={N}]*/
+/*member: Class4b.:[exact=Class4b|powerset={N}{O}]*/
 class Class4b implements Class4a {}
 
-/*member: factoryConstructorCall3:[exact=Class4b|powerset={N}]*/
+/*member: factoryConstructorCall3:[exact=Class4b|powerset={N}{O}]*/
 factoryConstructorCall3() => Class4a();
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -61,13 +61,13 @@ factoryConstructorCall3() => Class4a();
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class5 {
-  final /*member: Class5.field:[exact=JSUInt31|powerset={I}]*/ field;
+  final /*member: Class5.field:[exact=JSUInt31|powerset={I}{O}]*/ field;
 
-  /*member: Class5.:[exact=Class5|powerset={N}]*/
-  Class5(this. /*[exact=JSUInt31|powerset={I}]*/ field);
+  /*member: Class5.:[exact=Class5|powerset={N}{O}]*/
+  Class5(this. /*[exact=JSUInt31|powerset={I}{O}]*/ field);
 }
 
-/*member: classWithFinalFieldInitializer:[exact=Class5|powerset={N}]*/
+/*member: classWithFinalFieldInitializer:[exact=Class5|powerset={N}{O}]*/
 classWithFinalFieldInitializer() => Class5(0);
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -75,13 +75,13 @@ classWithFinalFieldInitializer() => Class5(0);
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class6 {
-  var /*member: Class6.field:[exact=JSUInt31|powerset={I}]*/ field;
+  var /*member: Class6.field:[exact=JSUInt31|powerset={I}{O}]*/ field;
 
-  /*member: Class6.:[exact=Class6|powerset={N}]*/
-  Class6(this. /*[exact=JSUInt31|powerset={I}]*/ field);
+  /*member: Class6.:[exact=Class6|powerset={N}{O}]*/
+  Class6(this. /*[exact=JSUInt31|powerset={I}{O}]*/ field);
 }
 
-/*member: classWithNonFinalFieldInitializer:[exact=Class6|powerset={N}]*/
+/*member: classWithNonFinalFieldInitializer:[exact=Class6|powerset={N}{O}]*/
 classWithNonFinalFieldInitializer() => Class6(0);
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -89,13 +89,13 @@ classWithNonFinalFieldInitializer() => Class6(0);
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class7 {
-  var /*member: Class7.field:[exact=JSUInt31|powerset={I}]*/ field;
+  var /*member: Class7.field:[exact=JSUInt31|powerset={I}{O}]*/ field;
 
-  /*member: Class7.:[exact=Class7|powerset={N}]*/
-  Class7(/*[exact=JSUInt31|powerset={I}]*/ value) : this.field = value;
+  /*member: Class7.:[exact=Class7|powerset={N}{O}]*/
+  Class7(/*[exact=JSUInt31|powerset={I}{O}]*/ value) : this.field = value;
 }
 
-/*member: classWithExplicitFieldInitializer:[exact=Class7|powerset={N}]*/
+/*member: classWithExplicitFieldInitializer:[exact=Class7|powerset={N}{O}]*/
 classWithExplicitFieldInitializer() => Class7(0);
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -103,15 +103,15 @@ classWithExplicitFieldInitializer() => Class7(0);
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class8 {
-  var /*member: Class8.field:[exact=JSUInt31|powerset={I}]*/ field;
+  var /*member: Class8.field:[exact=JSUInt31|powerset={I}{O}]*/ field;
 
-  /*member: Class8.:[exact=Class8|powerset={N}]*/
-  Class8(/*[exact=JSUInt31|powerset={I}]*/ value) {
-    this. /*update: [exact=Class8|powerset={N}]*/ field = value;
+  /*member: Class8.:[exact=Class8|powerset={N}{O}]*/
+  Class8(/*[exact=JSUInt31|powerset={I}{O}]*/ value) {
+    this. /*update: [exact=Class8|powerset={N}{O}]*/ field = value;
   }
 }
 
-/*member: classWithFieldInitializerInBody:[exact=Class8|powerset={N}]*/
+/*member: classWithFieldInitializerInBody:[exact=Class8|powerset={N}{O}]*/
 classWithFieldInitializerInBody() => Class8(0);
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -122,11 +122,11 @@ classWithFieldInitializerInBody() => Class8(0);
 class Class9 {
   var /*member: Class9.field:[null|powerset={null}]*/ field = null;
 
-  /*member: Class9.:[exact=Class9|powerset={N}]*/
+  /*member: Class9.:[exact=Class9|powerset={N}{O}]*/
   Class9() {}
 }
 
-/*member: classWithNullNoFieldInitializerInBody:[exact=Class9|powerset={N}]*/
+/*member: classWithNullNoFieldInitializerInBody:[exact=Class9|powerset={N}{O}]*/
 classWithNullNoFieldInitializerInBody() => Class9();
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -135,15 +135,15 @@ classWithNullNoFieldInitializerInBody() => Class9();
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class10 {
-  var /*member: Class10.field:[exact=JSUInt31|powerset={I}]*/ field = null;
+  var /*member: Class10.field:[exact=JSUInt31|powerset={I}{O}]*/ field = null;
 
-  /*member: Class10.:[exact=Class10|powerset={N}]*/
-  Class10(/*[exact=JSUInt31|powerset={I}]*/ value) {
-    this. /*update: [exact=Class10|powerset={N}]*/ field = value;
+  /*member: Class10.:[exact=Class10|powerset={N}{O}]*/
+  Class10(/*[exact=JSUInt31|powerset={I}{O}]*/ value) {
+    this. /*update: [exact=Class10|powerset={N}{O}]*/ field = value;
   }
 }
 
-/*member: classWithNullFieldInitializerInBody:[exact=Class10|powerset={N}]*/
+/*member: classWithNullFieldInitializerInBody:[exact=Class10|powerset={N}{O}]*/
 classWithNullFieldInitializerInBody() => Class10(0);
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -152,19 +152,19 @@ classWithNullFieldInitializerInBody() => Class10(0);
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class11 {
-  var /*member: Class11.field:[null|exact=JSUInt31|powerset={null}{I}]*/ field =
+  var /*member: Class11.field:[null|exact=JSUInt31|powerset={null}{I}{O}]*/ field =
       null;
 
-  /*member: Class11.a:[exact=Class11|powerset={N}]*/
-  Class11.a(/*[exact=JSUInt31|powerset={I}]*/ value) {
-    this. /*update: [exact=Class11|powerset={N}]*/ field = value;
+  /*member: Class11.a:[exact=Class11|powerset={N}{O}]*/
+  Class11.a(/*[exact=JSUInt31|powerset={I}{O}]*/ value) {
+    this. /*update: [exact=Class11|powerset={N}{O}]*/ field = value;
   }
 
-  /*member: Class11.b:[exact=Class11|powerset={N}]*/
+  /*member: Class11.b:[exact=Class11|powerset={N}{O}]*/
   Class11.b() {}
 }
 
-/*member: classWithNullMaybeFieldInitializerInBody:[exact=Class11|powerset={N}]*/
+/*member: classWithNullMaybeFieldInitializerInBody:[exact=Class11|powerset={N}{O}]*/
 classWithNullMaybeFieldInitializerInBody() {
   Class11.a(0);
   return Class11.b();
@@ -177,11 +177,11 @@ classWithNullMaybeFieldInitializerInBody() {
 class Class12 {
   final /*member: Class12.field:[null|powerset={null}]*/ field = null;
 
-  /*member: Class12.:[exact=Class12|powerset={N}]*/
+  /*member: Class12.:[exact=Class12|powerset={N}{O}]*/
   Class12();
 }
 
-/*member: classWithNullFinalFieldInitializer:[exact=Class12|powerset={N}]*/
+/*member: classWithNullFinalFieldInitializer:[exact=Class12|powerset={N}{O}]*/
 classWithNullFinalFieldInitializer() {
   return Class12();
 }

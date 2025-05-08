@@ -17,16 +17,16 @@ main() {
 class Class1 {
   // The inferred type of the field does _not_ include `null` because `this`
   // is _not_ been exposed.
-  /*member: Class1.field1:[exact=JSUInt31|powerset={I}]*/
+  /*member: Class1.field1:[exact=JSUInt31|powerset={I}{O}]*/
   var field1;
-  /*member: Class1.field2:[exact=JSUInt31|powerset={I}]*/
+  /*member: Class1.field2:[exact=JSUInt31|powerset={I}{O}]*/
   var field2;
 
-  /*member: Class1.:[exact=Class1|powerset={N}]*/
+  /*member: Class1.:[exact=Class1|powerset={N}{O}]*/
   Class1() : field1 = 42, field2 = 87;
 }
 
-/*member: exposeThis1:[exact=Class1|powerset={N}]*/
+/*member: exposeThis1:[exact=Class1|powerset={N}{O}]*/
 exposeThis1() => Class1();
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -34,21 +34,21 @@ exposeThis1() => Class1();
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class2 {
-  /*member: Class2.field1:[exact=JSUInt31|powerset={I}]*/
+  /*member: Class2.field1:[exact=JSUInt31|powerset={I}{O}]*/
   var field1;
-  /*member: Class2.field2:[exact=JSUInt31|powerset={I}]*/
+  /*member: Class2.field2:[exact=JSUInt31|powerset={I}{O}]*/
   var field2;
 
-  /*member: Class2.:[exact=Class2|powerset={N}]*/
+  /*member: Class2.:[exact=Class2|powerset={N}{O}]*/
   Class2() {
-    /*update: [exact=Class2|powerset={N}]*/
+    /*update: [exact=Class2|powerset={N}{O}]*/
     field1 = 42;
-    /*update: [exact=Class2|powerset={N}]*/
+    /*update: [exact=Class2|powerset={N}{O}]*/
     field2 = 87;
   }
 }
 
-/*member: exposeThis2:[exact=Class2|powerset={N}]*/
+/*member: exposeThis2:[exact=Class2|powerset={N}{O}]*/
 exposeThis2() => Class2();
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -56,21 +56,21 @@ exposeThis2() => Class2();
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class4 {
-  /*member: Class4.field1:[exact=JSUInt31|powerset={I}]*/
+  /*member: Class4.field1:[exact=JSUInt31|powerset={I}{O}]*/
   var field1;
-  /*member: Class4.field2:[exact=JSUInt31|powerset={I}]*/
+  /*member: Class4.field2:[exact=JSUInt31|powerset={I}{O}]*/
   var field2;
 
-  /*member: Class4.:[exact=Class4|powerset={N}]*/
+  /*member: Class4.:[exact=Class4|powerset={N}{O}]*/
   Class4() : field1 = 42, field2 = 87 {
-    /*[exact=JSUInt31|powerset={I}]*/
+    /*[exact=JSUInt31|powerset={I}{O}]*/
     () {
       return 42;
     };
   }
 }
 
-/*member: exposeThis4:[exact=Class4|powerset={N}]*/
+/*member: exposeThis4:[exact=Class4|powerset={N}{O}]*/
 exposeThis4() => Class4();
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -78,23 +78,23 @@ exposeThis4() => Class4();
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class5 {
-  /*member: Class5.field1:[exact=JSUInt31|powerset={I}]*/
+  /*member: Class5.field1:[exact=JSUInt31|powerset={I}{O}]*/
   var field1;
-  /*member: Class5.field2:[null|exact=JSUInt31|powerset={null}{I}]*/
+  /*member: Class5.field2:[null|exact=JSUInt31|powerset={null}{I}{O}]*/
   var field2;
 
-  /*member: Class5.:[exact=Class5|powerset={N}]*/
+  /*member: Class5.:[exact=Class5|powerset={N}{O}]*/
   Class5() {
-    /*update: [exact=Class5|powerset={N}]*/
+    /*update: [exact=Class5|powerset={N}{O}]*/
     field1 = 42;
-    /*[exact=JSUInt31|powerset={I}]*/
+    /*[exact=JSUInt31|powerset={I}{O}]*/
     () {
       return 42;
     };
-    /*update: [exact=Class5|powerset={N}]*/
+    /*update: [exact=Class5|powerset={N}{O}]*/
     field2 = 87;
   }
 }
 
-/*member: exposeThis5:[exact=Class5|powerset={N}]*/
+/*member: exposeThis5:[exact=Class5|powerset={N}{O}]*/
 exposeThis5() => Class5();

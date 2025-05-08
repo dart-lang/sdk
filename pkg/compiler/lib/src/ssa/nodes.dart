@@ -1255,14 +1255,11 @@ abstract class HInstruction implements SpannableWithEntity {
   AbstractBool isIndexablePrimitive(AbstractValueDomain domain) =>
       domain.isIndexablePrimitive(instructionType);
 
-  AbstractBool isFixedArray(AbstractValueDomain domain) =>
-      domain.isFixedArray(instructionType);
+  AbstractBool isGrowableArray(AbstractValueDomain domain) =>
+      domain.isGrowableArray(instructionType);
 
-  AbstractBool isExtendableArray(AbstractValueDomain domain) =>
-      domain.isExtendableArray(instructionType);
-
-  AbstractBool isMutableArray(AbstractValueDomain domain) =>
-      domain.isMutableArray(instructionType);
+  AbstractBool isModifiableArray(AbstractValueDomain domain) =>
+      domain.isModifiableArray(instructionType);
 
   AbstractBool isMutableIndexable(AbstractValueDomain domain) =>
       domain.isMutableIndexable(instructionType);

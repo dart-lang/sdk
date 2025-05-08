@@ -9,5 +9,5 @@ main() {
   callLoadLibrary();
 }
 
-/*member: callLoadLibrary:[exact=_Future|powerset={N}]*/
+/*member: callLoadLibrary:[exact=_Future|powerset={N}{O}]*/
 callLoadLibrary() => expect.loadLibrary();

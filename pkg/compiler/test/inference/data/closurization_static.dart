@@ -11,15 +11,15 @@ main() {
 // Implicit/explicit .call on static method tear-off.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: method:[exact=JSUInt31|powerset={I}]*/
+/*member: method:[exact=JSUInt31|powerset={I}{O}]*/
 method() => 42;
 
-/*member: closurizedCallToString:[exact=JSString|powerset={I}]*/
+/*member: closurizedCallToString:[exact=JSString|powerset={I}{O}]*/
 closurizedCallToString() {
   var local = method;
-  local. /*invoke: [subclass=Closure|powerset={N}]*/ toString();
+  local. /*invoke: [subclass=Closure|powerset={N}{O}]*/ toString();
   local();
-  local. /*invoke: [subclass=Closure|powerset={N}]*/ toString();
+  local. /*invoke: [subclass=Closure|powerset={N}{O}]*/ toString();
   local.call();
-  return local. /*invoke: [subclass=Closure|powerset={N}]*/ toString();
+  return local. /*invoke: [subclass=Closure|powerset={N}{O}]*/ toString();
 }

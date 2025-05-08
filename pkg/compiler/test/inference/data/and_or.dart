@@ -2,68 +2,68 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*member: X.:[exact=X|powerset={N}]*/
+/*member: X.:[exact=X|powerset={N}{O}]*/
 class X {}
 
-/*member: returnDyn1:Union([exact=JSString|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I})*/
+/*member: returnDyn1:Union([exact=JSString|powerset={I}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {I}{O})*/
 returnDyn1() {
   var a;
-  ((a = 52) /*invoke: [exact=JSUInt31|powerset={I}]*/ == true) ||
-      ((a = 'foo') /*invoke: Value([exact=JSString|powerset={I}], value: "foo", powerset: {I})*/ ==
+  ((a = 52) /*invoke: [exact=JSUInt31|powerset={I}{O}]*/ == true) ||
+      ((a = 'foo') /*invoke: Value([exact=JSString|powerset={I}{O}], value: "foo", powerset: {I}{O})*/ ==
           true);
   return a;
 }
 
-/*member: returnDyn2:Union([exact=JSString|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I})*/
+/*member: returnDyn2:Union([exact=JSString|powerset={I}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {I}{O})*/
 returnDyn2() {
   var a;
-  ((a = 52) /*invoke: [exact=JSUInt31|powerset={I}]*/ == true) &&
-      ((a = 'foo') /*invoke: Value([exact=JSString|powerset={I}], value: "foo", powerset: {I})*/ ==
+  ((a = 52) /*invoke: [exact=JSUInt31|powerset={I}{O}]*/ == true) &&
+      ((a = 'foo') /*invoke: Value([exact=JSString|powerset={I}{O}], value: "foo", powerset: {I}{O})*/ ==
           true);
   return a;
 }
 
-/*member: returnDyn3:Union([exact=JSString|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I})*/
+/*member: returnDyn3:Union([exact=JSString|powerset={I}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {I}{O})*/
 returnDyn3() {
   var a;
   a = a == 54 ? 'foo' : 31;
   return a;
 }
 
-/*member: returnDyn4:Union([exact=JSUInt31|powerset={I}], [exact=X|powerset={N}], powerset: {IN})*/
+/*member: returnDyn4:Union([exact=JSUInt31|powerset={I}{O}], [exact=X|powerset={N}{O}], powerset: {IN}{O})*/
 returnDyn4() {
   var a;
-  ((a = 52) /*invoke: [exact=JSUInt31|powerset={I}]*/ == true) ||
-      ((a = X()) /*invoke: [exact=X|powerset={N}]*/ == true);
+  ((a = 52) /*invoke: [exact=JSUInt31|powerset={I}{O}]*/ == true) ||
+      ((a = X()) /*invoke: [exact=X|powerset={N}{O}]*/ == true);
   return a;
 }
 
-/*member: returnDyn5:Union([exact=JSUInt31|powerset={I}], [exact=X|powerset={N}], powerset: {IN})*/
+/*member: returnDyn5:Union([exact=JSUInt31|powerset={I}{O}], [exact=X|powerset={N}{O}], powerset: {IN}{O})*/
 returnDyn5() {
   var a;
-  ((a = 52) /*invoke: [exact=JSUInt31|powerset={I}]*/ == true) &&
-      ((a = X()) /*invoke: [exact=X|powerset={N}]*/ == true);
+  ((a = 52) /*invoke: [exact=JSUInt31|powerset={I}{O}]*/ == true) &&
+      ((a = X()) /*invoke: [exact=X|powerset={N}{O}]*/ == true);
   return a;
 }
 
-/*member: returnDyn6:Union([exact=JSString|powerset={I}], [exact=X|powerset={N}], powerset: {IN})*/
+/*member: returnDyn6:Union([exact=JSString|powerset={I}{O}], [exact=X|powerset={N}{O}], powerset: {IN}{O})*/
 returnDyn6() {
   var a;
   a = a == 54 ? 'foo' : X();
   return a;
 }
 
-/*member: returnDyn7b:Union([exact=JSString|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I})*/
+/*member: returnDyn7b:Union([exact=JSString|powerset={I}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {I}{O})*/
 returnDyn7b(
-  /*Union([exact=JSString|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I})*/ x,
+  /*Union([exact=JSString|powerset={I}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {I}{O})*/ x,
 ) {
   return x;
 }
 
-/*member: returnDyn7:Union([exact=JSString|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I})*/
+/*member: returnDyn7:Union([exact=JSString|powerset={I}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {I}{O})*/
 returnDyn7() {
   dynamic a = "foo";
-  if (a. /*Value([exact=JSString|powerset={I}], value: "foo", powerset: {I})*/ length /*invoke: [subclass=JSInt|powerset={I}]*/ ==
+  if (a. /*Value([exact=JSString|powerset={I}{O}], value: "foo", powerset: {I}{O})*/ length /*invoke: [subclass=JSInt|powerset={I}{O}]*/ ==
       3) {
     a = 52;
   }
@@ -71,17 +71,17 @@ returnDyn7() {
   return a;
 }
 
-/*member: returnDyn8:Union([exact=JSString|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I})*/
+/*member: returnDyn8:Union([exact=JSString|powerset={I}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {I}{O})*/
 returnDyn8(
-  /*Union([exact=JSString|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I})*/ x,
+  /*Union([exact=JSString|powerset={I}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {I}{O})*/ x,
 ) {
   return x;
 }
 
-/*member: test8:Union(null, [exact=JSString|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {null}{I})*/
+/*member: test8:Union(null, [exact=JSString|powerset={I}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {null}{I}{O})*/
 test8() {
   dynamic a = "foo";
-  if (a. /*Value([exact=JSString|powerset={I}], value: "foo", powerset: {I})*/ length /*invoke: [subclass=JSInt|powerset={I}]*/ ==
+  if (a. /*Value([exact=JSString|powerset={I}{O}], value: "foo", powerset: {I}{O})*/ length /*invoke: [subclass=JSInt|powerset={I}{O}]*/ ==
       3) {
     a = 52;
   }
@@ -89,9 +89,9 @@ test8() {
   if ((false && a is! String) || returnDyn8(a)) return a;
 }
 
-/*member: returnDyn9:Union([exact=JSString|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I})*/
+/*member: returnDyn9:Union([exact=JSString|powerset={I}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {I}{O})*/
 returnDyn9(
-  /*Union([exact=JSString|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I})*/ x,
+  /*Union([exact=JSString|powerset={I}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {I}{O})*/ x,
 ) {
   return x;
 }
@@ -99,20 +99,20 @@ returnDyn9(
 /*member: test9:[null|powerset={null}]*/
 test9() {
   dynamic a = "foo";
-  if (a. /*Value([exact=JSString|powerset={I}], value: "foo", powerset: {I})*/ length /*invoke: [subclass=JSInt|powerset={I}]*/ ==
+  if (a. /*Value([exact=JSString|powerset={I}{O}], value: "foo", powerset: {I}{O})*/ length /*invoke: [subclass=JSInt|powerset={I}{O}]*/ ==
       3) {
     a = 52;
   }
   if (!(a is bool && a is bool)) returnDyn9(a);
 }
 
-/*member: returnString:[exact=JSString|powerset={I}]*/
-returnString(/*[exact=JSString|powerset={I}]*/ x) => x;
+/*member: returnString:[exact=JSString|powerset={I}{O}]*/
+returnString(/*[exact=JSString|powerset={I}{O}]*/ x) => x;
 
 /*member: test10:[null|powerset={null}]*/
 test10() {
   dynamic a = "foo";
-  if (a. /*Value([exact=JSString|powerset={I}], value: "foo", powerset: {I})*/ length /*invoke: [subclass=JSInt|powerset={I}]*/ ==
+  if (a. /*Value([exact=JSString|powerset={I}{O}], value: "foo", powerset: {I}{O})*/ length /*invoke: [subclass=JSInt|powerset={I}{O}]*/ ==
       3) {
     a = 52;
   }

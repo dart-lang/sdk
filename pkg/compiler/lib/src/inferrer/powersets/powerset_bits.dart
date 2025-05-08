@@ -283,6 +283,10 @@ class PowersetBitsDomain {
 
   AbstractBool isArray(int value) => isOther(value);
 
+  AbstractBool isGrowableArray(int value) => isOther(value);
+
+  AbstractBool isModifiableArray(int value) => isOther(value);
+
   AbstractBool isMutableIndexable(int value) => isOther(value);
 
   AbstractBool isMutableArray(int value) => isOther(value);

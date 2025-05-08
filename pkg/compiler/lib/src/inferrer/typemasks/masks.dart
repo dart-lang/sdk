@@ -576,33 +576,48 @@ class CommonMasks with AbstractValueDomain {
   }
 
   @override
-  AbstractBool isFixedArray(TypeMask value) {
-    // TODO(sra): Recognize the union of these types as well.
-    return AbstractBool.trueOrMaybe(
-      _containsOnlyType(value, commonElements.jsFixedArrayClass) ||
-          _containsOnlyType(value, commonElements.jsUnmodifiableArrayClass),
-    );
-  }
-
-  @override
-  AbstractBool isExtendableArray(TypeMask value) {
-    return AbstractBool.trueOrMaybe(
-      _containsOnlyType(value, commonElements.jsExtendableArrayClass),
-    );
-  }
-
-  @override
-  AbstractBool isMutableArray(TypeMask value) {
-    return AbstractBool.trueOrMaybe(
-      _isInstanceOfOrNull(value, commonElements.jsMutableArrayClass),
-    );
-  }
-
-  @override
   AbstractBool isMutableIndexable(TypeMask value) {
     return AbstractBool.trueOrMaybe(
       _isInstanceOfOrNull(value, commonElements.jsMutableIndexableClass),
     );
+  }
+
+  @override
+  AbstractBool isModifiableArray(TypeMask value) {
+    final powerset = value.powerset;
+
+    if (_arrayDomain.contains(powerset, TypeMaskArrayProperty.other)) {
+      return AbstractBool.maybe;
+    }
+
+    if (!powerset.intersects(TypeMaskArrayProperty._modifiableMask)) {
+      return AbstractBool.false_;
+    }
+
+    if (!powerset.intersects(TypeMaskArrayProperty._unmodifiableMask)) {
+      return AbstractBool.true_;
+    }
+
+    return AbstractBool.maybe;
+  }
+
+  @override
+  AbstractBool isGrowableArray(TypeMask value) {
+    final powerset = value.powerset;
+
+    if (_arrayDomain.contains(powerset, TypeMaskArrayProperty.other)) {
+      return AbstractBool.maybe;
+    }
+
+    if (!powerset.intersects(TypeMaskArrayProperty._growableMask)) {
+      return AbstractBool.false_;
+    }
+
+    if (!powerset.intersects(TypeMaskArrayProperty._fixedLengthMask)) {
+      return AbstractBool.true_;
+    }
+
+    return AbstractBool.maybe;
   }
 
   @override
@@ -908,15 +923,17 @@ class CommonMasks with AbstractValueDomain {
 
   @override
   AbstractBool isInterceptor(TypeMask value) {
+    final powerset = value.powerset;
+
     if (!_interceptorDomain.contains(
-      value.powerset,
+      powerset,
       TypeMaskInterceptorProperty.interceptor,
     )) {
       return AbstractBool.false_;
     }
 
     if (!_interceptorDomain.contains(
-      value.powerset,
+      powerset,
       TypeMaskInterceptorProperty.notInterceptor,
     )) {
       return AbstractBool.true_;

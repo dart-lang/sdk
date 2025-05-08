@@ -7,7 +7,7 @@
 /// are _disabled_.
 
 /*member: main:[null|powerset={null}]*/
-main(/*[null|subclass=Object|powerset={null}{IN}]*/ args) {
+main(/*[null|subclass=Object|powerset={null}{IN}{GFUO}]*/ args) {
   test0();
   test1(args == null);
   test2(args == null);
@@ -15,7 +15,7 @@ main(/*[null|subclass=Object|powerset={null}{IN}]*/ args) {
 }
 
 // Check that `throw` in the message is handled conditionally.
-/*member: test0:Container([exact=JSExtendableArray|powerset={I}], element: [empty|powerset=empty], length: 0, powerset: {I})*/
+/*member: test0:Container([exact=JSExtendableArray|powerset={I}{G}], element: [empty|powerset=empty], length: 0, powerset: {I}{G})*/
 test0() {
   assert(true, throw "unreachable");
   var list = [];
@@ -25,7 +25,7 @@ test0() {
 // Check that side-effects of the assert message is not included after the
 // assert.
 /*member: test1:[null|powerset={null}]*/
-test1(/*[exact=JSBool|powerset={I}]*/ b) {
+test1(/*[exact=JSBool|powerset={I}{O}]*/ b) {
   var a;
   assert(b, a = 42);
   return a;
@@ -33,8 +33,8 @@ test1(/*[exact=JSBool|powerset={I}]*/ b) {
 
 // Check that side-effects of the assert message is included after the assert
 // through the thrown exception.
-/*member: test2:[null|exact=JSUInt31|powerset={null}{I}]*/
-test2(/*[exact=JSBool|powerset={I}]*/ b) {
+/*member: test2:[null|exact=JSUInt31|powerset={null}{I}{O}]*/
+test2(/*[exact=JSBool|powerset={I}{O}]*/ b) {
   var a;
   try {
     assert(b, a = 42);
@@ -43,8 +43,8 @@ test2(/*[exact=JSBool|powerset={I}]*/ b) {
 }
 
 // Check that type tests are preserved after the assert.
-/*member: test3:[subclass=JSInt|powerset={I}]*/
-test3(/*[null|subclass=Object|powerset={null}{IN}]*/ a) {
+/*member: test3:[subclass=JSInt|powerset={I}{O}]*/
+test3(/*[null|subclass=Object|powerset={null}{IN}{GFUO}]*/ a) {
   assert(a is int);
   return a;
 }

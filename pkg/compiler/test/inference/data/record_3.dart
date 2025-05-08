@@ -20,42 +20,42 @@ void main() {
   useRecords7(false);
 }
 
-/*member: getRecord1:[Record(RecordShape(3), [[exact=JSUInt31|powerset={I}], [exact=JSUInt31|powerset={I}], [exact=JSUInt31|powerset={I}]], powerset: {N})]*/
+/*member: getRecord1:[Record(RecordShape(3), [[exact=JSUInt31|powerset={I}{O}], [exact=JSUInt31|powerset={I}{O}], [exact=JSUInt31|powerset={I}{O}]], powerset: {N}{O})]*/
 getRecord1() => (1, 2, 3);
-/*member: getRecord2:[Record(RecordShape(1), [Value([exact=JSString|powerset={I}], value: "a", powerset: {I})], powerset: {N})]*/
+/*member: getRecord2:[Record(RecordShape(1), [Value([exact=JSString|powerset={I}{O}], value: "a", powerset: {I}{O})], powerset: {N}{O})]*/
 getRecord2() => ('a',);
-/*member: getRecord3:[Record(RecordShape(0, {age, name}), [[exact=JSUInt31|powerset={I}], Value([exact=JSString|powerset={I}], value: "Alice", powerset: {I})], powerset: {N})]*/
+/*member: getRecord3:[Record(RecordShape(0, {age, name}), [[exact=JSUInt31|powerset={I}{O}], Value([exact=JSString|powerset={I}{O}], value: "Alice", powerset: {I}{O})], powerset: {N}{O})]*/
 getRecord3() => (name: 'Alice', age: 28);
-/*member: getRecord4:[Record(RecordShape(0, {height, name}), [[exact=JSUInt31|powerset={I}], Value([exact=JSString|powerset={I}], value: "Bob", powerset: {I})], powerset: {N})]*/
+/*member: getRecord4:[Record(RecordShape(0, {height, name}), [[exact=JSUInt31|powerset={I}{O}], Value([exact=JSString|powerset={I}{O}], value: "Bob", powerset: {I}{O})], powerset: {N}{O})]*/
 getRecord4() => (name: 'Bob', height: 28);
-/*member: getUnion:Union([exact=JSString|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I})*/
-getUnion(bool /*[exact=JSBool|powerset={I}]*/ b) => b ? 3 : 'a';
+/*member: getUnion:Union([exact=JSString|powerset={I}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {I}{O})*/
+getUnion(bool /*[exact=JSBool|powerset={I}{O}]*/ b) => b ? 3 : 'a';
 
-/*member: useRecords1:Union([exact=JSString|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I})*/
-useRecords1(bool /*[exact=JSBool|powerset={I}]*/ b) {
+/*member: useRecords1:Union([exact=JSString|powerset={I}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {I}{O})*/
+useRecords1(bool /*[exact=JSBool|powerset={I}{O}]*/ b) {
   return (b ? getRecord1() : getRecord2())
-      . /*Union([exact=_Record_1|powerset={N}], [exact=_Record_3|powerset={N}], powerset: {N})*/ $1;
+      . /*Union([exact=_Record_1|powerset={N}{O}], [exact=_Record_3|powerset={N}{O}], powerset: {N}{O})*/ $1;
 }
 
-/*member: useRecords2:Union([exact=_Record_1|powerset={N}], [exact=_Record_3|powerset={N}], powerset: {N})*/
-useRecords2(bool /*[exact=JSBool|powerset={I}]*/ b) {
+/*member: useRecords2:Union([exact=_Record_1|powerset={N}{O}], [exact=_Record_3|powerset={N}{O}], powerset: {N}{O})*/
+useRecords2(bool /*[exact=JSBool|powerset={I}{O}]*/ b) {
   return b ? getRecord1() : getRecord2();
 }
 
-/*member: useRecords3:Union([exact=_Record_1|powerset={N}], [exact=_Record_2_age_name|powerset={N}], powerset: {N})*/
-useRecords3(bool /*[exact=JSBool|powerset={I}]*/ b) {
+/*member: useRecords3:Union([exact=_Record_1|powerset={N}{O}], [exact=_Record_2_age_name|powerset={N}{O}], powerset: {N}{O})*/
+useRecords3(bool /*[exact=JSBool|powerset={I}{O}]*/ b) {
   return b ? getRecord2() : getRecord3();
 }
 
-/*member: useRecords4:Union([exact=_Record_2_age_name|powerset={N}], [exact=_Record_3|powerset={N}], powerset: {N})*/
-useRecords4(bool /*[exact=JSBool|powerset={I}]*/ b) {
+/*member: useRecords4:Union([exact=_Record_2_age_name|powerset={N}{O}], [exact=_Record_3|powerset={N}{O}], powerset: {N}{O})*/
+useRecords4(bool /*[exact=JSBool|powerset={I}{O}]*/ b) {
   return b ? getRecord1() : getRecord3();
 }
 
-/*member: useRecords5:Union([exact=_Record_1|powerset={N}], [exact=_Record_2_age_name|powerset={N}], [exact=_Record_3|powerset={N}], powerset: {N})*/
+/*member: useRecords5:Union([exact=_Record_1|powerset={N}{O}], [exact=_Record_2_age_name|powerset={N}{O}], [exact=_Record_3|powerset={N}{O}], powerset: {N}{O})*/
 useRecords5(
-  bool /*[exact=JSBool|powerset={I}]*/ b1,
-  bool /*[exact=JSBool|powerset={I}]*/ b2,
+  bool /*[exact=JSBool|powerset={I}{O}]*/ b1,
+  bool /*[exact=JSBool|powerset={I}{O}]*/ b2,
 ) {
   return b1
       ? getRecord2()
@@ -64,12 +64,12 @@ useRecords5(
       : getRecord1();
 }
 
-/*member: useRecords6:Union([exact=_Record_2_age_name|powerset={N}], [exact=_Record_2_height_name|powerset={N}], powerset: {N})*/
-useRecords6(bool /*[exact=JSBool|powerset={I}]*/ b) {
+/*member: useRecords6:Union([exact=_Record_2_age_name|powerset={N}{O}], [exact=_Record_2_height_name|powerset={N}{O}], powerset: {N}{O})*/
+useRecords6(bool /*[exact=JSBool|powerset={I}{O}]*/ b) {
   return b ? getRecord3() : getRecord4();
 }
 
-/*member: useRecords7:Union([exact=JSString|powerset={I}], [exact=JSUInt31|powerset={I}], [exact=_Record_1|powerset={N}], powerset: {IN})*/
-useRecords7(bool /*[exact=JSBool|powerset={I}]*/ b) {
+/*member: useRecords7:Union([exact=JSString|powerset={I}{O}], [exact=JSUInt31|powerset={I}{O}], [exact=_Record_1|powerset={N}{O}], powerset: {IN}{O})*/
+useRecords7(bool /*[exact=JSBool|powerset={I}{O}]*/ b) {
   return b ? getUnion(b) : getRecord2();
 }

@@ -5,14 +5,14 @@
 // We used to always nullify the element type of a list we are tracing in
 // the presence of a fixed length list constructor call.
 
-/*member: myList:Container([exact=JSExtendableArray|powerset={I}], element: [exact=JSUInt31|powerset={I}], length: 1, powerset: {I})*/
+/*member: myList:Container([exact=JSExtendableArray|powerset={I}{G}], element: [exact=JSUInt31|powerset={I}{O}], length: 1, powerset: {I}{G})*/
 var myList = [42];
 
-/*member: main:[exact=JSUInt31|powerset={I}]*/
+/*member: main:[exact=JSUInt31|powerset={I}{O}]*/
 main() {
   /// ignore: unused_local_variable
   var a = List.filled(42, null);
   return myList
-  /*Container([exact=JSExtendableArray|powerset={I}], element: [exact=JSUInt31|powerset={I}], length: 1, powerset: {I})*/
+  /*Container([exact=JSExtendableArray|powerset={I}{G}], element: [exact=JSUInt31|powerset={I}{O}], length: 1, powerset: {I}{G})*/
   [0];
 }

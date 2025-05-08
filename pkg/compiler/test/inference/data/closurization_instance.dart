@@ -11,19 +11,19 @@ main() {
 // Implicit/explicit .call on instance method tear-off.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: Class.:[exact=Class|powerset={N}]*/
+/*member: Class.:[exact=Class|powerset={N}{O}]*/
 class Class {
-  /*member: Class.method:[exact=JSUInt31|powerset={I}]*/
+  /*member: Class.method:[exact=JSUInt31|powerset={I}{O}]*/
   method() => 42;
 }
 
-/*member: closurizedCallToString:[exact=JSString|powerset={I}]*/
+/*member: closurizedCallToString:[exact=JSString|powerset={I}{O}]*/
 closurizedCallToString() {
   var c = Class();
-  var local = c. /*[exact=Class|powerset={N}]*/ method;
-  local. /*invoke: [subclass=Closure|powerset={N}]*/ toString();
+  var local = c. /*[exact=Class|powerset={N}{O}]*/ method;
+  local. /*invoke: [subclass=Closure|powerset={N}{O}]*/ toString();
   local();
-  local. /*invoke: [subclass=Closure|powerset={N}]*/ toString();
+  local. /*invoke: [subclass=Closure|powerset={N}{O}]*/ toString();
   local.call();
-  return local. /*invoke: [subclass=Closure|powerset={N}]*/ toString();
+  return local. /*invoke: [subclass=Closure|powerset={N}{O}]*/ toString();
 }

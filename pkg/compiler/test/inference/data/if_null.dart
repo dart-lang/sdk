@@ -13,8 +13,8 @@ main() {
 // If-null on parameter.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _ifNull:[exact=JSUInt31|powerset={I}]*/
-_ifNull(/*[null|exact=JSUInt31|powerset={null}{I}]*/ o) => o ?? 0;
+/*member: _ifNull:[exact=JSUInt31|powerset={I}{O}]*/
+_ifNull(/*[null|exact=JSUInt31|powerset={null}{I}{O}]*/ o) => o ?? 0;
 
 /*member: ifNull:[null|powerset={null}]*/
 ifNull() {
@@ -26,11 +26,11 @@ ifNull() {
 // If-not-null access on parameter.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _ifNotNullInvoke:[null|exact=JSBool|powerset={null}{I}]*/
-_ifNotNullInvoke(/*[null|exact=JSUInt31|powerset={null}{I}]*/ o) {
+/*member: _ifNotNullInvoke:[null|exact=JSBool|powerset={null}{I}{O}]*/
+_ifNotNullInvoke(/*[null|exact=JSUInt31|powerset={null}{I}{O}]*/ o) {
   return o
       ?.
-      /*[exact=JSUInt31|powerset={I}]*/
+      /*[exact=JSUInt31|powerset={I}{O}]*/
       isEven;
 }
 
@@ -44,9 +44,9 @@ ifNotNullInvoke() {
 // As above but unconditional access.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _notIfNotNullInvoke:[exact=JSBool|powerset={I}]*/
-_notIfNotNullInvoke(/*[null|exact=JSUInt31|powerset={null}{I}]*/ o) {
-  return o. /*[null|exact=JSUInt31|powerset={null}{I}]*/ isEven;
+/*member: _notIfNotNullInvoke:[exact=JSBool|powerset={I}{O}]*/
+_notIfNotNullInvoke(/*[null|exact=JSUInt31|powerset={null}{I}{O}]*/ o) {
+  return o. /*[null|exact=JSUInt31|powerset={null}{I}{O}]*/ isEven;
 }
 
 /*member: notIfNotNullInvoke:[null|powerset={null}]*/

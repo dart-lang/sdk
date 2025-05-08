@@ -6,11 +6,11 @@
 // Update to a singleton list.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: listIndexSetSingle:[exact=JSUInt31|powerset={I}]*/
+/*member: listIndexSetSingle:[exact=JSUInt31|powerset={I}{O}]*/
 listIndexSetSingle() {
   var list = [0];
   return list
-      /*update: Container([exact=JSExtendableArray|powerset={I}], element: [exact=JSUInt31|powerset={I}], length: 1, powerset: {I})*/
+      /*update: Container([exact=JSExtendableArray|powerset={I}{G}], element: [exact=JSUInt31|powerset={I}{O}], length: 1, powerset: {I}{G})*/
       [0] =
       42;
 }
@@ -19,11 +19,11 @@ listIndexSetSingle() {
 // Update to a list with multiple elements.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: listIndexSetMultiple:[exact=JSUInt31|powerset={I}]*/
+/*member: listIndexSetMultiple:[exact=JSUInt31|powerset={I}{O}]*/
 listIndexSetMultiple() {
   var list = [0, 1, 2, 3];
   return list
-      /*update: Container([exact=JSExtendableArray|powerset={I}], element: [exact=JSUInt31|powerset={I}], length: 4, powerset: {I})*/
+      /*update: Container([exact=JSExtendableArray|powerset={I}{G}], element: [exact=JSUInt31|powerset={I}{O}], length: 4, powerset: {I}{G})*/
       [2] =
       42;
 }
@@ -32,11 +32,11 @@ listIndexSetMultiple() {
 // Update to a list with an out-of-range index.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: listIndexSetBad:[exact=JSUInt31|powerset={I}]*/
+/*member: listIndexSetBad:[exact=JSUInt31|powerset={I}{O}]*/
 listIndexSetBad() {
   var list = [0, 1];
   return list
-      /*update: Container([exact=JSExtendableArray|powerset={I}], element: [exact=JSUInt31|powerset={I}], length: 2, powerset: {I})*/
+      /*update: Container([exact=JSExtendableArray|powerset={I}{G}], element: [exact=JSUInt31|powerset={I}{O}], length: 2, powerset: {I}{G})*/
       [3] =
       42;
 }
@@ -45,11 +45,11 @@ listIndexSetBad() {
 // Update to a list with mixed element types.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: listIndexSetMixed:[exact=JSUInt31|powerset={I}]*/
+/*member: listIndexSetMixed:[exact=JSUInt31|powerset={I}{O}]*/
 listIndexSetMixed() {
   dynamic list = [''];
   return list
-      /*update: Container([exact=JSExtendableArray|powerset={I}], element: Union([exact=JSString|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I}), length: 1, powerset: {I})*/
+      /*update: Container([exact=JSExtendableArray|powerset={I}{G}], element: Union([exact=JSString|powerset={I}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {I}{O}), length: 1, powerset: {I}{G})*/
       [0] =
       42;
 }
@@ -58,11 +58,11 @@ listIndexSetMixed() {
 // Update to a empty map.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: mapUpdateEmpty:[exact=JSUInt31|powerset={I}]*/
+/*member: mapUpdateEmpty:[exact=JSUInt31|powerset={I}{O}]*/
 mapUpdateEmpty() {
   var map = {};
   return map
-      /*update: Map([exact=JsLinkedHashMap|powerset={N}], key: [exact=JSUInt31|powerset={I}], value: [null|exact=JSUInt31|powerset={null}{I}], powerset: {N})*/
+      /*update: Map([exact=JsLinkedHashMap|powerset={N}{O}], key: [exact=JSUInt31|powerset={I}{O}], value: [null|exact=JSUInt31|powerset={null}{I}{O}], powerset: {N}{O})*/
       [0] =
       42;
 }
@@ -71,11 +71,11 @@ mapUpdateEmpty() {
 // Update to a singleton map.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: mapUpdateSingle:[exact=JSUInt31|powerset={I}]*/
+/*member: mapUpdateSingle:[exact=JSUInt31|powerset={I}{O}]*/
 mapUpdateSingle() {
   var map = {0: 1};
   return map
-      /*update: Map([exact=JsLinkedHashMap|powerset={N}], key: [exact=JSUInt31|powerset={I}], value: [null|exact=JSUInt31|powerset={null}{I}], powerset: {N})*/
+      /*update: Map([exact=JsLinkedHashMap|powerset={N}{O}], key: [exact=JSUInt31|powerset={I}{O}], value: [null|exact=JSUInt31|powerset={null}{I}{O}], powerset: {N}{O})*/
       [0] =
       42;
 }
@@ -84,11 +84,11 @@ mapUpdateSingle() {
 // Update to a map with multiple entries.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: mapUpdateMultiple:[exact=JSUInt31|powerset={I}]*/
+/*member: mapUpdateMultiple:[exact=JSUInt31|powerset={I}{O}]*/
 mapUpdateMultiple() {
   var map = {0: 1, 2: 3, 4: 5};
   return map
-      /*update: Map([exact=JsLinkedHashMap|powerset={N}], key: [exact=JSUInt31|powerset={I}], value: [null|exact=JSUInt31|powerset={null}{I}], powerset: {N})*/
+      /*update: Map([exact=JsLinkedHashMap|powerset={N}{O}], key: [exact=JSUInt31|powerset={I}{O}], value: [null|exact=JSUInt31|powerset={null}{I}{O}], powerset: {N}{O})*/
       [2] =
       42;
 }
@@ -97,11 +97,11 @@ mapUpdateMultiple() {
 // Update to a map with a missing key.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: mapUpdateMissing:[exact=JSUInt31|powerset={I}]*/
+/*member: mapUpdateMissing:[exact=JSUInt31|powerset={I}{O}]*/
 mapUpdateMissing() {
   var map = {0: 1};
   return map
-      /*update: Map([exact=JsLinkedHashMap|powerset={N}], key: [exact=JSUInt31|powerset={I}], value: [null|exact=JSUInt31|powerset={null}{I}], powerset: {N})*/
+      /*update: Map([exact=JsLinkedHashMap|powerset={N}{O}], key: [exact=JSUInt31|powerset={I}{O}], value: [null|exact=JSUInt31|powerset={null}{I}{O}], powerset: {N}{O})*/
       [2] =
       42;
 }
@@ -110,11 +110,11 @@ mapUpdateMissing() {
 // Update to a map with mixed key types.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: mapUpdateMixedKeys:[exact=JSUInt31|powerset={I}]*/
+/*member: mapUpdateMixedKeys:[exact=JSUInt31|powerset={I}{O}]*/
 mapUpdateMixedKeys() {
   dynamic map = {'': 2};
   return map
-      /*update: Map([exact=JsLinkedHashMap|powerset={N}], key: [exact=JSString|powerset={I}], value: [null|exact=JSUInt31|powerset={null}{I}], powerset: {N})*/
+      /*update: Map([exact=JsLinkedHashMap|powerset={N}{O}], key: [exact=JSString|powerset={I}{O}], value: [null|exact=JSUInt31|powerset={null}{I}{O}], powerset: {N}{O})*/
       [0] =
       42;
 }
@@ -123,11 +123,11 @@ mapUpdateMixedKeys() {
 // Update to a map with mixed value types.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: mapUpdateMixedValues:[exact=JSUInt31|powerset={I}]*/
+/*member: mapUpdateMixedValues:[exact=JSUInt31|powerset={I}{O}]*/
 mapUpdateMixedValues() {
   dynamic map = {2: ''};
   return map
-      /*update: Map([exact=JsLinkedHashMap|powerset={N}], key: [exact=JSUInt31|powerset={I}], value: [null|exact=JSString|powerset={null}{I}], powerset: {N})*/
+      /*update: Map([exact=JsLinkedHashMap|powerset={N}{O}], key: [exact=JSUInt31|powerset={I}{O}], value: [null|exact=JSString|powerset={null}{I}{O}], powerset: {N}{O})*/
       [2] =
       42;
 }
@@ -136,11 +136,11 @@ mapUpdateMixedValues() {
 // Update to an empty map with String keys.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: dictionaryUpdateEmpty:Value([exact=JSString|powerset={I}], value: "bar", powerset: {I})*/
+/*member: dictionaryUpdateEmpty:Value([exact=JSString|powerset={I}{O}], value: "bar", powerset: {I}{O})*/
 dictionaryUpdateEmpty() {
   var map = {};
   return map
-      /*update: Dictionary([exact=JsLinkedHashMap|powerset={N}], key: Value([exact=JSString|powerset={I}], value: "foo", powerset: {I}), value: Value([null|exact=JSString|powerset={null}{I}], value: "bar", powerset: {null}{I}), map: {foo: Value([null|exact=JSString|powerset={null}{I}], value: "bar", powerset: {null}{I})}, powerset: {N})*/
+      /*update: Dictionary([exact=JsLinkedHashMap|powerset={N}{O}], key: Value([exact=JSString|powerset={I}{O}], value: "foo", powerset: {I}{O}), value: Value([null|exact=JSString|powerset={null}{I}{O}], value: "bar", powerset: {null}{I}{O}), map: {foo: Value([null|exact=JSString|powerset={null}{I}{O}], value: "bar", powerset: {null}{I}{O})}, powerset: {N}{O})*/
       ['foo'] =
       'bar';
 }
@@ -149,11 +149,11 @@ dictionaryUpdateEmpty() {
 // Update to a singleton map with String keys with a new value.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: dictionaryUpdateSingle:Value([exact=JSString|powerset={I}], value: "boz", powerset: {I})*/
+/*member: dictionaryUpdateSingle:Value([exact=JSString|powerset={I}{O}], value: "boz", powerset: {I}{O})*/
 dictionaryUpdateSingle() {
   var map = {'foo': 'bar'};
   return map
-      /*update: Dictionary([exact=JsLinkedHashMap|powerset={N}], key: Value([exact=JSString|powerset={I}], value: "foo", powerset: {I}), value: [null|exact=JSString|powerset={null}{I}], map: {foo: [exact=JSString|powerset={I}]}, powerset: {N})*/
+      /*update: Dictionary([exact=JsLinkedHashMap|powerset={N}{O}], key: Value([exact=JSString|powerset={I}{O}], value: "foo", powerset: {I}{O}), value: [null|exact=JSString|powerset={null}{I}{O}], map: {foo: [exact=JSString|powerset={I}{O}]}, powerset: {N}{O})*/
       ['foo'] =
       'boz';
 }
@@ -162,11 +162,11 @@ dictionaryUpdateSingle() {
 // Update to a singleton map with String keys with the same value.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: dictionaryReUpdateSingle:Value([exact=JSString|powerset={I}], value: "bar", powerset: {I})*/
+/*member: dictionaryReUpdateSingle:Value([exact=JSString|powerset={I}{O}], value: "bar", powerset: {I}{O})*/
 dictionaryReUpdateSingle() {
   var map = {'foo': 'bar'};
   return map
-      /*update: Dictionary([exact=JsLinkedHashMap|powerset={N}], key: Value([exact=JSString|powerset={I}], value: "foo", powerset: {I}), value: Value([null|exact=JSString|powerset={null}{I}], value: "bar", powerset: {null}{I}), map: {foo: Value([exact=JSString|powerset={I}], value: "bar", powerset: {I})}, powerset: {N})*/
+      /*update: Dictionary([exact=JsLinkedHashMap|powerset={N}{O}], key: Value([exact=JSString|powerset={I}{O}], value: "foo", powerset: {I}{O}), value: Value([null|exact=JSString|powerset={null}{I}{O}], value: "bar", powerset: {null}{I}{O}), map: {foo: Value([exact=JSString|powerset={I}{O}], value: "bar", powerset: {I}{O})}, powerset: {N}{O})*/
       ['foo'] =
       'bar';
 }
@@ -175,11 +175,11 @@ dictionaryReUpdateSingle() {
 // Update to a map with String keys.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: dictionaryUpdateMultiple:Value([exact=JSString|powerset={I}], value: "boz", powerset: {I})*/
+/*member: dictionaryUpdateMultiple:Value([exact=JSString|powerset={I}{O}], value: "boz", powerset: {I}{O})*/
 dictionaryUpdateMultiple() {
   var map = {'foo': 'bar'};
   return map
-      /*update: Dictionary([exact=JsLinkedHashMap|powerset={N}], key: [exact=JSString|powerset={I}], value: [null|exact=JSString|powerset={null}{I}], map: {foo: Value([exact=JSString|powerset={I}], value: "bar", powerset: {I}), baz: Value([null|exact=JSString|powerset={null}{I}], value: "boz", powerset: {null}{I})}, powerset: {N})*/
+      /*update: Dictionary([exact=JsLinkedHashMap|powerset={N}{O}], key: [exact=JSString|powerset={I}{O}], value: [null|exact=JSString|powerset={null}{I}{O}], map: {foo: Value([exact=JSString|powerset={I}{O}], value: "bar", powerset: {I}{O}), baz: Value([null|exact=JSString|powerset={null}{I}{O}], value: "boz", powerset: {null}{I}{O})}, powerset: {N}{O})*/
       ['baz'] =
       'boz';
 }
@@ -188,11 +188,11 @@ dictionaryUpdateMultiple() {
 // Update to a string-to-int map.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: intDictionaryUpdateSingle:[exact=JSUInt31|powerset={I}]*/
+/*member: intDictionaryUpdateSingle:[exact=JSUInt31|powerset={I}{O}]*/
 intDictionaryUpdateSingle() {
   var map = {};
   return map
-      /*update: Dictionary([exact=JsLinkedHashMap|powerset={N}], key: Value([exact=JSString|powerset={I}], value: "foo", powerset: {I}), value: [null|exact=JSUInt31|powerset={null}{I}], map: {foo: [null|exact=JSUInt31|powerset={null}{I}]}, powerset: {N})*/
+      /*update: Dictionary([exact=JsLinkedHashMap|powerset={N}{O}], key: Value([exact=JSString|powerset={I}{O}], value: "foo", powerset: {I}{O}), value: [null|exact=JSUInt31|powerset={null}{I}{O}], map: {foo: [null|exact=JSUInt31|powerset={null}{I}{O}]}, powerset: {N}{O})*/
       ['foo'] =
       0;
 }

@@ -5312,7 +5312,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       // argument?
       bool isFixedList = false;
 
-      if (_abstractValueDomain.isFixedArray(resultType).isDefinitelyTrue) {
+      if (_abstractValueDomain.isGrowableArray(resultType).isDefinitelyFalse) {
         // These constructors all take a length as the first argument.
         if (_commonElements.isNamedListConstructor('filled', function) ||
             _commonElements.isNamedListConstructor('generate', function) ||

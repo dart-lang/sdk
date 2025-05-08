@@ -17,7 +17,7 @@ main() {
 
 enum Enum1 { a }
 
-/*member: enumValue:[exact=Enum1|powerset={N}]*/
+/*member: enumValue:[exact=Enum1|powerset={N}{O}]*/
 enumValue() => Enum1.a;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -26,8 +26,8 @@ enumValue() => Enum1.a;
 
 enum Enum2 { a }
 
-/*member: enumIndex:[exact=JSUInt31|powerset={I}]*/
-enumIndex() => Enum2.a. /*[exact=Enum2|powerset={N}]*/ index;
+/*member: enumIndex:[exact=JSUInt31|powerset={I}{O}]*/
+enumIndex() => Enum2.a. /*[exact=Enum2|powerset={N}{O}]*/ index;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Access an enum 'values' property.
@@ -35,7 +35,7 @@ enumIndex() => Enum2.a. /*[exact=Enum2|powerset={N}]*/ index;
 
 enum Enum3 { a, b }
 
-/*member: enumValues:Container([exact=JSUnmodifiableArray|powerset={I}], element: [exact=Enum3|powerset={N}], length: 2, powerset: {I})*/
+/*member: enumValues:Container([exact=JSUnmodifiableArray|powerset={I}{U}], element: [exact=Enum3|powerset={N}{O}], length: 2, powerset: {I}{U})*/
 enumValues() => Enum3.values;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -44,9 +44,9 @@ enumValues() => Enum3.values;
 
 enum Enum4 { a }
 
-/*member: enumToString1:[exact=JSString|powerset={I}]*/
+/*member: enumToString1:[exact=JSString|powerset={I}{O}]*/
 enumToString1() {
-  return Enum4.a. /*invoke: [exact=Enum4|powerset={N}]*/ toString();
+  return Enum4.a. /*invoke: [exact=Enum4|powerset={N}{O}]*/ toString();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -55,8 +55,8 @@ enumToString1() {
 
 enum Enum5 { a, b }
 
-/*member: enumToString2:[exact=JSString|powerset={I}]*/
+/*member: enumToString2:[exact=JSString|powerset={I}{O}]*/
 enumToString2() {
-  Enum5.b. /*invoke: [exact=Enum5|powerset={N}]*/ toString();
-  return Enum5.a. /*invoke: [exact=Enum5|powerset={N}]*/ toString();
+  Enum5.b. /*invoke: [exact=Enum5|powerset={N}{O}]*/ toString();
+  return Enum5.a. /*invoke: [exact=Enum5|powerset={N}{O}]*/ toString();
 }

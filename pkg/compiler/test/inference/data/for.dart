@@ -22,10 +22,10 @@ main() {
 simpleFor() {
   for (
     var i = 0;
-    i /*invoke: [subclass=JSPositiveInt|powerset={I}]*/ < 10;
-    i = i /*invoke: [subclass=JSPositiveInt|powerset={I}]*/ + 1
+    i /*invoke: [subclass=JSPositiveInt|powerset={I}{O}]*/ < 10;
+    i = i /*invoke: [subclass=JSPositiveInt|powerset={I}{O}]*/ + 1
   ) {
-    i. /*invoke: [subclass=JSPositiveInt|powerset={I}]*/ abs();
+    i. /*invoke: [subclass=JSPositiveInt|powerset={I}{O}]*/ abs();
   }
 }
 
@@ -46,13 +46,13 @@ forNull() {
 /// For loop with not-null test.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: forNotNull:[null|exact=JSString|powerset={null}{I}]*/
+/*member: forNotNull:[null|exact=JSString|powerset={null}{I}{O}]*/
 forNotNull() {
   var local;
   for (
     var o = '';
-    o /*invoke: [exact=JSString|powerset={I}]*/ != null;
-    o = o. /*invoke: [exact=JSString|powerset={I}]*/ toString()
+    o /*invoke: [exact=JSString|powerset={I}{O}]*/ != null;
+    o = o. /*invoke: [exact=JSString|powerset={I}{O}]*/ toString()
   ) {
     local = o;
   }
@@ -68,7 +68,7 @@ forNullFalse() {
   var local;
   for (
     var o = '';
-    o /*invoke: [exact=JSString|powerset={I}]*/ == null;
+    o /*invoke: [exact=JSString|powerset={I}{O}]*/ == null;
     o = o. /*invoke: [empty|powerset=empty]*/ toString()
   ) {
     local = o;
@@ -97,23 +97,23 @@ forNotNullTrue() {
 /// For loop with not-null test that mixes field accesses.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: Class1.:[exact=Class1|powerset={N}]*/
+/*member: Class1.:[exact=Class1|powerset={N}{O}]*/
 class Class1 {
-  /*member: Class1.field:[null|exact=Class2|powerset={null}{N}]*/
+  /*member: Class1.field:[null|exact=Class2|powerset={null}{N}{O}]*/
   var field;
 }
 
-/*member: Class2.:[exact=Class2|powerset={N}]*/
+/*member: Class2.:[exact=Class2|powerset={N}{O}]*/
 class Class2 {
-  /*member: Class2.field:[null|exact=Class1|powerset={null}{N}]*/
+  /*member: Class2.field:[null|exact=Class1|powerset={null}{N}{O}]*/
   var field;
 }
 
-/*member: _forUnion:Union(null, [exact=Class1|powerset={N}], [exact=Class2|powerset={N}], powerset: {null}{N})*/
-_forUnion(/*[exact=Class1|powerset={N}]*/ o) {
+/*member: _forUnion:Union(null, [exact=Class1|powerset={N}{O}], [exact=Class2|powerset={N}{O}], powerset: {null}{N}{O})*/
+_forUnion(/*[exact=Class1|powerset={N}{O}]*/ o) {
   for (
     ;
-    o = o. /*Union(null, [exact=Class1|powerset={N}], [exact=Class2|powerset={N}], powerset: {null}{N})*/ field;
+    o = o. /*Union(null, [exact=Class1|powerset={N}{O}], [exact=Class2|powerset={N}{O}], powerset: {null}{N}{O})*/ field;
     o != null
   ) {}
   return o;
@@ -123,8 +123,8 @@ _forUnion(/*[exact=Class1|powerset={N}]*/ o) {
 forUnion() {
   var c1 = Class1();
   var c2 = Class2();
-  c1. /*update: [exact=Class1|powerset={N}]*/ field = c2;
-  c2. /*update: [exact=Class2|powerset={N}]*/ field = c1;
+  c1. /*update: [exact=Class1|powerset={N}{O}]*/ field = c2;
+  c2. /*update: [exact=Class2|powerset={N}{O}]*/ field = c1;
   _forUnion(c1);
 }
 
@@ -132,21 +132,21 @@ forUnion() {
 /// For loop with is test that mixes field accesses.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: Class3.:[exact=Class3|powerset={N}]*/
+/*member: Class3.:[exact=Class3|powerset={N}{O}]*/
 class Class3 {
-  /*member: Class3.field:[null|exact=Class4|powerset={null}{N}]*/
+  /*member: Class3.field:[null|exact=Class4|powerset={null}{N}{O}]*/
   var field;
 }
 
-/*member: Class4.:[exact=Class4|powerset={N}]*/
+/*member: Class4.:[exact=Class4|powerset={N}{O}]*/
 class Class4 {
-  /*member: Class4.field:[null|exact=Class3|powerset={null}{N}]*/
+  /*member: Class4.field:[null|exact=Class3|powerset={null}{N}{O}]*/
   var field;
 }
 
-/*member: _forIs:Union(null, [exact=Class3|powerset={N}], [exact=Class4|powerset={N}], powerset: {null}{N})*/
-_forIs(/*[exact=Class3|powerset={N}]*/ o) {
-  for (; o is Class3; o = o. /*[exact=Class3|powerset={N}]*/ field) {}
+/*member: _forIs:Union(null, [exact=Class3|powerset={N}{O}], [exact=Class4|powerset={N}{O}], powerset: {null}{N}{O})*/
+_forIs(/*[exact=Class3|powerset={N}{O}]*/ o) {
+  for (; o is Class3; o = o. /*[exact=Class3|powerset={N}{O}]*/ field) {}
   return o;
 }
 
@@ -154,8 +154,8 @@ _forIs(/*[exact=Class3|powerset={N}]*/ o) {
 forIs() {
   var c1 = Class3();
   var c2 = Class4();
-  c1. /*update: [exact=Class3|powerset={N}]*/ field = c2;
-  c2. /*update: [exact=Class4|powerset={N}]*/ field = c1;
+  c1. /*update: [exact=Class3|powerset={N}{O}]*/ field = c2;
+  c2. /*update: [exact=Class4|powerset={N}{O}]*/ field = c1;
   _forIs(c1);
 }
 
@@ -163,24 +163,24 @@ forIs() {
 /// For loop with is-not test that mixes field accesses.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: Class5.:[exact=Class5|powerset={N}]*/
+/*member: Class5.:[exact=Class5|powerset={N}{O}]*/
 class Class5 {
-  /*member: Class5.field:[null|exact=Class6|powerset={null}{N}]*/
+  /*member: Class5.field:[null|exact=Class6|powerset={null}{N}{O}]*/
   var field;
 }
 
-/*member: Class6.:[exact=Class6|powerset={N}]*/
+/*member: Class6.:[exact=Class6|powerset={N}{O}]*/
 class Class6 {
-  /*member: Class6.field:[null|exact=Class5|powerset={null}{N}]*/
+  /*member: Class6.field:[null|exact=Class5|powerset={null}{N}{O}]*/
   var field;
 }
 
-/*member: _forIsNot:Union(null, [exact=Class5|powerset={N}], [exact=Class6|powerset={N}], powerset: {null}{N})*/
-_forIsNot(/*[exact=Class5|powerset={N}]*/ o) {
+/*member: _forIsNot:Union(null, [exact=Class5|powerset={N}{O}], [exact=Class6|powerset={N}{O}], powerset: {null}{N}{O})*/
+_forIsNot(/*[exact=Class5|powerset={N}{O}]*/ o) {
   for (
     ;
     o is! Class6;
-    o = o. /*Union(null, [exact=Class5|powerset={N}], [exact=Class6|powerset={N}], powerset: {null}{N})*/ field
+    o = o. /*Union(null, [exact=Class5|powerset={N}{O}], [exact=Class6|powerset={N}{O}], powerset: {null}{N}{O})*/ field
   ) {}
   return o;
 }
@@ -189,7 +189,7 @@ _forIsNot(/*[exact=Class5|powerset={N}]*/ o) {
 forIsNot() {
   var c1 = Class5();
   var c2 = Class6();
-  c1. /*update: [exact=Class5|powerset={N}]*/ field = c2;
-  c2. /*update: [exact=Class6|powerset={N}]*/ field = c1;
+  c1. /*update: [exact=Class5|powerset={N}{O}]*/ field = c2;
+  c2. /*update: [exact=Class6|powerset={N}{O}]*/ field = c1;
   _forIsNot(c1);
 }

@@ -16,9 +16,9 @@ main() {
 
 /*member: forInDirect:[null|powerset={null}]*/
 forInDirect() {
-  /*iterator: Container([exact=JSExtendableArray|powerset={I}], element: [exact=JSUInt31|powerset={I}], length: 3, powerset: {I})*/
-  /*current: [exact=ArrayIterator|powerset={N}]*/
-  /*moveNext: [exact=ArrayIterator|powerset={N}]*/
+  /*iterator: Container([exact=JSExtendableArray|powerset={I}{G}], element: [exact=JSUInt31|powerset={I}{O}], length: 3, powerset: {I}{G})*/
+  /*current: [exact=ArrayIterator|powerset={N}{O}]*/
+  /*moveNext: [exact=ArrayIterator|powerset={N}{O}]*/
   for (var a in [1, 2, 3]) {
     print(a);
   }
@@ -28,11 +28,11 @@ forInDirect() {
 // Return element from a for-in loop on a list literal.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: forInReturn:[null|subclass=JSInt|powerset={null}{I}]*/
+/*member: forInReturn:[null|subclass=JSInt|powerset={null}{I}{O}]*/
 forInReturn() {
-  /*iterator: Container([exact=JSExtendableArray|powerset={I}], element: [exact=JSUInt31|powerset={I}], length: 3, powerset: {I})*/
-  /*current: [exact=ArrayIterator|powerset={N}]*/
-  /*moveNext: [exact=ArrayIterator|powerset={N}]*/
+  /*iterator: Container([exact=JSExtendableArray|powerset={I}{G}], element: [exact=JSUInt31|powerset={I}{O}], length: 3, powerset: {I}{G})*/
+  /*current: [exact=ArrayIterator|powerset={N}{O}]*/
+  /*moveNext: [exact=ArrayIterator|powerset={N}{O}]*/
   for (var a in [1, 2, 3]) {
     // TODO(johnniwinther): We should know the type of [a] here.
     return a;
@@ -43,13 +43,13 @@ forInReturn() {
 // Return element from a for-in loop on known list type.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _forInReturn:[null|subclass=Object|powerset={null}{IN}]*/
+/*member: _forInReturn:[null|subclass=Object|powerset={null}{IN}{GFUO}]*/
 _forInReturn(
-  /*Container([exact=JSExtendableArray|powerset={I}], element: [exact=JSUInt31|powerset={I}], length: null, powerset: {I})*/ list,
+  /*Container([exact=JSExtendableArray|powerset={I}{G}], element: [exact=JSUInt31|powerset={I}{O}], length: null, powerset: {I}{G})*/ list,
 ) {
-  /*iterator: Container([exact=JSExtendableArray|powerset={I}], element: [exact=JSUInt31|powerset={I}], length: null, powerset: {I})*/
-  /*current: [exact=ArrayIterator|powerset={N}]*/
-  /*moveNext: [exact=ArrayIterator|powerset={N}]*/
+  /*iterator: Container([exact=JSExtendableArray|powerset={I}{G}], element: [exact=JSUInt31|powerset={I}{O}], length: null, powerset: {I}{G})*/
+  /*current: [exact=ArrayIterator|powerset={N}{O}]*/
+  /*moveNext: [exact=ArrayIterator|powerset={N}{O}]*/
   for (var a in list) {
     // TODO(johnniwinther): We should know the type of [a] here.
     return a;
@@ -67,16 +67,16 @@ forInReturnMulti() {
 // loop on known list type.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: forInReturnNonNull:[subclass=JSInt|powerset={I}]*/
+/*member: forInReturnNonNull:[subclass=JSInt|powerset={I}{O}]*/
 forInReturnNonNull() {
-  /*iterator: Container([exact=JSExtendableArray|powerset={I}], element: [exact=JSUInt31|powerset={I}], length: 3, powerset: {I})*/
-  /*current: [exact=ArrayIterator|powerset={N}]*/
-  /*moveNext: [exact=ArrayIterator|powerset={N}]*/
+  /*iterator: Container([exact=JSExtendableArray|powerset={I}{G}], element: [exact=JSUInt31|powerset={I}{O}], length: 3, powerset: {I}{G})*/
+  /*current: [exact=ArrayIterator|powerset={N}{O}]*/
+  /*moveNext: [exact=ArrayIterator|powerset={N}{O}]*/
   for (var a in [1, 2, 3]) {
     // TODO(johnniwinther): We should know the type of [a] here. Even if [a] has
     // type `dynamic`.
-    a. /*[subclass=JSInt|powerset={I}]*/ isEven;
-    a. /*[subclass=JSInt|powerset={I}]*/ isEven;
+    a. /*[subclass=JSInt|powerset={I}{O}]*/ isEven;
+    a. /*[subclass=JSInt|powerset={I}{O}]*/ isEven;
     return a;
   }
   return 0;

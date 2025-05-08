@@ -16,78 +16,78 @@ main() {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: assignPlus:[subclass=JSUInt32|powerset={I}]*/
+/*member: assignPlus:[subclass=JSUInt32|powerset={I}{O}]*/
 assignPlus() {
   var i = 87;
-  return i /*invoke: [exact=JSUInt31|powerset={I}]*/ += 42;
+  return i /*invoke: [exact=JSUInt31|powerset={I}{O}]*/ += 42;
 }
 
-/*member: assignAnd:[exact=JSUInt31|powerset={I}]*/
+/*member: assignAnd:[exact=JSUInt31|powerset={I}{O}]*/
 assignAnd() {
   var i = 87;
-  return i /*invoke: [exact=JSUInt31|powerset={I}]*/ &= 42;
+  return i /*invoke: [exact=JSUInt31|powerset={I}{O}]*/ &= 42;
 }
 
-/*member: Class1.:[exact=Class1|powerset={N}]*/
+/*member: Class1.:[exact=Class1|powerset={N}{O}]*/
 class Class1 {
-  /*member: Class1.field:[subclass=JSPositiveInt|powerset={I}]*/
+  /*member: Class1.field:[subclass=JSPositiveInt|powerset={I}{O}]*/
   var field = 87;
 }
 
-/*member: instanceAssignPlus:[subclass=JSPositiveInt|powerset={I}]*/
+/*member: instanceAssignPlus:[subclass=JSPositiveInt|powerset={I}{O}]*/
 instanceAssignPlus() {
   var c = Class1();
-  return c. /*[exact=Class1|powerset={N}]*/ /*update: [exact=Class1|powerset={N}]*/ field /*invoke: [subclass=JSPositiveInt|powerset={I}]*/ +=
+  return c. /*[exact=Class1|powerset={N}{O}]*/ /*update: [exact=Class1|powerset={N}{O}]*/ field /*invoke: [subclass=JSPositiveInt|powerset={I}{O}]*/ +=
       42;
 }
 
-/*member: Class2.:[exact=Class2|powerset={N}]*/
+/*member: Class2.:[exact=Class2|powerset={N}{O}]*/
 class Class2 {
-  /*member: Class2.field:[exact=JSUInt31|powerset={I}]*/
+  /*member: Class2.field:[exact=JSUInt31|powerset={I}{O}]*/
   var field = 87;
 }
 
-/*member: instanceAssignAnd:[exact=JSUInt31|powerset={I}]*/
+/*member: instanceAssignAnd:[exact=JSUInt31|powerset={I}{O}]*/
 instanceAssignAnd() {
   var c = Class2();
-  return c. /*[exact=Class2|powerset={N}]*/ /*update: [exact=Class2|powerset={N}]*/ field /*invoke: [exact=JSUInt31|powerset={I}]*/ &=
+  return c. /*[exact=Class2|powerset={N}{O}]*/ /*update: [exact=Class2|powerset={N}{O}]*/ field /*invoke: [exact=JSUInt31|powerset={I}{O}]*/ &=
       42;
 }
 
-/*member: assignIndexPlus:[subclass=JSPositiveInt|powerset={I}]*/
+/*member: assignIndexPlus:[subclass=JSPositiveInt|powerset={I}{O}]*/
 assignIndexPlus() {
   var i = [87];
   return i
-      /*Container([exact=JSExtendableArray|powerset={I}], element: [subclass=JSPositiveInt|powerset={I}], length: 1, powerset: {I})*/
-      /*update: Container([exact=JSExtendableArray|powerset={I}], element: [subclass=JSPositiveInt|powerset={I}], length: 1, powerset: {I})*/
-      [0] /*invoke: [subclass=JSPositiveInt|powerset={I}]*/ +=
+      /*Container([exact=JSExtendableArray|powerset={I}{G}], element: [subclass=JSPositiveInt|powerset={I}{O}], length: 1, powerset: {I}{G})*/
+      /*update: Container([exact=JSExtendableArray|powerset={I}{G}], element: [subclass=JSPositiveInt|powerset={I}{O}], length: 1, powerset: {I}{G})*/
+      [0] /*invoke: [subclass=JSPositiveInt|powerset={I}{O}]*/ +=
       42;
 }
 
-/*member: assignIndexAnd:[exact=JSUInt31|powerset={I}]*/
+/*member: assignIndexAnd:[exact=JSUInt31|powerset={I}{O}]*/
 assignIndexAnd() {
   var i = [87];
   return i
-      /*Container([exact=JSExtendableArray|powerset={I}], element: [exact=JSUInt31|powerset={I}], length: 1, powerset: {I})*/
-      /*update: Container([exact=JSExtendableArray|powerset={I}], element: [exact=JSUInt31|powerset={I}], length: 1, powerset: {I})*/
-      [0] /*invoke: [exact=JSUInt31|powerset={I}]*/ &=
+      /*Container([exact=JSExtendableArray|powerset={I}{G}], element: [exact=JSUInt31|powerset={I}{O}], length: 1, powerset: {I}{G})*/
+      /*update: Container([exact=JSExtendableArray|powerset={I}{G}], element: [exact=JSUInt31|powerset={I}{O}], length: 1, powerset: {I}{G})*/
+      [0] /*invoke: [exact=JSUInt31|powerset={I}{O}]*/ &=
       42;
 }
 
-/*member: assignIndexInc:[subclass=JSPositiveInt|powerset={I}]*/
+/*member: assignIndexInc:[subclass=JSPositiveInt|powerset={I}{O}]*/
 assignIndexInc() {
   var i = [87];
   return i
-  /*Container([exact=JSExtendableArray|powerset={I}], element: [subclass=JSPositiveInt|powerset={I}], length: 1, powerset: {I})*/
-  /*update: Container([exact=JSExtendableArray|powerset={I}], element: [subclass=JSPositiveInt|powerset={I}], length: 1, powerset: {I})*/
-  [0] /*invoke: [subclass=JSPositiveInt|powerset={I}]*/ ++;
+  /*Container([exact=JSExtendableArray|powerset={I}{G}], element: [subclass=JSPositiveInt|powerset={I}{O}], length: 1, powerset: {I}{G})*/
+  /*update: Container([exact=JSExtendableArray|powerset={I}{G}], element: [subclass=JSPositiveInt|powerset={I}{O}], length: 1, powerset: {I}{G})*/
+  [0] /*invoke: [subclass=JSPositiveInt|powerset={I}{O}]*/ ++;
 }
 
-/*member: assignIndexDec:[subclass=JSInt|powerset={I}]*/
+/*member: assignIndexDec:[subclass=JSInt|powerset={I}{O}]*/
 assignIndexDec() {
   var i = [87];
-  return /*invoke: [subclass=JSInt|powerset={I}]*/ --i
-  /*Container([exact=JSExtendableArray|powerset={I}], element: [subclass=JSInt|powerset={I}], length: 1, powerset: {I})*/
-  /*update: Container([exact=JSExtendableArray|powerset={I}], element: [subclass=JSInt|powerset={I}], length: 1, powerset: {I})*/
+  return /*invoke: [subclass=JSInt|powerset={I}{O}]*/ --i
+  /*Container([exact=JSExtendableArray|powerset={I}{G}], element: [subclass=JSInt|powerset={I}{O}], length: 1, powerset: {I}{G})*/
+  /*update: Container([exact=JSExtendableArray|powerset={I}{G}], element: [subclass=JSInt|powerset={I}{O}], length: 1, powerset: {I}{G})*/
   [0];
 }

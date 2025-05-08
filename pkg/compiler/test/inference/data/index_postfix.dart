@@ -9,43 +9,43 @@ main() {
   superIndexPostfixIncrement();
 }
 
-/*member: listIndexPostfixIncrement:[subclass=JSPositiveInt|powerset={I}]*/
+/*member: listIndexPostfixIncrement:[subclass=JSPositiveInt|powerset={I}{O}]*/
 listIndexPostfixIncrement() {
   var list = [0];
   return list
-  /*Container([exact=JSExtendableArray|powerset={I}], element: [subclass=JSPositiveInt|powerset={I}], length: 1, powerset: {I})*/
-  /*update: Container([exact=JSExtendableArray|powerset={I}], element: [subclass=JSPositiveInt|powerset={I}], length: 1, powerset: {I})*/
-  [0] /*invoke: [subclass=JSPositiveInt|powerset={I}]*/ ++;
+  /*Container([exact=JSExtendableArray|powerset={I}{G}], element: [subclass=JSPositiveInt|powerset={I}{O}], length: 1, powerset: {I}{G})*/
+  /*update: Container([exact=JSExtendableArray|powerset={I}{G}], element: [subclass=JSPositiveInt|powerset={I}{O}], length: 1, powerset: {I}{G})*/
+  [0] /*invoke: [subclass=JSPositiveInt|powerset={I}{O}]*/ ++;
 }
 
-/*member: listIndexPostfixDecrement:[subclass=JSInt|powerset={I}]*/
+/*member: listIndexPostfixDecrement:[subclass=JSInt|powerset={I}{O}]*/
 listIndexPostfixDecrement() {
   var list = [0];
   return list
-  /*Container([exact=JSExtendableArray|powerset={I}], element: [subclass=JSInt|powerset={I}], length: 1, powerset: {I})*/
-  /*update: Container([exact=JSExtendableArray|powerset={I}], element: [subclass=JSInt|powerset={I}], length: 1, powerset: {I})*/
-  [0] /*invoke: [subclass=JSInt|powerset={I}]*/ --;
+  /*Container([exact=JSExtendableArray|powerset={I}{G}], element: [subclass=JSInt|powerset={I}{O}], length: 1, powerset: {I}{G})*/
+  /*update: Container([exact=JSExtendableArray|powerset={I}{G}], element: [subclass=JSInt|powerset={I}{O}], length: 1, powerset: {I}{G})*/
+  [0] /*invoke: [subclass=JSInt|powerset={I}{O}]*/ --;
 }
 
-/*member: Super1.:[exact=Super1|powerset={N}]*/
+/*member: Super1.:[empty|powerset=empty]*/
 class Super1 {
-  /*member: Super1.[]:[exact=JSUInt31|powerset={I}]*/
-  operator [](/*[exact=JSUInt31|powerset={I}]*/ index) => 42;
+  /*member: Super1.[]:[exact=JSUInt31|powerset={I}{O}]*/
+  operator [](/*[exact=JSUInt31|powerset={I}{O}]*/ index) => 42;
 
   /*member: Super1.[]=:[null|powerset={null}]*/
   operator []=(
-    /*[exact=JSUInt31|powerset={I}]*/ index,
-    /*[subclass=JSUInt32|powerset={I}]*/ value,
+    /*[exact=JSUInt31|powerset={I}{O}]*/ index,
+    /*[subclass=JSUInt32|powerset={I}{O}]*/ value,
   ) {}
 }
 
-/*member: Class1.:[exact=Class1|powerset={N}]*/
+/*member: Class1.:[exact=Class1|powerset={N}{O}]*/
 class Class1 extends Super1 {
-  /*member: Class1.method:[exact=JSUInt31|powerset={I}]*/
-  method() => super[0] /*invoke: [exact=JSUInt31|powerset={I}]*/ ++;
+  /*member: Class1.method:[exact=JSUInt31|powerset={I}{O}]*/
+  method() => super[0] /*invoke: [exact=JSUInt31|powerset={I}{O}]*/ ++;
 }
 
 /*member: superIndexPostfixIncrement:[null|powerset={null}]*/
 superIndexPostfixIncrement() {
-  Class1(). /*invoke: [exact=Class1|powerset={N}]*/ method();
+  Class1(). /*invoke: [exact=Class1|powerset={N}{O}]*/ method();
 }

@@ -25,147 +25,147 @@ main() {
   test19();
 }
 
-/*member: A1.:[exact=A1|powerset={N}]*/
+/*member: A1.:[exact=A1|powerset={N}{O}]*/
 class A1 {
-  /*member: A1.x1:Value([exact=JSString|powerset={I}], value: "s", powerset: {I})*/
-  x1(/*Value([exact=JSString|powerset={I}], value: "s", powerset: {I})*/ p) =>
+  /*member: A1.x1:Value([exact=JSString|powerset={I}{O}], value: "s", powerset: {I}{O})*/
+  x1(/*Value([exact=JSString|powerset={I}{O}], value: "s", powerset: {I}{O})*/ p) =>
       p;
 }
 
 /*member: test1:[null|powerset={null}]*/
 test1() {
-  A1(). /*invoke: [exact=A1|powerset={N}]*/ x1("s");
+  A1(). /*invoke: [exact=A1|powerset={N}{O}]*/ x1("s");
 }
 
-/*member: A2.:[exact=A2|powerset={N}]*/
+/*member: A2.:[exact=A2|powerset={N}{O}]*/
 class A2 {
-  /*member: A2.x2:[exact=JSUInt31|powerset={I}]*/
-  x2(/*[exact=JSUInt31|powerset={I}]*/ p) => p;
+  /*member: A2.x2:[exact=JSUInt31|powerset={I}{O}]*/
+  x2(/*[exact=JSUInt31|powerset={I}{O}]*/ p) => p;
 }
 
 /*member: test2:[null|powerset={null}]*/
 test2() {
-  A2(). /*invoke: [exact=A2|powerset={N}]*/ x2(1);
+  A2(). /*invoke: [exact=A2|powerset={N}{O}]*/ x2(1);
 }
 
-/*member: A3.:[exact=A3|powerset={N}]*/
+/*member: A3.:[exact=A3|powerset={N}{O}]*/
 class A3 {
   /*member: A3.x3:[empty|powerset=empty]*/
-  x3(/*[subclass=JSInt|powerset={I}]*/ p) => /*invoke: [exact=A3|powerset={N}]*/
-      x3(p /*invoke: [subclass=JSInt|powerset={I}]*/ - 1);
+  x3(/*[subclass=JSInt|powerset={I}{O}]*/ p) => /*invoke: [exact=A3|powerset={N}{O}]*/
+      x3(p /*invoke: [subclass=JSInt|powerset={I}{O}]*/ - 1);
 }
 
 /*member: test3:[null|powerset={null}]*/
 test3() {
-  A3(). /*invoke: [exact=A3|powerset={N}]*/ x3(1);
+  A3(). /*invoke: [exact=A3|powerset={N}{O}]*/ x3(1);
 }
 
-/*member: A4.:[exact=A4|powerset={N}]*/
+/*member: A4.:[exact=A4|powerset={N}{O}]*/
 class A4 {
   /*member: A4.x4:[empty|powerset=empty]*/
   x4(
-    /*[subclass=JSNumber|powerset={I}]*/ p,
-  ) => /*invoke: [exact=A4|powerset={N}]*/
-      x4(p /*invoke: [subclass=JSNumber|powerset={I}]*/ - 1);
+    /*[subclass=JSNumber|powerset={I}{O}]*/ p,
+  ) => /*invoke: [exact=A4|powerset={N}{O}]*/
+      x4(p /*invoke: [subclass=JSNumber|powerset={I}{O}]*/ - 1);
 }
 
 /*member: test4:[null|powerset={null}]*/
 test4() {
-  A4(). /*invoke: [exact=A4|powerset={N}]*/ x4(1.5);
+  A4(). /*invoke: [exact=A4|powerset={N}{O}]*/ x4(1.5);
 }
 
-/*member: A5.:[exact=A5|powerset={N}]*/
+/*member: A5.:[exact=A5|powerset={N}{O}]*/
 class A5 {
-  /*member: A5.x5:Union([exact=JSNumNotInt|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I})*/
+  /*member: A5.x5:Union([exact=JSNumNotInt|powerset={I}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {I}{O})*/
   x5(
-    /*Union([exact=JSNumNotInt|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I})*/ p,
+    /*Union([exact=JSNumNotInt|powerset={I}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {I}{O})*/ p,
   ) => p;
 }
 
 /*member: test5:[null|powerset={null}]*/
 test5() {
-  A5(). /*invoke: [exact=A5|powerset={N}]*/ x5(1);
-  A5(). /*invoke: [exact=A5|powerset={N}]*/ x5(1.5);
+  A5(). /*invoke: [exact=A5|powerset={N}{O}]*/ x5(1);
+  A5(). /*invoke: [exact=A5|powerset={N}{O}]*/ x5(1.5);
 }
 
-/*member: A6.:[exact=A6|powerset={N}]*/
+/*member: A6.:[exact=A6|powerset={N}{O}]*/
 class A6 {
-  /*member: A6.x6:Union([exact=JSNumNotInt|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I})*/
+  /*member: A6.x6:Union([exact=JSNumNotInt|powerset={I}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {I}{O})*/
   x6(
-    /*Union([exact=JSNumNotInt|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I})*/ p,
+    /*Union([exact=JSNumNotInt|powerset={I}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {I}{O})*/ p,
   ) => p;
 }
 
 /*member: test6:[null|powerset={null}]*/
 test6() {
-  A6(). /*invoke: [exact=A6|powerset={N}]*/ x6(1.5);
-  A6(). /*invoke: [exact=A6|powerset={N}]*/ x6(1);
+  A6(). /*invoke: [exact=A6|powerset={N}{O}]*/ x6(1.5);
+  A6(). /*invoke: [exact=A6|powerset={N}{O}]*/ x6(1);
 }
 
-/*member: A7.:[exact=A7|powerset={N}]*/
+/*member: A7.:[exact=A7|powerset={N}{O}]*/
 class A7 {
   /*member: A7.x7:[empty|powerset=empty]*/
   x7(
-    /*Union([exact=JSString|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I})*/ p,
-  ) => /*invoke: [exact=A7|powerset={N}]*/ x7("x");
+    /*Union([exact=JSString|powerset={I}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {I}{O})*/ p,
+  ) => /*invoke: [exact=A7|powerset={N}{O}]*/ x7("x");
 }
 
 /*member: test7:[null|powerset={null}]*/
 test7() {
-  A7(). /*invoke: [exact=A7|powerset={N}]*/ x7(1);
+  A7(). /*invoke: [exact=A7|powerset={N}{O}]*/ x7(1);
 }
 
-/*member: A8.:[exact=A8|powerset={N}]*/
+/*member: A8.:[exact=A8|powerset={N}{O}]*/
 class A8 {
   /*member: A8.x8:[empty|powerset=empty]*/
   x8(
-    /*Union([exact=JSString|powerset={I}], [exact=JsLinkedHashMap|powerset={N}], powerset: {IN})*/ p,
+    /*Union([exact=JSString|powerset={I}{O}], [exact=JsLinkedHashMap|powerset={N}{O}], powerset: {IN}{O})*/ p,
   ) =>
-  /*invoke: [exact=A8|powerset={N}]*/ x8("x");
+  /*invoke: [exact=A8|powerset={N}{O}]*/ x8("x");
 }
 
 /*member: test8:[null|powerset={null}]*/
 test8() {
-  A8(). /*invoke: [exact=A8|powerset={N}]*/ x8({});
+  A8(). /*invoke: [exact=A8|powerset={N}{O}]*/ x8({});
 }
 
-/*member: A9.:[exact=A9|powerset={N}]*/
+/*member: A9.:[exact=A9|powerset={N}{O}]*/
 class A9 {
   /*member: A9.x9:[empty|powerset=empty]*/
   x9(
-    /*[exact=JSUInt31|powerset={I}]*/ p1,
-    /*Union([exact=JSString|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I})*/ p2,
-    /*Union([exact=JSUInt31|powerset={I}], [exact=JsLinkedHashMap|powerset={N}], powerset: {IN})*/ p3,
+    /*[exact=JSUInt31|powerset={I}{O}]*/ p1,
+    /*Union([exact=JSString|powerset={I}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {I}{O})*/ p2,
+    /*Union([exact=JSUInt31|powerset={I}{O}], [exact=JsLinkedHashMap|powerset={N}{O}], powerset: {IN}{O})*/ p3,
   ) =>
-  /*invoke: [exact=A9|powerset={N}]*/ x9(p1, "x", {});
+  /*invoke: [exact=A9|powerset={N}{O}]*/ x9(p1, "x", {});
 }
 
 /*member: test9:[null|powerset={null}]*/
 test9() {
-  A9(). /*invoke: [exact=A9|powerset={N}]*/ x9(1, 2, 3);
+  A9(). /*invoke: [exact=A9|powerset={N}{O}]*/ x9(1, 2, 3);
 }
 
-/*member: A10.:[exact=A10|powerset={N}]*/
+/*member: A10.:[exact=A10|powerset={N}{O}]*/
 class A10 {
   /*member: A10.x10:[empty|powerset=empty]*/
   x10(
-    /*[exact=JSUInt31|powerset={I}]*/ p1,
-    /*[exact=JSUInt31|powerset={I}]*/ p2,
-  ) => /*invoke: [exact=A10|powerset={N}]*/ x10(p1, p2);
+    /*[exact=JSUInt31|powerset={I}{O}]*/ p1,
+    /*[exact=JSUInt31|powerset={I}{O}]*/ p2,
+  ) => /*invoke: [exact=A10|powerset={N}{O}]*/ x10(p1, p2);
 }
 
 /*member: test10:[null|powerset={null}]*/
 test10() {
-  A10(). /*invoke: [exact=A10|powerset={N}]*/ x10(1, 2);
+  A10(). /*invoke: [exact=A10|powerset={N}{O}]*/ x10(1, 2);
 }
 
-/*member: A11.:[exact=A11|powerset={N}]*/
+/*member: A11.:[exact=A11|powerset={N}{O}]*/
 class A11 {
   /*member: A11.x11:[empty|powerset=empty]*/
   x11(
-    /*[exact=JSUInt31|powerset={I}]*/ p1,
-    /*[exact=JSUInt31|powerset={I}]*/ p2,
-  ) => /*invoke: [exact=A11|powerset={N}]*/ x11(p1, p2);
+    /*[exact=JSUInt31|powerset={I}{O}]*/ p1,
+    /*[exact=JSUInt31|powerset={I}{O}]*/ p2,
+  ) => /*invoke: [exact=A11|powerset={N}{O}]*/ x11(p1, p2);
 }
 
 /*member: f11:[null|powerset={null}]*/
@@ -176,81 +176,81 @@ void f11(/*[null|powerset={null}]*/ p) {
 /*member: test11:[null|powerset={null}]*/
 test11() {
   f11(null);
-  A11(). /*invoke: [exact=A11|powerset={N}]*/ x11(1, 2);
+  A11(). /*invoke: [exact=A11|powerset={N}{O}]*/ x11(1, 2);
 }
 
-/*member: A12.:[exact=A12|powerset={N}]*/
+/*member: A12.:[exact=A12|powerset={N}{O}]*/
 class A12 {
   /*member: A12.x12:[empty|powerset=empty]*/
   x12(
-    /*Union([exact=JSString|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I})*/ p1,
-    /*Union([exact=JSString|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I})*/ p2,
+    /*Union([exact=JSString|powerset={I}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {I}{O})*/ p1,
+    /*Union([exact=JSString|powerset={I}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {I}{O})*/ p2,
   ) =>
-  /*invoke: [exact=A12|powerset={N}]*/ x12(1, 2);
+  /*invoke: [exact=A12|powerset={N}{O}]*/ x12(1, 2);
 }
 
 /*member: test12:[null|powerset={null}]*/
 test12() {
-  A12(). /*invoke: [exact=A12|powerset={N}]*/ x12("x", "y");
+  A12(). /*invoke: [exact=A12|powerset={N}{O}]*/ x12("x", "y");
 }
 
-/*member: A13.:[exact=A13|powerset={N}]*/
+/*member: A13.:[exact=A13|powerset={N}{O}]*/
 class A13 {
-  /*member: A13.x13:[exact=JSUInt31|powerset={I}]*/
+  /*member: A13.x13:[exact=JSUInt31|powerset={I}{O}]*/
   x13(
-    /*Value([exact=JSString|powerset={I}], value: "x", powerset: {I})*/ p1, [
-    /*[exact=JSUInt31|powerset={I}]*/ p2 = 1,
+    /*Value([exact=JSString|powerset={I}{O}], value: "x", powerset: {I}{O})*/ p1, [
+    /*[exact=JSUInt31|powerset={I}{O}]*/ p2 = 1,
   ]) => 1;
 }
 
 /*member: test13:[null|powerset={null}]*/
 test13() {
-  A13(). /*invoke: [exact=A13|powerset={N}]*/ x13("x", 1);
-  A13(). /*invoke: [exact=A13|powerset={N}]*/ x13("x");
+  A13(). /*invoke: [exact=A13|powerset={N}{O}]*/ x13("x", 1);
+  A13(). /*invoke: [exact=A13|powerset={N}{O}]*/ x13("x");
 }
 
-/*member: A14.:[exact=A14|powerset={N}]*/
+/*member: A14.:[exact=A14|powerset={N}{O}]*/
 class A14 {
-  /*member: A14.x14:[exact=JSUInt31|powerset={I}]*/
+  /*member: A14.x14:[exact=JSUInt31|powerset={I}{O}]*/
   x14(
-    /*Union([exact=JSNumNotInt|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I})*/ p,
+    /*Union([exact=JSNumNotInt|powerset={I}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {I}{O})*/ p,
   ) => 1;
 }
 
-/*member: f14:[exact=JSUInt31|powerset={I}]*/
-f14(/*[exact=A14|powerset={N}]*/ p) =>
-    p. /*invoke: [exact=A14|powerset={N}]*/ x14(2.2);
+/*member: f14:[exact=JSUInt31|powerset={I}{O}]*/
+f14(/*[exact=A14|powerset={N}{O}]*/ p) =>
+    p. /*invoke: [exact=A14|powerset={N}{O}]*/ x14(2.2);
 
 /*member: test14:[null|powerset={null}]*/
 test14() {
-  A14(). /*invoke: [exact=A14|powerset={N}]*/ x14(1);
+  A14(). /*invoke: [exact=A14|powerset={N}{O}]*/ x14(1);
   f14(new A14());
 }
 
-/*member: A15.:[exact=A15|powerset={N}]*/
+/*member: A15.:[exact=A15|powerset={N}{O}]*/
 class A15 {
-  /*member: A15.x15:[exact=JSUInt31|powerset={I}]*/
+  /*member: A15.x15:[exact=JSUInt31|powerset={I}{O}]*/
   x15(
-    /*[exact=JSUInt31|powerset={I}]*/ p1, [
-    /*Value([exact=JSString|powerset={I}], value: "s", powerset: {I})*/ p2 =
+    /*[exact=JSUInt31|powerset={I}{O}]*/ p1, [
+    /*Value([exact=JSString|powerset={I}{O}], value: "s", powerset: {I}{O})*/ p2 =
         "s",
   ]) {
-    p2. /*Value([exact=JSString|powerset={I}], value: "s", powerset: {I})*/ length;
+    p2. /*Value([exact=JSString|powerset={I}{O}], value: "s", powerset: {I}{O})*/ length;
     return 1;
   }
 }
 
 /*member: test15:[null|powerset={null}]*/
 test15() {
-  A15(). /*invoke: [exact=A15|powerset={N}]*/ x15(1);
+  A15(). /*invoke: [exact=A15|powerset={N}{O}]*/ x15(1);
 }
 
-/*member: A16.:[exact=A16|powerset={N}]*/
+/*member: A16.:[exact=A16|powerset={N}{O}]*/
 class A16 {
-  /*member: A16.x16:[exact=JSUInt31|powerset={I}]*/
+  /*member: A16.x16:[exact=JSUInt31|powerset={I}{O}]*/
   x16(
-    /*Value([exact=JSString|powerset={I}], value: "x", powerset: {I})*/ p1, [
-    /*[exact=JSBool|powerset={I}]*/ p2 = true,
+    /*Value([exact=JSString|powerset={I}{O}], value: "x", powerset: {I}{O})*/ p1, [
+    /*[exact=JSBool|powerset={I}{O}]*/ p2 = true,
   ]) => 1;
 }
 
@@ -260,71 +260,71 @@ f16(/*[null|powerset={null}]*/ p) =>
 
 /*member: test16:[null|powerset={null}]*/
 test16() {
-  A16(). /*invoke: [exact=A16|powerset={N}]*/ x16("x");
-  A16(). /*invoke: [exact=A16|powerset={N}]*/ x16("x", false);
+  A16(). /*invoke: [exact=A16|powerset={N}{O}]*/ x16("x");
+  A16(). /*invoke: [exact=A16|powerset={N}{O}]*/ x16("x", false);
   f16(null);
 }
 
-/*member: A17.:[exact=A17|powerset={N}]*/
+/*member: A17.:[exact=A17|powerset={N}{O}]*/
 class A17 {
-  /*member: A17.x17:[exact=JSUInt31|powerset={I}]*/
+  /*member: A17.x17:[exact=JSUInt31|powerset={I}{O}]*/
   x17(
-    /*[exact=JSUInt31|powerset={I}]*/ p1, [
-    /*[exact=JSUInt31|powerset={I}]*/ p2 = 1,
-    /*[exact=JSString|powerset={I}]*/ p3 = "s",
+    /*[exact=JSUInt31|powerset={I}{O}]*/ p1, [
+    /*[exact=JSUInt31|powerset={I}{O}]*/ p2 = 1,
+    /*[exact=JSString|powerset={I}{O}]*/ p3 = "s",
   ]) => 1;
 }
 
 /*member: test17:[null|powerset={null}]*/
 test17() {
-  A17(). /*invoke: [exact=A17|powerset={N}]*/ x17(1);
-  A17(). /*invoke: [exact=A17|powerset={N}]*/ x17(1, 2);
-  A17(). /*invoke: [exact=A17|powerset={N}]*/ x17(1, 2, "x");
+  A17(). /*invoke: [exact=A17|powerset={N}{O}]*/ x17(1);
+  A17(). /*invoke: [exact=A17|powerset={N}{O}]*/ x17(1, 2);
+  A17(). /*invoke: [exact=A17|powerset={N}{O}]*/ x17(1, 2, "x");
   dynamic a = A17();
-  a. /*invoke: [exact=A17|powerset={N}]*/ x17(1, p2: 2);
+  a. /*invoke: [exact=A17|powerset={N}{O}]*/ x17(1, p2: 2);
   dynamic b = A17();
-  b. /*invoke: [exact=A17|powerset={N}]*/ x17(1, p3: "x");
+  b. /*invoke: [exact=A17|powerset={N}{O}]*/ x17(1, p3: "x");
   dynamic c = A17();
-  c. /*invoke: [exact=A17|powerset={N}]*/ x17(1, p3: "x", p2: 2);
+  c. /*invoke: [exact=A17|powerset={N}{O}]*/ x17(1, p3: "x", p2: 2);
   dynamic d = A17();
-  d. /*invoke: [exact=A17|powerset={N}]*/ x17(1, p2: 2, p3: "x");
+  d. /*invoke: [exact=A17|powerset={N}{O}]*/ x17(1, p2: 2, p3: "x");
 }
 
-/*member: A18.:[exact=A18|powerset={N}]*/
+/*member: A18.:[exact=A18|powerset={N}{O}]*/
 class A18 {
-  /*member: A18.x18:[exact=JSUInt31|powerset={I}]*/
+  /*member: A18.x18:[exact=JSUInt31|powerset={I}{O}]*/
   x18(
-    /*[exact=JSUInt31|powerset={I}]*/ p1, [
-    /*[exact=JSBool|powerset={I}]*/ p2 = 1,
-    /*[exact=JSNumNotInt|powerset={I}]*/ p3 = "s",
+    /*[exact=JSUInt31|powerset={I}{O}]*/ p1, [
+    /*[exact=JSBool|powerset={I}{O}]*/ p2 = 1,
+    /*[exact=JSNumNotInt|powerset={I}{O}]*/ p3 = "s",
   ]) => 1;
 }
 
 /*member: test18:[null|powerset={null}]*/
 test18() {
-  A18(). /*invoke: [exact=A18|powerset={N}]*/ x18(1, true, 1.1);
-  A18(). /*invoke: [exact=A18|powerset={N}]*/ x18(1, false, 2.2);
+  A18(). /*invoke: [exact=A18|powerset={N}{O}]*/ x18(1, true, 1.1);
+  A18(). /*invoke: [exact=A18|powerset={N}{O}]*/ x18(1, false, 2.2);
   dynamic a = A18();
-  a. /*invoke: [exact=A18|powerset={N}]*/ x18(1, p3: 3.3, p2: true);
+  a. /*invoke: [exact=A18|powerset={N}{O}]*/ x18(1, p3: 3.3, p2: true);
   dynamic b = A18();
-  b. /*invoke: [exact=A18|powerset={N}]*/ x18(1, p2: false, p3: 4.4);
+  b. /*invoke: [exact=A18|powerset={N}{O}]*/ x18(1, p2: false, p3: 4.4);
 }
 
-/*member: A19.:[exact=A19|powerset={N}]*/
+/*member: A19.:[exact=A19|powerset={N}{O}]*/
 class A19 {
   /*member: A19.x19:[empty|powerset=empty]*/
   x19(
-    /*Union([exact=JSString|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I})*/ p1,
-    /*Union([exact=JSString|powerset={I}], [exact=JSUInt31|powerset={I}], powerset: {I})*/ p2,
+    /*Union([exact=JSString|powerset={I}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {I}{O})*/ p1,
+    /*Union([exact=JSString|powerset={I}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {I}{O})*/ p2,
   ) =>
-  /*invoke: [subclass=A19|powerset={N}]*/ x19(p1, p2);
+  /*invoke: [subclass=A19|powerset={N}{O}]*/ x19(p1, p2);
 }
 
-/*member: B19.:[exact=B19|powerset={N}]*/
+/*member: B19.:[exact=B19|powerset={N}{O}]*/
 class B19 extends A19 {}
 
 /*member: test19:[null|powerset={null}]*/
 test19() {
-  B19(). /*invoke: [exact=B19|powerset={N}]*/ x19("a", "b");
-  A19(). /*invoke: [exact=A19|powerset={N}]*/ x19(1, 2);
+  B19(). /*invoke: [exact=B19|powerset={N}{O}]*/ x19("a", "b");
+  A19(). /*invoke: [exact=A19|powerset={N}{O}]*/ x19(1, 2);
 }

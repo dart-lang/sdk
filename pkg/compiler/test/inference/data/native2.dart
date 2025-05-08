@@ -12,10 +12,10 @@ main() {
   createRectangle();
 }
 
-/*member: createElement:[subclass=Element|powerset={I}]*/
+/*member: createElement:[subclass=Element|powerset={I}{O}]*/
 Element createElement()
 // ignore: NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE
 native;
 
-/*member: createRectangle:[subclass=DomRectReadOnly|powerset={I}]*/
+/*member: createRectangle:[subclass=DomRectReadOnly|powerset={I}{O}]*/
 createRectangle() => foreign.JS('Rectangle', "#", null);

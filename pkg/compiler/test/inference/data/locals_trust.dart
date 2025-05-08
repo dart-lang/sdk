@@ -13,19 +13,20 @@ main() {
 // Test that we trust the explicit type of a local.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _trustLocals:[exact=JSBool|powerset={I}]*/
+/*member: _trustLocals:[exact=JSBool|powerset={I}{O}]*/
 _trustLocals(
-  int Function(int)? /*[null|subclass=Closure|powerset={null}{N}]*/ f,
+  int Function(int)? /*[null|subclass=Closure|powerset={null}{N}{O}]*/ f,
 ) {
   int c = f!(0);
-  return c /*invoke: [subclass=JSInt|powerset={I}]*/ == 0;
+  return c /*invoke: [subclass=JSInt|powerset={I}{O}]*/ == 0;
 }
 
 /*member: trustLocals:[null|powerset={null}]*/
 trustLocals() {
   _trustLocals(
-    /*[exact=JSUInt31|powerset={I}]*/ (/*[exact=JSUInt31|powerset={I}]*/ o) =>
-        o,
+    /*[exact=JSUInt31|powerset={I}{O}]*/ (
+      /*[exact=JSUInt31|powerset={I}{O}]*/ o,
+    ) => o,
   );
   _trustLocals(null);
 }
@@ -34,20 +35,21 @@ trustLocals() {
 // Test that we infer the type of a dynamic local from the type of the function.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _trustFunctions:[exact=JSBool|powerset={I}]*/
+/*member: _trustFunctions:[exact=JSBool|powerset={I}{O}]*/
 _trustFunctions(
-  int Function(int)? /*[null|subclass=Closure|powerset={null}{N}]*/ f,
+  int Function(int)? /*[null|subclass=Closure|powerset={null}{N}{O}]*/ f,
 ) {
   dynamic c = f!(0);
   c = f(0);
-  return c /*invoke: [subclass=JSInt|powerset={I}]*/ == 0;
+  return c /*invoke: [subclass=JSInt|powerset={I}{O}]*/ == 0;
 }
 
 /*member: trustFunctions:[null|powerset={null}]*/
 trustFunctions() {
   _trustFunctions(
-    /*[exact=JSUInt31|powerset={I}]*/ (/*[exact=JSUInt31|powerset={I}]*/ o) =>
-        o,
+    /*[exact=JSUInt31|powerset={I}{O}]*/ (
+      /*[exact=JSUInt31|powerset={I}{O}]*/ o,
+    ) => o,
   );
   _trustFunctions(null);
 }
@@ -56,19 +58,20 @@ trustFunctions() {
 // Test that we infer the type of a 'var' local from the type of the function.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _inferFromFunctions:[exact=JSBool|powerset={I}]*/
+/*member: _inferFromFunctions:[exact=JSBool|powerset={I}{O}]*/
 _inferFromFunctions(
-  int Function(int)? /*[null|subclass=Closure|powerset={null}{N}]*/ f,
+  int Function(int)? /*[null|subclass=Closure|powerset={null}{N}{O}]*/ f,
 ) {
   var c = f!(0);
-  return c /*invoke: [subclass=JSInt|powerset={I}]*/ == 0;
+  return c /*invoke: [subclass=JSInt|powerset={I}{O}]*/ == 0;
 }
 
 /*member: inferFromFunctions:[null|powerset={null}]*/
 inferFromFunctions() {
   _inferFromFunctions(
-    /*[exact=JSUInt31|powerset={I}]*/ (/*[exact=JSUInt31|powerset={I}]*/ o) =>
-        o,
+    /*[exact=JSUInt31|powerset={I}{O}]*/ (
+      /*[exact=JSUInt31|powerset={I}{O}]*/ o,
+    ) => o,
   );
   _inferFromFunctions(null);
 }

@@ -30,15 +30,15 @@ main() {
 // Test if-then statement with is-test
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: Class1.:[exact=Class1|powerset={N}]*/
+/*member: Class1.:[exact=Class1|powerset={N}{O}]*/
 class Class1 {}
 
 /*member: _promotedIfThen:[null|powerset={null}]*/
 _promotedIfThen(
-  /*Union([exact=Class1|powerset={N}], [exact=JSUInt31|powerset={I}], powerset: {IN})*/ o,
+  /*Union([exact=Class1|powerset={N}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {IN}{O})*/ o,
 ) {
   if (o is Class1) {
-    o. /*invoke: [exact=Class1|powerset={N}]*/ toString();
+    o. /*invoke: [exact=Class1|powerset={N}{O}]*/ toString();
   }
 }
 
@@ -52,19 +52,19 @@ promotedIfThen() {
 // Test if-then-else statement with is-test
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: Class2.:[exact=Class2|powerset={N}]*/
+/*member: Class2.:[exact=Class2|powerset={N}{O}]*/
 class Class2 {}
 
 /*member: _promotedIfThenElse:[null|powerset={null}]*/
 _promotedIfThenElse(
-  /*Union([exact=Class2|powerset={N}], [exact=JSUInt31|powerset={I}], powerset: {IN})*/ o,
+  /*Union([exact=Class2|powerset={N}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {IN}{O})*/ o,
 ) {
   if (o is Class2) {
-    o. /*invoke: [exact=Class2|powerset={N}]*/ toString();
+    o. /*invoke: [exact=Class2|powerset={N}{O}]*/ toString();
   } else {
     // TODO(johnniwinther): Use negative type knowledge to show that the
     // receiver must be [exact=JSUInt31].
-    o. /*invoke: Union([exact=Class2|powerset={N}], [exact=JSUInt31|powerset={I}], powerset: {IN})*/ toString();
+    o. /*invoke: Union([exact=Class2|powerset={N}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {IN}{O})*/ toString();
   }
 }
 
@@ -78,17 +78,17 @@ promotedIfThenElse() {
 // Test if-then-else statement with negated is-test
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: Class3.:[exact=Class3|powerset={N}]*/
+/*member: Class3.:[exact=Class3|powerset={N}{O}]*/
 class Class3 {}
 
 /*member: _promotedNotIfThenElse:[null|powerset={null}]*/
 _promotedNotIfThenElse(
-  /*Union([exact=Class3|powerset={N}], [exact=JSUInt31|powerset={I}], powerset: {IN})*/ o,
+  /*Union([exact=Class3|powerset={N}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {IN}{O})*/ o,
 ) {
   if (o is! Class3) {
-    o. /*invoke: Union([exact=Class3|powerset={N}], [exact=JSUInt31|powerset={I}], powerset: {IN})*/ toString();
+    o. /*invoke: Union([exact=Class3|powerset={N}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {IN}{O})*/ toString();
   } else {
-    o. /*invoke: [exact=Class3|powerset={N}]*/ toString();
+    o. /*invoke: [exact=Class3|powerset={N}{O}]*/ toString();
   }
 }
 
@@ -102,16 +102,16 @@ promotedNotIfThenElse() {
 // Test if-then statement with is-test in &&
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: Class4.:[exact=Class4|powerset={N}]*/
+/*member: Class4.:[exact=Class4|powerset={N}{O}]*/
 class Class4 {}
 
 /*member: _promotedAndIfThen:[null|powerset={null}]*/
 _promotedAndIfThen(
-  /*Union([exact=Class4|powerset={N}], [exact=JSUInt31|powerset={I}], powerset: {IN})*/ o,
-  /*[exact=JSBool|powerset={I}]*/ c,
+  /*Union([exact=Class4|powerset={N}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {IN}{O})*/ o,
+  /*[exact=JSBool|powerset={I}{O}]*/ c,
 ) {
   if (o is Class4 && c) {
-    o. /*invoke: [exact=Class4|powerset={N}]*/ toString();
+    o. /*invoke: [exact=Class4|powerset={N}{O}]*/ toString();
   }
 }
 
@@ -125,20 +125,20 @@ promotedAndIfThen() {
 // Test if-then-else statement with is-test in &&
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: Class5.:[exact=Class5|powerset={N}]*/
+/*member: Class5.:[exact=Class5|powerset={N}{O}]*/
 class Class5 {}
 
 /*member: _promotedAndIfThenElse:[null|powerset={null}]*/
 _promotedAndIfThenElse(
-  /*Union([exact=Class5|powerset={N}], [exact=JSUInt31|powerset={I}], powerset: {IN})*/ o,
-  /*[exact=JSBool|powerset={I}]*/ c,
+  /*Union([exact=Class5|powerset={N}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {IN}{O})*/ o,
+  /*[exact=JSBool|powerset={I}{O}]*/ c,
 ) {
   if (o is Class5 && c) {
-    o. /*invoke: [exact=Class5|powerset={N}]*/ toString();
+    o. /*invoke: [exact=Class5|powerset={N}{O}]*/ toString();
   } else {
     // TODO(johnniwinther): Use negative type knowledge to show that the
     // receiver must be [exact=JSUInt31].
-    o. /*invoke: Union([exact=Class5|powerset={N}], [exact=JSUInt31|powerset={I}], powerset: {IN})*/ toString();
+    o. /*invoke: Union([exact=Class5|powerset={N}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {IN}{O})*/ toString();
   }
 }
 
@@ -152,18 +152,18 @@ promotedAndIfThenElse() {
 // Test if-then-else statement with negated is-test in &&
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: Class6.:[exact=Class6|powerset={N}]*/
+/*member: Class6.:[exact=Class6|powerset={N}{O}]*/
 class Class6 {}
 
 /*member: _promotedNotAndIfThenElse:[null|powerset={null}]*/
 _promotedNotAndIfThenElse(
-  /*Union([exact=Class6|powerset={N}], [exact=JSUInt31|powerset={I}], powerset: {IN})*/ o,
-  /*[exact=JSBool|powerset={I}]*/ c,
+  /*Union([exact=Class6|powerset={N}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {IN}{O})*/ o,
+  /*[exact=JSBool|powerset={I}{O}]*/ c,
 ) {
   if (o is! Class6 && c) {
-    o. /*invoke: Union([exact=Class6|powerset={N}], [exact=JSUInt31|powerset={I}], powerset: {IN})*/ toString();
+    o. /*invoke: Union([exact=Class6|powerset={N}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {IN}{O})*/ toString();
   } else {
-    o. /*invoke: Union([exact=Class6|powerset={N}], [exact=JSUInt31|powerset={I}], powerset: {IN})*/ toString();
+    o. /*invoke: Union([exact=Class6|powerset={N}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {IN}{O})*/ toString();
   }
 }
 
@@ -177,16 +177,16 @@ promotedNotAndIfThenElse() {
 // Test if-then statement with is-test in ||
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: Class7.:[exact=Class7|powerset={N}]*/
+/*member: Class7.:[exact=Class7|powerset={N}{O}]*/
 class Class7 {}
 
 /*member: _promotedOrIfThen:[null|powerset={null}]*/
 _promotedOrIfThen(
-  /*Union([exact=Class7|powerset={N}], [exact=JSUInt31|powerset={I}], powerset: {IN})*/ o,
-  /*[exact=JSBool|powerset={I}]*/ c,
+  /*Union([exact=Class7|powerset={N}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {IN}{O})*/ o,
+  /*[exact=JSBool|powerset={I}{O}]*/ c,
 ) {
   if (o is Class7 || c) {
-    o. /*invoke: Union([exact=Class7|powerset={N}], [exact=JSUInt31|powerset={I}], powerset: {IN})*/ toString();
+    o. /*invoke: Union([exact=Class7|powerset={N}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {IN}{O})*/ toString();
   }
 }
 
@@ -200,20 +200,20 @@ promotedOrIfThen() {
 // Test if-then-else statement with is-test in ||
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: Class8.:[exact=Class8|powerset={N}]*/
+/*member: Class8.:[exact=Class8|powerset={N}{O}]*/
 class Class8 {}
 
 /*member: _promotedOrIfThenElse:[null|powerset={null}]*/
 _promotedOrIfThenElse(
-  /*Union([exact=Class8|powerset={N}], [exact=JSUInt31|powerset={I}], powerset: {IN})*/ o,
-  /*[exact=JSBool|powerset={I}]*/ c,
+  /*Union([exact=Class8|powerset={N}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {IN}{O})*/ o,
+  /*[exact=JSBool|powerset={I}{O}]*/ c,
 ) {
   if (o is Class8 || c) {
-    o. /*invoke: Union([exact=Class8|powerset={N}], [exact=JSUInt31|powerset={I}], powerset: {IN})*/ toString();
+    o. /*invoke: Union([exact=Class8|powerset={N}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {IN}{O})*/ toString();
   } else {
     // TODO(johnniwinther): Use negative type knowledge to show that the
     // receiver must be [exact=JSUInt31].
-    o. /*invoke: Union([exact=Class8|powerset={N}], [exact=JSUInt31|powerset={I}], powerset: {IN})*/ toString();
+    o. /*invoke: Union([exact=Class8|powerset={N}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {IN}{O})*/ toString();
   }
 }
 
@@ -227,18 +227,18 @@ promotedOrIfThenElse() {
 // Test if-then-else statement with negated is-test in ||
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: Class9.:[exact=Class9|powerset={N}]*/
+/*member: Class9.:[exact=Class9|powerset={N}{O}]*/
 class Class9 {}
 
 /*member: _promotedNotOrIfThenElse:[null|powerset={null}]*/
 _promotedNotOrIfThenElse(
-  /*Union([exact=Class9|powerset={N}], [exact=JSUInt31|powerset={I}], powerset: {IN})*/ o,
-  /*[exact=JSBool|powerset={I}]*/ c,
+  /*Union([exact=Class9|powerset={N}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {IN}{O})*/ o,
+  /*[exact=JSBool|powerset={I}{O}]*/ c,
 ) {
   if (o is! Class9 || c) {
-    o. /*invoke: Union([exact=Class9|powerset={N}], [exact=JSUInt31|powerset={I}], powerset: {IN})*/ toString();
+    o. /*invoke: Union([exact=Class9|powerset={N}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {IN}{O})*/ toString();
   } else {
-    o. /*invoke: [exact=Class9|powerset={N}]*/ toString();
+    o. /*invoke: [exact=Class9|powerset={N}{O}]*/ toString();
   }
 }
 
@@ -252,17 +252,17 @@ promotedNotOrIfThenElse() {
 // Test if-then statement with doubly negated is-test
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: Class10.:[exact=Class10|powerset={N}]*/
+/*member: Class10.:[exact=Class10|powerset={N}{O}]*/
 class Class10 {}
 
 /*member: _promotedNotNotIfThen:[null|powerset={null}]*/
 _promotedNotNotIfThen(
-  /*Union([exact=Class10|powerset={N}], [exact=JSUInt31|powerset={I}], powerset: {IN})*/ o,
+  /*Union([exact=Class10|powerset={N}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {IN}{O})*/ o,
 ) {
   if (!(o is! Class10)) {
     o
         .
-        /*invoke: [exact=Class10|powerset={N}]*/
+        /*invoke: [exact=Class10|powerset={N}{O}]*/
         toString();
   }
 }
@@ -277,21 +277,21 @@ promotedNotNotIfThen() {
 // Test if-then-else statement with negated is-test in parentheses
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: Class11.:[exact=Class11|powerset={N}]*/
+/*member: Class11.:[exact=Class11|powerset={N}{O}]*/
 class Class11 {}
 
 /*member: _promotedParenNotIfThenElse:[null|powerset={null}]*/
 _promotedParenNotIfThenElse(
-  /*Union([exact=Class11|powerset={N}], [exact=JSUInt31|powerset={I}], powerset: {IN})*/ o,
+  /*Union([exact=Class11|powerset={N}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {IN}{O})*/ o,
 ) {
   if (!(o is Class11)) {
     // TODO(johnniwinther): Use negative type knowledge to show that the
     // receiver must be [exact=JSUInt31].
-    o. /*invoke: Union([exact=Class11|powerset={N}], [exact=JSUInt31|powerset={I}], powerset: {IN})*/ toString();
+    o. /*invoke: Union([exact=Class11|powerset={N}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {IN}{O})*/ toString();
   } else {
     o
         .
-        /*invoke: [exact=Class11|powerset={N}]*/
+        /*invoke: [exact=Class11|powerset={N}{O}]*/
         toString();
   }
 }
@@ -307,7 +307,7 @@ promotedParenNotIfThenElse() {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*member: _nullIfThen:[null|powerset={null}]*/
-_nullIfThen(/*[null|exact=JSUInt31|powerset={null}{I}]*/ o) {
+_nullIfThen(/*[null|exact=JSUInt31|powerset={null}{I}{O}]*/ o) {
   if (o == null) {
     o. /*invoke: [null|powerset={null}]*/ toString();
   }
@@ -324,11 +324,11 @@ nullIfThen() {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*member: _nullIfThenElse:[null|powerset={null}]*/
-_nullIfThenElse(/*[null|exact=JSUInt31|powerset={null}{I}]*/ o) {
+_nullIfThenElse(/*[null|exact=JSUInt31|powerset={null}{I}{O}]*/ o) {
   if (o == null) {
     o. /*invoke: [null|powerset={null}]*/ toString();
   } else {
-    o. /*invoke: [exact=JSUInt31|powerset={I}]*/ toString();
+    o. /*invoke: [exact=JSUInt31|powerset={I}{O}]*/ toString();
   }
 }
 
@@ -343,9 +343,9 @@ nullIfThenElse() {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*member: _notNullIfThen:[null|powerset={null}]*/
-_notNullIfThen(/*[null|exact=JSUInt31|powerset={null}{I}]*/ o) {
+_notNullIfThen(/*[null|exact=JSUInt31|powerset={null}{I}{O}]*/ o) {
   if (o != null) {
-    o. /*invoke: [exact=JSUInt31|powerset={I}]*/ toString();
+    o. /*invoke: [exact=JSUInt31|powerset={I}{O}]*/ toString();
   }
 }
 
@@ -360,9 +360,9 @@ notNullIfThen() {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*member: _notNullIfThenElse:[null|powerset={null}]*/
-_notNullIfThenElse(/*[null|exact=JSUInt31|powerset={null}{I}]*/ o) {
+_notNullIfThenElse(/*[null|exact=JSUInt31|powerset={null}{I}{O}]*/ o) {
   if (o != null) {
-    o. /*invoke: [exact=JSUInt31|powerset={I}]*/ toString();
+    o. /*invoke: [exact=JSUInt31|powerset={I}{O}]*/ toString();
   } else {
     o. /*invoke: [null|powerset={null}]*/ toString();
   }
@@ -380,8 +380,8 @@ notNullIfThenElse() {
 
 /*member: _nullAndIfThen:[null|powerset={null}]*/
 _nullAndIfThen(
-  /*[null|exact=JSUInt31|powerset={null}{I}]*/ o,
-  /*[exact=JSBool|powerset={I}]*/ c,
+  /*[null|exact=JSUInt31|powerset={null}{I}{O}]*/ o,
+  /*[exact=JSBool|powerset={I}{O}]*/ c,
 ) {
   if (o == null && c) {
     o. /*invoke: [null|powerset={null}]*/ toString();
@@ -400,13 +400,13 @@ nullAndIfThen() {
 
 /*member: _nullAndIfThenElse:[null|powerset={null}]*/
 _nullAndIfThenElse(
-  /*[null|exact=JSUInt31|powerset={null}{I}]*/ o,
-  /*[exact=JSBool|powerset={I}]*/ c,
+  /*[null|exact=JSUInt31|powerset={null}{I}{O}]*/ o,
+  /*[exact=JSBool|powerset={I}{O}]*/ c,
 ) {
   if (o == null && c) {
     o. /*invoke: [null|powerset={null}]*/ toString();
   } else {
-    o. /*invoke: [null|exact=JSUInt31|powerset={null}{I}]*/ toString();
+    o. /*invoke: [null|exact=JSUInt31|powerset={null}{I}{O}]*/ toString();
   }
 }
 
@@ -422,11 +422,11 @@ nullAndIfThenElse() {
 
 /*member: _notNullAndIfThen:[null|powerset={null}]*/
 _notNullAndIfThen(
-  /*[null|exact=JSUInt31|powerset={null}{I}]*/ o,
-  /*[exact=JSBool|powerset={I}]*/ c,
+  /*[null|exact=JSUInt31|powerset={null}{I}{O}]*/ o,
+  /*[exact=JSBool|powerset={I}{O}]*/ c,
 ) {
   if (o != null && c) {
-    o. /*invoke: [exact=JSUInt31|powerset={I}]*/ toString();
+    o. /*invoke: [exact=JSUInt31|powerset={I}{O}]*/ toString();
   }
 }
 
@@ -442,13 +442,13 @@ notNullAndIfThen() {
 
 /*member: _notNullAndIfThenElse:[null|powerset={null}]*/
 _notNullAndIfThenElse(
-  /*[null|exact=JSUInt31|powerset={null}{I}]*/ o,
-  /*[exact=JSBool|powerset={I}]*/ c,
+  /*[null|exact=JSUInt31|powerset={null}{I}{O}]*/ o,
+  /*[exact=JSBool|powerset={I}{O}]*/ c,
 ) {
   if (o != null && c) {
-    o. /*invoke: [exact=JSUInt31|powerset={I}]*/ toString();
+    o. /*invoke: [exact=JSUInt31|powerset={I}{O}]*/ toString();
   } else {
-    o. /*invoke: [null|exact=JSUInt31|powerset={null}{I}]*/ toString();
+    o. /*invoke: [null|exact=JSUInt31|powerset={null}{I}{O}]*/ toString();
   }
 }
 

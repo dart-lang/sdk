@@ -15,14 +15,14 @@ main() {
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class1 {
-  /*member: Class1.field:[exact=JSUInt31|powerset={I}]*/
+  /*member: Class1.field:[exact=JSUInt31|powerset={I}{O}]*/
   var field;
 
-  /*member: Class1.:[exact=Class1|powerset={N}]*/
-  Class1(this. /*[exact=JSUInt31|powerset={I}]*/ field);
+  /*member: Class1.:[exact=Class1|powerset={N}{O}]*/
+  Class1(this. /*[exact=JSUInt31|powerset={I}{O}]*/ field);
 }
 
-/*member: initializingFormal:[exact=Class1|powerset={N}]*/
+/*member: initializingFormal:[exact=Class1|powerset={N}{O}]*/
 initializingFormal() => Class1(0);
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -30,14 +30,14 @@ initializingFormal() => Class1(0);
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class2 {
-  /*member: Class2.field:[exact=JSUInt31|powerset={I}]*/
+  /*member: Class2.field:[exact=JSUInt31|powerset={I}{O}]*/
   var field;
 
-  /*member: Class2.:[exact=Class2|powerset={N}]*/
-  Class2(/*[exact=JSUInt31|powerset={I}]*/ field) : this.field = field;
+  /*member: Class2.:[exact=Class2|powerset={N}{O}]*/
+  Class2(/*[exact=JSUInt31|powerset={I}{O}]*/ field) : this.field = field;
 }
 
-/*member: fieldInitializer:[exact=Class2|powerset={N}]*/
+/*member: fieldInitializer:[exact=Class2|powerset={N}{O}]*/
 fieldInitializer() => Class2(0);
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -45,17 +45,17 @@ fieldInitializer() => Class2(0);
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class3 {
-  /*member: Class3.field:[exact=JSUInt31|powerset={I}]*/
+  /*member: Class3.field:[exact=JSUInt31|powerset={I}{O}]*/
   var field;
 
-  /*member: Class3._:[exact=Class3|powerset={N}]*/
-  Class3._(this. /*[exact=JSUInt31|powerset={I}]*/ field);
+  /*member: Class3._:[exact=Class3|powerset={N}{O}]*/
+  Class3._(this. /*[exact=JSUInt31|powerset={I}{O}]*/ field);
 
-  /*member: Class3.:[exact=Class3|powerset={N}]*/
-  Class3(/*[exact=JSUInt31|powerset={I}]*/ field) : this._(field);
+  /*member: Class3.:[exact=Class3|powerset={N}{O}]*/
+  Class3(/*[exact=JSUInt31|powerset={I}{O}]*/ field) : this._(field);
 }
 
-/*member: thisInitializer:[exact=Class3|powerset={N}]*/
+/*member: thisInitializer:[exact=Class3|powerset={N}{O}]*/
 thisInitializer() => Class3(0);
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -63,17 +63,17 @@ thisInitializer() => Class3(0);
 ////////////////////////////////////////////////////////////////////////////////
 
 abstract class SuperClass4 {
-  /*member: SuperClass4.field:[exact=JSUInt31|powerset={I}]*/
+  /*member: SuperClass4.field:[exact=JSUInt31|powerset={I}{O}]*/
   var field;
 
-  /*member: SuperClass4.:[exact=Class4|powerset={N}]*/
-  SuperClass4(this. /*[exact=JSUInt31|powerset={I}]*/ field);
+  /*member: SuperClass4.:[exact=Class4|powerset={N}{O}]*/
+  SuperClass4(this. /*[exact=JSUInt31|powerset={I}{O}]*/ field);
 }
 
 class Class4 extends SuperClass4 {
-  /*member: Class4.:[exact=Class4|powerset={N}]*/
-  Class4(/*[exact=JSUInt31|powerset={I}]*/ field) : super(field);
+  /*member: Class4.:[exact=Class4|powerset={N}{O}]*/
+  Class4(/*[exact=JSUInt31|powerset={I}{O}]*/ field) : super(field);
 }
 
-/*member: superInitializer:[exact=Class4|powerset={N}]*/
+/*member: superInitializer:[exact=Class4|powerset={N}{O}]*/
 superInitializer() => Class4(0);

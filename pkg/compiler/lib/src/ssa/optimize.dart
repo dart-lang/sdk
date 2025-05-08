@@ -269,7 +269,7 @@ bool isFixedLength(AbstractValue mask, JClosedWorld closedWorld) {
     return true;
   }
   // TODO(sra): Recognize any combination of fixed length indexables.
-  if (abstractValueDomain.isFixedArray(mask).isDefinitelyTrue ||
+  if (abstractValueDomain.isGrowableArray(mask).isDefinitelyFalse ||
       abstractValueDomain.isStringOrNull(mask).isDefinitelyTrue ||
       abstractValueDomain.isTypedArray(mask).isDefinitelyTrue) {
     return true;
@@ -907,7 +907,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
 
     if (selector.isCall || selector.isOperator) {
       FunctionEntity? target;
-      if (input.isExtendableArray(_abstractValueDomain).isDefinitelyTrue) {
+      if (input.isGrowableArray(_abstractValueDomain).isDefinitelyTrue) {
         if (applies(commonElements.jsArrayAdd)) {
           // Codegen special cases array calls to `Array.push`, but does not
           // inline argument type checks. We lower if the check always passes

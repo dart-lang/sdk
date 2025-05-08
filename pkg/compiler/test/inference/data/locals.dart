@@ -21,13 +21,13 @@ uninitializedLocal() {
   return local;
 }
 
-/*member: initializedLocal:[exact=JSUInt31|powerset={I}]*/
+/*member: initializedLocal:[exact=JSUInt31|powerset={I}{O}]*/
 initializedLocal() {
   var local = 0;
   return local;
 }
 
-/*member: updatedLocal:[exact=JSUInt31|powerset={I}]*/
+/*member: updatedLocal:[exact=JSUInt31|powerset={I}{O}]*/
 updatedLocal() {
   var local2;
   local2 = 0;
@@ -37,7 +37,7 @@ updatedLocal() {
 /*member: invokeLocal:[null|powerset={null}]*/
 invokeLocal() {
   var local2 = 0;
-  local2. /*invoke: [exact=JSUInt31|powerset={I}]*/ toString();
+  local2. /*invoke: [exact=JSUInt31|powerset={I}{O}]*/ toString();
   return null;
 }
 
@@ -45,33 +45,33 @@ invokeLocal() {
 postfixLocal() {
   // ignore: UNUSED_LOCAL_VARIABLE
   var local2 = 0;
-  local2 /*invoke: [exact=JSUInt31|powerset={I}]*/ ++;
+  local2 /*invoke: [exact=JSUInt31|powerset={I}{O}]*/ ++;
   return null;
 }
 
-/*member: postfixLocalUsed:[exact=JSUInt31|powerset={I}]*/
+/*member: postfixLocalUsed:[exact=JSUInt31|powerset={I}{O}]*/
 postfixLocalUsed() {
   var local2 = 0;
-  return local2 /*invoke: [exact=JSUInt31|powerset={I}]*/ ++;
+  return local2 /*invoke: [exact=JSUInt31|powerset={I}{O}]*/ ++;
 }
 
 /*member: prefixLocal:[null|powerset={null}]*/
 prefixLocal() {
   // ignore: UNUSED_LOCAL_VARIABLE
   var local2 = 0;
-  /*invoke: [exact=JSUInt31|powerset={I}]*/
+  /*invoke: [exact=JSUInt31|powerset={I}{O}]*/
   ++local2;
   return null;
 }
 
-/*member: prefixLocalUsed:[subclass=JSUInt32|powerset={I}]*/
+/*member: prefixLocalUsed:[subclass=JSUInt32|powerset={I}{O}]*/
 prefixLocalUsed() {
   var local2 = 0;
-  return /*invoke: [exact=JSUInt31|powerset={I}]*/ ++local2;
+  return /*invoke: [exact=JSUInt31|powerset={I}{O}]*/ ++local2;
 }
 
-/*member: complexAssignmentLocal:[subclass=JSUInt32|powerset={I}]*/
+/*member: complexAssignmentLocal:[subclass=JSUInt32|powerset={I}{O}]*/
 complexAssignmentLocal() {
   var local2 = 0;
-  return local2 /*invoke: [exact=JSUInt31|powerset={I}]*/ += 42;
+  return local2 /*invoke: [exact=JSUInt31|powerset={I}{O}]*/ += 42;
 }

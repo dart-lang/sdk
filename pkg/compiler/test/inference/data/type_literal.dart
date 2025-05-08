@@ -9,19 +9,19 @@ main() {
   typeLiteralSubstring();
 }
 
-/*member: typeLiteral:[exact=_Type|powerset={N}]*/
+/*member: typeLiteral:[exact=_Type|powerset={N}{O}]*/
 typeLiteral() => Object;
 
-/*member: typeLiteralToString:[exact=JSString|powerset={I}]*/
+/*member: typeLiteralToString:[exact=JSString|powerset={I}{O}]*/
 typeLiteralToString() =>
-    (Object). /*invoke: [exact=_Type|powerset={N}]*/ toString();
+    (Object). /*invoke: [exact=_Type|powerset={N}{O}]*/ toString();
 
-/*member: typeLiteralSubstring:[exact=JSString|powerset={I}]*/
+/*member: typeLiteralSubstring:[exact=JSString|powerset={I}{O}]*/
 typeLiteralSubstring() {
-  String name = (List). /*invoke: [exact=_Type|powerset={N}]*/ toString();
-  name = name. /*invoke: [exact=JSString|powerset={I}]*/ substring(
+  String name = (List). /*invoke: [exact=_Type|powerset={N}{O}]*/ toString();
+  name = name. /*invoke: [exact=JSString|powerset={I}{O}]*/ substring(
     0,
-    name. /*invoke: [exact=JSString|powerset={I}]*/ indexOf('<'),
+    name. /*invoke: [exact=JSString|powerset={I}{O}]*/ indexOf('<'),
   );
   return name;
 }

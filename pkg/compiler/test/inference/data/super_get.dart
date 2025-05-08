@@ -13,61 +13,61 @@ main() {
 // Access of super field.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: Super1.:[exact=Super1|powerset={N}]*/
+/*member: Super1.:[empty|powerset=empty]*/
 class Super1 {
-  /*member: Super1.field:[exact=JSUInt31|powerset={I}]*/
+  /*member: Super1.field:[exact=JSUInt31|powerset={I}{O}]*/
   var field = 42;
 }
 
-/*member: Sub1.:[exact=Sub1|powerset={N}]*/
+/*member: Sub1.:[exact=Sub1|powerset={N}{O}]*/
 class Sub1 extends Super1 {
-  /*member: Sub1.method:[exact=JSUInt31|powerset={I}]*/
+  /*member: Sub1.method:[exact=JSUInt31|powerset={I}{O}]*/
   method() => super.field;
 }
 
 /*member: superFieldAccess:[null|powerset={null}]*/
 superFieldAccess() {
-  Sub1(). /*invoke: [exact=Sub1|powerset={N}]*/ method();
+  Sub1(). /*invoke: [exact=Sub1|powerset={N}{O}]*/ method();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Access of super getter.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: Super2.:[exact=Super2|powerset={N}]*/
+/*member: Super2.:[empty|powerset=empty]*/
 class Super2 {
-  /*member: Super2.getter:[exact=JSUInt31|powerset={I}]*/
+  /*member: Super2.getter:[exact=JSUInt31|powerset={I}{O}]*/
   get getter => 42;
 }
 
-/*member: Sub2.:[exact=Sub2|powerset={N}]*/
+/*member: Sub2.:[exact=Sub2|powerset={N}{O}]*/
 class Sub2 extends Super2 {
-  /*member: Sub2.method:[exact=JSUInt31|powerset={I}]*/
+  /*member: Sub2.method:[exact=JSUInt31|powerset={I}{O}]*/
   method() => super.getter;
 }
 
 /*member: superGetterAccess:[null|powerset={null}]*/
 superGetterAccess() {
-  Sub2(). /*invoke: [exact=Sub2|powerset={N}]*/ method();
+  Sub2(). /*invoke: [exact=Sub2|powerset={N}{O}]*/ method();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Access of super method.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: Super3.:[exact=Super3|powerset={N}]*/
+/*member: Super3.:[empty|powerset=empty]*/
 class Super3 {
   /*member: Super3.superMethod:[null|powerset={null}]*/
   superMethod() {}
 }
 
-/*member: Sub3.:[exact=Sub3|powerset={N}]*/
+/*member: Sub3.:[exact=Sub3|powerset={N}{O}]*/
 class Sub3 extends Super3 {
-  /*member: Sub3.method:[subclass=Closure|powerset={N}]*/
+  /*member: Sub3.method:[subclass=Closure|powerset={N}{O}]*/
   method() => super.superMethod;
 }
 
 /*member: superMethodAccess:[null|powerset={null}]*/
 superMethodAccess() {
-  Sub3(). /*invoke: [exact=Sub3|powerset={N}]*/ method();
+  Sub3(). /*invoke: [exact=Sub3|powerset={N}{O}]*/ method();
 }
