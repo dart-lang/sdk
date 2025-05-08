@@ -19,8 +19,10 @@ import 'read_bytes.dart' if (dart.library.io) 'read_bytes_aot.dart';
 ///
 /// Optional [transformBytes] callback can be used to tweak dynamic modules
 /// bytes if underlying implementation loads dynamic modules from bytes.
-Future<Object?> load(String moduleName,
-    {Uint8List Function(Uint8List)? transformBytes}) {
+Future<Object?> load(
+  String moduleName, {
+  Uint8List Function(Uint8List)? transformBytes,
+}) {
   if (const bool.fromEnvironment('dart.library.html')) {
     // DDC implementation
     return loadModuleFromUri(Uri(scheme: '', path: moduleName));

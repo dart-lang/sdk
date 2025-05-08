@@ -56,7 +56,11 @@ class Dart2wasmExecutor implements TargetExecutor {
   }
 
   Future _compile(
-      String testName, String source, Uri sourceDir, bool isMain) async {
+    String testName,
+    String source,
+    Uri sourceDir,
+    bool isMain,
+  ) async {
     var testDir = _tmp.uri.resolve(testName).toFilePath();
     var args = [
       '--packages=${repoRoot.toFilePath()}/.dart_tool/package_config.json',
@@ -72,8 +76,13 @@ class Dart2wasmExecutor implements TargetExecutor {
       '$rootScheme:/data/$testName/$source',
       '$source.wasm',
     ];
-    await runProcess(compileBenchmark.toFilePath(), args, testDir, _logger,
-        'compile $testName/$source');
+    await runProcess(
+      compileBenchmark.toFilePath(),
+      args,
+      testDir,
+      _logger,
+      'compile $testName/$source',
+    );
   }
 
   @override
@@ -100,16 +109,19 @@ class Dart2wasmExecutor implements TargetExecutor {
     // module), and finally launches the app.
     var testDir = _tmp.uri.resolve('${test.name}/');
     var result = await runProcess(
-        runBenchmark.toFilePath(),
-        ['${test.main}.wasm'],
-        testDir.toFilePath(),
-        _logger,
-        'run_benchmark ${test.main}.wasm');
+      runBenchmark.toFilePath(),
+      ['${test.main}.wasm'],
+      testDir.toFilePath(),
+      _logger,
+      'run_benchmark ${test.main}.wasm',
+    );
     var stdout = result.stdout as String;
     if (!stdout.contains(helper.successToken)) {
-      _logger.error('Error: test didn\'t complete as expected.\n'
-          'Make sure the test finishes and calls `helper.done()`.\n'
-          'Test output:\n$stdout');
+      _logger.error(
+        'Error: test didn\'t complete as expected.\n'
+        'Make sure the test finishes and calls `helper.done()`.\n'
+        'Test output:\n$stdout',
+      );
       throw Exception('missing helper.done');
     }
   }
