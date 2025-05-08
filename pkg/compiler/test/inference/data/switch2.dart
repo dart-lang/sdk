@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*member: foo:Value([null|exact=JSString|powerset={null}{I}{O}], value: "two", powerset: {null}{I}{O})*/
-foo(int /*[subclass=JSInt|powerset={I}{O}]*/ x) {
+/*member: foo:Value([null|exact=JSString|powerset={null}{I}{O}{I}], value: "two", powerset: {null}{I}{O}{I})*/
+foo(int /*[subclass=JSInt|powerset={I}{O}{N}]*/ x) {
   var a;
   switch (x) {
     case 1:
@@ -20,6 +20,6 @@ foo(int /*[subclass=JSInt|powerset={I}{O}]*/ x) {
 main() {
   foo(
     new DateTime.now()
-        . /*[exact=DateTime|powerset={N}{O}]*/ millisecondsSinceEpoch,
+        . /*[exact=DateTime|powerset={N}{O}{N}]*/ millisecondsSinceEpoch,
   );
 }

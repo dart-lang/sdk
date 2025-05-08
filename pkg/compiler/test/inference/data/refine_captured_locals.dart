@@ -14,18 +14,18 @@ main() {
 // Refine a local before it has been captured.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: Class1.:[exact=Class1|powerset={N}{O}]*/
+/*member: Class1.:[exact=Class1|powerset={N}{O}{N}]*/
 class Class1 {
   /*member: Class1.method1:[null|powerset={null}]*/
   method1() {}
 }
 
-/*member: _refineBeforeCapture:[exact=Class1|powerset={N}{O}]*/
-_refineBeforeCapture(/*[null|exact=Class1|powerset={null}{N}{O}]*/ o) {
-  o. /*invoke: [null|exact=Class1|powerset={null}{N}{O}]*/ method1();
-  o. /*invoke: [exact=Class1|powerset={N}{O}]*/ method1();
+/*member: _refineBeforeCapture:[exact=Class1|powerset={N}{O}{N}]*/
+_refineBeforeCapture(/*[null|exact=Class1|powerset={null}{N}{O}{N}]*/ o) {
+  o. /*invoke: [null|exact=Class1|powerset={null}{N}{O}{N}]*/ method1();
+  o. /*invoke: [exact=Class1|powerset={N}{O}{N}]*/ method1();
 
-  /*[exact=Class1|powerset={N}{O}]*/
+  /*[exact=Class1|powerset={N}{O}{N}]*/
   localFunction() => o;
   return localFunction();
 }
@@ -40,24 +40,24 @@ refineBeforeCapture() {
 // Refine a local after it has been captured.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: Class3.:[exact=Class3|powerset={N}{O}]*/
+/*member: Class3.:[exact=Class3|powerset={N}{O}{N}]*/
 class Class3 {
   /*member: Class3.method3:[null|powerset={null}]*/
   method3() {}
 }
 
-/*member: Class4.:[exact=Class4|powerset={N}{O}]*/
+/*member: Class4.:[exact=Class4|powerset={N}{O}{N}]*/
 class Class4 {}
 
-/*member: _refineAfterCapture:Union([exact=Class3|powerset={N}{O}], [exact=Class4|powerset={N}{O}], powerset: {N}{O})*/
+/*member: _refineAfterCapture:Union([exact=Class3|powerset={N}{O}{N}], [exact=Class4|powerset={N}{O}{N}], powerset: {N}{O}{N})*/
 _refineAfterCapture(
-  /*Union([exact=Class3|powerset={N}{O}], [exact=Class4|powerset={N}{O}], powerset: {N}{O})*/ o,
+  /*Union([exact=Class3|powerset={N}{O}{N}], [exact=Class4|powerset={N}{O}{N}], powerset: {N}{O}{N})*/ o,
 ) {
-  /*Union([exact=Class3|powerset={N}{O}], [exact=Class4|powerset={N}{O}], powerset: {N}{O})*/
+  /*Union([exact=Class3|powerset={N}{O}{N}], [exact=Class4|powerset={N}{O}{N}], powerset: {N}{O}{N})*/
   localFunction() => o;
 
-  o. /*invoke: Union([exact=Class3|powerset={N}{O}], [exact=Class4|powerset={N}{O}], powerset: {N}{O})*/ method3();
-  o. /*invoke: Union([exact=Class3|powerset={N}{O}], [exact=Class4|powerset={N}{O}], powerset: {N}{O})*/ method3();
+  o. /*invoke: Union([exact=Class3|powerset={N}{O}{N}], [exact=Class4|powerset={N}{O}{N}], powerset: {N}{O}{N})*/ method3();
+  o. /*invoke: Union([exact=Class3|powerset={N}{O}{N}], [exact=Class4|powerset={N}{O}{N}], powerset: {N}{O}{N})*/ method3();
 
   return localFunction();
 }
@@ -72,28 +72,28 @@ refineAfterCapture() {
 // Refine a local after it has been captured in a nested local function.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: Class5.:[exact=Class5|powerset={N}{O}]*/
+/*member: Class5.:[exact=Class5|powerset={N}{O}{N}]*/
 class Class5 {
   /*member: Class5.method5:[null|powerset={null}]*/
   method5() {}
 }
 
-/*member: Class6.:[exact=Class6|powerset={N}{O}]*/
+/*member: Class6.:[exact=Class6|powerset={N}{O}{N}]*/
 class Class6 {}
 
-/*member: _refineAfterNestedCapture:Union([exact=Class5|powerset={N}{O}], [exact=Class6|powerset={N}{O}], powerset: {N}{O})*/
+/*member: _refineAfterNestedCapture:Union([exact=Class5|powerset={N}{O}{N}], [exact=Class6|powerset={N}{O}{N}], powerset: {N}{O}{N})*/
 _refineAfterNestedCapture(
-  /*Union([exact=Class5|powerset={N}{O}], [exact=Class6|powerset={N}{O}], powerset: {N}{O})*/ o,
+  /*Union([exact=Class5|powerset={N}{O}{N}], [exact=Class6|powerset={N}{O}{N}], powerset: {N}{O}{N})*/ o,
 ) {
-  /*Union([exact=Class5|powerset={N}{O}], [exact=Class6|powerset={N}{O}], powerset: {N}{O})*/
+  /*Union([exact=Class5|powerset={N}{O}{N}], [exact=Class6|powerset={N}{O}{N}], powerset: {N}{O}{N})*/
   localFunction() {
-    /*Union([exact=Class5|powerset={N}{O}], [exact=Class6|powerset={N}{O}], powerset: {N}{O})*/
+    /*Union([exact=Class5|powerset={N}{O}{N}], [exact=Class6|powerset={N}{O}{N}], powerset: {N}{O}{N})*/
     nestedFunction() => o;
     return nestedFunction();
   }
 
-  o. /*invoke: Union([exact=Class5|powerset={N}{O}], [exact=Class6|powerset={N}{O}], powerset: {N}{O})*/ method5();
-  o. /*invoke: Union([exact=Class5|powerset={N}{O}], [exact=Class6|powerset={N}{O}], powerset: {N}{O})*/ method5();
+  o. /*invoke: Union([exact=Class5|powerset={N}{O}{N}], [exact=Class6|powerset={N}{O}{N}], powerset: {N}{O}{N})*/ method5();
+  o. /*invoke: Union([exact=Class5|powerset={N}{O}{N}], [exact=Class6|powerset={N}{O}{N}], powerset: {N}{O}{N})*/ method5();
 
   return localFunction();
 }
@@ -108,28 +108,28 @@ refineAfterNestedCapture() {
 // Refine a local in a local function after it has been captured.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: Class7.:[exact=Class7|powerset={N}{O}]*/
+/*member: Class7.:[exact=Class7|powerset={N}{O}{N}]*/
 class Class7 {
   /*member: Class7.method7:[null|powerset={null}]*/
   method7() {}
 }
 
-/*member: Class8.:[exact=Class8|powerset={N}{O}]*/
+/*member: Class8.:[exact=Class8|powerset={N}{O}{N}]*/
 class Class8 {}
 
-/*member: _refineAfterCaptureInNested:Union([exact=Class7|powerset={N}{O}], [exact=Class8|powerset={N}{O}], powerset: {N}{O})*/
+/*member: _refineAfterCaptureInNested:Union([exact=Class7|powerset={N}{O}{N}], [exact=Class8|powerset={N}{O}{N}], powerset: {N}{O}{N})*/
 _refineAfterCaptureInNested(
-  /*Union([exact=Class7|powerset={N}{O}], [exact=Class8|powerset={N}{O}], powerset: {N}{O})*/ o,
+  /*Union([exact=Class7|powerset={N}{O}{N}], [exact=Class8|powerset={N}{O}{N}], powerset: {N}{O}{N})*/ o,
 ) {
-  /*Union([exact=Class7|powerset={N}{O}], [exact=Class8|powerset={N}{O}], powerset: {N}{O})*/
+  /*Union([exact=Class7|powerset={N}{O}{N}], [exact=Class8|powerset={N}{O}{N}], powerset: {N}{O}{N})*/
   localFunction(
-    /*Union([exact=Class7|powerset={N}{O}], [exact=Class8|powerset={N}{O}], powerset: {N}{O})*/ p,
+    /*Union([exact=Class7|powerset={N}{O}{N}], [exact=Class8|powerset={N}{O}{N}], powerset: {N}{O}{N})*/ p,
   ) {
-    /*Union([exact=Class7|powerset={N}{O}], [exact=Class8|powerset={N}{O}], powerset: {N}{O})*/
+    /*Union([exact=Class7|powerset={N}{O}{N}], [exact=Class8|powerset={N}{O}{N}], powerset: {N}{O}{N})*/
     nestedFunction() => p;
 
-    p. /*invoke: Union([exact=Class7|powerset={N}{O}], [exact=Class8|powerset={N}{O}], powerset: {N}{O})*/ method7();
-    p. /*invoke: Union([exact=Class7|powerset={N}{O}], [exact=Class8|powerset={N}{O}], powerset: {N}{O})*/ method7();
+    p. /*invoke: Union([exact=Class7|powerset={N}{O}{N}], [exact=Class8|powerset={N}{O}{N}], powerset: {N}{O}{N})*/ method7();
+    p. /*invoke: Union([exact=Class7|powerset={N}{O}{N}], [exact=Class8|powerset={N}{O}{N}], powerset: {N}{O}{N})*/ method7();
 
     return nestedFunction();
   }

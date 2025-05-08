@@ -6,20 +6,20 @@
 
 import "package:expect/expect.dart";
 
-/*member: f:[subclass=JSInt|powerset={I}{O}]*/
+/*member: f:[subclass=JSInt|powerset={I}{O}{N}]*/
 int f(
   int
-  /*spec.[null|subclass=Object|powerset={null}{IN}{GFUO}]*/
-  /*prod.[subclass=JSInt|powerset={I}{O}]*/
+  /*spec.[null|subclass=Object|powerset={null}{IN}{GFUO}{IMN}]*/
+  /*prod.[subclass=JSInt|powerset={I}{O}{N}]*/
   i,
-) => 2 /*invoke: [exact=JSUInt31|powerset={I}{O}]*/ * i;
+) => 2 /*invoke: [exact=JSUInt31|powerset={I}{O}{N}]*/ * i;
 
 typedef int IntToInt(int x);
 
 /*member: test:[null|powerset={null}]*/
 test(
-  /*[null|subclass=Object|powerset={null}{IN}{GFUO}]*/ a,
-  /*[subclass=Closure|powerset={N}{O}]*/ b,
+  /*[null|subclass=Object|powerset={null}{IN}{GFUO}{IMN}]*/ a,
+  /*[subclass=Closure|powerset={N}{O}{N}]*/ b,
 ) => Expect.identical(a, b);
 
 /*member: main:[null|powerset={null}]*/
@@ -29,5 +29,5 @@ main() {
   // function-typed value (but it is a no-op).
   IntToInt f2 = f;
 
-  test(f2. /*[subclass=Closure|powerset={N}{O}]*/ call, f);
+  test(f2. /*[subclass=Closure|powerset={N}{O}{N}]*/ call, f);
 }

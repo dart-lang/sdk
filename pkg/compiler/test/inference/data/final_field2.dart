@@ -6,13 +6,13 @@
 // inferring types for fields.
 
 class A {
-  /*member: A.intField:[exact=JSUInt31|powerset={I}{O}]*/
+  /*member: A.intField:[exact=JSUInt31|powerset={I}{O}{N}]*/
   final intField;
 
-  /*member: A.stringField:Value([exact=JSString|powerset={I}{O}], value: "foo", powerset: {I}{O})*/
+  /*member: A.stringField:Value([exact=JSString|powerset={I}{O}{I}], value: "foo", powerset: {I}{O}{I})*/
   final stringField;
 
-  /*member: A.:[exact=A|powerset={N}{O}]*/
+  /*member: A.:[exact=A|powerset={N}{O}{N}]*/
   A() : intField = 42, stringField = 'foo';
 
   A.bar() : intField = 'bar', stringField = 42;

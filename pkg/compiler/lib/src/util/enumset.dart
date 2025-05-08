@@ -215,6 +215,14 @@ class EnumSetDomain<E extends Enum> {
   bool contains(Bitset bits, E enumValue) =>
       bits.intersects(fromValue(enumValue));
 
+  /// Returns `true` if [enumValue] is in [bits] and no other [E] is.
+  bool containsSingle(Bitset bits, E enumValue) =>
+      toEnumSet(bits) == enumValue.mask;
+
+  /// Returns `true` if the only [E] values in [bits] are in [enumValues].
+  bool containsOnly(Bitset bits, EnumSet<E> enumValues) =>
+      toEnumSet(bits).union(enumValues) == enumValues;
+
   /// Returns `true` if [bits] contains any [E].
   bool isNotEmpty(Bitset bits) => bits.intersects(allValues);
 

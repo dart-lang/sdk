@@ -187,10 +187,32 @@ enum TypeMaskArrayProperty {
   static const modifiableValues = [growable, fixedLength];
   static const unmodifiableValues = [unmodifiable];
 
-  static final _growableMask = _arrayDomain.fromValues(growableValues);
-  static final _fixedLengthMask = _arrayDomain.fromValues(fixedLengthValues);
-  static final _modifiableMask = _arrayDomain.fromValues(modifiableValues);
-  static final _unmodifiableMask = _arrayDomain.fromValues(unmodifiableValues);
+  static final _growableEnumSet = EnumSet.fromValues(growableValues);
+  static final _fixedLengthEnumSet = EnumSet.fromValues(fixedLengthValues);
+  static final _modifiableEnumSet = EnumSet.fromValues(modifiableValues);
+  static final _unmodifiableEnumSet = EnumSet.fromValues(unmodifiableValues);
+}
+
+/// This domain is similar to the [TypeMaskArrayProperty] domain. Since
+/// [JSMutableIndexable] is a subclass of [JSIndexable], every object that is
+/// mutable indexable (i.e. has `operator []=`) is also indexable (i.e. has
+/// `operator []`).
+///
+/// Therefore, the `mutableIndexable` bit corresponds to objects that have both
+/// operations, the `indexable` bit corresponds to objects that *only* have
+/// `operator []`, and the `notIndexable` bit corresponds to objects that have
+/// neither.
+enum TypeMaskIndexableProperty {
+  indexable('I'),
+  mutableIndexable('M'),
+  notIndexable('N');
+
+  final String _mnemonic;
+
+  const TypeMaskIndexableProperty(this._mnemonic);
+
+  @override
+  String toString() => _mnemonic;
 }
 
 // This domain is unique in that it tracks specific values which are not
@@ -224,10 +246,16 @@ final _arrayDomain = EnumSetDomain<TypeMaskArrayProperty>(
   TypeMaskArrayProperty.values,
 );
 
+final _indexableDomain = EnumSetDomain<TypeMaskIndexableProperty>(
+  _arrayDomain.nextOffset,
+  TypeMaskIndexableProperty.values,
+);
+
 final _powersetDomains = ComposedEnumSetDomains([
   _specialValueDomain,
   _interceptorDomain,
   _arrayDomain,
+  _indexableDomain,
 ]);
 
 Bitset _intersectPowersets(Bitset a, Bitset b) {

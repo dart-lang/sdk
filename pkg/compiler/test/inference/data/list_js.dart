@@ -24,7 +24,7 @@ test1() {
 
 /*member: witness1:[null|powerset={null}]*/
 witness1(
-  /*Container([exact=JSExtendableArray|powerset={I}{G}], element: [exact=JSUInt31|powerset={I}{O}], length: 1, powerset: {I}{G})*/ x,
+  /*Container([exact=JSExtendableArray|powerset={I}{G}{M}], element: [exact=JSUInt31|powerset={I}{O}{N}], length: 1, powerset: {I}{G}{M})*/ x,
 ) {}
 
 /*member: test2:[null|powerset={null}]*/
@@ -36,7 +36,7 @@ test2() {
 
 /*member: witness2:[null|powerset={null}]*/
 witness2(
-  /*Container([exact=JSExtendableArray|powerset={I}{G}], element: [null|subclass=Object|powerset={null}{IN}{GFUO}], length: null, powerset: {I}{G})*/ x,
+  /*Container([exact=JSExtendableArray|powerset={I}{G}{M}], element: [null|subclass=Object|powerset={null}{IN}{GFUO}{IMN}], length: null, powerset: {I}{G}{M})*/ x,
 ) {}
 
 /*member: test3:[null|powerset={null}]*/
@@ -48,7 +48,7 @@ test3() {
 
 /*member: witness3:[null|powerset={null}]*/
 witness3(
-  /*Container([exact=JSExtendableArray|powerset={I}{G}], element: [null|subclass=Object|powerset={null}{IN}{GFUO}], length: null, powerset: {I}{G})*/ x,
+  /*Container([exact=JSExtendableArray|powerset={I}{G}{M}], element: [null|subclass=Object|powerset={null}{IN}{GFUO}{IMN}], length: null, powerset: {I}{G}{M})*/ x,
 ) {}
 
 /*member: test4:[null|powerset={null}]*/
@@ -60,5 +60,5 @@ test4() {
 
 /*member: witness4:[null|powerset={null}]*/
 witness4(
-  /*Container([exact=JSExtendableArray|powerset={I}{G}], element: [exact=JSUInt31|powerset={I}{O}], length: 1, powerset: {I}{G})*/ x,
+  /*Container([exact=JSExtendableArray|powerset={I}{G}{M}], element: [exact=JSUInt31|powerset={I}{O}{N}], length: 1, powerset: {I}{G}{M})*/ x,
 ) {}

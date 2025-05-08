@@ -7,7 +7,7 @@ main() {
   nativeMethod();
 }
 
-/*member: nativeMethod:[null|subclass=Object|powerset={null}{IN}{GFUO}]*/
+/*member: nativeMethod:[null|subclass=Object|powerset={null}{IN}{GFUO}{IMN}]*/
 nativeMethod()
 // ignore: NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE
 native;

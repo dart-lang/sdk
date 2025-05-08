@@ -18,9 +18,10 @@ main() {
 // the 'dynamic' type.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _assumeDynamic:[null|subclass=Object|powerset={null}{IN}{GFUO}]*/
+/*member: _assumeDynamic:[null|subclass=Object|powerset={null}{IN}{GFUO}{IMN}]*/
 @pragma('dart2js:assumeDynamic')
-_assumeDynamic(/*[null|subclass=Object|powerset={null}{IN}{GFUO}]*/ o) => o;
+_assumeDynamic(/*[null|subclass=Object|powerset={null}{IN}{GFUO}{IMN}]*/ o) =>
+    o;
 
 /*member: assumeDynamic:[null|powerset={null}]*/
 assumeDynamic() {
@@ -31,8 +32,8 @@ assumeDynamic() {
 // As above but without the annotation.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _notAssumeDynamic:[exact=JSUInt31|powerset={I}{O}]*/
-_notAssumeDynamic(/*[exact=JSUInt31|powerset={I}{O}]*/ o) => o;
+/*member: _notAssumeDynamic:[exact=JSUInt31|powerset={I}{O}{N}]*/
+_notAssumeDynamic(/*[exact=JSUInt31|powerset={I}{O}{N}]*/ o) => o;
 
 /*member: notAssumeDynamic:[null|powerset={null}]*/
 notAssumeDynamic() {
@@ -43,7 +44,7 @@ notAssumeDynamic() {
 // No annotation is needed to trust return type annotation.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: trustReturnTypeString:[exact=JSString|powerset={I}{O}]*/
+/*member: trustReturnTypeString:[exact=JSString|powerset={I}{O}{I}]*/
 String trustReturnTypeString() {
   return _assumeDynamic(0);
 }
@@ -53,7 +54,7 @@ String trustReturnTypeString() {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*member: _trustParameterTypeString:[null|powerset={null}]*/
-_trustParameterTypeString(String /*[exact=JSString|powerset={I}{O}]*/ o) {}
+_trustParameterTypeString(String /*[exact=JSString|powerset={I}{O}{I}]*/ o) {}
 
 /*member: trustParameterTypeString:[null|powerset={null}]*/
 trustParameterTypeString() {

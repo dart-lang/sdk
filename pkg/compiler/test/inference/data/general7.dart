@@ -7,8 +7,10 @@
 /// _enabled_.
 
 /*member: foo:[null|powerset={null}]*/
-foo(/*[exact=JSUInt31|powerset={I}{O}]*/ x, [/*[null|powerset={null}]*/ y]) =>
-    y;
+foo(
+  /*[exact=JSUInt31|powerset={I}{O}{N}]*/ x, [
+  /*[null|powerset={null}]*/ y,
+]) => y;
 
 /*member: main:[null|powerset={null}]*/
 main() {

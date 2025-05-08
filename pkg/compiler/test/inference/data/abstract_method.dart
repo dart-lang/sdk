@@ -11,11 +11,11 @@ main() {
 // Call abstract method implemented by superclass.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: Class1.:[exact=Class1|powerset={N}{O}]*/
+/*member: Class1.:[exact=Class1|powerset={N}{O}{N}]*/
 class Class1 {
   operator ==(_);
 }
 
-/*member: abstractEquals:[exact=JSBool|powerset={I}{O}]*/
+/*member: abstractEquals:[exact=JSBool|powerset={I}{O}{N}]*/
 abstractEquals() =>
-    Class1() /*invoke: [exact=Class1|powerset={N}{O}]*/ == Class1();
+    Class1() /*invoke: [exact=Class1|powerset={N}{O}{N}]*/ == Class1();

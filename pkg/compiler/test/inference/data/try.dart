@@ -25,8 +25,8 @@ main() {
 /// Parameter passed through an empty try-catch statement.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _emptyTryCatch:[exact=JSUInt31|powerset={I}{O}]*/
-_emptyTryCatch(/*[exact=JSUInt31|powerset={I}{O}]*/ o) {
+/*member: _emptyTryCatch:[exact=JSUInt31|powerset={I}{O}{N}]*/
+_emptyTryCatch(/*[exact=JSUInt31|powerset={I}{O}{N}]*/ o) {
   try {} catch (e) {}
   return o;
 }
@@ -40,8 +40,8 @@ emptyTryCatch() {
 /// Parameter passed through an empty try-finally statement.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _emptyTryFinally:[exact=JSUInt31|powerset={I}{O}]*/
-_emptyTryFinally(/*[exact=JSUInt31|powerset={I}{O}]*/ o) {
+/*member: _emptyTryFinally:[exact=JSUInt31|powerset={I}{O}{N}]*/
+_emptyTryFinally(/*[exact=JSUInt31|powerset={I}{O}{N}]*/ o) {
   try {} finally {}
   return o;
 }
@@ -55,8 +55,8 @@ emptyTryFinally() {
 /// Parameter passed through an empty try-catch-finally statement.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _emptyTryCatchFinally:[exact=JSUInt31|powerset={I}{O}]*/
-_emptyTryCatchFinally(/*[exact=JSUInt31|powerset={I}{O}]*/ o) {
+/*member: _emptyTryCatchFinally:[exact=JSUInt31|powerset={I}{O}{N}]*/
+_emptyTryCatchFinally(/*[exact=JSUInt31|powerset={I}{O}{N}]*/ o) {
   try {} catch (e) {
   } finally {}
   return o;
@@ -71,7 +71,7 @@ emptyTryCatchFinally() {
 /// A try-catch statement with an assignment in the try block.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: tryCatchAssignmentInTry:[null|exact=JSUInt31|powerset={null}{I}{O}]*/
+/*member: tryCatchAssignmentInTry:[null|exact=JSUInt31|powerset={null}{I}{O}{N}]*/
 tryCatchAssignmentInTry() {
   int? o = 0;
   try {
@@ -84,7 +84,7 @@ tryCatchAssignmentInTry() {
 /// A try-catch statement with an assignment in the catch block.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: tryCatchAssignmentInCatch:[null|exact=JSUInt31|powerset={null}{I}{O}]*/
+/*member: tryCatchAssignmentInCatch:[null|exact=JSUInt31|powerset={null}{I}{O}{N}]*/
 tryCatchAssignmentInCatch() {
   int? o = 0;
   try {} catch (e) {
@@ -111,7 +111,7 @@ tryFinallyAssignmentInFinally() {
 /// block.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: tryCatchAssignmentInTryCatch:Union(null, [exact=JSString|powerset={I}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {null}{I}{O})*/
+/*member: tryCatchAssignmentInTryCatch:Union(null, [exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {null}{I}{O}{IN})*/
 tryCatchAssignmentInTryCatch() {
   dynamic o = 0;
   try {
@@ -143,8 +143,8 @@ tryCatchAssignmentInTryFinally() {
 /// catch clause.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _tryCatchParameterAssignmentInTry:[null|exact=JSUInt31|powerset={null}{I}{O}]*/
-_tryCatchParameterAssignmentInTry(/*[exact=JSUInt31|powerset={I}{O}]*/ o) {
+/*member: _tryCatchParameterAssignmentInTry:[null|exact=JSUInt31|powerset={null}{I}{O}{N}]*/
+_tryCatchParameterAssignmentInTry(/*[exact=JSUInt31|powerset={I}{O}{N}]*/ o) {
   try {
     o = null;
   } catch (e) {}
@@ -161,8 +161,8 @@ tryCatchParameterAssignmentInTry() {
 /// catch clause.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _tryCatchParameterAssignmentInCatch:[null|exact=JSUInt31|powerset={null}{I}{O}]*/
-_tryCatchParameterAssignmentInCatch(/*[exact=JSUInt31|powerset={I}{O}]*/ o) {
+/*member: _tryCatchParameterAssignmentInCatch:[null|exact=JSUInt31|powerset={null}{I}{O}{N}]*/
+_tryCatchParameterAssignmentInCatch(/*[exact=JSUInt31|powerset={I}{O}{N}]*/ o) {
   try {} catch (e) {
     o = null;
   }
@@ -181,7 +181,7 @@ tryCatchParameterAssignmentInCatch() {
 
 /*member: _tryFinallyParameterAssignmentInFinally:[null|powerset={null}]*/
 _tryFinallyParameterAssignmentInFinally(
-  /*[exact=JSUInt31|powerset={I}{O}]*/ o,
+  /*[exact=JSUInt31|powerset={I}{O}{N}]*/ o,
 ) {
   try {} finally {
     o = null;
@@ -199,8 +199,10 @@ tryFinallyParameterAssignmentInFinally() {
 /// catch clause.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _tryCatchParameterAssignmentInTryCatch:Union(null, [exact=JSString|powerset={I}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {null}{I}{O})*/
-_tryCatchParameterAssignmentInTryCatch(/*[exact=JSUInt31|powerset={I}{O}]*/ o) {
+/*member: _tryCatchParameterAssignmentInTryCatch:Union(null, [exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {null}{I}{O}{IN})*/
+_tryCatchParameterAssignmentInTryCatch(
+  /*[exact=JSUInt31|powerset={I}{O}{N}]*/ o,
+) {
   try {
     o = '';
   } catch (e) {
@@ -221,7 +223,7 @@ tryCatchParameterAssignmentInTryCatch() {
 
 /*member: _tryFinallyParameterAssignmentInTryFinally:[null|powerset={null}]*/
 _tryFinallyParameterAssignmentInTryFinally(
-  /*[exact=JSUInt31|powerset={I}{O}]*/ o,
+  /*[exact=JSUInt31|powerset={I}{O}{N}]*/ o,
 ) {
   try {
     o = '';

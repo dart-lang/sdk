@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*member: closure:[exact=JSUInt31|powerset={I}{O}]*/
+/*member: closure:[exact=JSUInt31|powerset={I}{O}{N}]*/
 int closure(
   int
-  /*spec.Union([exact=JSNumNotInt|powerset={I}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {I}{O})*/
-  /*prod.[exact=JSUInt31|powerset={I}{O}]*/
+  /*spec.Union([exact=JSNumNotInt|powerset={I}{O}{N}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {I}{O}{N})*/
+  /*prod.[exact=JSUInt31|powerset={I}{O}{N}]*/
   x,
 ) {
   return x;
@@ -15,10 +15,10 @@ int closure(
 class A {
   static const DEFAULT = const {'fun': closure};
 
-  /*member: A.map:Dictionary([subclass=ConstantMap|powerset={N}{O}], key: Value([exact=JSString|powerset={I}{O}], value: "fun", powerset: {I}{O}), value: [null|subclass=Closure|powerset={null}{N}{O}], map: {fun: [subclass=Closure|powerset={N}{O}]}, powerset: {N}{O})*/
+  /*member: A.map:Dictionary([subclass=ConstantMap|powerset={N}{O}{N}], key: Value([exact=JSString|powerset={I}{O}{I}], value: "fun", powerset: {I}{O}{I}), value: [null|subclass=Closure|powerset={null}{N}{O}{N}], map: {fun: [subclass=Closure|powerset={N}{O}{N}]}, powerset: {N}{O}{N})*/
   final map;
 
-  /*member: A.:[exact=A|powerset={N}{O}]*/
+  /*member: A.:[exact=A|powerset={N}{O}{N}]*/
   A([/*[null|powerset={null}]*/ maparg])
     : map = maparg == null ? DEFAULT : maparg;
 }
@@ -26,8 +26,8 @@ class A {
 /*member: main:[null|powerset={null}]*/
 main() {
   var a = A();
-  a. /*[exact=A|powerset={N}{O}]*/ map
-  /*Dictionary([subclass=ConstantMap|powerset={N}{O}], key: Value([exact=JSString|powerset={I}{O}], value: "fun", powerset: {I}{O}), value: [null|subclass=Closure|powerset={null}{N}{O}], map: {fun: [subclass=Closure|powerset={N}{O}]}, powerset: {N}{O})*/
+  a. /*[exact=A|powerset={N}{O}{N}]*/ map
+  /*Dictionary([subclass=ConstantMap|powerset={N}{O}{N}], key: Value([exact=JSString|powerset={I}{O}{I}], value: "fun", powerset: {I}{O}{I}), value: [null|subclass=Closure|powerset={null}{N}{O}{N}], map: {fun: [subclass=Closure|powerset={N}{O}{N}]}, powerset: {N}{O}{N})*/
   ['fun'](3.3);
   print(closure(22));
 }

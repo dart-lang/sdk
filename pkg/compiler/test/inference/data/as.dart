@@ -15,9 +15,9 @@ main() {
 // As int of int and non-int types.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _asIntWithString:[exact=JSUInt31|powerset={I}{O}]*/
+/*member: _asIntWithString:[exact=JSUInt31|powerset={I}{O}{N}]*/
 _asIntWithString(
-  /*Union([exact=JSString|powerset={I}{O}], [exact=JSUInt31|powerset={I}{O}], powerset: {I}{O})*/ o,
+  /*Union([exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {I}{O}{IN})*/ o,
 ) => o as int;
 
 /*member: asIntWithString:[null|powerset={null}]*/
@@ -30,8 +30,8 @@ asIntWithString() {
 // As int of known int and an unknown int types.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _asIntWithNegative:[subclass=JSInt|powerset={I}{O}]*/
-_asIntWithNegative(/*[subclass=JSInt|powerset={I}{O}]*/ o) => o as int;
+/*member: _asIntWithNegative:[subclass=JSInt|powerset={I}{O}{N}]*/
+_asIntWithNegative(/*[subclass=JSInt|powerset={I}{O}{N}]*/ o) => o as int;
 
 /*member: asIntWithNegative:[null|powerset={null}]*/
 asIntWithNegative() {
@@ -43,8 +43,8 @@ asIntWithNegative() {
 // As int of 0.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _asIntOfZero:[exact=JSUInt31|powerset={I}{O}]*/
-_asIntOfZero(/*[exact=JSUInt31|powerset={I}{O}]*/ o) => o as int;
+/*member: _asIntOfZero:[exact=JSUInt31|powerset={I}{O}{N}]*/
+_asIntOfZero(/*[exact=JSUInt31|powerset={I}{O}{N}]*/ o) => o as int;
 
 /*member: asIntOfZero:[null|powerset={null}]*/
 asIntOfZero() {
@@ -55,8 +55,8 @@ asIntOfZero() {
 // As int of -1.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _asIntOfMinusOne:[subclass=JSInt|powerset={I}{O}]*/
-_asIntOfMinusOne(/*[subclass=JSInt|powerset={I}{O}]*/ o) => o as int;
+/*member: _asIntOfMinusOne:[subclass=JSInt|powerset={I}{O}{N}]*/
+_asIntOfMinusOne(/*[subclass=JSInt|powerset={I}{O}{N}]*/ o) => o as int;
 
 /*member: asIntOfMinusOne:[null|powerset={null}]*/
 asIntOfMinusOne() {
@@ -69,7 +69,7 @@ asIntOfMinusOne() {
 
 /*member: _asIntOfString:[empty|powerset=empty]*/
 _asIntOfString(
-  /*Value([exact=JSString|powerset={I}{O}], value: "", powerset: {I}{O})*/ o,
+  /*Value([exact=JSString|powerset={I}{O}{I}], value: "", powerset: {I}{O}{I})*/ o,
 ) => o as int;
 
 /*member: asIntOfString:[null|powerset={null}]*/

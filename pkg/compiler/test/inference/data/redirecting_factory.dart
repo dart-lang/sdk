@@ -3,12 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class B implements A {
-  /*member: B.foo:[exact=B|powerset={N}{O}]*/
+  /*member: B.foo:[exact=B|powerset={N}{O}{N}]*/
   B.foo([int? /*[null|powerset={null}]*/ x]);
 }
 
 class A {
-  /*member: A._#foo#tearOff:[exact=B|powerset={N}{O}]*/
+  /*member: A._#foo#tearOff:[exact=B|powerset={N}{O}{N}]*/
   factory A.foo([int /*[null|powerset={null}]*/ x]) = B.foo;
 }
 

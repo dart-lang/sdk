@@ -12,8 +12,8 @@ main() {
 // Test if-then statement
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _simpleIfThen:[null|exact=JSUInt31|powerset={null}{I}{O}]*/
-_simpleIfThen(/*[exact=JSBool|powerset={I}{O}]*/ c) {
+/*member: _simpleIfThen:[null|exact=JSUInt31|powerset={null}{I}{O}{N}]*/
+_simpleIfThen(/*[exact=JSBool|powerset={I}{O}{N}]*/ c) {
   if (c) return 1;
   return null;
 }
@@ -28,8 +28,8 @@ simpleIfThen() {
 // Test if-then-else statement
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _simpleIfThenElse:[null|exact=JSUInt31|powerset={null}{I}{O}]*/
-_simpleIfThenElse(/*[exact=JSBool|powerset={I}{O}]*/ c) {
+/*member: _simpleIfThenElse:[null|exact=JSUInt31|powerset={null}{I}{O}{N}]*/
+_simpleIfThenElse(/*[exact=JSBool|powerset={I}{O}{N}]*/ c) {
   if (c)
     return 1;
   else

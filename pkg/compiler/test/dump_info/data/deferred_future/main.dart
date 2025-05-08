@@ -148,7 +148,7 @@ import 'lib2.dart' as lib2;
     "external": false
   },
   "returnType": "dynamic",
-  "inferredReturnType": "[exact=_Future|powerset={N}{O}]",
+  "inferredReturnType": "[exact=_Future|powerset={N}{O}{N}]",
   "parameters": [],
   "sideEffects": "SideEffects(reads nothing; writes nothing)",
   "inlinedCount": 0,

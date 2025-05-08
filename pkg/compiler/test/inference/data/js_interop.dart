@@ -16,37 +16,37 @@ main() {
 @JS()
 @anonymous
 class Class1 {
-  /*member: Class1.:[null|subclass=Object|powerset={null}{IN}{GFUO}]*/
+  /*member: Class1.:[null|subclass=Object|powerset={null}{IN}{GFUO}{IMN}]*/
   external factory Class1({
-    /*[exact=JSUInt31|powerset={I}{O}]*/ a,
-    /*Value([exact=JSString|powerset={I}{O}], value: "", powerset: {I}{O})*/ b,
+    /*[exact=JSUInt31|powerset={I}{O}{N}]*/ a,
+    /*Value([exact=JSString|powerset={I}{O}{I}], value: "", powerset: {I}{O}{I})*/ b,
   });
 }
 
-/*member: anonymousClass:[subclass=LegacyJavaScriptObject|powerset={I}{O}]*/
+/*member: anonymousClass:[subclass=LegacyJavaScriptObject|powerset={I}{O}{N}]*/
 anonymousClass() => Class1(a: 1, b: '');
 
 @JS()
 class JsInteropClass {
-  /*member: JsInteropClass.:[null|subclass=Object|powerset={null}{IN}{GFUO}]*/
+  /*member: JsInteropClass.:[null|subclass=Object|powerset={null}{IN}{GFUO}{IMN}]*/
   external JsInteropClass();
 
-  /*member: JsInteropClass.getter:[null|subclass=Object|powerset={null}{IN}{GFUO}]*/
+  /*member: JsInteropClass.getter:[null|subclass=Object|powerset={null}{IN}{GFUO}{IMN}]*/
   external int get getter;
 
-  external void set setter(int /*[subclass=JSInt|powerset={I}{O}]*/ value);
+  external void set setter(int /*[subclass=JSInt|powerset={I}{O}{N}]*/ value);
 
-  /*member: JsInteropClass.method:[null|subclass=Object|powerset={null}{IN}{GFUO}]*/
-  external int method(int /*[exact=JSUInt31|powerset={I}{O}]*/ a);
+  /*member: JsInteropClass.method:[null|subclass=Object|powerset={null}{IN}{GFUO}{IMN}]*/
+  external int method(int /*[exact=JSUInt31|powerset={I}{O}{N}]*/ a);
 }
 
-/*member: jsInteropClass:[subclass=JSInt|powerset={I}{O}]*/
+/*member: jsInteropClass:[subclass=JSInt|powerset={I}{O}{N}]*/
 jsInteropClass() {
   JsInteropClass cls = JsInteropClass();
-  return cls. /*update: [exact=JsInteropClass|powerset={I}{O}]*/ setter =
-      cls. /*[exact=JsInteropClass|powerset={I}{O}]*/ getter /*invoke: [subclass=JSInt|powerset={I}{O}]*/ +
-      cls. /*invoke: [exact=JsInteropClass|powerset={I}{O}]*/ method(
+  return cls. /*update: [exact=JsInteropClass|powerset={I}{O}{N}]*/ setter =
+      cls. /*[exact=JsInteropClass|powerset={I}{O}{N}]*/ getter /*invoke: [subclass=JSInt|powerset={I}{O}{N}]*/ +
+      cls. /*invoke: [exact=JsInteropClass|powerset={I}{O}{N}]*/ method(
         0,
-      ) /*invoke: [subclass=JSInt|powerset={I}{O}]*/ +
+      ) /*invoke: [subclass=JSInt|powerset={I}{O}{N}]*/ +
       10;
 }

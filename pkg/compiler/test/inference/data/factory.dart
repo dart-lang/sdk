@@ -3,19 +3,19 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class A {
-  /*member: A.generative:[exact=A|powerset={N}{O}]*/
+  /*member: A.generative:[exact=A|powerset={N}{O}{N}]*/
   A.generative();
 
   factory A.redirect() = B;
 
-  /*member: A.fact:[exact=C|powerset={N}{O}]*/
+  /*member: A.fact:[exact=C|powerset={N}{O}{N}]*/
   factory A.fact() => C();
 }
 
-/*member: B.:[exact=B|powerset={N}{O}]*/
+/*member: B.:[exact=B|powerset={N}{O}{N}]*/
 class B implements A {}
 
-/*member: C.:[exact=C|powerset={N}{O}]*/
+/*member: C.:[exact=C|powerset={N}{O}{N}]*/
 class C implements A {}
 
 /*member: main:[null|powerset={null}]*/
@@ -25,11 +25,11 @@ main() {
   createFactory();
 }
 
-/*member: createGenerative:[exact=A|powerset={N}{O}]*/
+/*member: createGenerative:[exact=A|powerset={N}{O}{N}]*/
 createGenerative() => A.generative();
 
-/*member: createRedirecting:[exact=B|powerset={N}{O}]*/
+/*member: createRedirecting:[exact=B|powerset={N}{O}{N}]*/
 createRedirecting() => A.redirect();
 
-/*member: createFactory:[exact=C|powerset={N}{O}]*/
+/*member: createFactory:[exact=C|powerset={N}{O}{N}]*/
 createFactory() => A.fact();

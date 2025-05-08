@@ -877,12 +877,22 @@ typedef _CachedPowersets = ({Bitset exact, Bitset subclass, Bitset subtype});
 class _PowersetCache {
   final JClosedWorld _closedWorld;
   final Set<ClassEntity> _interceptorCone;
+  final Set<ClassEntity> _indexableCone;
+  final Set<ClassEntity> _mutableIndexableCone;
   final Map<ClassEntity, _CachedPowersets> _cache = {};
 
   _PowersetCache(this._closedWorld)
     : _interceptorCone =
           _closedWorld.classHierarchy
               .subclassesOf(_closedWorld.commonElements.jsInterceptorClass)
+              .toSet(),
+      _indexableCone =
+          _closedWorld.classHierarchy
+              .subtypesOf(_closedWorld.commonElements.jsIndexableClass)
+              .toSet(),
+      _mutableIndexableCone =
+          _closedWorld.classHierarchy
+              .subtypesOf(_closedWorld.commonElements.jsMutableIndexableClass)
               .toSet();
 
   Bitset _computeExactPowerset(ClassEntity cls) {
@@ -913,6 +923,25 @@ class _PowersetCache {
       ]);
     } else {
       powerset = _arrayDomain.add(powerset, TypeMaskArrayProperty.other);
+    }
+
+    // The order of these checks is important since `JSMutableIndexable` is a
+    // subclass of `JSIndexable`.
+    if (_mutableIndexableCone.contains(cls)) {
+      powerset = _indexableDomain.add(
+        powerset,
+        TypeMaskIndexableProperty.mutableIndexable,
+      );
+    } else if (_indexableCone.contains(cls)) {
+      powerset = _indexableDomain.add(
+        powerset,
+        TypeMaskIndexableProperty.indexable,
+      );
+    } else {
+      powerset = _indexableDomain.add(
+        powerset,
+        TypeMaskIndexableProperty.notIndexable,
+      );
     }
 
     return powerset;

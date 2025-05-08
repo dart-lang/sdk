@@ -10,16 +10,16 @@ main() {
   syncStarMethod();
 }
 
-/*member: asyncMethod:[exact=_Future|powerset={N}{O}]*/
+/*member: asyncMethod:[exact=_Future|powerset={N}{O}{N}]*/
 asyncMethod() async {}
 
-/*member: asyncMethodWithReturn:Union([exact=JSUInt31|powerset={I}{O}], [exact=_Future|powerset={N}{O}], powerset: {IN}{O})*/
+/*member: asyncMethodWithReturn:Union([exact=JSUInt31|powerset={I}{O}{N}], [exact=_Future|powerset={N}{O}{N}], powerset: {IN}{O}{N})*/
 asyncMethodWithReturn() async {
   return 0;
 }
 
-/*member: asyncStarMethod:[exact=_ControllerStream|powerset={N}{O}]*/
+/*member: asyncStarMethod:[exact=_ControllerStream|powerset={N}{O}{N}]*/
 asyncStarMethod() async* {}
 
-/*member: syncStarMethod:[exact=_SyncStarIterable|powerset={N}{O}]*/
+/*member: syncStarMethod:[exact=_SyncStarIterable|powerset={N}{O}{N}]*/
 syncStarMethod() sync* {}
