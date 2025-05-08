@@ -69,8 +69,9 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
 
     input['dependencies']?.forEach((String k, dependencies) {
       List<String> deps = dependencies;
-      result.dependencies[registry[k]!] =
-          deps.map((d) => registry[d]!).toList();
+      result.dependencies[registry[k]!] = deps
+          .map((d) => registry[d]!)
+          .toList();
     });
 
     result.outputUnits.addAll(
@@ -80,8 +81,8 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
     result.program = parseProgram(input['program']);
 
     if (input['deferredFiles'] != null) {
-      final deferredFilesMap =
-          (input['deferredFiles'] as Map).cast<String, Map<String, dynamic>>();
+      final deferredFilesMap = (input['deferredFiles'] as Map)
+          .cast<String, Map<String, dynamic>>();
       for (final library in deferredFilesMap.values) {
         if (library['imports'] != null) {
           // The importMap needs to be typed as <String, List<String>>, but the
@@ -181,10 +182,9 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
       ..code = parseCode(json['code'])
       ..isConst = json['const'] ?? false
       ..initializer = parseId(json['initializer']) as ConstantInfo?
-      ..closures =
-          (json['children'] as List)
-              .map<ClosureInfo>((c) => parseId(c) as ClosureInfo)
-              .toList();
+      ..closures = (json['children'] as List)
+          .map<ClosureInfo>((c) => parseId(c) as ClosureInfo)
+          .toList();
   }
 
   ConstantInfo parseConstant(Map json) {
@@ -208,22 +208,19 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
   ProgramInfo parseProgram(Map json) {
     // TODO(het): Revert this when the dart2js with the new codec is in stable
     final compilationDuration = json['compilationDuration'];
-    final compilationDurationParsed =
-        compilationDuration is String
-            ? _parseDuration(compilationDuration)
-            : Duration(microseconds: compilationDuration as int);
+    final compilationDurationParsed = compilationDuration is String
+        ? _parseDuration(compilationDuration)
+        : Duration(microseconds: compilationDuration as int);
 
     final toJsonDuration = json['toJsonDuration'];
-    final toJsonDurationParsed =
-        toJsonDuration is String
-            ? _parseDuration(toJsonDuration)
-            : Duration(microseconds: toJsonDuration as int);
+    final toJsonDurationParsed = toJsonDuration is String
+        ? _parseDuration(toJsonDuration)
+        : Duration(microseconds: toJsonDuration as int);
 
     final dumpInfoDuration = json['dumpInfoDuration'];
-    final dumpInfoDurationParsed =
-        dumpInfoDuration is String
-            ? _parseDuration(dumpInfoDuration)
-            : Duration(microseconds: dumpInfoDuration as int);
+    final dumpInfoDurationParsed = dumpInfoDuration is String
+        ? _parseDuration(dumpInfoDuration)
+        : Duration(microseconds: dumpInfoDuration as int);
 
     final programInfo = ProgramInfo(
       entrypoint: parseId(json['entrypoint']) as FunctionInfo,
@@ -276,16 +273,16 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
       ..type = json['type']
       ..returnType = json['returnType']
       ..inferredReturnType = json['inferredReturnType']
-      ..parameters =
-          (json['parameters'] as List).map((p) => parseParameter(p)).toList()
+      ..parameters = (json['parameters'] as List)
+          .map((p) => parseParameter(p))
+          .toList()
       ..code = parseCode(json['code'])
       ..sideEffects = json['sideEffects']
       ..inlinedCount = json['inlinedCount']
       ..modifiers = parseModifiers(Map<String, bool>.from(json['modifiers']))
-      ..closures =
-          (json['children'] as List)
-              .map<ClosureInfo>((c) => parseId(c) as ClosureInfo)
-              .toList();
+      ..closures = (json['children'] as List)
+          .map<ClosureInfo>((c) => parseId(c) as ClosureInfo)
+          .toList();
   }
 
   ParameterInfo parseParameter(Map json) =>
@@ -450,10 +447,9 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
     var map = SplayTreeMap<String, List<Map<String, dynamic>>>(compareNatural);
     void helper(CodeInfo info) {
       if (info.uses.isEmpty) return;
-      map[idFor(info).serializedId] =
-          SplayTreeSet.of(
-            info.uses.map(_createFromDepInfo),
-          ).map((e) => e.toJson()).toList();
+      map[idFor(info).serializedId] = SplayTreeSet.of(
+        info.uses.map(_createFromDepInfo),
+      ).map((e) => e.toJson()).toList();
     }
 
     allInfo.functions.forEach(helper);
@@ -557,12 +553,13 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
 
   @override
   Map visitField(FieldInfo info) {
-    var result = _visitBasicInfo(info)..addAll(<String, Object>{
-      'children': _toSortedSerializedIds(info.closures, idFor),
-      'inferredType': info.inferredType,
-      'code': _serializeCode(info.code),
-      'type': info.type,
-    });
+    var result = _visitBasicInfo(info)
+      ..addAll(<String, Object>{
+        'children': _toSortedSerializedIds(info.closures, idFor),
+        'inferredType': info.inferredType,
+        'code': _serializeCode(info.code),
+        'type': info.type,
+      });
     if (info.isConst) {
       result['const'] = true;
       if (info.initializer != null) {
@@ -626,10 +623,9 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
       _visitBasicInfo(info)..['type'] = info.type;
 
   @override
-  Map visitOutput(OutputUnitInfo info) =>
-      _visitBasicInfo(info)
-        ..['filename'] = info.filename
-        ..['imports'] = info.imports;
+  Map visitOutput(OutputUnitInfo info) => _visitBasicInfo(info)
+    ..['filename'] = info.filename
+    ..['imports'] = info.imports;
 
   Object _serializeCode(List<CodeSpan> code) {
     if (isBackwardCompatible) {

@@ -64,10 +64,9 @@ Future<void> _showLayout(String file) async {
     print('  contains:');
     map.forEach((lib, elements) {
       final uri = lib.uri;
-      final shortUri =
-          (uri.isScheme('file') && uri.path.startsWith(dir))
-              ? uri.path.substring(dir.length + 1)
-              : '$uri';
+      final shortUri = (uri.isScheme('file') && uri.path.startsWith(dir))
+          ? uri.path.substring(dir.length + 1)
+          : '$uri';
 
       // If the entire library is in one chunk, just report the library name
       // otherwise report which functions are on this chunk.

@@ -176,8 +176,9 @@ abstract class AbstractDataSource extends DataSourceMixin
 
   @override
   E readCached<E>(E Function() f) {
-    IndexedSource source =
-        _generalCaches[E] ??= IndexedSource<E>(_readIntInternal);
+    IndexedSource source = _generalCaches[E] ??= IndexedSource<E>(
+      _readIntInternal,
+    );
     return source.read(f);
   }
 
