@@ -638,7 +638,9 @@ void IsolateGroup::IncreaseMutatorCount(Thread* thread,
     // does not do a NotifyAll to prevent the case of thousands of threads
     // waking up to claim a ~dozen slots, so we keep notifying while there are
     // both available slots and waiters.
-    if ((active_mutators_ != max_active_mutators_) && (waiting_mutators_ > 0)) {
+    if ((waiting_mutators_ > 0) &&
+        ((!has_timeout_waiter_) ||
+         (active_mutators_ != max_active_mutators_))) {
       ml.Notify();
     }
   }
