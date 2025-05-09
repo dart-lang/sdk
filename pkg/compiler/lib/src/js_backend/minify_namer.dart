@@ -419,20 +419,17 @@ mixin _MinifiedOneShotInterceptorNamer implements Namer {
     Selector selector,
     Iterable<ClassEntity> classes,
   ) {
-    final root =
-        selector.isOperator
-            ? operatorNameToIdentifier(selector.name)
-            : privateName(selector.memberName);
-    String prefix =
-        selector.isGetter
-            ? r"$get"
-            : selector.isSetter
-            ? r"$set"
-            : "";
-    String callSuffix =
-        selector.isCall
-            ? callSuffixForStructure(selector.callStructure).join()
-            : "";
+    final root = selector.isOperator
+        ? operatorNameToIdentifier(selector.name)
+        : privateName(selector.memberName);
+    String prefix = selector.isGetter
+        ? r"$get"
+        : selector.isSetter
+        ? r"$set"
+        : "";
+    String callSuffix = selector.isCall
+        ? callSuffixForStructure(selector.callStructure).join()
+        : "";
     String suffix = suffixForGetInterceptor(
       _commonElements,
       _nativeData,

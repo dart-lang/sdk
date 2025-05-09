@@ -101,7 +101,8 @@ class Class2 {
 /*member: _whileUnion1:Union(null, [exact=Class1|powerset={N}{O}{N}], [exact=Class2|powerset={N}{O}{N}], powerset: {null}{N}{O}{N})*/
 _whileUnion1(/*[exact=Class1|powerset={N}{O}{N}]*/ o) {
   while (o != null) {
-    o = o. /*Union([exact=Class1|powerset={N}{O}{N}], [exact=Class2|powerset={N}{O}{N}], powerset: {N}{O}{N})*/ field;
+    o = o
+        . /*Union([exact=Class1|powerset={N}{O}{N}], [exact=Class2|powerset={N}{O}{N}], powerset: {N}{O}{N})*/ field;
   }
   return o;
 }
@@ -135,7 +136,8 @@ class Class4 {
 /*member: _whileUnion2:Union(null, [exact=Class3|powerset={N}{O}{N}], [exact=Class4|powerset={N}{O}{N}], powerset: {null}{N}{O}{N})*/
 _whileUnion2(/*[exact=Class4|powerset={N}{O}{N}]*/ o) {
   while (o != null) {
-    o = o. /*Union([exact=Class3|powerset={N}{O}{N}], [exact=Class4|powerset={N}{O}{N}], powerset: {N}{O}{N})*/ field;
+    o = o
+        . /*Union([exact=Class3|powerset={N}{O}{N}], [exact=Class4|powerset={N}{O}{N}], powerset: {N}{O}{N})*/ field;
   }
   return o;
 }
@@ -171,7 +173,8 @@ _whileUnion3(
   /*Union([exact=Class5|powerset={N}{O}{N}], [exact=Class6|powerset={N}{O}{N}], powerset: {N}{O}{N})*/ o,
 ) {
   while (o != null) {
-    o = o. /*Union([exact=Class5|powerset={N}{O}{N}], [exact=Class6|powerset={N}{O}{N}], powerset: {N}{O}{N})*/ field;
+    o = o
+        . /*Union([exact=Class5|powerset={N}{O}{N}], [exact=Class6|powerset={N}{O}{N}], powerset: {N}{O}{N})*/ field;
   }
   return o;
 }
@@ -238,7 +241,8 @@ class Class10 {
 /*member: _whileIsNot:Union(null, [exact=Class10|powerset={N}{O}{N}], [exact=Class9|powerset={N}{O}{N}], powerset: {null}{N}{O}{N})*/
 _whileIsNot(/*[exact=Class9|powerset={N}{O}{N}]*/ o) {
   while (o is! Class10) {
-    o = o. /*Union(null, [exact=Class10|powerset={N}{O}{N}], [exact=Class9|powerset={N}{O}{N}], powerset: {null}{N}{O}{N})*/ field;
+    o = o
+        . /*Union(null, [exact=Class10|powerset={N}{O}{N}], [exact=Class9|powerset={N}{O}{N}], powerset: {null}{N}{O}{N})*/ field;
   }
   return o;
 }

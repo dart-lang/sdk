@@ -83,8 +83,8 @@ class Builder {
     for (var import in imports) {
       var libraryUri = import.enclosingLibraryUri;
       var prefix = import.name;
-      Map<String, ImportEntity> uriNodes =
-          importsByUriAndPrefix[libraryUri] ??= {};
+      Map<String, ImportEntity> uriNodes = importsByUriAndPrefix[libraryUri] ??=
+          {};
       uriNodes[prefix!] = import;
     }
 
@@ -181,8 +181,9 @@ class Builder {
         }
       } else {
         assert(constraint.combinerType == CombinerType.or);
-        var setTransition =
-            setTransitions[constraint] ??= SetTransition(constraint.imports);
+        var setTransition = setTransitions[constraint] ??= SetTransition(
+          constraint.imports,
+        );
         setTransition.transitions.addAll(transitiveChildren);
       }
 

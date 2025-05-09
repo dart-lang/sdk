@@ -104,7 +104,7 @@ class KernelAnnotationProcessor {
         // otherwise paying the cost to verify by indexing extension types.
         bool isObjectLiteralConstructor =
             (memberNode.isExtensionTypeMember &&
-                memberNode.function?.namedParameters.isNotEmpty == true);
+            memberNode.function?.namedParameters.isNotEmpty == true);
         if (function.isExternal &&
             (isExplicitlyJsLibrary || isObjectLiteralConstructor)) {
           // External members of explicit js-interop library are implicitly

@@ -1935,10 +1935,9 @@ abstract class HInvokeDynamic extends HInvoke implements InstructionContext {
     AbstractValue resultType,
   ) : _selector = selector,
       _originalReceiverType = _receiverType,
-      specializer =
-          isIntercepted
-              ? InvokeDynamicSpecializer.lookupSpecializer(selector)
-              : const InvokeDynamicSpecializer(),
+      specializer = isIntercepted
+          ? InvokeDynamicSpecializer.lookupSpecializer(selector)
+          : const InvokeDynamicSpecializer(),
       super(inputs, resultType) {
     isInterceptedCall = isIntercepted;
   }
@@ -2100,10 +2099,9 @@ class HInvokeDynamicGetter extends HInvokeDynamicField {
 
   // There might be an interceptor input, so `inputs.last` is the dart receiver.
   @override
-  bool canThrow(AbstractValueDomain domain) =>
-      isTearOff
-          ? inputs.last.isNull(domain).isPotentiallyTrue
-          : super.canThrow(domain);
+  bool canThrow(AbstractValueDomain domain) => isTearOff
+      ? inputs.last.isNull(domain).isPotentiallyTrue
+      : super.canThrow(domain);
 
   @override
   String toString() =>

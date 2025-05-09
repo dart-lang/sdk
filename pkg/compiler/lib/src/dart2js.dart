@@ -715,10 +715,9 @@ Future<api.CompilationResult> compile(
   }
 
   // TODO(johnniwinther): Measure time for reading files.
-  SourceFileByteReader byteReader =
-      compilerOptions.memoryMappedFiles
-          ? const MemoryMapSourceFileByteReader()
-          : const MemoryCopySourceFileByteReader();
+  SourceFileByteReader byteReader = compilerOptions.memoryMappedFiles
+      ? const MemoryMapSourceFileByteReader()
+      : const MemoryCopySourceFileByteReader();
 
   SourceFileProvider inputProvider;
   if (bazelPaths != null) {
@@ -990,8 +989,9 @@ void writeString(Uri uri, String text) {
   if (!uri.isScheme('file')) {
     _fail('Unhandled scheme ${uri.scheme}.');
   }
-  var file = (File(uri.toFilePath())
-    ..createSync(recursive: true)).openSync(mode: FileMode.write);
+  var file = (File(
+    uri.toFilePath(),
+  )..createSync(recursive: true)).openSync(mode: FileMode.write);
   file.writeStringSync(text);
   file.closeSync();
 }
@@ -1052,7 +1052,8 @@ Usage: dart compile js [arguments] <dart entry point>
      -O2          Safe production-oriented optimizations (like minification).
      -O3          Potentially unsafe optimizations (see -h -v for details).
      -O4          More aggressive unsafe optimizations (see -h -v for details).
-'''.trim(),
+'''
+        .trim(),
   );
 }
 
@@ -1244,7 +1245,8 @@ be removed in a future version:
   --no-frequency-based-minification
     Experimental. Disable the new frequency based minifying namer and use the
     old namer instead.
-'''.trim(),
+'''
+        .trim(),
   );
 }
 

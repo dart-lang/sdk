@@ -58,12 +58,12 @@ class Class1<T> {
     }
 
     var local2 =
-    /*fields=[S,this],free=[S,this],hasThis*/
-    (o) {
-      return
-      /*fields=[S,this],free=[S,this],hasThis*/
-      () => Map<T, S>();
-    };
+        /*fields=[S,this],free=[S,this],hasThis*/
+        (o) {
+          return
+          /*fields=[S,this],free=[S,this],hasThis*/
+          () => Map<T, S>();
+        };
     return local2(local<double>());
   }
 

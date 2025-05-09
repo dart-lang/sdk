@@ -51,11 +51,10 @@ Future runTest1() async {
   JClosedWorld closedWorld = results.closedWorld;
   JElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
   AbstractValueDomain commonMasks = closedWorld.abstractValueDomain;
-  MemberEntity element =
-      elementEnvironment.lookupLibraryMember(
-        elementEnvironment.mainLibrary!,
-        'foo',
-      )!;
+  MemberEntity element = elementEnvironment.lookupLibraryMember(
+    elementEnvironment.mainLibrary!,
+    'foo',
+  )!;
   AbstractValue mask = results.resultOfMember(element).returnType;
   AbstractValue falseType = ValueTypeMask(
     commonMasks.boolType as TypeMask,
@@ -113,11 +112,10 @@ Future runTest2() async {
   JClosedWorld closedWorld = results.closedWorld;
   AbstractValueDomain commonMasks = closedWorld.abstractValueDomain;
   JElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
-  MemberEntity element =
-      elementEnvironment.lookupLibraryMember(
-        elementEnvironment.mainLibrary!,
-        'foo',
-      )!;
+  MemberEntity element = elementEnvironment.lookupLibraryMember(
+    elementEnvironment.mainLibrary!,
+    'foo',
+  )!;
   AbstractValue mask = results.resultOfMember(element).returnType;
   // Can't infer value for foo's return type, it could be either true or false
   Expect.identical(commonMasks.boolType, mask);

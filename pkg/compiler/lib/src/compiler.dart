@@ -159,10 +159,9 @@ class Compiler {
     options.validate();
     environment = Environment(options.environment);
 
-    abstractValueStrategy =
-        options.useTrivialAbstractValueDomain
-            ? const TrivialAbstractValueStrategy()
-            : const TypeMaskStrategy();
+    abstractValueStrategy = options.useTrivialAbstractValueDomain
+        ? const TrivialAbstractValueStrategy()
+        : const TypeMaskStrategy();
     if (options.debugGlobalInference) {
       abstractValueStrategy = ComputableAbstractValueStrategy(
         abstractValueStrategy,
@@ -267,8 +266,10 @@ class Compiler {
       return '${library.importUri}(${library.fileUri})';
     }
 
-    var unusedLibraries =
-        component.libraries.where(isUnused).map(libraryString).toList();
+    var unusedLibraries = component.libraries
+        .where(isUnused)
+        .map(libraryString)
+        .toList();
     unusedLibraries.sort();
     var jsonLibraries = jsonEncode(unusedLibraries);
     outputProvider.createOutputSink(
@@ -318,10 +319,9 @@ class Compiler {
     if (options.readProgramSplit != null) {
       var constraintUri = options.readProgramSplit;
       var constraintParser = psc.Parser();
-      var programSplitJson =
-          await CompilerFileSystem(
-            provider,
-          ).entityForUri(constraintUri!).readAsString();
+      var programSplitJson = await CompilerFileSystem(
+        provider,
+      ).entityForUri(constraintUri!).readAsString();
       programSplitConstraintsData = constraintParser.read(programSplitJson);
     }
 
@@ -353,9 +353,9 @@ class Compiler {
     List<Uri> libraries,
   ) {
     frontendStrategy.registerLoadedLibraries(component, libraries);
-    ResolutionEnqueuer resolutionEnqueuer = frontendStrategy
-        .createResolutionEnqueuer(enqueueTask, this)
-      ..onEmptyForTesting = onResolutionQueueEmptyForTesting;
+    ResolutionEnqueuer resolutionEnqueuer =
+        frontendStrategy.createResolutionEnqueuer(enqueueTask, this)
+          ..onEmptyForTesting = onResolutionQueueEmptyForTesting;
     if (retainDataForTesting) {
       resolutionEnqueuerForTesting = resolutionEnqueuer;
       resolutionWorldBuilderForTesting = resolutionEnqueuer.worldBuilder;
@@ -455,8 +455,8 @@ class Compiler {
       }
       return output.withNewComponent(component);
     } else {
-      ir.Component component =
-          await serializationTask.deserializeComponentAndUpdateOptions();
+      ir.Component component = await serializationTask
+          .deserializeComponentAndUpdateOptions();
       if (retainDataForTesting) {
         componentForTesting = component;
       }
@@ -952,8 +952,8 @@ class Compiler {
     // so that tests can determine the cause of the message.
     final messageText =
         diagnosticMessage is DiagnosticCfeMessage && options.testMode
-            ? diagnosticMessage.messageCode
-            : '$message';
+        ? diagnosticMessage.messageCode
+        : '$message';
     if (span.isUnknown) {
       callUserHandler(message, null, null, null, messageText, kind);
     } else {

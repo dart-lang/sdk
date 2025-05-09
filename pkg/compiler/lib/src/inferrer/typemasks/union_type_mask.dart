@@ -105,10 +105,9 @@ class UnionTypeMask extends TypeMask {
       } else if (mask.isEmpty) {
         continue;
       } else {
-        var flatMask =
-            mask is RecordTypeMask
-                ? mask.toFlatTypeMask(domain)
-                : mask as FlatTypeMask;
+        var flatMask = mask is RecordTypeMask
+            ? mask.toFlatTypeMask(domain)
+            : mask as FlatTypeMask;
         int inListIndex = -1;
         bool covered = false;
 

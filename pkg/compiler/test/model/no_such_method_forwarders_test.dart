@@ -152,21 +152,18 @@ main() {
         );
         late DartType type;
         if (member.isFunction) {
-          type =
-              closedWorld.elementEnvironment
-                  .getFunctionType(member as FunctionEntity)
-                  .returnType;
+          type = closedWorld.elementEnvironment
+              .getFunctionType(member as FunctionEntity)
+              .returnType;
         } else if (member.isGetter) {
-          type =
-              closedWorld.elementEnvironment
-                  .getFunctionType(member as FunctionEntity)
-                  .returnType;
+          type = closedWorld.elementEnvironment
+              .getFunctionType(member as FunctionEntity)
+              .returnType;
         } else if (member.isSetter) {
-          type =
-              closedWorld.elementEnvironment
-                  .getFunctionType(member as FunctionEntity)
-                  .parameterTypes
-                  .first;
+          type = closedWorld.elementEnvironment
+              .getFunctionType(member as FunctionEntity)
+              .parameterTypes
+              .first;
         }
         type = type.withoutNullability;
         Expect.isTrue(

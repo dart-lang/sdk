@@ -95,8 +95,8 @@ class ClosureIrChecker extends IrDataExtractor<String> {
 
   ClosureRepresentationInfo? get closureRepresentationInfo =>
       closureRepresentationInfoStack.isNotEmpty
-          ? closureRepresentationInfoStack.head
-          : null;
+      ? closureRepresentationInfoStack.head
+      : null;
 
   @override
   visitFunctionExpression(ir.FunctionExpression node) {

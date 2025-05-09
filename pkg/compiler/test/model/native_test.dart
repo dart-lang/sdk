@@ -390,10 +390,12 @@ runNegativeTest(
     result.isSuccess,
     "Expected compile time error(s) for\n$subTest",
   );
-  List<String> expected =
-      subTest.expectedErrors.map((error) => 'MessageKind.' + error).toList();
-  List<String> actual =
-      collector.errors.map((error) => error.messageKind.toString()).toList();
+  List<String> expected = subTest.expectedErrors
+      .map((error) => 'MessageKind.' + error)
+      .toList();
+  List<String> actual = collector.errors
+      .map((error) => error.messageKind.toString())
+      .toList();
   expected.sort();
   actual.sort();
   Expect.listEquals(

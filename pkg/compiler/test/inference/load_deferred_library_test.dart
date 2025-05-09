@@ -45,8 +45,9 @@ runTest(List<String> options, {bool trust = true}) async {
   JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
   AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
-  LibraryEntity helperLibrary =
-      elementEnvironment.lookupLibrary(Uris.dartJSHelper)!;
+  LibraryEntity helperLibrary = elementEnvironment.lookupLibrary(
+    Uris.dartJSHelper,
+  )!;
   final loadDeferredLibrary =
       elementEnvironment.lookupLibraryMember(
             helperLibrary,

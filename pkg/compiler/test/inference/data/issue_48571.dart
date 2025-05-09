@@ -17,10 +17,10 @@ bool trivial(/*[exact=JSBool|powerset={I}{O}{N}]*/ x) => true;
 /*member: either:Union([exact=Child1|powerset={N}{O}{N}], [exact=Child2|powerset={N}{O}{N}], powerset: {N}{O}{N})*/
 Base either =
     DateTime.now()
-                . /*[exact=DateTime|powerset={N}{O}{N}]*/ millisecondsSinceEpoch /*invoke: [subclass=JSInt|powerset={I}{O}{N}]*/ >
-            0
-        ? Child2()
-        : Child1();
+            . /*[exact=DateTime|powerset={N}{O}{N}]*/ millisecondsSinceEpoch /*invoke: [subclass=JSInt|powerset={I}{O}{N}]*/ >
+        0
+    ? Child2()
+    : Child1();
 
 /*member: test1:Union(null, [exact=Child1|powerset={N}{O}{N}], [exact=Child2|powerset={N}{O}{N}], powerset: {null}{N}{O}{N})*/
 test1() {

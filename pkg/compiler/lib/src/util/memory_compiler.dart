@@ -75,15 +75,13 @@ api.CompilerDiagnostics createCompilerDiagnostics(
 }) {
   if (showDiagnostics) {
     if (diagnostics == null) {
-      diagnostics =
-          FormattingDiagnosticHandler()
-            ..verbose = verbose
-            ..registerFileProvider(provider);
+      diagnostics = FormattingDiagnosticHandler()
+        ..verbose = verbose
+        ..registerFileProvider(provider);
     } else {
-      var formattingHandler =
-          FormattingDiagnosticHandler()
-            ..verbose = verbose
-            ..registerFileProvider(provider);
+      var formattingHandler = FormattingDiagnosticHandler()
+        ..verbose = verbose
+        ..registerFileProvider(provider);
       diagnostics = MultiDiagnostics([diagnostics, formattingHandler]);
     }
   } else {
@@ -130,8 +128,8 @@ Future<api.CompilationResult> runCompiler({
     beforeRun(compiler);
   }
   bool isSuccess = await compiler.run();
-  fe.InitializedCompilerState? compilerState =
-      kernelInitializedCompilerState = compiler.initializedCompilerState;
+  fe.InitializedCompilerState? compilerState = kernelInitializedCompilerState =
+      compiler.initializedCompilerState;
   return api.CompilationResult(
     compiler,
     isSuccess: isSuccess,

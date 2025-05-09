@@ -722,25 +722,22 @@ class CompilerOptions implements DiagnosticOptions {
   /// extension does not match the expected extension for the current [stage]
   /// then the last segment is treated as a prefix. Only set when `--stage` is
   /// specified.
-  late final String _outputPrefix =
-      (() {
-        if (_stageFlag == null) return '';
-        final extension = _outputExtension;
+  late final String _outputPrefix = (() {
+    if (_stageFlag == null) return '';
+    final extension = _outputExtension;
 
-        return (extension != null && _outputFilename.endsWith(extension))
-            ? ''
-            : _outputFilename;
-      })();
+    return (extension != null && _outputFilename.endsWith(extension))
+        ? ''
+        : _outputFilename;
+  })();
 
   /// Output directory specified by the user via the `--out` flag. The directory
   /// is calculated by resolving the substring prior to the final URI segment
   /// (i.e. before the final slash) relative to [Uri.base]. Defaults to
   /// [Uri.base] if `--out` is not provided or does not include a directory.
-  late final Uri _outputDir =
-      (() =>
-          (_outputUri != null)
-              ? Uri.base.resolveUri(_outputUri!).resolve('.')
-              : Uri.base)();
+  late final Uri _outputDir = (() => (_outputUri != null)
+      ? Uri.base.resolveUri(_outputUri!).resolve('.')
+      : Uri.base)();
 
   /// Computes a resolved output URI based on value provided via the `--out`
   /// flag. Updates [outputUri] based on the result and returns the value.
@@ -835,8 +832,11 @@ class CompilerOptions implements DiagnosticOptions {
         options,
         Flags.benchmarkingExperiment,
       )
-      ..buildId =
-          _extractStringOption(options, '--build-id=', _undeterminedBuildID)!
+      ..buildId = _extractStringOption(
+        options,
+        '--build-id=',
+        _undeterminedBuildID,
+      )!
       ..compileForServer = _hasOption(options, Flags.serverMode)
       ..deferredMapUri = _extractUriOption(options, '--deferred-map=')
       .._deferredLoadIdMapUri = _extractUriOption(
@@ -887,8 +887,10 @@ class CompilerOptions implements DiagnosticOptions {
       .._disableMinification = _hasOption(options, Flags.noMinify)
       ..omitLateNames = _hasOption(options, Flags.omitLateNames)
       .._noOmitLateNames = _hasOption(options, Flags.noOmitLateNames)
-      ..enableNativeLiveTypeAnalysis =
-          !_hasOption(options, Flags.disableNativeLiveTypeAnalysis)
+      ..enableNativeLiveTypeAnalysis = !_hasOption(
+        options,
+        Flags.disableNativeLiveTypeAnalysis,
+      )
       ..enableUserAssertions =
           _hasOption(options, Flags.enableCheckedMode) ||
           _hasOption(options, Flags.enableAsserts)
@@ -938,8 +940,10 @@ class CompilerOptions implements DiagnosticOptions {
       )
       ..testMode = _hasOption(options, Flags.testMode)
       ..trustPrimitives = _hasOption(options, Flags.trustPrimitives)
-      ..useFrequencyNamer =
-          !_hasOption(options, Flags.noFrequencyBasedMinification)
+      ..useFrequencyNamer = !_hasOption(
+        options,
+        Flags.noFrequencyBasedMinification,
+      )
       ..useMultiSourceInfo = _hasOption(options, Flags.useMultiSourceInfo)
       ..useNewSourceInfo = _hasOption(options, Flags.useNewSourceInfo)
       ..useSimpleLoadIds = _hasOption(options, Flags.useSimpleLoadIds)

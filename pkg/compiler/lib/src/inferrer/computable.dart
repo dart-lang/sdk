@@ -24,10 +24,9 @@ class ComputableAbstractValue implements AbstractValue {
   bool get isComputed => _wrappedValue != null;
   bool get isUncomputed => _wrappedValue == null;
 
-  AbstractValue _unwrapOrThrow() =>
-      isUncomputed
-          ? throw StateError("Uncomputed abstract value")
-          : _wrappedValue!;
+  AbstractValue _unwrapOrThrow() => isUncomputed
+      ? throw StateError("Uncomputed abstract value")
+      : _wrappedValue!;
 
   AbstractValue _unwrapOrEmpty(AbstractValueDomain wrappedDomain) =>
       isUncomputed ? wrappedDomain.emptyType : _wrappedValue!;

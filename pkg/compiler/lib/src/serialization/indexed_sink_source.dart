@@ -234,8 +234,9 @@ class UnorderedIndexedSource<E extends Object> implements IndexedSource<E> {
         offset = markerOrOffset - _indicatorOffset;
       }
       bool isLocal = _isLocalOffset(offset);
-      final globalOffset =
-          isLocal ? _localToGlobalOffset(offset, source) : offset;
+      final globalOffset = isLocal
+          ? _localToGlobalOffset(offset, source)
+          : offset;
       final cachedValue = _cache[globalOffset];
       if (cachedValue != null) return cachedValue;
       return _readAtOffset(
@@ -268,8 +269,9 @@ class UnorderedIndexedSource<E extends Object> implements IndexedSource<E> {
         offset = markerOrOffset - _indicatorOffset;
       }
       bool isLocal = _isLocalOffset(offset);
-      final globalOffset =
-          isLocal ? _localToGlobalOffset(offset, source) : offset;
+      final globalOffset = isLocal
+          ? _localToGlobalOffset(offset, source)
+          : offset;
       return _readAtOffset(
         source,
         readValue,
@@ -299,13 +301,12 @@ class UnorderedIndexedSource<E extends Object> implements IndexedSource<E> {
   }) {
     final realSource = isLocal ? source : findSource(globalOffset);
     final realOffset = _globalToRealOffset(globalOffset, realSource);
-    final value =
-        isLocal
-            ? source.readWithOffset(realOffset, readValue)
-            : source.readWithSource(
-              realSource,
-              () => source.readWithOffset(realOffset, readValue),
-            );
+    final value = isLocal
+        ? source.readWithOffset(realOffset, readValue)
+        : source.readWithSource(
+            realSource,
+            () => source.readWithOffset(realOffset, readValue),
+          );
     if (isCached) _cache[globalOffset] = value;
     return value;
   }

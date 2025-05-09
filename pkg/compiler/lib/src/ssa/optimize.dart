@@ -95,10 +95,9 @@ class SsaOptimizerTask extends CompilerTask {
 
     OptimizationTestLog? log;
     if (retainDataForTesting) {
-      log =
-          loggersForTesting[member] = OptimizationTestLog(
-            closedWorld.dartTypes,
-          );
+      log = loggersForTesting[member] = OptimizationTestLog(
+        closedWorld.dartTypes,
+      );
     }
 
     measure(() {
@@ -478,10 +477,9 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
 
     //  condition ? false : true  -->  !condition
     if (_isBoolConstant(left, false) && _isBoolConstant(right, true)) {
-      HInstruction replacement =
-          HNot(condition, _abstractValueDomain.boolType)
-            ..sourceElement = phi.sourceElement
-            ..sourceInformation = phi.sourceInformation;
+      HInstruction replacement = HNot(condition, _abstractValueDomain.boolType)
+        ..sourceElement = phi.sourceElement
+        ..sourceInformation = phi.sourceInformation;
       block.addAtEntry(replacement);
       block.rewrite(phi, replacement);
       block.removePhi(phi);
@@ -614,10 +612,9 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
         _abstractValueDomain.boolType,
       );
       block.addAtEntry(compare);
-      HInstruction replacement =
-          HNot(compare, _abstractValueDomain.boolType)
-            ..sourceElement = phi.sourceElement
-            ..sourceInformation = phi.sourceInformation;
+      HInstruction replacement = HNot(compare, _abstractValueDomain.boolType)
+        ..sourceElement = phi.sourceElement
+        ..sourceInformation = phi.sourceInformation;
       block.rewrite(phi, replacement);
       block.addAfter(compare, replacement);
       block.removePhi(phi);
@@ -1222,13 +1219,12 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
       final name = PublicName(
         _nativeData.computeUnescapedJSInteropName(method.name!),
       );
-      final selector =
-          method.isGetter
-              ? Selector.getter(name)
-              : Selector.call(
-                name,
-                CallStructure.unnamed(invocation.inputs.length),
-              );
+      final selector = method.isGetter
+          ? Selector.getter(name)
+          : Selector.call(
+              name,
+              CallStructure.unnamed(invocation.inputs.length),
+            );
       if (_nativeData.interopNullChecks.containsKey(selector)) {
         FunctionType type = _closedWorld.elementEnvironment.getFunctionType(
           method,
@@ -2083,11 +2079,10 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
 
     HInstruction receiver = node.getDartReceiver(_closedWorld);
     AbstractValue receiverType = receiver.instructionType;
-    final member =
-        node.element ??= _closedWorld.locateSingleMember(
-          node.selector,
-          receiverType,
-        );
+    final member = node.element ??= _closedWorld.locateSingleMember(
+      node.selector,
+      receiverType,
+    );
     if (member == null) return node;
 
     if (member is FieldEntity) {
@@ -2906,10 +2901,9 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
           if (shiftedMask is IntConstantValue && shiftedMask.isUInt32()) {
             // TODO(sra): The shift type should be available from the abstract
             // value domain.
-            AbstractValue shiftType =
-                shiftedMask.isZero
-                    ? _abstractValueDomain.uint32Type
-                    : _abstractValueDomain.uint31Type;
+            AbstractValue shiftType = shiftedMask.isZero
+                ? _abstractValueDomain.uint32Type
+                : _abstractValueDomain.uint31Type;
             var shift = HShiftRight(operand, count, shiftType)
               ..sourceInformation = node.sourceInformation;
 
@@ -3176,10 +3170,9 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
           // We also leave HIf nodes in place when one branch is dead.
           HInstruction condition = current.inputs.first;
           if (condition is HConstant) {
-            successor =
-                condition.constant is TrueConstantValue
-                    ? current.thenBlock
-                    : current.elseBlock;
+            successor = condition.constant is TrueConstantValue
+                ? current.thenBlock
+                : current.elseBlock;
             assert(successor.isLive);
           }
         }
@@ -3459,8 +3452,9 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
     if (branch is HIf) {
       if (branch.thenBlock.isLive == branch.elseBlock.isLive) return;
       assert(branch.condition is HConstant);
-      HBasicBlock liveSuccessor =
-          branch.thenBlock.isLive ? branch.thenBlock : branch.elseBlock;
+      HBasicBlock liveSuccessor = branch.thenBlock.isLive
+          ? branch.thenBlock
+          : branch.elseBlock;
       HInstruction instruction = liveSuccessor.first!;
       // Move instructions up until the final control flow instruction or pinned
       // HTypeKnown.
@@ -3912,10 +3906,10 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
       // Propagate loop changes flags upwards.
       final parentLoopHeader = block.parentLoopHeader;
       if (parentLoopHeader != null) {
-        loopChangesFlags[parentLoopHeader
-            .id] = loopChangesFlags[parentLoopHeader.id].union(
-          (block.isLoopHeader()) ? loopChangesFlags[id] : changesFlags,
-        );
+        loopChangesFlags[parentLoopHeader.id] =
+            loopChangesFlags[parentLoopHeader.id].union(
+              (block.isLoopHeader()) ? loopChangesFlags[id] : changesFlags,
+            );
       }
     }
   }

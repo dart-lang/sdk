@@ -44,10 +44,9 @@ probe1methods(
 
 /*member: nonContainer:[exact=JSExtendableArray|powerset={I}{G}{M}]*/
 nonContainer(/*[exact=JSUInt31|powerset={I}{O}{N}]*/ choice) {
-  var m =
-      choice /*invoke: [exact=JSUInt31|powerset={I}{O}{N}]*/ == 0
-          ? []
-          : "<String>";
+  var m = choice /*invoke: [exact=JSUInt31|powerset={I}{O}{N}]*/ == 0
+      ? []
+      : "<String>";
   if (m is! List) throw 123;
   // The union then filter leaves us with a non-container type.
   return m;

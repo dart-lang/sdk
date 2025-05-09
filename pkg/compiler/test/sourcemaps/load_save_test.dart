@@ -9,7 +9,8 @@ import 'tools/load.dart';
 import 'tools/save.dart';
 import 'package:compiler/src/util/memory_compiler.dart';
 
-String SOURCEMAP = '''
+String SOURCEMAP =
+    '''
 {
   "version": 3,
   "file": "out.js",

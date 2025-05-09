@@ -226,10 +226,9 @@ class JsBackendStrategy {
     GlobalTypeInferenceResults globalTypeInferenceResults,
   ) {
     JClosedWorld closedWorld = globalTypeInferenceResults.closedWorld;
-    FixedNames fixedNames =
-        _compiler.options.enableMinification
-            ? const MinifiedFixedNames()
-            : const FixedNames();
+    FixedNames fixedNames = _compiler.options.enableMinification
+        ? const MinifiedFixedNames()
+        : const FixedNames();
 
     Tracer tracer = Tracer(
       closedWorld,
@@ -239,8 +238,9 @@ class JsBackendStrategy {
 
     RuntimeTypesSubstitutions rtiSubstitutions;
     if (_compiler.options.disableRtiOptimization) {
-      final trivialSubs =
-          rtiSubstitutions = TrivialRuntimeTypesSubstitutions(closedWorld);
+      final trivialSubs = rtiSubstitutions = TrivialRuntimeTypesSubstitutions(
+        closedWorld,
+      );
       _rtiChecksBuilder = TrivialRuntimeTypesChecksBuilder(
         closedWorld,
         trivialSubs,
@@ -341,12 +341,11 @@ class JsBackendStrategy {
       closedWorld.nativeData,
     );
     FixedNames fixedNames = codegen.fixedNames;
-    _namer =
-        _compiler.options.enableMinification
-            ? _compiler.options.useFrequencyNamer
-                ? FrequencyBasedNamer(closedWorld, fixedNames)
-                : MinifyNamer(closedWorld, fixedNames)
-            : Namer(closedWorld, fixedNames);
+    _namer = _compiler.options.enableMinification
+        ? _compiler.options.useFrequencyNamer
+              ? FrequencyBasedNamer(closedWorld, fixedNames)
+              : MinifyNamer(closedWorld, fixedNames)
+        : Namer(closedWorld, fixedNames);
     _nativeCodegenEnqueuer = NativeCodegenEnqueuer(
       _compiler.options,
       closedWorld.elementEnvironment,

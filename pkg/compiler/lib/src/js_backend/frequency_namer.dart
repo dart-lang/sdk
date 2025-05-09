@@ -76,8 +76,9 @@ class FrequencyBasedNamer extends Namer
       return result;
     }
 
-    List<TokenName> usedNames =
-        tokens.where((TokenName a) => a._rc > 0).toList();
+    List<TokenName> usedNames = tokens
+        .where((TokenName a) => a._rc > 0)
+        .toList();
     usedNames.sort(compareReferenceCount);
     for (var token in usedNames) {
       token.finalize();

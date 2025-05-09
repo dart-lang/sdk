@@ -110,8 +110,8 @@ class ResourceInfoCollector {
       '_comment': r'Resources referenced by annotated resource identifers',
       'AppTag': 'TBD',
       'environment': environment,
-      'identifiers':
-          _identifierMap.values.toList()..sort(_ResourceIdentifierInfo.compare),
+      'identifiers': _identifierMap.values.toList()
+        ..sort(_ResourceIdentifierInfo.compare),
     };
     return json;
   }
@@ -144,8 +144,8 @@ class _ResourceIdentifierInfo {
   }
 
   Map<String, dynamic> toJson() {
-    final files =
-        _files.entries.toList()..sort((a, b) => a.key.compareTo(b.key));
+    final files = _files.entries.toList()
+      ..sort((a, b) => a.key.compareTo(b.key));
     return {
       "name": _key.name,
       "uri": _key.uri.toString(),

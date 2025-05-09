@@ -104,14 +104,13 @@ class LateLowering {
   Name _mangleFieldName(Field field) {
     assert(_shouldLowerInstanceField(field));
     final prefix = _lateInstanceFieldPrefix;
-    final suffix =
-        field.initializer == null
-            ? field.isFinal
-                ? _lateFinalUninitializedSuffix
-                : _lateAssignableUninitializedSuffix
-            : field.isFinal
-            ? _lateFinalInitializedSuffix
-            : _lateAssignableInitializedSuffix;
+    final suffix = field.initializer == null
+        ? field.isFinal
+              ? _lateFinalUninitializedSuffix
+              : _lateAssignableUninitializedSuffix
+        : field.isFinal
+        ? _lateFinalInitializedSuffix
+        : _lateAssignableInitializedSuffix;
 
     Class cls = field.enclosingClass!;
     return Name(
@@ -122,8 +121,8 @@ class LateLowering {
 
   ConstructorInvocation _callCellConstructor(Expression name, int fileOffset) =>
       _omitLateNames
-          ? _callCellUnnamedConstructor(fileOffset)
-          : _callCellNamedConstructor(name, fileOffset);
+      ? _callCellUnnamedConstructor(fileOffset)
+      : _callCellNamedConstructor(name, fileOffset);
 
   ConstructorInvocation _callCellUnnamedConstructor(int fileOffset) =>
       ConstructorInvocation(
@@ -143,10 +142,9 @@ class LateLowering {
     Expression name,
     Expression initializer,
     int fileOffset,
-  ) =>
-      _omitLateNames
-          ? _callInitializedCellUnnamedConstructor(initializer, fileOffset)
-          : _callInitializedCellNamedConstructor(name, initializer, fileOffset);
+  ) => _omitLateNames
+      ? _callInitializedCellUnnamedConstructor(initializer, fileOffset)
+      : _callInitializedCellNamedConstructor(name, initializer, fileOffset);
 
   ConstructorInvocation _callInitializedCellUnnamedConstructor(
     Expression initializer,
@@ -326,10 +324,9 @@ class LateLowering {
 
     int fileOffset = node.fileOffset;
     VariableGet cell = _variableCellRead(variable, fileOffset);
-    _Reader reader =
-        variable.initializer == null
-            ? _readLocal
-            : (variable.isFinal ? _readInitializedFinal : _readInitialized);
+    _Reader reader = variable.initializer == null
+        ? _readLocal
+        : (variable.isFinal ? _readInitializedFinal : _readInitialized);
     return _callReader(
       reader,
       cell,
@@ -346,14 +343,13 @@ class LateLowering {
 
     int fileOffset = node.fileOffset;
     VariableGet cell = _variableCellRead(variable, fileOffset);
-    Procedure setter =
-        variable.initializer == null
-            ? (variable.isFinal
-                ? _coreTypes.cellFinalLocalValueSetter
-                : _coreTypes.cellValueSetter)
-            : (variable.isFinal
-                ? _coreTypes.initializedCellFinalValueSetter
-                : _coreTypes.initializedCellValueSetter);
+    Procedure setter = variable.initializer == null
+        ? (variable.isFinal
+              ? _coreTypes.cellFinalLocalValueSetter
+              : _coreTypes.cellValueSetter)
+        : (variable.isFinal
+              ? _coreTypes.initializedCellFinalValueSetter
+              : _coreTypes.initializedCellValueSetter);
     return _callSetter(setter, cell, node.value, fileOffset);
   }
 

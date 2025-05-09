@@ -33,7 +33,8 @@ simpleDo() {
 doNull() {
   var o;
   do {
-    o = o. /*invoke: [null|exact=JSString|powerset={null}{I}{O}{I}]*/ toString();
+    o = o
+        . /*invoke: [null|exact=JSString|powerset={null}{I}{O}{I}]*/ toString();
   } while (o == null);
   return o;
 }
@@ -72,7 +73,8 @@ doNullFalse() {
 doNotNullTrue() {
   var o = null;
   do {
-    o = o. /*invoke: [null|exact=JSString|powerset={null}{I}{O}{I}]*/ toString();
+    o = o
+        . /*invoke: [null|exact=JSString|powerset={null}{I}{O}{I}]*/ toString();
   } while (o != null);
   return o;
 }
@@ -96,7 +98,8 @@ class Class2 {
 /*member: _doUnion:Union(null, [exact=Class1|powerset={N}{O}{N}], [exact=Class2|powerset={N}{O}{N}], powerset: {null}{N}{O}{N})*/
 _doUnion(/*[exact=Class1|powerset={N}{O}{N}]*/ o) {
   do {
-    o = o. /*Union(null, [exact=Class1|powerset={N}{O}{N}], [exact=Class2|powerset={N}{O}{N}], powerset: {null}{N}{O}{N})*/ field;
+    o = o
+        . /*Union(null, [exact=Class1|powerset={N}{O}{N}], [exact=Class2|powerset={N}{O}{N}], powerset: {null}{N}{O}{N})*/ field;
   } while (o != null);
   return o;
 }

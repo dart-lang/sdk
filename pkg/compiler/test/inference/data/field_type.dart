@@ -567,12 +567,11 @@ class A22 {
     /*update: [exact=A22|powerset={N}{O}{N}]*/
     f22a = 42;
     /*update: [exact=A22|powerset={N}{O}{N}]*/
-    f22b = /*[exact=A22|powerset={N}{O}{N}]*/
-        f22a == null
-            ? 42
-            : /*[exact=A22|powerset={N}{O}{N}]*/ f22c == null
-            ? 41
-            : 43;
+    f22b = /*[exact=A22|powerset={N}{O}{N}]*/ f22a == null
+        ? 42
+        : /*[exact=A22|powerset={N}{O}{N}]*/ f22c == null
+        ? 41
+        : 43;
     /*update: [exact=A22|powerset={N}{O}{N}]*/
     f22c = 'foo';
   }
@@ -707,8 +706,9 @@ class B26 {
 test26() {
   A26(). /*update: [exact=A26|powerset={N}{O}{N}]*/ f26 =
       <dynamic>[new B26(), A26()]
-      /*Container([exact=JSExtendableArray|powerset={I}{G}{M}], element: Union([exact=A26|powerset={N}{O}{N}], [exact=B26|powerset={N}{O}{N}], powerset: {N}{O}{N}), length: 2, powerset: {I}{G}{M})*/
-      [0]. /*Union([exact=A26|powerset={N}{O}{N}], [exact=B26|powerset={N}{O}{N}], powerset: {N}{O}{N})*/ f26 /*invoke: [subclass=JSPositiveInt|powerset={I}{O}{N}]*/ +
+          /*Container([exact=JSExtendableArray|powerset={I}{G}{M}], element: Union([exact=A26|powerset={N}{O}{N}], [exact=B26|powerset={N}{O}{N}], powerset: {N}{O}{N}), length: 2, powerset: {I}{G}{M})*/
+          [0]
+          . /*Union([exact=A26|powerset={N}{O}{N}], [exact=B26|powerset={N}{O}{N}], powerset: {N}{O}{N})*/ f26 /*invoke: [subclass=JSPositiveInt|powerset={I}{O}{N}]*/ +
       42;
 }
 

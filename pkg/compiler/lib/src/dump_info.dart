@@ -672,18 +672,18 @@ class ElementInfoCollector {
     }
 
     if (function is ConstructorEntity) {
-      name =
-          name == ""
-              ? function.enclosingClass.name
-              : "${function.enclosingClass.name}.${function.name}";
+      name = name == ""
+          ? function.enclosingClass.name
+          : "${function.enclosingClass.name}.${function.name}";
       kind = FunctionInfo.CONSTRUCTOR_FUNCTION_KIND;
     }
 
     FunctionModifiers modifiers = FunctionModifiers(
       isStatic: function.isStatic,
       isConst: function.isConst,
-      isFactory:
-          function is ConstructorEntity ? function.isFactoryConstructor : false,
+      isFactory: function is ConstructorEntity
+          ? function.isFactoryConstructor
+          : false,
       isExternal: function.isExternal,
     );
     List<CodeSpan> code = dumpInfoTask.codeOf(function);
@@ -777,10 +777,9 @@ class ElementInfoCollector {
     return state.outputToInfo.putIfAbsent(outputUnit, () {
       // Dump-info currently only works with the full emitter. If another
       // emitter is used it will fail here.
-      final filename =
-          outputUnit.isMainOutput
-              ? (options.outputUri?.pathSegments.last ?? 'out')
-              : deferredPartFileName(options, outputUnit.name);
+      final filename = outputUnit.isMainOutput
+          ? (options.outputUri?.pathSegments.last ?? 'out')
+          : deferredPartFileName(options, outputUnit.name);
       OutputUnitInfo info = OutputUnitInfo(
         filename,
         outputUnit.name,
@@ -946,8 +945,9 @@ class KernelInfoCollector {
       if (superclass == coreTypes.objectClass) {
         continue;
       }
-      final superclassLibrary =
-          environment.lookupLibrary(superclass.enclosingLibrary.importUri)!;
+      final superclassLibrary = environment.lookupLibrary(
+        superclass.enclosingLibrary.importUri,
+      )!;
       final superclassEntity = environment.lookupClass(
         superclassLibrary,
         superclass.name,
@@ -1064,10 +1064,9 @@ class KernelInfoCollector {
     );
 
     // TODO(markzipan): Determine if it's safe to default to nonNullable here.
-    final nullability =
-        parent is ir.Member
-            ? parent.enclosingLibrary.nonNullable
-            : ir.Nullability.nonNullable;
+    final nullability = parent is ir.Member
+        ? parent.enclosingLibrary.nonNullable
+        : ir.Nullability.nonNullable;
     final functionType = function.computeFunctionType(nullability);
 
     FunctionInfo info = FunctionInfo.fromKernel(
@@ -1279,14 +1278,13 @@ class DumpInfoAnnotator {
       return null;
     }
 
-    final kFieldInfos =
-        kernelInfo.state.info.fields
-            .where(
-              (f) =>
-                  f.name == field.name &&
-                  fullyResolvedNameForInfo(f.parent) == parentName,
-            )
-            .toList();
+    final kFieldInfos = kernelInfo.state.info.fields
+        .where(
+          (f) =>
+              f.name == field.name &&
+              fullyResolvedNameForInfo(f.parent) == parentName,
+        )
+        .toList();
     assert(
       kFieldInfos.length == 1,
       'Ambiguous field resolution. '
@@ -1349,14 +1347,13 @@ class DumpInfoAnnotator {
   // TODO(markzipan): [parentName] is used for disambiguation, but this might
   // not always be valid. Check and validate later.
   ClassInfo? visitClass(ClassEntity clazz, String parentName) {
-    final kClassInfos =
-        kernelInfo.state.info.classes
-            .where(
-              (i) =>
-                  i.name == clazz.name &&
-                  fullyResolvedNameForInfo(i.parent) == parentName,
-            )
-            .toList();
+    final kClassInfos = kernelInfo.state.info.classes
+        .where(
+          (i) =>
+              i.name == clazz.name &&
+              fullyResolvedNameForInfo(i.parent) == parentName,
+        )
+        .toList();
     assert(
       kClassInfos.length == 1,
       'Ambiguous class resolution. '
@@ -1432,10 +1429,9 @@ class DumpInfoAnnotator {
 
   ClosureInfo? visitClosureClass(ClassEntity element) {
     final disambiguatedElementName = entityDisambiguator.name(element);
-    final kClosureInfos =
-        kernelInfo.state.info.closures
-            .where((info) => info.name == disambiguatedElementName)
-            .toList();
+    final kClosureInfos = kernelInfo.state.info.closures
+        .where((info) => info.name == disambiguatedElementName)
+        .toList();
     assert(
       kClosureInfos.length == 1,
       'Ambiguous closure resolution. '
@@ -1475,27 +1471,25 @@ class DumpInfoAnnotator {
 
     var compareName = function.name;
     if (function is ConstructorEntity) {
-      compareName =
-          compareName == ""
-              ? function.enclosingClass.name
-              : "${function.enclosingClass.name}.${function.name}";
+      compareName = compareName == ""
+          ? function.enclosingClass.name
+          : "${function.enclosingClass.name}.${function.name}";
     }
 
     // Multiple kernel members can sometimes map to a single JElement.
     // [isSetter] and [isGetter] are required for disambiguating these cases.
-    final kFunctionInfos =
-        kernelInfo.state.info.functions
-            .where(
-              (i) =>
-                  i.name == compareName &&
-                  (isClosure
-                          ? i.parent!.name
-                          : fullyResolvedNameForInfo(i.parent)) ==
-                      parentName &&
-                  !(function.isGetter ^ i.modifiers.isGetter) &&
-                  !(function.isSetter ^ i.modifiers.isSetter),
-            )
-            .toList();
+    final kFunctionInfos = kernelInfo.state.info.functions
+        .where(
+          (i) =>
+              i.name == compareName &&
+              (isClosure
+                      ? i.parent!.name
+                      : fullyResolvedNameForInfo(i.parent)) ==
+                  parentName &&
+              !(function.isGetter ^ i.modifiers.isGetter) &&
+              !(function.isSetter ^ i.modifiers.isSetter),
+        )
+        .toList();
     assert(
       kFunctionInfos.length <= 1,
       'Ambiguous function resolution. '
@@ -1570,10 +1564,9 @@ class DumpInfoAnnotator {
     return kernelInfo.state.outputToInfo.putIfAbsent(outputUnit, () {
       // Dump-info currently only works with the full emitter. If another
       // emitter is used it will fail here.
-      final filename =
-          outputUnit.isMainOutput
-              ? (options.outputUri?.pathSegments.last ?? 'out')
-              : deferredPartFileName(options, outputUnit.name);
+      final filename = outputUnit.isMainOutput
+          ? (options.outputUri?.pathSegments.last ?? 'out')
+          : deferredPartFileName(options, outputUnit.name);
       OutputUnitInfo info = OutputUnitInfo(
         filename,
         outputUnit.name,
@@ -1843,8 +1836,8 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     DumpInfoStateData result = infoCollector.state;
 
     // Recursively build links to function uses
-    final functionEntities =
-        infoCollector.state.entityToInfo.keys.whereType<FunctionEntity>();
+    final functionEntities = infoCollector.state.entityToInfo.keys
+        .whereType<FunctionEntity>();
     for (final entity in functionEntities) {
       final info = infoCollector.state.entityToInfo[entity] as FunctionInfo;
       Iterable<Selection> uses = getRetaining(entity, closedWorld);
@@ -1861,8 +1854,8 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     }
 
     // Recursively build links to field uses
-    final fieldEntity =
-        infoCollector.state.entityToInfo.keys.whereType<FieldEntity>();
+    final fieldEntity = infoCollector.state.entityToInfo.keys
+        .whereType<FieldEntity>();
     for (final entity in fieldEntity) {
       final info = infoCollector.state.entityToInfo[entity] as FieldInfo;
       Iterable<Selection> uses = getRetaining(entity, closedWorld);
@@ -1924,8 +1917,8 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     DumpInfoStateData result = infoCollector.state;
 
     // Recursively build links to function uses
-    final functionEntities =
-        infoCollector.state.entityToInfo.keys.whereType<FunctionEntity>();
+    final functionEntities = infoCollector.state.entityToInfo.keys
+        .whereType<FunctionEntity>();
     for (final entity in functionEntities) {
       final info = infoCollector.state.entityToInfo[entity] as FunctionInfo;
       Iterable<Selection> uses = getRetaining(entity, closedWorld);
@@ -1943,8 +1936,8 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     }
 
     // Recursively build links to field uses
-    final fieldEntity =
-        infoCollector.state.entityToInfo.keys.whereType<FieldEntity>();
+    final fieldEntity = infoCollector.state.entityToInfo.keys
+        .whereType<FieldEntity>();
     for (final entity in fieldEntity) {
       final info = infoCollector.state.entityToInfo[entity] as FieldInfo;
       Iterable<Selection> uses = getRetaining(entity, closedWorld);

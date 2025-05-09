@@ -155,10 +155,9 @@ class HInstructionStringifier implements HVisitor<String> {
   AbstractValueDomain get _abstractValueDomain =>
       closedWorld.abstractValueDomain;
 
-  String visit(HInstruction node) =>
-      node is HControlFlow
-          ? node.accept(this)
-          : '${node.accept(this)} ${node.instructionType}';
+  String visit(HInstruction node) => node is HControlFlow
+      ? node.accept(this)
+      : '${node.accept(this)} ${node.instructionType}';
 
   String temporaryId(HInstruction instruction) {
     String prefix;

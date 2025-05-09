@@ -509,8 +509,9 @@ class NativeDataBuilder {
         required bool callthrough,
       }) {
         final memberType = environment.getFunctionType(member);
-        final functionType =
-            callthrough ? memberType.returnType as FunctionType : memberType;
+        final functionType = callthrough
+            ? memberType.returnType as FunctionType
+            : memberType;
         return dartTypes.isNonNullable(functionType.returnType);
       }
 
@@ -567,10 +568,9 @@ class NativeDataBuilder {
             callthrough: member.isGetter && selector.kind == SelectorKind.call,
           ),
         );
-        data.interopNullChecks[selector] =
-            canCheckInCallee
-                ? InteropNullCheckKind.calleeCheck
-                : InteropNullCheckKind.callerCheck;
+        data.interopNullChecks[selector] = canCheckInCallee
+            ? InteropNullCheckKind.calleeCheck
+            : InteropNullCheckKind.callerCheck;
       });
     }
 

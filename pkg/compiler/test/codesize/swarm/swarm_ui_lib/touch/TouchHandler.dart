@@ -132,10 +132,9 @@ class TouchHandler {
   num _correctVelocity(num velocity) {
     num absVelocity = velocity.abs();
     if (absVelocity > _MAXIMUM_VELOCITY) {
-      absVelocity =
-          _recentTouchesY.length < 6
-              ? _VELOCITY_FOR_INCORRECT_EVENTS
-              : _MAXIMUM_VELOCITY;
+      absVelocity = _recentTouchesY.length < 6
+          ? _VELOCITY_FOR_INCORRECT_EVENTS
+          : _MAXIMUM_VELOCITY;
     }
     return absVelocity * (velocity < 0 ? -1 : 1);
   }

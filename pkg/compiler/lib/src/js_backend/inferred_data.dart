@@ -105,10 +105,12 @@ class InferredDataImpl implements InferredData {
     Map<FunctionEntity, SideEffects> sideEffects = source.readMemberMap(
       (MemberEntity member) => SideEffects.readFromDataSource(source),
     );
-    Set<FunctionEntity> elementsThatCannotThrow =
-        source.readMembers<FunctionEntity>().toSet();
-    Set<FunctionEntity> functionsThatMightBePassedToApply =
-        source.readMembers<FunctionEntity>().toSet();
+    Set<FunctionEntity> elementsThatCannotThrow = source
+        .readMembers<FunctionEntity>()
+        .toSet();
+    Set<FunctionEntity> functionsThatMightBePassedToApply = source
+        .readMembers<FunctionEntity>()
+        .toSet();
     source.end(tag);
     return InferredDataImpl(
       closedWorld,

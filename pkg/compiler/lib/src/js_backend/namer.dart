@@ -317,8 +317,10 @@ class Namer extends ModularNamer {
     // Public names are easy.
     if (!originalName.isPrivate) return text;
 
-    final library =
-        _elementEnvironment.lookupLibrary(originalName.uri!, required: true)!;
+    final library = _elementEnvironment.lookupLibrary(
+      originalName.uri!,
+      required: true,
+    )!;
 
     // The first library asking for a short private name wins.
     LibraryEntity owner = shortPrivateNameOwners.putIfAbsent(
@@ -704,15 +706,14 @@ class Namer extends ModularNamer {
     List<String> suffixes = const [],
   ]) {
     // Build a string encoding the library name, if the name is private.
-    String libraryKey =
-        originalName.isPrivate
-            ? _generateLibraryKey(
-              _elementEnvironment.lookupLibrary(
-                originalName.uri!,
-                required: true,
-              )!,
-            ).toString()
-            : '';
+    String libraryKey = originalName.isPrivate
+        ? _generateLibraryKey(
+            _elementEnvironment.lookupLibrary(
+              originalName.uri!,
+              required: true,
+            )!,
+          ).toString()
+        : '';
 
     // In the unique key, separate the name parts by '@'.
     // This avoids clashes since the original names cannot contain that symbol.
@@ -1091,8 +1092,9 @@ class Namer extends ModularNamer {
   @override
   js_ast.Name staticClosureName(FunctionEntity element) {
     assert(element.isTopLevel || element.isStatic);
-    String enclosing =
-        element.enclosingClass == null ? "" : element.enclosingClass!.name;
+    String enclosing = element.enclosingClass == null
+        ? ""
+        : element.enclosingClass!.name;
     String library = _proposeNameForLibrary(element.library);
     String name = replaceNonIdentifierCharacters(element.name!);
     return _disambiguateInternalGlobal(
@@ -2268,11 +2270,10 @@ String suffixForGetInterceptor(
     return cls.name;
   }
 
-  List<String> names =
-      classes
-          .where((cls) => !nativeData.isNativeOrExtendsNative(cls))
-          .map(abbreviate)
-          .toList();
+  List<String> names = classes
+      .where((cls) => !nativeData.isNativeOrExtendsNative(cls))
+      .map(abbreviate)
+      .toList();
   // There is one dispatch mechanism for all native classes.
   if (classes.any((cls) => nativeData.isNativeOrExtendsNative(cls))) {
     names.add("x");
@@ -2696,13 +2697,12 @@ const List<String> reservedGlobalObjectNames = [
 
 const List<String> reservedGlobalHelperFunctions = ["init"];
 
-final List<String> userGlobalObjects =
-    List.from(reservedGlobalObjectNames)
-      ..remove('C')
-      ..remove('H')
-      ..remove('J')
-      ..remove('P')
-      ..remove('W');
+final List<String> userGlobalObjects = List.from(reservedGlobalObjectNames)
+  ..remove('C')
+  ..remove('H')
+  ..remove('J')
+  ..remove('P')
+  ..remove('W');
 
 final RegExp _identifierStartRE = RegExp(r'[A-Za-z_$]');
 final RegExp _nonIdentifierRE = RegExp(r'[^A-Za-z0-9_$]');

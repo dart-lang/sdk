@@ -92,10 +92,10 @@ dynamic doubleOrNull2 = 22.2;
 test2() {
   var union =
       dictionaryA2
-          /*Dictionary([exact=JsLinkedHashMap|powerset={N}{O}{N}], key: [exact=JSString|powerset={I}{O}{I}], value: Union(null, [exact=JSExtendableArray|powerset={I}{G}{M}], [exact=JSNumNotInt|powerset={I}{O}{N}], [exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {null}{I}{GO}{IMN}), map: {string: Value([exact=JSString|powerset={I}{O}{I}], value: "aString", powerset: {I}{O}{I}), int: [exact=JSUInt31|powerset={I}{O}{N}], double: [exact=JSNumNotInt|powerset={I}{O}{N}], list: Container([exact=JSExtendableArray|powerset={I}{G}{M}], element: [empty|powerset=empty], length: 0, powerset: {I}{G}{M})}, powerset: {N}{O}{N})*/
-          ['foo']
-          ? dictionaryA2
-          : dictionaryB2;
+      /*Dictionary([exact=JsLinkedHashMap|powerset={N}{O}{N}], key: [exact=JSString|powerset={I}{O}{I}], value: Union(null, [exact=JSExtendableArray|powerset={I}{G}{M}], [exact=JSNumNotInt|powerset={I}{O}{N}], [exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {null}{I}{GO}{IMN}), map: {string: Value([exact=JSString|powerset={I}{O}{I}], value: "aString", powerset: {I}{O}{I}), int: [exact=JSUInt31|powerset={I}{O}{N}], double: [exact=JSNumNotInt|powerset={I}{O}{N}], list: Container([exact=JSExtendableArray|powerset={I}{G}{M}], element: [empty|powerset=empty], length: 0, powerset: {I}{G}{M})}, powerset: {N}{O}{N})*/
+      ['foo']
+      ? dictionaryA2
+      : dictionaryB2;
   nullOrInt2 =
       union
       /*Dictionary([exact=JsLinkedHashMap|powerset={N}{O}{N}], key: [exact=JSString|powerset={I}{O}{I}], value: Union(null, [exact=JSExtendableArray|powerset={I}{G}{M}], [exact=JSNumNotInt|powerset={I}{O}{N}], [exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {null}{I}{GO}{IMN}), map: {int: [null|exact=JSUInt31|powerset={null}{I}{O}{N}], double: [null|exact=JSNumNotInt|powerset={null}{I}{O}{N}], string: Value([exact=JSString|powerset={I}{O}{I}], value: "aString", powerset: {I}{O}{I}), intTwo: [null|exact=JSUInt31|powerset={null}{I}{O}{N}], list: Container([exact=JSExtendableArray|powerset={I}{G}{M}], element: [empty|powerset=empty], length: 0, powerset: {I}{G}{M})}, powerset: {N}{O}{N})*/

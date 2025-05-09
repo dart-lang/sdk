@@ -435,10 +435,9 @@ class SourceMapProcessor {
     bool perElement = true,
     bool forMain = false,
   }) async {
-    OutputProvider outputProvider =
-        outputToFile
-            ? CloningOutputProvider(targetUri, sourceMapFileUri)
-            : OutputProvider();
+    OutputProvider outputProvider = outputToFile
+        ? CloningOutputProvider(targetUri, sourceMapFileUri)
+        : OutputProvider();
     if (options.contains(Flags.useNewSourceInfo)) {
       if (verbose) print('Using the source information system.');
     }
@@ -618,8 +617,9 @@ class SourceMapInfo {
     this.codePoints,
     this.jsCodePositions,
     this.nodeMap,
-  ) : this.name =
-          element != null ? computeElementNameForSourceMaps(element) : '';
+  ) : this.name = element != null
+          ? computeElementNameForSourceMaps(element)
+          : '';
 
   @override
   String toString() {

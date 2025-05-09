@@ -4,7 +4,8 @@
 
 /*member: method1:params=0*/
 @pragma('dart2js:noInline')
-method1([a]) => /*access=[a],params=0*/ () => a;
+method1([a]) => /*access=[a],params=0*/
+    () => a;
 
 class Class {
   /*member: Class.f:emitted*/

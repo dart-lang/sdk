@@ -83,10 +83,9 @@ class CompositeView extends View {
   }
 
   void removeChild(View view) {
-    childViews =
-        childViews.where((e) {
-          return view != e;
-        }).toList();
+    childViews = childViews.where((e) {
+      return view != e;
+    }).toList();
     // TODO(rnystrom): Container shouldn't be null. Remove this check.
     if (container != null) {
       view.node.remove();

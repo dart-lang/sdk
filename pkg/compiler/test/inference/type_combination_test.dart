@@ -804,8 +804,8 @@ runTests() async {
     }
     ''',
     },
-    beforeRun:
-        (compiler) => compiler.stopAfterGlobalTypeInferenceForTesting = true,
+    beforeRun: (compiler) =>
+        compiler.stopAfterGlobalTypeInferenceForTesting = true,
   );
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler!;
@@ -819,11 +819,10 @@ runTests() async {
   LibraryEntity coreLibrary = commonElements.coreLibrary;
   patternClass = elementEnvironment.lookupClass(coreLibrary, 'Pattern');
 
-  final trustedGetRuntimeTypeInterface =
-      elementEnvironment.lookupClass(
-        commonElements.jsHelperLibrary!,
-        'TrustedGetRuntimeType',
-      )!;
+  final trustedGetRuntimeTypeInterface = elementEnvironment.lookupClass(
+    commonElements.jsHelperLibrary!,
+    'TrustedGetRuntimeType',
+  )!;
 
   nonPrimitive1 = TypeMask.nonNullSubtype(
     closedWorld.commonElements.mapClass,

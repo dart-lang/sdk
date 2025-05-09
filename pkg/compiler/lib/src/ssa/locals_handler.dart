@@ -392,10 +392,9 @@ class LocalsHandler {
       HInstruction receiver = readLocal(
         closureData.getClosureEntity(_localsMap!)!,
       );
-      AbstractValue type =
-          local is BoxLocal
-              ? _abstractValueDomain.nonNullType
-              : getTypeOfCapturedVariable(redirect);
+      AbstractValue type = local is BoxLocal
+          ? _abstractValueDomain.nonNullType
+          : getTypeOfCapturedVariable(redirect);
       HInstruction fieldGet = HFieldGet(
         redirect,
         receiver,
