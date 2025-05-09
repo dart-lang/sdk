@@ -39,11 +39,10 @@ class ExecuteCommandHandler
         Commands.organizeImports: OrganizeImportsCommandHandler(server),
         Commands.sendWorkspaceEdit: SendWorkspaceEditCommandHandler(server),
         Commands.logAction: LogActionCommandHandler(server),
+        Commands.applyCodeAction: ApplyCodeActionCommandHandler(server),
 
         // Commands that currently require an underlying LSP server.
         if (server is LspAnalysisServer) ...{
-          // TODO(dantup): Make code actions shared.
-          Commands.applyCodeAction: ApplyCodeActionCommandHandler(server),
           Commands.fixAll: FixAllCommandHandler(server),
           Commands.fixAllInWorkspace: FixAllInWorkspaceCommandHandler(server),
           Commands.previewFixAllInWorkspace:

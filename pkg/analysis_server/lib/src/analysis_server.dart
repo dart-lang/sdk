@@ -85,6 +85,7 @@ import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
+import 'package:path/path.dart' as path;
 import 'package:watcher/watcher.dart';
 
 /// The function for sending `openUri` request to the client.
@@ -454,6 +455,8 @@ abstract class AnalysisServer {
 
   /// Returns owners of files.
   OwnedFiles get ownedFiles => contextManager.ownedFiles;
+
+  path.Context get pathContext => resourceProvider.pathContext;
 
   /// Whether or not the client supports showMessageRequest to show the user
   /// a message and allow them to respond by clicking buttons.

@@ -113,7 +113,11 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
 
   bool fileHasBeenModified(String path, int? clientVersion) {
     var serverDocumentVersion = server.getDocumentVersion(path);
-    return clientVersion != null && clientVersion != serverDocumentVersion;
+    // Allow nulls on either side, because if a client doesn't support versions
+    // somewhere we can't just reject everything.
+    return clientVersion != null &&
+        serverDocumentVersion != null &&
+        clientVersion != serverDocumentVersion;
   }
 
   ErrorOr<T> fileNotAnalyzedError<T>(String path) => error<T>(

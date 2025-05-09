@@ -7,6 +7,7 @@ import 'dart:convert';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
+import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
@@ -24,6 +25,7 @@ import '../lsp/change_verifier.dart';
 import '../lsp/request_helpers_mixin.dart';
 import '../lsp/server_abstract.dart';
 import '../services/completion/dart/text_expectations.dart';
+import '../shared/mixins/analytics_test_mixin.dart';
 import '../shared/shared_test_interface.dart';
 
 class EventsCollector {
@@ -149,13 +151,17 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
         LspRequestHelpersMixin,
         LspEditHelpersMixin,
         LspVerifyEditHelpersMixin,
-        ClientCapabilitiesHelperMixin {
+        ClientCapabilitiesHelperMixin,
+        AnalyticsTestMixin {
   /// The last ID that was used for a legacy request.
   late String lastSentLegacyRequestId;
 
   /// A controller for [notificationsFromServer].
   final StreamController<NotificationMessage> _notificationsFromServer =
       StreamController<NotificationMessage>.broadcast();
+
+  @override
+  AnalyticsManager get analyticsManager => server.analyticsManager;
 
   @override
   LspClientCapabilities get editorClientCapabilities =>
@@ -274,7 +280,7 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
   @override
   String? getCurrentFileContent(Uri uri) {
     try {
-      return resourceProvider.getFile(fromUri(uri)).readAsStringSync();
+      return server.resourceProvider.getFile(fromUri(uri)).readAsStringSync();
     } catch (_) {
       return null;
     }

@@ -1269,6 +1269,25 @@ mixin LspVerifyEditHelpersMixin on LspEditHelpersMixin {
 
   ClientUriConverter get uriConverter;
 
+  Future<T> executeCommand<T>(
+    Command command, {
+    T Function(Map<String, Object?>)? decoder,
+    ProgressToken? workDoneToken,
+  });
+
+  /// Executes [command] which is expected to call back to the client to apply
+  /// a [WorkspaceEdit].
+  ///
+  /// Returns a [LspChangeVerifier] that can be used to verify changes.
+  Future<LspChangeVerifier> executeCommandForEdits(
+    Command command, {
+    ProgressToken? workDoneToken,
+  }) {
+    return executeForEdits(
+      () => executeCommand(command, workDoneToken: workDoneToken),
+    );
+  }
+
   /// Executes a function which is expected to call back to the client to apply
   /// a [WorkspaceEdit].
   ///
@@ -1330,4 +1349,21 @@ mixin LspVerifyEditHelpersMixin on LspEditHelpersMixin {
   ///
   /// This is used in the text format for comparing edits.
   String relativeUri(Uri uri) => relativePath(uriConverter.fromClientUri(uri));
+
+  /// Verifies that executing the given command on the server results in an edit
+  /// being sent in the client that updates the files to match the expected
+  /// content.
+  Future<LspChangeVerifier> verifyCommandEdits(
+    Command command,
+    String expectedContent, {
+    ProgressToken? workDoneToken,
+  }) async {
+    var verifier = await executeCommandForEdits(
+      command,
+      workDoneToken: workDoneToken,
+    );
+
+    verifier.verifyFiles(expectedContent);
+    return verifier;
+  }
 }

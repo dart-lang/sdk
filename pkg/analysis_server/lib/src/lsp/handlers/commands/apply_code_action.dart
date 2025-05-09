@@ -3,12 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/code_actions/code_action_computer.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/simple_edit_handler.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:language_server_protocol/json_parsing.dart';
 
@@ -24,7 +24,7 @@ import 'package:language_server_protocol/json_parsing.dart';
 /// the server in the same session and therefore the arguments are not specified
 /// and can easily change - the server only needs to be consistent with itself.
 class ApplyCodeActionCommandHandler
-    extends SimpleEditCommandHandler<LspAnalysisServer> {
+    extends SimpleEditCommandHandler<AnalysisServer> {
   ApplyCodeActionCommandHandler(super.server);
 
   @override
@@ -117,11 +117,9 @@ class ApplyCodeActionCommandHandler
     var loggedAction = loggedActionParameter as String?;
 
     // Verify the document is still fresh.
-    if (textDocument.version case var version?) {
-      var filePath = server.uriConverter.fromClientUri(textDocument.uri);
-      if (server.getDocumentVersion(filePath) != version) {
-        return fileModifiedError;
-      }
+    var filePath = server.uriConverter.fromClientUri(textDocument.uri);
+    if (fileHasBeenModified(filePath, textDocument.version)) {
+      return fileModifiedError;
     }
 
     // Also record the action we're triggering.
@@ -148,6 +146,10 @@ class ApplyCodeActionCommandHandler
       allowCodeActionLiterals: true,
     );
     var actions = await computer.compute();
+
+    if (cancellationToken.isCancellationRequested) {
+      return cancelled(cancellationToken);
+    }
 
     return actions.mapResult((actions) async {
       return switch (actions) {
