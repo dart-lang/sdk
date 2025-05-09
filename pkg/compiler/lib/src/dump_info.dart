@@ -1891,7 +1891,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
                   .mainFunction]
               as FunctionInfo,
       size: _dumpInfoData.programSize,
-      ramUsage: await currentHeapCapacityInMb(),
+      ramUsage: await currentHeapCapacityInMb() ?? 'N/A MB',
       dart2jsVersion: options.hasBuildId ? options.buildId : null,
       compilationMoment: DateTime.now(),
       compilationDuration: measurer.elapsedWallClock,
@@ -1975,7 +1975,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
                   .mainFunction]
               as FunctionInfo,
       size: _dumpInfoData.programSize,
-      ramUsage: await currentHeapCapacityInMb(),
+      ramUsage: await currentHeapCapacityInMb() ?? 'N/A MB',
       dart2jsVersion: options.hasBuildId ? options.buildId : null,
       compilationMoment: DateTime.now(),
       compilationDuration: measurer.elapsedWallClock,
