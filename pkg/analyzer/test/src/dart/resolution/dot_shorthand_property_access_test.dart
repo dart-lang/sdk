@@ -296,6 +296,57 @@ DotShorthandPropertyAccess
 ''');
   }
 
+  test_equality_nullAssert() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  int x;
+  C(this.x);
+  static C? nullable = C(1);
+}
+
+main() {
+  print(C(1) == .nullable!);
+}
+''');
+
+    var identifier = findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(identifier, r'''
+DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: nullable
+    element: <testLibraryFragment>::@class::C::@getter::nullable#element
+    staticType: C?
+  staticType: C?
+''');
+  }
+
+  test_equality_nullAssert_chain() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  int x;
+  C(this.x);
+  static C? nullable = C(1);
+  C? member = C(1);
+}
+
+main() {
+  print(C(1) == .nullable!.member!);
+}
+''');
+
+    var identifier = findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(identifier, r'''
+DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: nullable
+    element: <testLibraryFragment>::@class::C::@getter::nullable#element
+    staticType: C?
+  staticType: C?
+''');
+  }
+
   test_equality_pattern() async {
     await assertNoErrorsInCode('''
 enum Color { red, blue }

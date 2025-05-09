@@ -5878,6 +5878,15 @@ class Parser {
           typeArg, token, constantPatternContext,
           isDotShorthand: true);
 
+      // With SELECTOR_PRECEDENCE, the `!` operator isn't parsed before
+      // handling the dot shorthand context. We want to capture and handle the
+      // null-assert before caching the context type.
+      Token next = token.next!;
+      if (next.isA(TokenType.BANG)) {
+        listener.handleNonNullAssertExpression(next);
+        token = next;
+      }
+
       // The entire shorthand is parsed at this point.
       listener.handleDotShorthandContext(dot);
     }

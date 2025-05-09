@@ -3621,19 +3621,27 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitPostfixExpression(
-    PostfixExpression node, {
+    covariant PostfixExpressionImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
+
+    // If [isDotShorthand] is set, cache the context type for resolution.
+    if (isDotShorthand(node)) {
+      pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
+    }
+
     checkUnreachableNode(node);
-    _postfixExpressionResolver.resolve(
-      node as PostfixExpressionImpl,
-      contextType: contextType,
-    );
+    _postfixExpressionResolver.resolve(node, contextType: contextType);
     _insertImplicitCallReference(
       insertGenericFunctionInstantiation(node, contextType: contextType),
       contextType: contextType,
     );
+
+    if (isDotShorthand(node)) {
+      popDotShorthandContext();
+    }
+
     inferenceLogWriter?.exitExpression(node);
   }
 

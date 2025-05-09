@@ -15530,7 +15530,10 @@ abstract final class PostfixExpression
 }
 
 final class PostfixExpressionImpl extends ExpressionImpl
-    with NullShortableExpressionImpl, CompoundAssignmentExpressionImpl
+    with
+        NullShortableExpressionImpl,
+        CompoundAssignmentExpressionImpl,
+        DotShorthandMixin
     implements PostfixExpression {
   ExpressionImpl _operand;
 
