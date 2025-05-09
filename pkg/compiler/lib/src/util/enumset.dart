@@ -87,10 +87,10 @@ extension type const EnumSet<E extends Enum>(Bitset mask) {
   ///     Iterable<EnumClass> iterable = set.iterable(EnumClass.values);
   ///
   Iterable<E> iterable(List<E> values) =>
-  // We may store extra data in the bits unused by the enum values, but that
-  // will result in iteration attempting to look up enum values out of bounds.
-  // We can avoid this by masking off such bits.
-  _EnumSetIterable(mask.bits & ((1 << values.length) - 1), values);
+      // We may store extra data in the bits unused by the enum values, but that
+      // will result in iteration attempting to look up enum values out of bounds.
+      // We can avoid this by masking off such bits.
+      _EnumSetIterable(mask.bits & ((1 << values.length) - 1), values);
 }
 
 class _EnumSetIterable<E extends Enum> extends IterableBase<E> {

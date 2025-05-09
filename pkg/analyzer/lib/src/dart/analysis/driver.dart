@@ -363,10 +363,6 @@ class AnalysisDriver {
     return addedFiles.map(resourceProvider.getFile).toSet();
   }
 
-  /// Return the analysis options used to control analysis.
-  @Deprecated("Use 'getAnalysisOptionsForFile(file)' instead")
-  AnalysisOptions get analysisOptions => analysisOptionsMap.firstOrDefault;
-
   /// Return the current analysis session.
   AnalysisSessionImpl get currentSession {
     return libraryContext.elementFactory.analysisSession;

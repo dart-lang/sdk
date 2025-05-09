@@ -24,8 +24,6 @@ import '../../../../abstract_context.dart';
 import '../../../../abstract_single_unit.dart';
 import '../../../../utils/test_instrumentation_service.dart';
 
-export 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
-
 typedef ErrorFilter = bool Function(Diagnostic diagnostic);
 
 abstract class BaseFixProcessorTest extends AbstractSingleUnitTest {

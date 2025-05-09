@@ -97,9 +97,8 @@ _switchWithContinue(/*[exact=JSUInt31|powerset={I}{O}{N}]*/ o) {
       continue label;
     label:
     case 1:
-      local =
-          local
-              . /*Union(null, [exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {null}{I}{O}{IN})*/ isEven;
+      local = local
+          . /*Union(null, [exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {null}{I}{O}{IN})*/ isEven;
       break;
     case 2:
     default:

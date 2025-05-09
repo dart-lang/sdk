@@ -811,8 +811,8 @@ class ClassHierarchyBuilder {
       {};
 
   bool isInheritedInSubtypeOf(ClassEntity x, ClassEntity y) {
-    _InheritedInSubtypeCache cache =
-        _inheritedInSubtypeCacheMap[x] ??= _InheritedInSubtypeCache();
+    _InheritedInSubtypeCache cache = _inheritedInSubtypeCacheMap[x] ??=
+        _InheritedInSubtypeCache();
     return cache.isInheritedInSubtypeOf(this, x, y);
   }
 }
@@ -839,12 +839,11 @@ class _InheritedInThisClassCache {
     } else {
       set = _map![thisClass];
     }
-    set ??=
-        _map![thisClass] = _computeInheritingInThisClassSet(
-          builder,
-          memberHoldingClass,
-          thisClass,
-        );
+    set ??= _map![thisClass] = _computeInheritingInThisClassSet(
+      builder,
+      memberHoldingClass,
+      thisClass,
+    );
     return set.hasLiveClass(builder);
   }
 

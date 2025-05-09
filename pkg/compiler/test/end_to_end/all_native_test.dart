@@ -35,12 +35,11 @@ test(List<String> options) async {
     diagnosticHandler: collector,
     options: [Flags.verbose]..addAll(options),
   );
-  int allNativeUsedCount =
-      collector.verboseInfos.where((CollectedMessage message) {
-        return message.text.startsWith(
-          'All native types marked as used due to ',
-        );
-      }).length;
+  int allNativeUsedCount = collector.verboseInfos.where((
+    CollectedMessage message,
+  ) {
+    return message.text.startsWith('All native types marked as used due to ');
+  }).length;
   Expect.equals(
     1,
     allNativeUsedCount,

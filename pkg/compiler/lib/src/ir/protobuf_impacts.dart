@@ -147,11 +147,11 @@ class ProtobufImpactHandler implements ConditionalImpactHandler {
   );
   late final ir.Procedure _builderInfoAddMethod = _elementMap.env.libraryIndex
       .getProcedure(protobufLibraryUri, 'BuilderInfo', 'add');
-  late final ir.FunctionType _typeOfBuilderInfoAddOfNull = ir
-      .FunctionTypeInstantiator.instantiate(
-    _builderInfoAddMethod.getterType as ir.FunctionType,
-    const <ir.DartType>[ir.NullType()],
-  );
+  late final ir.FunctionType _typeOfBuilderInfoAddOfNull =
+      ir.FunctionTypeInstantiator.instantiate(
+        _builderInfoAddMethod.getterType as ir.FunctionType,
+        const <ir.DartType>[ir.NullType()],
+      );
 
   late final ir.Procedure? _builderInfoAddUnusedMethod = _elementMap
       .env
@@ -232,9 +232,9 @@ class ProtobufImpactHandler implements ConditionalImpactHandler {
     // conditional on the associated field being reachable.
     return _impactData =
         interfaceTarget.enclosingClass == _builderInfoClass &&
-                metadataInitializers.contains(node.name.text)
-            ? ImpactData()
-            : null;
+            metadataInitializers.contains(node.name.text)
+        ? ImpactData()
+        : null;
   }
 
   @override

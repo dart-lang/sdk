@@ -126,7 +126,7 @@ class AnalysisClosingLabelsParams implements HasToJson {
   String file;
 
   /// Closing labels relevant to the file. Each item represents a useful label
-  /// associated with some range with may be useful to display to the user
+  /// associated with some range which may be useful to display to the user
   /// within the editor at the end of the range to indicate what construct is
   /// closed at that location. Closing labels include constructor/method calls
   /// and List arguments that span multiple lines. Note that the ranges that
@@ -2262,7 +2262,7 @@ class AnalysisImplementedParams implements HasToJson {
   /// The classes defined in the file that are implemented or extended.
   List<ImplementedClass> classes;
 
-  /// The member defined in the file that are implemented or overridden.
+  /// The members defined in the file that are implemented or overridden.
   List<ImplementedMember> members;
 
   AnalysisImplementedParams(this.file, this.classes, this.members);
@@ -5205,8 +5205,8 @@ class CompletionGetSuggestionDetails2Params implements RequestParams {
   int offset;
 
   /// The `completion` from the selected `CompletionSuggestion`. It could be a
-  /// name of a class, or a name of a constructor in form
-  /// "typeName.constructorName()", or an enumeration constant in form
+  /// name of a class, or a name of a constructor in the form
+  /// "typeName.constructorName()", or an enumeration constant in the form
   /// "enumName.constantName", etc.
   String completion;
 
@@ -9288,7 +9288,7 @@ class EditOrganizeDirectivesParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditOrganizeDirectivesResult implements ResponseResult {
-  /// The file edit that is to be applied to the given file to effect the
+  /// The file edit that is to be applied to the given file to affect the
   /// organizing.
   SourceFileEdit edit;
 
@@ -9460,7 +9460,7 @@ class EditSortMembersParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditSortMembersResult implements ResponseResult {
-  /// The file edit that is to be applied to the given file to effect the
+  /// The file edit that is to be applied to the given file to affect the
   /// sorting.
   SourceFileEdit edit;
 
@@ -10430,7 +10430,7 @@ class ExecutionGetSuggestionsParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExecutionGetSuggestionsResult implements ResponseResult {
-  /// The completion suggestions. In contrast to usual completion request,
+  /// The completion suggestions. In contrast to usual completion requests,
   /// suggestions for private elements also will be provided.
   ///
   /// If there are sub-expressions that can have different runtime types, and

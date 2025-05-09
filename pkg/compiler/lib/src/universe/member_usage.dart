@@ -604,10 +604,9 @@ class MethodUsage extends MemberUsage {
       if (alreadyHasRead) {
         return MemberUses.none;
       }
-      final memberUses =
-          entity.isInstanceMember
-              ? MemberUses.closurizeInstanceOnly
-              : MemberUses.closurizeStaticOnly;
+      final memberUses = entity.isInstanceMember
+          ? MemberUses.closurizeInstanceOnly
+          : MemberUses.closurizeStaticOnly;
       final removed = _pendingUse.intersection(memberUses);
       _pendingUse = _pendingUse.setMinus(memberUses);
       return removed;
@@ -616,10 +615,9 @@ class MethodUsage extends MemberUsage {
       _pendingUse = _pendingUse.setMinus(MemberUses.normalOnly);
       return removed;
     } else {
-      final memberUses =
-          entity.isInstanceMember
-              ? MemberUses.allInstance
-              : MemberUses.allStatic;
+      final memberUses = entity.isInstanceMember
+          ? MemberUses.allInstance
+          : MemberUses.allStatic;
       final removed = _pendingUse.intersection(memberUses);
       _pendingUse = _pendingUse.setMinus(memberUses);
       return removed;
@@ -790,9 +788,9 @@ class ParameterUsage {
     _areAllTypeParametersProvided = _parameterStructure.typeParameters == 0;
     _providedPositionalParameters =
         _parameterStructure.positionalParameters ==
-                _parameterStructure.requiredPositionalParameters
-            ? null
-            : 0;
+            _parameterStructure.requiredPositionalParameters
+        ? null
+        : 0;
     if (_parameterStructure.namedParameters.isNotEmpty) {
       _unprovidedNamedParameters = Set<String>.from(
         _parameterStructure.namedParameters,
@@ -869,8 +867,8 @@ class ParameterUsage {
       _unprovidedNamedParameters == null
           ? _parameterStructure.namedParameters
           : _parameterStructure.namedParameters
-              .where((n) => !_unprovidedNamedParameters!.contains(n))
-              .toList(),
+                .where((n) => !_unprovidedNamedParameters!.contains(n))
+                .toList(),
       _parameterStructure.requiredNamedParameters,
       _areAllTypeParametersProvided ? _parameterStructure.typeParameters : 0,
     );

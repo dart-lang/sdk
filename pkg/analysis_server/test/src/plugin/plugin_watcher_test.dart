@@ -8,7 +8,7 @@ import 'package:analysis_server/src/plugin/plugin_locator.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_watcher.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
-import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 

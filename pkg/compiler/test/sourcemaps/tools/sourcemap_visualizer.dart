@@ -162,8 +162,9 @@ void generateHtml(String jsFileName, String jsMapFileName) {
           write(line.substring(columnNo, entry.column), lastEntry);
           columnNo = entry.column;
         }
-        state =
-            entry.sourceUrlId != null ? state.nextState : MappingState.unmapped;
+        state = entry.sourceUrlId != null
+            ? state.nextState
+            : MappingState.unmapped;
         int end;
         if (index + 1 < targetLineEntry.entries.length) {
           end = targetLineEntry.entries[index + 1].column;

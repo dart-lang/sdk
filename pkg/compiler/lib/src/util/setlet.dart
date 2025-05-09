@@ -146,10 +146,9 @@ class Setlet<E> extends SetBase<E> {
           _contents[copyTo++] = null;
         }
       } else {
-        _contents =
-            <E>{}
-              ..addAll((_contents as List).cast<E>())
-              ..add(element);
+        _contents = <E>{}
+          ..addAll((_contents as List).cast<E>())
+          ..add(element);
         _extra = _marker;
       }
       return true;

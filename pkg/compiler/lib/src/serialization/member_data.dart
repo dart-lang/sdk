@@ -36,9 +36,9 @@ String computeMemberName(ir.Member member) {
   // forwarders (see dartbug.com/33732).
   String libraryPrefix =
       member.name.isPrivate &&
-              member.name.libraryReference != member.enclosingLibrary.reference
-          ? '${member.name.libraryReference?.canonicalName?.name}:'
-          : '';
+          member.name.libraryReference != member.enclosingLibrary.reference
+      ? '${member.name.libraryReference?.canonicalName?.name}:'
+      : '';
   String name = member.name.text;
   if (member is ir.Constructor) {
     name = '.$name';
@@ -271,14 +271,14 @@ class MemberData {
   }
 
   ir.Constant getConstantByIndex(ir.ConstantExpression node, int index) {
-    ConstantNodeIndexerVisitor indexer =
-        _constantIndexMap[node] ??= _createConstantIndexer(node);
+    ConstantNodeIndexerVisitor indexer = _constantIndexMap[node] ??=
+        _createConstantIndexer(node);
     return indexer.getConstant(index);
   }
 
   int getIndexByConstant(ir.ConstantExpression node, ir.Constant constant) {
-    ConstantNodeIndexerVisitor indexer =
-        _constantIndexMap[node] ??= _createConstantIndexer(node);
+    ConstantNodeIndexerVisitor indexer = _constantIndexMap[node] ??=
+        _createConstantIndexer(node);
     return indexer.getIndex(constant);
   }
 

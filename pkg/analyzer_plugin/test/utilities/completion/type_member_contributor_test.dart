@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/utilities/completion/completion_core.dart';
 import 'package:analyzer_plugin/utilities/completion/relevance.dart';

@@ -374,27 +374,27 @@ class RecordTypeMask extends TypeMask {
     if (domain.closedWorld.classHierarchy.hasAnyStrictSubclass(recordClass)) {
       return isNullable
           ? FlatTypeMask.subclass(
-            recordClass,
-            domain,
-            hasLateSentinel: hasLateSentinel,
-          )
+              recordClass,
+              domain,
+              hasLateSentinel: hasLateSentinel,
+            )
           : FlatTypeMask.nonNullSubclass(
-            recordClass,
-            domain,
-            hasLateSentinel: hasLateSentinel,
-          );
+              recordClass,
+              domain,
+              hasLateSentinel: hasLateSentinel,
+            );
     } else {
       return isNullable
           ? FlatTypeMask.exact(
-            recordClass,
-            domain,
-            hasLateSentinel: hasLateSentinel,
-          )
+              recordClass,
+              domain,
+              hasLateSentinel: hasLateSentinel,
+            )
           : FlatTypeMask.nonNullExact(
-            recordClass,
-            domain,
-            hasLateSentinel: hasLateSentinel,
-          );
+              recordClass,
+              domain,
+              hasLateSentinel: hasLateSentinel,
+            );
     }
   }
 

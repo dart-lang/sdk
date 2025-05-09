@@ -156,17 +156,16 @@ class InvokeDynamicSpecializer {
     HGetLength length = HGetLength(
       array,
       abstractValueDomain.positiveIntType,
-      isAssignable:
-          abstractValueDomain
-              .isFixedLengthJsIndexable(array.instructionType)
-              .isPotentiallyFalse,
+      isAssignable: abstractValueDomain
+          .isFixedLengthJsIndexable(array.instructionType)
+          .isPotentiallyFalse,
     );
     block.addBefore(indexerNode, length);
 
     AbstractValue type =
         indexArgument.isPositiveInteger(abstractValueDomain).isDefinitelyTrue
-            ? indexArgument.instructionType
-            : abstractValueDomain.positiveIntType;
+        ? indexArgument.instructionType
+        : abstractValueDomain.positiveIntType;
     HBoundsCheck check = HBoundsCheck(indexArgument, length, array, type)
       ..sourceInformation = indexerNode.sourceInformation;
     block.addBefore(indexerNode, check);
@@ -232,8 +231,9 @@ class IndexAssignSpecializer extends InvokeDynamicSpecializer {
         .isDefinitelyTrue) {
       needsMutableCheck = true;
     } else if (receiver.isArray(abstractValueDomain).isDefinitelyTrue) {
-      needsMutableCheck =
-          receiver.isModifiableArray(abstractValueDomain).isPotentiallyFalse;
+      needsMutableCheck = receiver
+          .isModifiableArray(abstractValueDomain)
+          .isPotentiallyFalse;
     } else {
       if (receiver.isMutableIndexable(abstractValueDomain).isPotentiallyFalse) {
         return null;

@@ -68,8 +68,10 @@ String? computeKernelElementNameForSourceMaps(
         node = node.parent!;
       }
       MemberEntity enclosingMember = elementMap.getMember(node);
-      String enclosingMemberName =
-          computeElementNameForSourceMaps(enclosingMember, callStructure)!;
+      String enclosingMemberName = computeElementNameForSourceMaps(
+        enclosingMember,
+        callStructure,
+      )!;
       return '$enclosingMemberName.$name';
     case MemberKind.constructor:
     case MemberKind.constructorBody:

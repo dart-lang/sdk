@@ -92,11 +92,11 @@ class SsaCodeGeneratorTask extends CompilerTask {
       return finish(
         element.asyncMarker.isAsync
             ? (element.asyncMarker.isYielding
-                ? js.AsyncModifier.asyncStar
-                : js.AsyncModifier.async)
+                  ? js.AsyncModifier.asyncStar
+                  : js.AsyncModifier.async)
             : (element.asyncMarker.isYielding
-                ? js.AsyncModifier.syncStar
-                : js.AsyncModifier.sync),
+                  ? js.AsyncModifier.syncStar
+                  : js.AsyncModifier.sync),
       );
     } else {
       return finish(js.AsyncModifier.sync);
@@ -2663,10 +2663,9 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
 
     assert(_nativeData.isNativeMember(target), 'non-native target: $node');
 
-    String? targetName =
-        _nativeData.hasFixedBackendName(target)
-            ? _nativeData.getFixedBackendName(target)
-            : target.name;
+    String? targetName = _nativeData.hasFixedBackendName(target)
+        ? _nativeData.getFixedBackendName(target)
+        : target.name;
 
     void invokeWithJavaScriptReceiver(js.Expression receiverExpression) {
       // JS-interop target names can be paths ("a.b"), so we parse them to
@@ -2689,10 +2688,9 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
           inputs,
           start: target.isInstanceMember ? 1 : 0,
         );
-        template =
-            target is ConstructorEntity
-                ? 'new #.$targetName(#)'
-                : '#.$targetName(#)';
+        template = target is ConstructorEntity
+            ? 'new #.$targetName(#)'
+            : '#.$targetName(#)';
         templateInputs = [receiverExpression, arguments];
       }
       js.Expression expression = js.js
@@ -3313,11 +3311,10 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
   }
 
   void generateArrayLiteral(HLiteralList node) {
-    List<js.Expression> elements =
-        node.inputs.map((HInstruction input) {
-          use(input);
-          return pop();
-        }).toList();
+    List<js.Expression> elements = node.inputs.map((HInstruction input) {
+      use(input);
+      return pop();
+    }).toList();
     push(
       js.ArrayInitializer(
         elements,

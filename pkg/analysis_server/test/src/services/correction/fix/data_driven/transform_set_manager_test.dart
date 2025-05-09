@@ -7,11 +7,11 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/element_
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_manager.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../../../abstract_context.dart';
-import '../../../../../services/refactoring/legacy/abstract_rename.dart';
 
 void main() {
   defineReflectiveSuite(() {

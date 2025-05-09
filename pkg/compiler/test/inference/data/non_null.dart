@@ -25,7 +25,8 @@ class Class1 {
 /*member: nonNullInstanceField1:[exact=JSUInt31|powerset={I}{O}{N}]*/
 nonNullInstanceField1() {
   return Class1()
-      . /*[exact=Class1|powerset={N}{O}{N}]*/ /*update: [exact=Class1|powerset={N}{O}{N}]*/ field ??= 42;
+          . /*[exact=Class1|powerset={N}{O}{N}]*/ /*update: [exact=Class1|powerset={N}{O}{N}]*/ field ??=
+      42;
 }
 
 /*member: Class2.:[exact=Class2|powerset={N}{O}{N}]*/

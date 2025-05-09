@@ -113,14 +113,13 @@ class Class4 {
     /*prod.[exact=JSInvocationMirror|powerset={N}{O}{N}]*/
     invocation,
   ) {
-    this. /*update: [exact=Class4|powerset={N}{O}{N}]*/ field =
-        invocation
-            .
-            /*[exact=JSInvocationMirror|powerset={N}{O}{N}]*/
-            positionalArguments
-            .
-            /*[exact=JSUnmodifiableArray|powerset={I}{U}{I}]*/
-            first;
+    this. /*update: [exact=Class4|powerset={N}{O}{N}]*/ field = invocation
+        .
+        /*[exact=JSInvocationMirror|powerset={N}{O}{N}]*/
+        positionalArguments
+        .
+        /*[exact=JSUnmodifiableArray|powerset={I}{U}{I}]*/
+        first;
     return null;
   }
 

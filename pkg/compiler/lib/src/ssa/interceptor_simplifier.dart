@@ -216,10 +216,12 @@ class SsaSimplifyInterceptors extends HBaseVisitor<bool>
     // If multiple instructions are present in bestBlock, we scan bestBlock from
     // the start to find first instruction. If the [dominator] hint is in the
     // same block, can start from there instead.
-    Set<HInstruction> set =
-        instructions.where((i) => i.block == bestBlock).toSet();
-    HInstruction? current =
-        (dominator?.block == bestBlock) ? dominator : bestBlock.first;
+    Set<HInstruction> set = instructions
+        .where((i) => i.block == bestBlock)
+        .toSet();
+    HInstruction? current = (dominator?.block == bestBlock)
+        ? dominator
+        : bestBlock.first;
     while (current != null && !set.contains(current)) {
       current = current.next;
     }

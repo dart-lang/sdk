@@ -56,29 +56,21 @@ class PropertyElementResolver with ScopeHelpers {
     // `FutureOr<S>`.
     context = _resolver.typeSystem.futureOrBase(context);
 
-    // TODO(kallentu): Support other context types
     if (context is InterfaceTypeImpl) {
       var identifier = node.propertyName;
-      if (identifier.name == 'new') {
-        var element = context.lookUpConstructor2(
-          identifier.name,
-          _definingLibrary,
-        );
-        // We didn't resolve to any static getter or static field using the
-        // context type.
-        if (element == null) {
-          errorReporter.atNode(
-            node,
-            CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_GETTER,
-            arguments: [node.propertyName.name, context.getDisplayString()],
-          );
-          return PropertyElementResolverResult();
-        }
+      // Find constructor tearoffs.
+      var element = context.lookUpConstructor2(
+        identifier.name,
+        _definingLibrary,
+      );
+      if (element != null) {
         return PropertyElementResolverResult(
           readElementRequested2: element,
           getType: element.returnType,
         );
       }
+
+      // Didn't find any constructor tearoffs, look for static getters.
       var contextElement = context.element3;
       return _resolveTargetInterfaceElement(
         typeReference: contextElement,

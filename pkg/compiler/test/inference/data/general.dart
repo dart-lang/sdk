@@ -717,9 +717,8 @@ class A {
       ++ /*[subclass=A|powerset={N}{O}{N}]*/ /*update: [subclass=A|powerset={N}{O}{N}]*/ myField;
 
   /*member: A.returnInt2:[subclass=JSUInt32|powerset={I}{O}{N}]*/
-  returnInt2() => /*invoke: [exact=JSUInt31|powerset={I}{O}{N}]*/
-      ++this
-          . /*[subclass=A|powerset={N}{O}{N}]*/ /*update: [subclass=A|powerset={N}{O}{N}]*/ myField;
+  returnInt2() => /*invoke: [exact=JSUInt31|powerset={I}{O}{N}]*/ ++this
+      . /*[subclass=A|powerset={N}{O}{N}]*/ /*update: [subclass=A|powerset={N}{O}{N}]*/ myField;
 
   /*member: A.returnInt3:[subclass=JSUInt32|powerset={I}{O}{N}]*/
   returnInt3() =>
@@ -749,7 +748,8 @@ class A {
           1;
 
   /*member: A.myFactory:[subclass=Closure|powerset={N}{O}{N}]*/
-  get myFactory => /*[exact=JSUInt31|powerset={I}{O}{N}]*/ () => 42;
+  get myFactory => /*[exact=JSUInt31|powerset={I}{O}{N}]*/
+      () => 42;
 }
 
 class B extends A {
@@ -757,9 +757,8 @@ class B extends A {
   B() : super.generative();
 
   /*member: B.returnInt1:[subclass=JSUInt32|powerset={I}{O}{N}]*/
-  returnInt1() => /*invoke: [exact=JSUInt31|powerset={I}{O}{N}]*/
-      ++new A()
-          . /*[exact=A|powerset={N}{O}{N}]*/ /*update: [exact=A|powerset={N}{O}{N}]*/ myField;
+  returnInt1() => /*invoke: [exact=JSUInt31|powerset={I}{O}{N}]*/ ++new A()
+      . /*[exact=A|powerset={N}{O}{N}]*/ /*update: [exact=A|powerset={N}{O}{N}]*/ myField;
 
   /*member: B.returnInt2:[subclass=JSUInt32|powerset={I}{O}{N}]*/
   returnInt2() =>
@@ -806,9 +805,8 @@ class C {
       ++ /*update: [exact=C|powerset={N}{O}{N}]*/ /*[exact=C|powerset={N}{O}{N}]*/ myField;
 
   /*member: C.returnInt2:[subclass=JSPositiveInt|powerset={I}{O}{N}]*/
-  returnInt2() => /*invoke: [subclass=JSPositiveInt|powerset={I}{O}{N}]*/
-      ++this
-          . /*[exact=C|powerset={N}{O}{N}]*/ /*update: [exact=C|powerset={N}{O}{N}]*/ myField;
+  returnInt2() => /*invoke: [subclass=JSPositiveInt|powerset={I}{O}{N}]*/ ++this
+      . /*[exact=C|powerset={N}{O}{N}]*/ /*update: [exact=C|powerset={N}{O}{N}]*/ myField;
 
   /*member: C.returnInt3:[subclass=JSPositiveInt|powerset={I}{O}{N}]*/
   returnInt3() =>

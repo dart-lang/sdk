@@ -141,8 +141,9 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
   /// This method should be called in the visit methods of all expressions that
   /// could potentially be constant to bubble up the constness of expressions.
   EvaluationComplexity _evaluateImplicitConstant(ir.Expression node) {
-    ir.Constant? constant =
-        (node is ir.ConstantExpression) ? node.constant : null;
+    ir.Constant? constant = (node is ir.ConstantExpression)
+        ? node.constant
+        : null;
     if (constant != null) {
       return EvaluationComplexity.constant(constant);
     }
@@ -865,10 +866,9 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
   @override
   EvaluationComplexity visitFunctionNode(ir.FunctionNode node) {
     final parent = node.parent;
-    VariableUse parameterUsage =
-        parent is ir.Member
-            ? MemberParameterVariableUse(parent)
-            : LocalParameterVariableUse(parent as ir.LocalFunction);
+    VariableUse parameterUsage = parent is ir.Member
+        ? MemberParameterVariableUse(parent)
+        : LocalParameterVariableUse(parent as ir.LocalFunction);
     visitNodesInContext(node.typeParameters, parameterUsage);
     for (ir.VariableDeclaration declaration in node.positionalParameters) {
       _handleVariableDeclaration(declaration, parameterUsage);

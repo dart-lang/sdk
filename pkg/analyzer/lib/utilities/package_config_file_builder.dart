@@ -33,12 +33,14 @@ class PackageConfigFileBuilder {
     );
   }
 
+  /// Copies this [PackageConfigFileBuilder] into a new instance.
   PackageConfigFileBuilder copy() {
     var copy = PackageConfigFileBuilder();
     copy._packages.addAll(_packages);
     return copy;
   }
 
+  /// Returns the contents of the built package config file.
   String toContent({required String Function(String) toUriStr}) {
     var buffer = StringBuffer();
 

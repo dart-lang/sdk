@@ -287,18 +287,16 @@ class RecordDataBuilder {
   ) {
     // Sorted shapes lead to a more consistent class ordering in the generated
     // code.
-    final shapes =
-        recordTypes.map((type) => type.shape).toSet().toList()
-          ..sort(RecordShape.compare);
+    final shapes = recordTypes.map((type) => type.shape).toSet().toList()
+      ..sort(RecordShape.compare);
 
     List<RecordRepresentation> representations = [];
     for (int i = 0; i < shapes.length; i++) {
       final shape = shapes[i];
       final getters = <MemberEntity>[];
-      final cls =
-          shape.fieldCount == 0
-              ? _elementMap.commonElements.emptyRecordClass
-              : closedWorldBuilder.buildRecordShapeClass(shape, getters);
+      final cls = shape.fieldCount == 0
+          ? _elementMap.commonElements.emptyRecordClass
+          : closedWorldBuilder.buildRecordShapeClass(shape, getters);
       _gettersByShape[shape] = getters;
       int shapeTag = i;
       bool usesList = _computeUsesGeneralClass(cls);

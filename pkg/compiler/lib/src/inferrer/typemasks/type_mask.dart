@@ -747,13 +747,12 @@ abstract class TypeMask implements AbstractValue {
     }
 
     String domainToString(EnumSetDomain domain) {
-      final mnemonics =
-          domain
-              .toEnumSet(powerset)
-              .iterable(domain.values)
-              .toList()
-              .reversed
-              .join();
+      final mnemonics = domain
+          .toEnumSet(powerset)
+          .iterable(domain.values)
+          .toList()
+          .reversed
+          .join();
       return '{$mnemonics}';
     }
 

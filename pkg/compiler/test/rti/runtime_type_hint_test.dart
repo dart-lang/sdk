@@ -17,8 +17,9 @@ test(String code, List<String> options, List<MessageKind> expectedHints) async {
     diagnosticHandler: collector,
   );
   Expect.isTrue(result.isSuccess);
-  List<MessageKind?> actualHints =
-      collector.hints.map((c) => c.messageKind).toList();
+  List<MessageKind?> actualHints = collector.hints
+      .map((c) => c.messageKind)
+      .toList();
   String message =
       "Unexpected hints for $options on\n$code\n"
       "Expected: ${expectedHints}\n"

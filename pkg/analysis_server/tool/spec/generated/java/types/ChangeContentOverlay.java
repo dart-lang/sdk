@@ -53,7 +53,7 @@ public class ChangeContentOverlay {
    * already been updated since the edits were computed.
    *
    * If version numbers are supplied with AddContentOverlay and ChangeContentOverlay, they must be
-   * increasing (not not necessarily consecutive) numbers.
+   * increasing (but not necessarily consecutive) numbers.
    */
   private final Integer version;
 
@@ -112,7 +112,7 @@ public class ChangeContentOverlay {
    * already been updated since the edits were computed.
    *
    * If version numbers are supplied with AddContentOverlay and ChangeContentOverlay, they must be
-   * increasing (not not necessarily consecutive) numbers.
+   * increasing (but not necessarily consecutive) numbers.
    */
   public Integer getVersion() {
     return version;

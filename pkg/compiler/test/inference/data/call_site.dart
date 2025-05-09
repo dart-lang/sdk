@@ -124,7 +124,7 @@ class A8 {
   x8(
     /*Union([exact=JSString|powerset={I}{O}{I}], [exact=JsLinkedHashMap|powerset={N}{O}{N}], powerset: {IN}{O}{IN})*/ p,
   ) =>
-  /*invoke: [exact=A8|powerset={N}{O}{N}]*/ x8("x");
+      /*invoke: [exact=A8|powerset={N}{O}{N}]*/ x8("x");
 }
 
 /*member: test8:[null|powerset={null}]*/
@@ -140,7 +140,7 @@ class A9 {
     /*Union([exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {I}{O}{IN})*/ p2,
     /*Union([exact=JSUInt31|powerset={I}{O}{N}], [exact=JsLinkedHashMap|powerset={N}{O}{N}], powerset: {IN}{O}{N})*/ p3,
   ) =>
-  /*invoke: [exact=A9|powerset={N}{O}{N}]*/ x9(p1, "x", {});
+      /*invoke: [exact=A9|powerset={N}{O}{N}]*/ x9(p1, "x", {});
 }
 
 /*member: test9:[null|powerset={null}]*/
@@ -189,7 +189,7 @@ class A12 {
     /*Union([exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {I}{O}{IN})*/ p1,
     /*Union([exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {I}{O}{IN})*/ p2,
   ) =>
-  /*invoke: [exact=A12|powerset={N}{O}{N}]*/ x12(1, 2);
+      /*invoke: [exact=A12|powerset={N}{O}{N}]*/ x12(1, 2);
 }
 
 /*member: test12:[null|powerset={null}]*/
@@ -320,7 +320,7 @@ class A19 {
     /*Union([exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {I}{O}{IN})*/ p1,
     /*Union([exact=JSString|powerset={I}{O}{I}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {I}{O}{IN})*/ p2,
   ) =>
-  /*invoke: [subclass=A19|powerset={N}{O}{N}]*/ x19(p1, p2);
+      /*invoke: [subclass=A19|powerset={N}{O}{N}]*/ x19(p1, p2);
 }
 
 /*member: B19.:[exact=B19|powerset={N}{O}{N}]*/

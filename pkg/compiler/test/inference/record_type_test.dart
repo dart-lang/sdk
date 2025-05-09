@@ -141,8 +141,9 @@ main() {
     final shape2Class = world.recordData.representationForShape(shape2)!.cls;
     final shape2Mask = FlatTypeMask.nonNullExact(shape2Class, domain);
     final shape1Foo = RecordShape(1, ["foo"]);
-    final shape1FooClass =
-        world.recordData.representationForShape(shape1Foo)!.cls;
+    final shape1FooClass = world.recordData
+        .representationForShape(shape1Foo)!
+        .cls;
     final shape1FooMask = FlatTypeMask.nonNullExact(shape1FooClass, domain);
     final uninstantiatedShape = RecordShape(2, ["bar"]);
 

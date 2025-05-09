@@ -102,26 +102,21 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
   factory _CodegenImpact.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     MemberEntity member = source.readMember();
-    final dynamicUses =
-        source
-            .readListOrNull(() => DynamicUse.readFromDataSource(source))
-            ?.toSet();
-    final staticUses =
-        source
-            .readListOrNull(() => StaticUse.readFromDataSource(source))
-            ?.toSet();
-    final typeUses =
-        source
-            .readListOrNull(() => TypeUse.readFromDataSource(source))
-            ?.toSet();
-    final constantUses =
-        source
-            .readListOrNull(() => ConstantUse.readFromDataSource(source))
-            ?.toSet();
-    final typeVariableBoundsSubtypeChecks =
-        source.readListOrNull(() {
-          return (source.readDartType(), source.readDartType());
-        })?.toSet();
+    final dynamicUses = source
+        .readListOrNull(() => DynamicUse.readFromDataSource(source))
+        ?.toSet();
+    final staticUses = source
+        .readListOrNull(() => StaticUse.readFromDataSource(source))
+        ?.toSet();
+    final typeUses = source
+        .readListOrNull(() => TypeUse.readFromDataSource(source))
+        ?.toSet();
+    final constantUses = source
+        .readListOrNull(() => ConstantUse.readFromDataSource(source))
+        ?.toSet();
+    final typeVariableBoundsSubtypeChecks = source.readListOrNull(() {
+      return (source.readDartType(), source.readDartType());
+    })?.toSet();
     final constSymbols = source.readStringsOrNull()?.toSet();
     final specializedGetInterceptors = source.readListOrNull(() {
       return source.readClasses().toSet();
@@ -129,20 +124,16 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
     bool usesInterceptor = source.readBool();
     final asyncMarkersValue = source.readInt();
     final asyncMarkers = EnumSet<AsyncMarker>.fromRawBits(asyncMarkersValue);
-    final genericInstantiations =
-        source
-            .readListOrNull(
-              () => GenericInstantiation.readFromDataSource(source),
-            )
-            ?.toSet();
+    final genericInstantiations = source
+        .readListOrNull(() => GenericInstantiation.readFromDataSource(source))
+        ?.toSet();
     final nativeBehaviors = source.readListOrNull(
       () => NativeBehavior.readFromDataSource(source),
     );
     final nativeMethods = source.readMembersOrNull<FunctionEntity>()?.toSet();
-    final oneShotInterceptors =
-        source
-            .readListOrNull(() => Selector.readFromDataSource(source))
-            ?.toSet();
+    final oneShotInterceptors = source
+        .readListOrNull(() => Selector.readFromDataSource(source))
+        ?.toSet();
     source.end(tag);
     return _CodegenImpact.internal(
       member,
@@ -455,8 +446,8 @@ class CodegenResult {
     source.begin(tag);
     js.Fun? code = source.readJsNodeOrNull() as js.Fun?;
     CodegenImpact impact = CodegenImpact.readFromDataSource(source);
-    final deferredExpressionData = js
-        .DeferredExpressionRegistry.readDataFromDataSource(source);
+    final deferredExpressionData =
+        js.DeferredExpressionRegistry.readDataFromDataSource(source);
     source.end(tag);
     if (code != null) {
       code = code.withAnnotation(deferredExpressionData) as js.Fun;

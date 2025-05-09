@@ -100,10 +100,9 @@ class Size {
   /// This function assumes that both Sizes contain strictly positive dimensions.
   /// Returns this Size object, after optional scaling.
   Size scaleToFit(Size target) {
-    num s =
-        aspectRatio() > target.aspectRatio()
-            ? target.width / width
-            : target.height / height;
+    num s = aspectRatio() > target.aspectRatio()
+        ? target.width / width
+        : target.height / height;
     return scale(s);
   }
 

@@ -151,11 +151,10 @@ testIterators() async {
     }
   }
 
-  iterator =
-      ClassHierarchyNodeIterable(
-        world.classHierarchy.getClassHierarchyNode(G),
-        ClassHierarchyNode.all,
-      ).iterator;
+  iterator = ClassHierarchyNodeIterable(
+    world.classHierarchy.getClassHierarchyNode(G),
+    ClassHierarchyNode.all,
+  ).iterator;
   checkState(G, currentNode: null, stack: null);
   Expect.isTrue(iterator.moveNext());
   checkState(G, currentNode: G, stack: []);
@@ -163,21 +162,19 @@ testIterators() async {
   checkState(G, currentNode: null, stack: []);
   Expect.throws(() => iterator.current);
 
-  iterator =
-      ClassHierarchyNodeIterable(
-        world.classHierarchy.getClassHierarchyNode(G),
-        ClassHierarchyNode.all,
-        includeRoot: false,
-      ).iterator;
+  iterator = ClassHierarchyNodeIterable(
+    world.classHierarchy.getClassHierarchyNode(G),
+    ClassHierarchyNode.all,
+    includeRoot: false,
+  ).iterator;
   checkState(G, currentNode: null, stack: null);
   Expect.isFalse(iterator.moveNext());
   checkState(G, currentNode: null, stack: []);
 
-  iterator =
-      ClassHierarchyNodeIterable(
-        world.classHierarchy.getClassHierarchyNode(C),
-        ClassHierarchyNode.all,
-      ).iterator;
+  iterator = ClassHierarchyNodeIterable(
+    world.classHierarchy.getClassHierarchyNode(C),
+    ClassHierarchyNode.all,
+  ).iterator;
   checkState(C, currentNode: null, stack: null);
   Expect.isTrue(iterator.moveNext());
   checkState(C, currentNode: C, stack: [G, F, E]);
@@ -190,22 +187,20 @@ testIterators() async {
   Expect.isFalse(iterator.moveNext());
   checkState(C, currentNode: null, stack: []);
 
-  iterator =
-      ClassHierarchyNodeIterable(
-        world.classHierarchy.getClassHierarchyNode(D),
-        ClassHierarchyNode.all,
-      ).iterator;
+  iterator = ClassHierarchyNodeIterable(
+    world.classHierarchy.getClassHierarchyNode(D),
+    ClassHierarchyNode.all,
+  ).iterator;
   checkState(D, currentNode: null, stack: null);
   Expect.isTrue(iterator.moveNext());
   checkState(D, currentNode: D, stack: []);
   Expect.isFalse(iterator.moveNext());
   checkState(D, currentNode: null, stack: []);
 
-  iterator =
-      ClassHierarchyNodeIterable(
-        world.classHierarchy.getClassHierarchyNode(B),
-        ClassHierarchyNode.all,
-      ).iterator;
+  iterator = ClassHierarchyNodeIterable(
+    world.classHierarchy.getClassHierarchyNode(B),
+    ClassHierarchyNode.all,
+  ).iterator;
   checkState(B, currentNode: null, stack: null);
   Expect.isTrue(iterator.moveNext());
   checkState(B, currentNode: B, stack: [D]);
@@ -214,37 +209,34 @@ testIterators() async {
   Expect.isFalse(iterator.moveNext());
   checkState(B, currentNode: null, stack: []);
 
-  iterator =
-      ClassHierarchyNodeIterable(
-        world.classHierarchy.getClassHierarchyNode(B),
-        ClassHierarchyNode.all,
-        includeRoot: false,
-      ).iterator;
+  iterator = ClassHierarchyNodeIterable(
+    world.classHierarchy.getClassHierarchyNode(B),
+    ClassHierarchyNode.all,
+    includeRoot: false,
+  ).iterator;
   checkState(B, currentNode: null, stack: null);
   Expect.isTrue(iterator.moveNext());
   checkState(B, currentNode: D, stack: []);
   Expect.isFalse(iterator.moveNext());
   checkState(B, currentNode: null, stack: []);
 
-  iterator =
-      ClassHierarchyNodeIterable(
-        world.classHierarchy.getClassHierarchyNode(B),
-        EnumSet<Instantiation>.fromValues(<Instantiation>[
-          Instantiation.directlyInstantiated,
-          Instantiation.uninstantiated,
-        ]),
-      ).iterator;
+  iterator = ClassHierarchyNodeIterable(
+    world.classHierarchy.getClassHierarchyNode(B),
+    EnumSet<Instantiation>.fromValues(<Instantiation>[
+      Instantiation.directlyInstantiated,
+      Instantiation.uninstantiated,
+    ]),
+  ).iterator;
   checkState(B, currentNode: null, stack: null);
   Expect.isTrue(iterator.moveNext());
   checkState(B, currentNode: D, stack: []);
   Expect.isFalse(iterator.moveNext());
   checkState(B, currentNode: null, stack: []);
 
-  iterator =
-      ClassHierarchyNodeIterable(
-        world.classHierarchy.getClassHierarchyNode(A),
-        ClassHierarchyNode.all,
-      ).iterator;
+  iterator = ClassHierarchyNodeIterable(
+    world.classHierarchy.getClassHierarchyNode(A),
+    ClassHierarchyNode.all,
+  ).iterator;
   checkState(A, currentNode: null, stack: null);
   Expect.isTrue(iterator.moveNext());
   checkState(A, currentNode: A, stack: [C, B]);
@@ -263,12 +255,11 @@ testIterators() async {
   Expect.isFalse(iterator.moveNext());
   checkState(A, currentNode: null, stack: []);
 
-  iterator =
-      ClassHierarchyNodeIterable(
-        world.classHierarchy.getClassHierarchyNode(A),
-        ClassHierarchyNode.all,
-        includeRoot: false,
-      ).iterator;
+  iterator = ClassHierarchyNodeIterable(
+    world.classHierarchy.getClassHierarchyNode(A),
+    ClassHierarchyNode.all,
+    includeRoot: false,
+  ).iterator;
   checkState(A, currentNode: null, stack: null);
   Expect.isTrue(iterator.moveNext());
   checkState(A, currentNode: B, stack: [C, D]);
@@ -285,14 +276,13 @@ testIterators() async {
   Expect.isFalse(iterator.moveNext());
   checkState(A, currentNode: null, stack: []);
 
-  iterator =
-      ClassHierarchyNodeIterable(
-        world.classHierarchy.getClassHierarchyNode(A),
-        EnumSet<Instantiation>.fromValues(<Instantiation>[
-          Instantiation.directlyInstantiated,
-          Instantiation.uninstantiated,
-        ]),
-      ).iterator;
+  iterator = ClassHierarchyNodeIterable(
+    world.classHierarchy.getClassHierarchyNode(A),
+    EnumSet<Instantiation>.fromValues(<Instantiation>[
+      Instantiation.directlyInstantiated,
+      Instantiation.uninstantiated,
+    ]),
+  ).iterator;
   checkState(A, currentNode: null, stack: null);
   Expect.isTrue(iterator.moveNext());
   checkState(A, currentNode: A, stack: [C, B]);
@@ -309,15 +299,14 @@ testIterators() async {
   Expect.isFalse(iterator.moveNext());
   checkState(A, currentNode: null, stack: []);
 
-  iterator =
-      ClassHierarchyNodeIterable(
-        world.classHierarchy.getClassHierarchyNode(A),
-        EnumSet<Instantiation>.fromValues(<Instantiation>[
-          Instantiation.directlyInstantiated,
-          Instantiation.uninstantiated,
-        ]),
-        includeRoot: false,
-      ).iterator;
+  iterator = ClassHierarchyNodeIterable(
+    world.classHierarchy.getClassHierarchyNode(A),
+    EnumSet<Instantiation>.fromValues(<Instantiation>[
+      Instantiation.directlyInstantiated,
+      Instantiation.uninstantiated,
+    ]),
+    includeRoot: false,
+  ).iterator;
   checkState(A, currentNode: null, stack: null);
   Expect.isTrue(iterator.moveNext());
   checkState(A, currentNode: D, stack: [C]);

@@ -20,7 +20,7 @@ class TestAnalysisContext implements AnalysisContext {
   final SourceFactory sourceFactory = _MockSourceFactory();
 
   final _MockAnalysisSession _analysisSession = _MockAnalysisSession();
-  final AnalysisOptions _analysisOptions = AnalysisOptionsImpl();
+  final AnalysisOptions analysisOptions = AnalysisOptionsImpl();
 
   late TypeProviderImpl _typeProvider;
   late TypeSystemImpl _typeSystem;
@@ -38,9 +38,6 @@ class TestAnalysisContext implements AnalysisContext {
     _setLibraryTypeSystem(sdkElements.coreLibrary);
     _setLibraryTypeSystem(sdkElements.asyncLibrary);
   }
-
-  @override
-  AnalysisOptions get analysisOptions => _analysisOptions;
 
   AnalysisSessionImpl get analysisSession => _analysisSession;
 

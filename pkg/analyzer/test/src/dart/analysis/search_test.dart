@@ -10,6 +10,7 @@ import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/test_utilities/find_element2.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
@@ -2133,10 +2134,11 @@ class B extends A<String> {}
   }
 
   @FailingTest(
-      // When this test begins passing, the temporary test
-      // test_searchReferences_ParameterElement_generic_atInvocation_doesNotThrow_issue60005
-      // can be removed.
-      issue: 'https://github.com/dart-lang/sdk/issues/60200')
+    // When this test begins passing, the temporary test
+    // test_searchReferences_ParameterElement_generic_atInvocation_doesNotThrow_issue60005
+    // can be removed.
+    issue: 'https://github.com/dart-lang/sdk/issues/60200',
+  )
   test_searchReferences_ParameterElement_generic_atInvocation() async {
     await resolveTestCode('''
 void f() {

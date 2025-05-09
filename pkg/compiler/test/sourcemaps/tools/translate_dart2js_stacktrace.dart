@@ -7,14 +7,14 @@ import 'package:args/args.dart';
 import 'package:http/http.dart' as http;
 import 'package:source_maps/source_maps.dart';
 
-ArgParser parser =
-    ArgParser()..addFlag(
-      'inline',
-      abbr: 'i',
-      negatable: true,
-      help: 'Inline untranslatable parts..',
-      defaultsTo: false,
-    );
+ArgParser parser = ArgParser()
+  ..addFlag(
+    'inline',
+    abbr: 'i',
+    negatable: true,
+    help: 'Inline untranslatable parts..',
+    defaultsTo: false,
+  );
 
 main(List<String> arguments) async {
   ArgResults options = parser.parse(arguments);

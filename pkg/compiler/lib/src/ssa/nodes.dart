@@ -1935,10 +1935,9 @@ abstract class HInvokeDynamic extends HInvoke implements InstructionContext {
     AbstractValue resultType,
   ) : _selector = selector,
       _originalReceiverType = _receiverType,
-      specializer =
-          isIntercepted
-              ? InvokeDynamicSpecializer.lookupSpecializer(selector)
-              : const InvokeDynamicSpecializer(),
+      specializer = isIntercepted
+          ? InvokeDynamicSpecializer.lookupSpecializer(selector)
+          : const InvokeDynamicSpecializer(),
       super(inputs, resultType) {
     isInterceptedCall = isIntercepted;
   }
@@ -1968,12 +1967,40 @@ abstract class HInvokeDynamic extends HInvoke implements InstructionContext {
     AbstractValueDomain abstractValueDomain,
   ) {
     if (staticType == null) return value;
+
+    // When the receiver might be a LegacyJavaScriptObject, we don't trust the
+    // static type.  Global type inference is conservative for legacy js-interop
+    // methods, so we should be conservative here too.
+    if (_possiblyLegacyJavaScriptObject(
+      selector,
+      receiverType,
+      abstractValueDomain,
+    )) {
+      return value;
+    }
+
     final narrowed = abstractValueDomain.intersection(value, staticType!);
     // Preserve the sentinel in [value] since the static type does not include
     // a sentinel and the intersection would remove it.
     return abstractValueDomain.isLateSentinel(value).isPotentiallyTrue
         ? abstractValueDomain.includeLateSentinel(narrowed)
         : narrowed;
+  }
+
+  static bool _possiblyLegacyJavaScriptObject(
+    Selector selector,
+    AbstractValue type,
+    AbstractValueDomain domain,
+  ) {
+    // Legacy js-interop cannot override `[]`.
+    if (selector.isIndex) return false;
+    if (domain.isPrimitiveOrNull(type).isDefinitelyTrue) return false;
+    if (domain.isInterceptor(type).isDefinitelyFalse) return false;
+    // We get here for typed_data classes.
+    // TODO(sra): Test against LegacyJavaScriptObject explicitly.
+    // TODO(sra): Ensure that regular closures are not conflated with
+    // JavaScriptFunction which also implements `Function`.
+    return true;
   }
 
   @override
@@ -2100,10 +2127,9 @@ class HInvokeDynamicGetter extends HInvokeDynamicField {
 
   // There might be an interceptor input, so `inputs.last` is the dart receiver.
   @override
-  bool canThrow(AbstractValueDomain domain) =>
-      isTearOff
-          ? inputs.last.isNull(domain).isPotentiallyTrue
-          : super.canThrow(domain);
+  bool canThrow(AbstractValueDomain domain) => isTearOff
+      ? inputs.last.isNull(domain).isPotentiallyTrue
+      : super.canThrow(domain);
 
   @override
   String toString() =>

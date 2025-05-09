@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/context_locator.dart';
-import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/workspace/basic.dart';
@@ -13,6 +12,7 @@ import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/gn.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 

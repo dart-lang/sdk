@@ -77,9 +77,8 @@ class B extends A {
   operator [](/*[empty|powerset=empty]*/ index) => 42;
 
   /*member: B.returnString1:Value([exact=JSString|powerset={I}{O}{I}], value: "string", powerset: {I}{O}{I})*/
-  returnString1() =>
-      super
-          .foo /*invoke: Value([exact=JSString|powerset={I}{O}{I}], value: "string", powerset: {I}{O}{I})*/ --;
+  returnString1() => super
+      .foo /*invoke: Value([exact=JSString|powerset={I}{O}{I}], value: "string", powerset: {I}{O}{I})*/ --;
 
   /*member: B.returnDynamic1:[empty|powerset=empty]*/
   returnDynamic1() =>

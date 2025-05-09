@@ -52,8 +52,10 @@ run(
 
   for (OutputUnitDescriptor descriptor in outputUnits) {
     LibraryEntity library = lookupLibrary(descriptor.uri);
-    MemberEntity member =
-        elementEnvironment.lookupLibraryMember(library, descriptor.member)!;
+    MemberEntity member = elementEnvironment.lookupLibraryMember(
+      library,
+      descriptor.member,
+    )!;
     OutputUnit outputUnit = outputUnitForMember(member);
     fragments[descriptor.name] = lookup.getFragment(outputUnit)!;
   }

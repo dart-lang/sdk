@@ -8,8 +8,8 @@ void main() {
 testList() {
   dynamic list = [];
   final rec = (list, 3);
-  final myList =
-      rec. /*[Record(RecordShape(2), [Container([exact=JSExtendableArray|powerset={I}{G}{M}], element: [exact=JSUInt31|powerset={I}{O}{N}], length: null, powerset: {I}{G}{M}), [exact=JSUInt31|powerset={I}{O}{N}]], powerset: {N}{O}{N})]*/ $1;
+  final myList = rec
+      . /*[Record(RecordShape(2), [Container([exact=JSExtendableArray|powerset={I}{G}{M}], element: [exact=JSUInt31|powerset={I}{O}{N}], length: null, powerset: {I}{G}{M}), [exact=JSUInt31|powerset={I}{O}{N}]], powerset: {N}{O}{N})]*/ $1;
   myList
       . /*invoke: Container([exact=JSExtendableArray|powerset={I}{G}{M}], element: [exact=JSUInt31|powerset={I}{O}{N}], length: null, powerset: {I}{G}{M})*/ add(
         1,

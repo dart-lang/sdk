@@ -55,36 +55,35 @@ Future<Null> test(
   List<String> expectedOutput, {
   List<String> groupOutputs = const <String>[],
 }) async {
-  List<String> options =
-      List<String>.from(arguments)
-        ..add('--platform-binaries=$sdkPlatformBinariesPath')
-        ..add('--libraries-spec=$sdkLibrariesSpecificationUri');
+  List<String> options = List<String>.from(arguments)
+    ..add('--platform-binaries=$sdkPlatformBinariesPath')
+    ..add('--libraries-spec=$sdkLibrariesSpecificationUri');
   print('--------------------------------------------------------------------');
   print('dart2js ${options.join(' ')}');
   late TestRandomAccessFileOutputProvider outputProvider;
-  compileFunc = (
-    CompilerOptions compilerOptions,
-    api.CompilerInput compilerInput,
-    api.CompilerDiagnostics compilerDiagnostics,
-    api.CompilerOutput compilerOutput,
-  ) async {
-    return oldCompileFunc(
-      compilerOptions,
-      compilerInput,
-      compilerDiagnostics,
-      outputProvider = TestRandomAccessFileOutputProvider(
-        compilerOutput as RandomAccessFileOutputProvider,
-      ),
-    );
-  };
+  compileFunc =
+      (
+        CompilerOptions compilerOptions,
+        api.CompilerInput compilerInput,
+        api.CompilerDiagnostics compilerDiagnostics,
+        api.CompilerOutput compilerOutput,
+      ) async {
+        return oldCompileFunc(
+          compilerOptions,
+          compilerInput,
+          compilerDiagnostics,
+          outputProvider = TestRandomAccessFileOutputProvider(
+            compilerOutput as RandomAccessFileOutputProvider,
+          ),
+        );
+      };
   await internalMain(options);
   List<String> outputs = outputProvider.outputs;
   for (String outputGroup in groupOutputs) {
     int countBefore = outputs.length;
-    outputs =
-        outputs
-            .where((String output) => !output.endsWith(outputGroup))
-            .toList();
+    outputs = outputs
+        .where((String output) => !output.endsWith(outputGroup))
+        .toList();
     Expect.notEquals(
       0,
       countBefore - outputs.length,

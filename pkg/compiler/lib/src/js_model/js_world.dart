@@ -192,11 +192,13 @@ class JClosedWorld implements World {
 
     Set<ClassEntity> implementedClasses = source.readClasses().toSet();
     Set<ClassEntity> liveNativeClasses = source.readClasses().toSet();
-    Set<ClassEntity> extractTypeArgumentsInterfaces =
-        source.readClasses().toSet();
+    Set<ClassEntity> extractTypeArgumentsInterfaces = source
+        .readClasses()
+        .toSet();
     Set<MemberEntity> liveInstanceMembers = source.readMembers().toSet();
-    Set<MemberEntity> liveAbstractInstanceMembers =
-        source.readMembers().toSet();
+    Set<MemberEntity> liveAbstractInstanceMembers = source
+        .readMembers()
+        .toSet();
     Set<MemberEntity> assignedInstanceMembers = source.readMembers().toSet();
     Set<MemberEntity> processedMembers = source.readMembers().toSet();
     Map<ClassEntity, Set<ClassEntity>> mixinUses = source.readClassMap(
@@ -540,8 +542,9 @@ class JClosedWorld implements World {
     return false;
   }
 
-  late final ClassEntity _functionLub =
-      getLubOfInstantiatedSubtypes(commonElements.functionClass)!;
+  late final ClassEntity _functionLub = getLubOfInstantiatedSubtypes(
+    commonElements.functionClass,
+  )!;
 
   /// Returns `true` if [selector] on [receiver] can hit a `call` method on a
   /// subclass of `Closure` using the [abstractValueDomain].

@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -51,10 +52,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (expr is AssignmentExpression) return;
 
     var type = expr.staticType;
-    if (type == null) {
-      return;
-    }
-    if (!type.implementsInterface('Future', 'dart.async')) {
+    if (type == null || !type.isOrImplementsFuture) {
       return;
     }
 
@@ -96,7 +94,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   bool _isMapClass(Element? e) =>
       e is ClassElement && e.name3 == 'Map' && e.library2.name3 == 'dart.core';
 
-  /// Detects Map.putIfAbsent invocations.
+  /// Detects `Map.putIfAbsent` invocations.
   bool _isMapPutIfAbsentInvocation(Expression expr) =>
       expr is MethodInvocation &&
       expr.methodName.name == 'putIfAbsent' &&
@@ -107,11 +105,23 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    // TODO(srawlins): Check whether `expr`'s static type _implements_ `Future`.
-    if ((expr.staticType?.isDartAsyncFuture ?? false) &&
-        _isEnclosedInAsyncFunctionBody(expr) &&
-        expr is! AssignmentExpression) {
+    var type = expr.staticType;
+    if (type == null || !type.isOrImplementsFuture) {
+      return;
+    }
+
+    if (_isEnclosedInAsyncFunctionBody(expr) && expr is! AssignmentExpression) {
       rule.reportAtNode(expr);
     }
+  }
+}
+
+extension on DartType {
+  /// Whether this type is `Future` from dart:async, or is a subtype thereof.
+  bool get isOrImplementsFuture {
+    var typeElement = element3;
+    if (typeElement is! InterfaceElement) return false;
+    return isDartAsyncFuture ||
+        typeElement.allSupertypes.any((t) => t.isDartAsyncFuture);
   }
 }

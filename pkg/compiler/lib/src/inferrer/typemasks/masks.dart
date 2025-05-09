@@ -460,10 +460,9 @@ class CommonMasks with AbstractValueDomain {
     covariant TypeMask expressionMask,
     ClassEntity cls,
   ) {
-    final typeMask =
-        (cls == commonElements.nullClass)
-            ? nullType
-            : createNonNullSubtype(cls);
+    final typeMask = (cls == commonElements.nullClass)
+        ? nullType
+        : createNonNullSubtype(cls);
     if (expressionMask.union(typeMask, this) == typeMask) {
       return AbstractBool.true_;
     } else if (expressionMask.isDisjoint(typeMask, closedWorld)) {
@@ -756,11 +755,10 @@ class CommonMasks with AbstractValueDomain {
   AbstractBool isPrimitiveOrNull(TypeMask value) =>
       AbstractBool.trueOrMaybe(_isPrimitiveOrNull(value));
 
-  bool _isIndexable(TypeMask value) =>
-      !_indexableDomain.contains(
-        value.powerset,
-        TypeMaskIndexableProperty.notIndexable,
-      );
+  bool _isIndexable(TypeMask value) => !_indexableDomain.contains(
+    value.powerset,
+    TypeMaskIndexableProperty.notIndexable,
+  );
 
   bool _isIndexablePrimitive(TypeMask value) =>
       value.containsOnlyString(closedWorld) || _isIndexable(value);
@@ -984,8 +982,9 @@ class CommonMasks with AbstractValueDomain {
 
   @override
   AbstractValue getDictionaryValueForKey(AbstractValue value, String key) {
-    final result =
-        value is DictionaryTypeMask ? value.getValueForKey(key) : null;
+    final result = value is DictionaryTypeMask
+        ? value.getValueForKey(key)
+        : null;
     return result ?? dynamicType;
   }
 
@@ -1221,12 +1220,11 @@ String formatType(DartTypes dartTypes, TypeMask type) {
       ].join('');
     }
     String nullFlag = type.isNullable ? '?' : '';
-    String subFlag =
-        type.isExact
-            ? ''
-            : type.isSubclass
-            ? '+'
-            : '*';
+    String subFlag = type.isExact
+        ? ''
+        : type.isSubclass
+        ? '+'
+        : '*';
     String sentinelFlag = type.hasLateSentinel ? '\$' : '';
     return '${type.base!.name}$nullFlag$subFlag$sentinelFlag';
   }

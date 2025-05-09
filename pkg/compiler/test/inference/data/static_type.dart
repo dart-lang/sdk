@@ -48,7 +48,8 @@ class C<T> {
 
   /*member: C.fixedFunctionGetter:[subclass=Closure|powerset={N}{O}{N}]*/
   int Function()
-  get fixedFunctionGetter => /*[exact=JSUInt31|powerset={I}{O}{N}]*/ () => 0;
+  get fixedFunctionGetter => /*[exact=JSUInt31|powerset={I}{O}{N}]*/
+      () => 0;
 
   /*member: C.functionGetter:[null|subclass=Closure|powerset={null}{N}{O}{N}]*/
   T Function()? get functionGetter => /*[subclass=C|powerset={N}{O}{N}]*/

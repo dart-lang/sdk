@@ -65,8 +65,8 @@ class KAllocatorAnalysisDataComputer extends DataComputer<Features> {
           });
         }
       } else {
-        StaticFieldData staticFieldData =
-            allocatorAnalysis.getStaticFieldDataForTesting(member as JField)!;
+        StaticFieldData staticFieldData = allocatorAnalysis
+            .getStaticFieldDataForTesting(member as JField)!;
         if (staticFieldData.initialValue != null) {
           features[Tags.initialValue] = staticFieldData.initialValue!
               .toStructuredText(dartTypes);

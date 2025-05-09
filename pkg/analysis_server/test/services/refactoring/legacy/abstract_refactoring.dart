@@ -13,8 +13,6 @@ import 'package:test/test.dart';
 
 import '../../../abstract_single_unit.dart';
 
-export 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
-
 int findIdentifierLength(String search) {
   var length = 0;
   while (length < search.length) {

@@ -44,8 +44,8 @@ dynamic a =
     [0];
 
 /*member: test1:Dictionary([subclass=JsLinkedHashMap|powerset={N}{O}{N}], key: [empty|powerset=empty], value: [null|powerset={null}], map: {}, powerset: {N}{O}{N})*/
-test1() =>
-    a. /*invoke: Union(null, [exact=D|powerset={N}{O}{N}], [subclass=B|powerset={N}{O}{N}], powerset: {null}{N}{O}{N})*/ foo();
+test1() => a
+    . /*invoke: Union(null, [exact=D|powerset={N}{O}{N}], [subclass=B|powerset={N}{O}{N}], powerset: {null}{N}{O}{N})*/ foo();
 
 /*member: test2:Dictionary([subclass=JsLinkedHashMap|powerset={N}{O}{N}], key: [empty|powerset=empty], value: [null|powerset={null}], map: {}, powerset: {N}{O}{N})*/
 test2() => B(). /*invoke: [exact=B|powerset={N}{O}{N}]*/ foo();
@@ -65,8 +65,8 @@ test5() {
 
 // Can hit A.noSuchMethod, D.noSuchMethod and Object.noSuchMethod.
 /*member: test6:Union([exact=JSNumNotInt|powerset={I}{O}{N}], [exact=JSUInt31|powerset={I}{O}{N}], powerset: {I}{O}{N})*/
-test6() =>
-    a. /*invoke: Union(null, [exact=D|powerset={N}{O}{N}], [subclass=B|powerset={N}{O}{N}], powerset: {null}{N}{O}{N})*/ bar();
+test6() => a
+    . /*invoke: Union(null, [exact=D|powerset={N}{O}{N}], [subclass=B|powerset={N}{O}{N}], powerset: {null}{N}{O}{N})*/ bar();
 
 // Can hit A.noSuchMethod.
 /*member: test7:[exact=JSUInt31|powerset={I}{O}{N}]*/

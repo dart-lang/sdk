@@ -237,38 +237,38 @@ accessSuperField3(
 /*member: invokeFunctionTypedInstanceMethod1:[subclass=A|powerset={N}{O}{N}]*/
 invokeFunctionTypedInstanceMethod1(
   GenericClass<A> /*[exact=GenericClass|powerset={N}{O}{N}]*/ c,
-) =>
-    c. /*invoke: [exact=GenericClass|powerset={N}{O}{N}]*/ functionTypedMethod()();
+) => c
+    . /*invoke: [exact=GenericClass|powerset={N}{O}{N}]*/ functionTypedMethod()();
 
 /*member: invokeFunctionTypedInstanceMethod2:[exact=B|powerset={N}{O}{N}]*/
 invokeFunctionTypedInstanceMethod2(
   GenericClass<B> /*[exact=GenericClass|powerset={N}{O}{N}]*/ c,
-) =>
-    c. /*invoke: [exact=GenericClass|powerset={N}{O}{N}]*/ functionTypedMethod()();
+) => c
+    . /*invoke: [exact=GenericClass|powerset={N}{O}{N}]*/ functionTypedMethod()();
 
 /*member: invokeFunctionTypedInstanceMethod3:[exact=C|powerset={N}{O}{N}]*/
 invokeFunctionTypedInstanceMethod3(
   GenericClass<C> /*[exact=GenericClass|powerset={N}{O}{N}]*/ c,
-) =>
-    c. /*invoke: [exact=GenericClass|powerset={N}{O}{N}]*/ functionTypedMethod()();
+) => c
+    . /*invoke: [exact=GenericClass|powerset={N}{O}{N}]*/ functionTypedMethod()();
 
 /*member: invokeFunctionTypedInstanceGetter1:[subclass=A|powerset={N}{O}{N}]*/
 invokeFunctionTypedInstanceGetter1(
   GenericClass<A> /*[exact=GenericClass|powerset={N}{O}{N}]*/ c,
-) =>
-    c.functionTypedGetter /*invoke: [exact=GenericClass|powerset={N}{O}{N}]*/ ();
+) => c
+    .functionTypedGetter /*invoke: [exact=GenericClass|powerset={N}{O}{N}]*/ ();
 
 /*member: invokeFunctionTypedInstanceGetter2:[exact=B|powerset={N}{O}{N}]*/
 invokeFunctionTypedInstanceGetter2(
   GenericClass<B> /*[exact=GenericClass|powerset={N}{O}{N}]*/ c,
-) =>
-    c.functionTypedGetter /*invoke: [exact=GenericClass|powerset={N}{O}{N}]*/ ();
+) => c
+    .functionTypedGetter /*invoke: [exact=GenericClass|powerset={N}{O}{N}]*/ ();
 
 /*member: invokeFunctionTypedInstanceGetter3:[exact=C|powerset={N}{O}{N}]*/
 invokeFunctionTypedInstanceGetter3(
   GenericClass<C> /*[exact=GenericClass|powerset={N}{O}{N}]*/ c,
-) =>
-    c.functionTypedGetter /*invoke: [exact=GenericClass|powerset={N}{O}{N}]*/ ();
+) => c
+    .functionTypedGetter /*invoke: [exact=GenericClass|powerset={N}{O}{N}]*/ ();
 
 /*member: invokeFunctionTypedInstanceField1:[subclass=A|powerset={N}{O}{N}]*/
 invokeFunctionTypedInstanceField1(
@@ -291,56 +291,56 @@ invokeFunctionTypedInstanceField3(
 /*member: invokeFunctionTypedSuperMethod1:[null|subclass=Object|powerset={null}{IN}{GFUO}{IMN}]*/
 invokeFunctionTypedSuperMethod1(
   GenericSubclass<A> /*[exact=GenericSubclass|powerset={N}{O}{N}]*/ c,
-) =>
-    c. /*invoke: [exact=GenericSubclass|powerset={N}{O}{N}]*/ superMethodInvoke();
+) => c
+    . /*invoke: [exact=GenericSubclass|powerset={N}{O}{N}]*/ superMethodInvoke();
 
 /*member: invokeFunctionTypedSuperMethod2:[null|subclass=Object|powerset={null}{IN}{GFUO}{IMN}]*/
 invokeFunctionTypedSuperMethod2(
   GenericSubclass<B> /*[exact=GenericSubclass|powerset={N}{O}{N}]*/ c,
-) =>
-    c. /*invoke: [exact=GenericSubclass|powerset={N}{O}{N}]*/ superMethodInvoke();
+) => c
+    . /*invoke: [exact=GenericSubclass|powerset={N}{O}{N}]*/ superMethodInvoke();
 
 /*member: invokeFunctionTypedSuperMethod3:[null|subclass=Object|powerset={null}{IN}{GFUO}{IMN}]*/
 invokeFunctionTypedSuperMethod3(
   GenericSubclass<C> /*[exact=GenericSubclass|powerset={N}{O}{N}]*/ c,
-) =>
-    c. /*invoke: [exact=GenericSubclass|powerset={N}{O}{N}]*/ superMethodInvoke();
+) => c
+    . /*invoke: [exact=GenericSubclass|powerset={N}{O}{N}]*/ superMethodInvoke();
 
 /*member: invokeFunctionTypedSuperGetter1:[null|subclass=Object|powerset={null}{IN}{GFUO}{IMN}]*/
 invokeFunctionTypedSuperGetter1(
   GenericSubclass<A> /*[exact=GenericSubclass|powerset={N}{O}{N}]*/ c,
-) =>
-    c. /*invoke: [exact=GenericSubclass|powerset={N}{O}{N}]*/ superGetterInvoke();
+) => c
+    . /*invoke: [exact=GenericSubclass|powerset={N}{O}{N}]*/ superGetterInvoke();
 
 /*member: invokeFunctionTypedSuperGetter2:[null|subclass=Object|powerset={null}{IN}{GFUO}{IMN}]*/
 invokeFunctionTypedSuperGetter2(
   GenericSubclass<B> /*[exact=GenericSubclass|powerset={N}{O}{N}]*/ c,
-) =>
-    c. /*invoke: [exact=GenericSubclass|powerset={N}{O}{N}]*/ superGetterInvoke();
+) => c
+    . /*invoke: [exact=GenericSubclass|powerset={N}{O}{N}]*/ superGetterInvoke();
 
 /*member: invokeFunctionTypedSuperGetter3:[null|subclass=Object|powerset={null}{IN}{GFUO}{IMN}]*/
 invokeFunctionTypedSuperGetter3(
   GenericSubclass<C> /*[exact=GenericSubclass|powerset={N}{O}{N}]*/ c,
-) =>
-    c. /*invoke: [exact=GenericSubclass|powerset={N}{O}{N}]*/ superGetterInvoke();
+) => c
+    . /*invoke: [exact=GenericSubclass|powerset={N}{O}{N}]*/ superGetterInvoke();
 
 /*member: invokeFunctionTypedSuperField1:[null|subclass=Object|powerset={null}{IN}{GFUO}{IMN}]*/
 invokeFunctionTypedSuperField1(
   GenericSubclass<A> /*[exact=GenericSubclass|powerset={N}{O}{N}]*/ c,
-) =>
-    c. /*invoke: [exact=GenericSubclass|powerset={N}{O}{N}]*/ superFieldInvoke();
+) => c
+    . /*invoke: [exact=GenericSubclass|powerset={N}{O}{N}]*/ superFieldInvoke();
 
 /*member: invokeFunctionTypedSuperField2:[null|subclass=Object|powerset={null}{IN}{GFUO}{IMN}]*/
 invokeFunctionTypedSuperField2(
   GenericSubclass<B> /*[exact=GenericSubclass|powerset={N}{O}{N}]*/ c,
-) =>
-    c. /*invoke: [exact=GenericSubclass|powerset={N}{O}{N}]*/ superFieldInvoke();
+) => c
+    . /*invoke: [exact=GenericSubclass|powerset={N}{O}{N}]*/ superFieldInvoke();
 
 /*member: invokeFunctionTypedSuperField3:[null|subclass=Object|powerset={null}{IN}{GFUO}{IMN}]*/
 invokeFunctionTypedSuperField3(
   GenericSubclass<C> /*[exact=GenericSubclass|powerset={N}{O}{N}]*/ c,
-) =>
-    c. /*invoke: [exact=GenericSubclass|powerset={N}{O}{N}]*/ superFieldInvoke();
+) => c
+    . /*invoke: [exact=GenericSubclass|powerset={N}{O}{N}]*/ superFieldInvoke();
 
 /*member: invokeGenericClasses:[null|powerset={null}]*/
 invokeGenericClasses() {
@@ -498,40 +498,34 @@ invokeFunctionTypedGenericMethod3(C /*[exact=C|powerset={N}{O}{N}]*/ c) =>
     functionTypedGenericMethod<C>(c)();
 
 /*member: invokeFunctionTypedGenericInstanceMethod1:[subclass=A|powerset={N}{O}{N}]*/
-invokeFunctionTypedGenericInstanceMethod1() =>
-    Class()
-        . /*invoke: [exact=Class|powerset={N}{O}{N}]*/ functionTypedGenericMethod<
-          A
-        >(new A())();
+invokeFunctionTypedGenericInstanceMethod1() => Class()
+    . /*invoke: [exact=Class|powerset={N}{O}{N}]*/ functionTypedGenericMethod<
+      A
+    >(new A())();
 
 /*member: invokeFunctionTypedGenericInstanceMethod2:[exact=B|powerset={N}{O}{N}]*/
-invokeFunctionTypedGenericInstanceMethod2() =>
-    Class()
-        . /*invoke: [exact=Class|powerset={N}{O}{N}]*/ functionTypedGenericMethod<
-          B
-        >(new B())();
+invokeFunctionTypedGenericInstanceMethod2() => Class()
+    . /*invoke: [exact=Class|powerset={N}{O}{N}]*/ functionTypedGenericMethod<
+      B
+    >(new B())();
 
 /*member: invokeFunctionTypedGenericInstanceMethod3:[exact=C|powerset={N}{O}{N}]*/
-invokeFunctionTypedGenericInstanceMethod3() =>
-    Class()
-        . /*invoke: [exact=Class|powerset={N}{O}{N}]*/ functionTypedGenericMethod<
-          C
-        >(new C())();
+invokeFunctionTypedGenericInstanceMethod3() => Class()
+    . /*invoke: [exact=Class|powerset={N}{O}{N}]*/ functionTypedGenericMethod<
+      C
+    >(new C())();
 
 /*member: invokeFunctionTypedGenericSuperMethod1:[subclass=A|powerset={N}{O}{N}]*/
-invokeFunctionTypedGenericSuperMethod1() =>
-    Subclass()
-        . /*invoke: [exact=Subclass|powerset={N}{O}{N}]*/ functionTypedSuperMethod1();
+invokeFunctionTypedGenericSuperMethod1() => Subclass()
+    . /*invoke: [exact=Subclass|powerset={N}{O}{N}]*/ functionTypedSuperMethod1();
 
 /*member: invokeFunctionTypedGenericSuperMethod2:[exact=B|powerset={N}{O}{N}]*/
-invokeFunctionTypedGenericSuperMethod2() =>
-    Subclass()
-        . /*invoke: [exact=Subclass|powerset={N}{O}{N}]*/ functionTypedSuperMethod2();
+invokeFunctionTypedGenericSuperMethod2() => Subclass()
+    . /*invoke: [exact=Subclass|powerset={N}{O}{N}]*/ functionTypedSuperMethod2();
 
 /*member: invokeFunctionTypedGenericSuperMethod3:[exact=C|powerset={N}{O}{N}]*/
-invokeFunctionTypedGenericSuperMethod3() =>
-    Subclass()
-        . /*invoke: [exact=Subclass|powerset={N}{O}{N}]*/ functionTypedSuperMethod3();
+invokeFunctionTypedGenericSuperMethod3() => Subclass()
+    . /*invoke: [exact=Subclass|powerset={N}{O}{N}]*/ functionTypedSuperMethod3();
 
 /*member: invokeGenericMethods:[null|powerset={null}]*/
 invokeGenericMethods() {

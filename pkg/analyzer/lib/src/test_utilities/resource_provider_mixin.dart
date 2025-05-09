@@ -6,8 +6,8 @@ import 'dart:io';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:path/path.dart' as path;
 
 /// A mixin for test classes that adds a memory-backed [ResourceProvider] and

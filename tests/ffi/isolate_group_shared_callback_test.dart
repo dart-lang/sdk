@@ -4,19 +4,20 @@
 
 // Dart test program for testing dart:ffi async callbacks.
 //
-// VMOptions=--experimental-shared-data
-// VMOptions=--experimental-shared-data --use-slow-path
-// VMOptions=--experimental-shared-data --use-slow-path --stacktrace-every=100
-// VMOptions=--experimental-shared-data --dwarf_stack_traces --no-retain_function_objects --no-retain_code_objects
-// VMOptions=--experimental-shared-data --test_il_serialization
-// VMOptions=--experimental-shared-data --profiler --profile_vm=true
-// VMOptions=--experimental-shared-data --profiler --profile_vm=false
+// VMOptions=--experimental-shared-data --print-stacktrace-at-throw
+// VMOptions=--experimental-shared-data --print-stacktrace-at-throw --use-slow-path
+// VMOptions=--experimental-shared-data --print-stacktrace-at-throw --use-slow-path --stacktrace-every=100
+// VMOptions=--experimental-shared-data --print-stacktrace-at-throw --dwarf_stack_traces --no-retain_function_objects --no-retain_code_objects
+// VMOptions=--experimental-shared-data --print-stacktrace-at-throw --test_il_serialization
+// VMOptions=--experimental-shared-data --print-stacktrace-at-throw --profiler --profile_vm=true
+// VMOptions=--experimental-shared-data --print-stacktrace-at-throw --profiler --profile_vm=false
 // SharedObjects=ffi_test_functions
 
 import 'dart:async';
 import 'dart:concurrent';
 import 'dart:ffi';
 import 'dart:isolate';
+import 'package:dart_internal/isolate_group.dart' show IsolateGroup;
 
 import 'dart:io';
 
@@ -45,14 +46,6 @@ class NativeLibrary {
   late final FnSleepType sleep;
 
   NativeLibrary() {
-    callFunctionOnSameThread = ffiTestFunctions
-        .lookupFunction<FnRunnerNativeType, FnRunnerType>(
-          "CallFunctionOnSameThread",
-        );
-    callFunctionOnNewThreadBlocking = ffiTestFunctions
-        .lookupFunction<FnRunnerNativeType, FnRunnerType>(
-          "CallFunctionOnNewThreadBlocking",
-        );
     callFunctionOnNewThreadNonBlocking = ffiTestFunctions
         .lookupFunction<FnRunnerNativeType, FnRunnerType>(
           "CallFunctionOnNewThreadNonBlocking",
@@ -92,7 +85,6 @@ void simpleFunction(int a, int b) {
 Future<void> testNativeCallableHelloWorld() async {
   mutexCondvar = Mutex();
   conditionVariable = ConditionVariable();
-  // final callback = NativeCallable<CallbackNativeType>.isolateGroupShared(simpleFunction);
   final callback = NativeCallable<CallbackNativeType>.isolateGroupShared(
     simpleFunction,
   );
@@ -103,7 +95,8 @@ Future<void> testNativeCallableHelloWorld() async {
 
   mutexCondvar.runLocked(() {
     while (!resultIsReady) {
-      conditionVariable.wait(mutexCondvar);
+      conditionVariable.wait(mutexCondvar, 10 * sleepForMs);
+      Expect.isTrue(resultIsReady);
     }
   });
 
@@ -113,16 +106,38 @@ Future<void> testNativeCallableHelloWorld() async {
   lib.callFunctionOnNewThreadNonBlocking(1001, callback.nativeFunction);
   mutexCondvar.runLocked(() {
     while (!resultIsReady) {
-      conditionVariable.wait(mutexCondvar);
+      conditionVariable.wait(mutexCondvar, 10 * sleepForMs);
+      Expect.isTrue(resultIsReady);
     }
   });
   Expect.equals(42 + (1001 * 123) * 2, result);
 }
 
+void simpleFunctionThatThrows(int a, int b) {
+  // Complete without notifying mutexCondvar
+  throw 'hello, world';
+}
+
+Future<void> testNativeCallableThrows() async {
+  mutexCondvar = Mutex();
+  conditionVariable = ConditionVariable();
+  final callback = NativeCallable<CallbackNativeType>.isolateGroupShared(
+    simpleFunctionThatThrows,
+  );
+
+  result = 42;
+  resultIsReady = false;
+  lib.callFunctionOnNewThreadNonBlocking(1001, callback.nativeFunction);
+
+  mutexCondvar.runLocked(() {
+    conditionVariable.wait(mutexCondvar, 10 * sleepForMs);
+    Expect.isFalse(resultIsReady);
+  });
+}
+
 Future<void> testNativeCallableHelloWorldClosure() async {
   mutexCondvar = Mutex();
   conditionVariable = ConditionVariable();
-  // final callback = NativeCallable<CallbackNativeType>.isolateGroupShared(simpleFunction);
   final callback = NativeCallable<CallbackNativeType>.isolateGroupShared((
     int a,
     int b,
@@ -213,6 +228,7 @@ main(args, message) async {
   lib = NativeLibrary();
   // Simple tests.
   await testNativeCallableHelloWorld();
+  await testNativeCallableThrows();
   await testNativeCallableHelloWorldClosure();
   testNativeCallableSync();
   testNativeCallableSyncThrows();

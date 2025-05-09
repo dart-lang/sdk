@@ -10,6 +10,7 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/transfor
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_manager.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 import '../fix_processor.dart';

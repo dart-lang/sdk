@@ -125,8 +125,7 @@ class _FakeAnalysisDriver implements AnalysisDriver {
 class _MicroAnalysisContextImpl implements AnalysisContext {
   final FileResolver fileResolver;
 
-  @override
-  AnalysisOptionsImpl analysisOptions;
+  final AnalysisOptionsImpl analysisOptions;
 
   final ResourceProvider resourceProvider;
 

@@ -34,8 +34,9 @@ main() {
       var elementEnvironment = closedWorld.elementEnvironment;
 
       MemberEntity element = elementEnvironment.mainFunction!;
-      String generated =
-          compiler.backendStrategy.getGeneratedCodeForTesting(element)!;
+      String generated = compiler.backendStrategy.getGeneratedCodeForTesting(
+        element,
+      )!;
       checkerForAbsentPresent(test)(generated);
     }
 

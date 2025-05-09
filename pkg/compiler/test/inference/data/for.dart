@@ -113,7 +113,8 @@ class Class2 {
 _forUnion(/*[exact=Class1|powerset={N}{O}{N}]*/ o) {
   for (
     ;
-    o = o. /*Union(null, [exact=Class1|powerset={N}{O}{N}], [exact=Class2|powerset={N}{O}{N}], powerset: {null}{N}{O}{N})*/ field;
+    o = o
+        . /*Union(null, [exact=Class1|powerset={N}{O}{N}], [exact=Class2|powerset={N}{O}{N}], powerset: {null}{N}{O}{N})*/ field;
     o != null
   ) {}
   return o;
@@ -180,7 +181,8 @@ _forIsNot(/*[exact=Class5|powerset={N}{O}{N}]*/ o) {
   for (
     ;
     o is! Class6;
-    o = o. /*Union(null, [exact=Class5|powerset={N}{O}{N}], [exact=Class6|powerset={N}{O}{N}], powerset: {null}{N}{O}{N})*/ field
+    o = o
+        . /*Union(null, [exact=Class5|powerset={N}{O}{N}], [exact=Class6|powerset={N}{O}{N}], powerset: {null}{N}{O}{N})*/ field
   ) {}
   return o;
 }

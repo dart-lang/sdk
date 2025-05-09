@@ -90,10 +90,9 @@ class SsaFunctionCompiler implements FunctionCompiler {
     // for the target function but stubs are so simple that this usually doesn't
     // produce better code. Deserializing inference results is also expensive so
     // we avoid it here.
-    final inferenceResults =
-        member is JParameterStub
-            ? _trivialInferenceResults
-            : _globalInferenceResults;
+    final inferenceResults = member is JParameterStub
+        ? _trivialInferenceResults
+        : _globalInferenceResults;
     JClosedWorld closedWorld = _globalInferenceResults.closedWorld;
 
     CodegenRegistry registry = CodegenRegistry(

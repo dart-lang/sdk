@@ -1194,8 +1194,8 @@ class DataSinkWriter {
 
   MemberData get currentMemberData {
     final currentMemberContext = _currentMemberContext!;
-    return _currentMemberData ??=
-        _memberData[currentMemberContext] ??= MemberData(currentMemberContext);
+    return _currentMemberData ??= _memberData[currentMemberContext] ??=
+        MemberData(currentMemberContext);
   }
 
   MemberData _getMemberData(ir.TreeNode node) {
