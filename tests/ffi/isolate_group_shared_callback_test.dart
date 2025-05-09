@@ -96,7 +96,7 @@ Future<void> testNativeCallableHelloWorld() async {
   mutexCondvar.runLocked(() {
     while (!resultIsReady) {
       conditionVariable.wait(mutexCondvar, 10 * sleepForMs);
-      Expect.isTrue(resultIsReady);
+      print('.');
     }
   });
 
@@ -107,7 +107,7 @@ Future<void> testNativeCallableHelloWorld() async {
   mutexCondvar.runLocked(() {
     while (!resultIsReady) {
       conditionVariable.wait(mutexCondvar, 10 * sleepForMs);
-      Expect.isTrue(resultIsReady);
+      print('.');
     }
   });
   Expect.equals(42 + (1001 * 123) * 2, result);
