@@ -7030,17 +7030,11 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       final staticType = _abstractValueDomain
           .createFromStaticType(_getStaticType(node as ir.Expression))
           .abstractValue;
-      // Narrow to front-end inferred type, but only if `receiverType` is
-      // disjoint with LegacyJavaScriptObject.  Global type inference does not
-      // trust the legacy js-interop methods, so we should not start doing so
-      // here.
-      if (!_possiblyLegacyJavaScriptObject(selector, receiverType)) {
-        invoke.staticType = staticType;
-        invoke.instructionType = invoke.computeInstructionType(
-          resultType,
-          _abstractValueDomain,
-        );
-      }
+      invoke.staticType = staticType;
+      invoke.instructionType = invoke.computeInstructionType(
+        resultType,
+        _abstractValueDomain,
+      );
     }
     push(invoke);
     if (element != null &&
@@ -7050,18 +7044,6 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
         sourceInformation: sourceInformation,
       );
     }
-  }
-
-  bool _possiblyLegacyJavaScriptObject(Selector selector, AbstractValue type) {
-    // Legacy js-interop cannot override `[]`.
-    if (selector.isIndex) return false;
-
-    if (_abstractValueDomain.isInterceptor(type).isDefinitelyFalse ||
-        _abstractValueDomain.isPrimitive(type).isDefinitelyTrue) {
-      return false;
-    }
-
-    return true;
   }
 
   void _invokeJsInteropFunction(
