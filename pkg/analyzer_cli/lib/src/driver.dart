@@ -6,6 +6,7 @@ import 'dart:io' as io;
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/sdk/build_sdk_summary.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
@@ -180,11 +181,11 @@ class Driver implements CommandLineStarter {
     // Note: This references analysisDriver via closure, so it will change over
     // time during the following analysis.
     SeverityProcessor defaultSeverityProcessor;
-    defaultSeverityProcessor = (AnalysisError error) {
-      var filePath = error.source.fullName;
+    defaultSeverityProcessor = (Diagnostic diagnostic) {
+      var filePath = diagnostic.source.fullName;
       var file = analysisDriver!.resourceProvider.getFile(filePath);
       return determineProcessedSeverity(
-        error,
+        diagnostic,
         options,
         analysisDriver!.getAnalysisOptionsForFile(file),
       );
@@ -307,7 +308,7 @@ class Driver implements CommandLineStarter {
             }
           }
         } else if (file_paths.isPubspecYaml(pathContext, path)) {
-          var errors = <AnalysisError>[];
+          var diagnostics = <Diagnostic>[];
           try {
             var file = resourceProvider.getFile(path);
             var analysisOptions = analysisDriver.currentSession.analysisContext
@@ -316,7 +317,7 @@ class Driver implements CommandLineStarter {
             var node = loadYamlNode(content, sourceUrl: file.toUri());
 
             if (node is YamlMap) {
-              errors.addAll(
+              diagnostics.addAll(
                 validatePubspec(
                   contents: node,
                   source: FileSource(file),
@@ -325,8 +326,8 @@ class Driver implements CommandLineStarter {
                 ),
               );
             }
-            if (errors.isNotEmpty) {
-              for (var error in errors) {
+            if (diagnostics.isNotEmpty) {
+              for (var error in diagnostics) {
                 var severity =
                     determineProcessedSeverity(
                       error,
@@ -345,7 +346,7 @@ class Driver implements CommandLineStarter {
                   lineInfo: lineInfo,
                   isLibrary: true,
                   isPart: false,
-                  errors: errors,
+                  errors: diagnostics,
                   analysisOptions: analysisOptions,
                 ),
               ]);

@@ -10,7 +10,7 @@ import '../extensions.dart';
 
 const _desc = r"Don't explicitly catch `Error` or types that implement it.";
 
-class AvoidCatchingErrors extends LintRule {
+class AvoidCatchingErrors extends MultiAnalysisRule {
   AvoidCatchingErrors()
     : super(name: LintNames.avoid_catching_errors, description: _desc);
 
@@ -31,7 +31,7 @@ class AvoidCatchingErrors extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final MultiAnalysisRule rule;
 
   _Visitor(this.rule);
 

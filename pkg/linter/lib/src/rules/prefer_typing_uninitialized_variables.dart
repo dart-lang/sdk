@@ -10,7 +10,7 @@ import '../extensions.dart';
 
 const _desc = r'Prefer typing uninitialized variables and fields.';
 
-class PreferTypingUninitializedVariables extends LintRule {
+class PreferTypingUninitializedVariables extends MultiAnalysisRule {
   PreferTypingUninitializedVariables()
     : super(
         name: LintNames.prefer_typing_uninitialized_variables,
@@ -34,7 +34,7 @@ class PreferTypingUninitializedVariables extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final MultiAnalysisRule rule;
 
   _Visitor(this.rule);
 

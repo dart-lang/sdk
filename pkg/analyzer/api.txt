@@ -25,7 +25,7 @@ package:analyzer/dart/analysis/analysis_options.dart:
     excludePatterns (getter: List<String>)
     formatterOptions (getter: FormatterOptions)
     lint (getter: bool)
-    lintRules (getter: List<LintRule>)
+    lintRules (getter: List<AbstractAnalysisRule>)
     pluginConfigurations (getter: List<PluginConfiguration>)
     strictCasts (getter: bool)
     strictInference (getter: bool)
@@ -4415,7 +4415,7 @@ package:analyzer/error/error.dart:
     type (getter: DiagnosticType)
     url (getter: String?)
     == (method: bool Function(Object))
-  AnalysisError (type alias for Diagnostic)
+  AnalysisError (type alias for Diagnostic, deprecated)
   ErrorCode (type alias for DiagnosticCode, deprecated)
   ErrorSeverity (type alias for DiagnosticSeverity, deprecated)
   ErrorType (type alias for DiagnosticType, deprecated)
@@ -4817,7 +4817,7 @@ package:analyzer/src/generated/timestamped_data.dart:
 package:analyzer/src/lint/config.dart:
   RuleConfig (non-public)
 package:analyzer/src/lint/linter.dart:
-  LintRule (non-public)
+  AbstractAnalysisRule (non-public)
 package:analyzer/src/workspace/workspace.dart:
   Workspace (non-public)
 package:analyzer/utilities/extensions/ast.dart:

@@ -9,7 +9,7 @@ import '../analyzer.dart';
 
 const _desc = r'Inline list item declarations where possible.';
 
-class PreferInlinedAdds extends LintRule {
+class PreferInlinedAdds extends MultiAnalysisRule {
   PreferInlinedAdds()
     : super(name: LintNames.prefer_inlined_adds, description: _desc);
 
@@ -30,7 +30,7 @@ class PreferInlinedAdds extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final MultiAnalysisRule rule;
 
   _Visitor(this.rule);
 

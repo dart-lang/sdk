@@ -50,10 +50,10 @@ Future<String> generateRulesJson() async {
 }
 
 Future<String> getMachineListing(
-  Iterable<LintRule> ruleRegistry, {
+  Iterable<AbstractAnalysisRule> ruleRegistry, {
   Map<String, String> fixStatusMap = const {},
 }) async {
-  var rulesToDocument = List<LintRule>.of(
+  var rulesToDocument = List<AbstractAnalysisRule>.of(
     ruleRegistry,
     growable: false,
   ).where((rule) => !rule.state.isInternal).sortedBy((rule) => rule.name);

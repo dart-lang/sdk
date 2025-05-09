@@ -55,6 +55,16 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
           isStatic = true;
           targetElement = element;
           argument = parent;
+        } else if (target
+            case SimpleIdentifier identifier ||
+                PrefixedIdentifier(:var identifier)) {
+          if (identifier.element case InterfaceElement element) {
+            isStatic = true;
+            targetElement = element;
+            argument = target.parent as Expression;
+          } else {
+            return;
+          }
         } else {
           return;
         }
@@ -160,6 +170,8 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
         builder.addLinkedEdit('NAME', (builder) {
           builder.write(name);
         });
+        // append type parameters
+        builder.writeTypeParameters(functionType.typeParameters);
         // append parameters
         builder.writeFormalParameters(functionType.formalParameters);
         if (functionType.returnType.isDartAsyncFuture) {

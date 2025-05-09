@@ -204,7 +204,7 @@ class InteropTypeChecker extends RecursiveTypeVisitor {
   }
 }
 
-class InvalidRuntimeCheckWithJSInteropTypes extends LintRule {
+class InvalidRuntimeCheckWithJSInteropTypes extends MultiAnalysisRule {
   InvalidRuntimeCheckWithJSInteropTypes()
     : super(
         name: LintNames.invalid_runtime_check_with_js_interop_types,
@@ -247,7 +247,7 @@ class InvalidRuntimeCheckWithJSInteropTypes extends LintRule {
 enum _InteropTypeKind { dartJsInteropType, userJsInteropType, any }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final MultiAnalysisRule rule;
   final TypeSystemImpl typeSystem;
   final EraseNonJSInteropTypes eraseNonJsInteropTypes =
       EraseNonJSInteropTypes();

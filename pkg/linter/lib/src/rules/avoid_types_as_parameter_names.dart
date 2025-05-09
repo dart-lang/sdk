@@ -14,7 +14,7 @@ import '../util/scope.dart';
 
 const _desc = r'Avoid types as parameter names.';
 
-class AvoidTypesAsParameterNames extends LintRule {
+class AvoidTypesAsParameterNames extends MultiAnalysisRule {
   AvoidTypesAsParameterNames()
     : super(name: LintNames.avoid_types_as_parameter_names, description: _desc);
 
@@ -37,7 +37,7 @@ class AvoidTypesAsParameterNames extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final MultiAnalysisRule rule;
   final LinterContext context;
 
   _Visitor(this.rule, this.context);

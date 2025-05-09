@@ -13,7 +13,7 @@ import '../extensions.dart';
 
 const _desc = r'Use `isEmpty` for `Iterable`s and `Map`s.';
 
-class PreferIsEmpty extends LintRule {
+class PreferIsEmpty extends MultiAnalysisRule {
   PreferIsEmpty() : super(name: LintNames.prefer_is_empty, description: _desc);
 
   // TODO(brianwilkerson): Both `alwaysFalse` and `alwaysTrue` should be warnings

@@ -8,6 +8,7 @@
 * Deprecate `XyzElement2` classes; use `XyzElement` instead.
 * Deprecate `AnalysisError.correction` field; use
   `AnalysisError.correctionMessage` instead.
+* Deprecate `AnalysisError`; use `Diagnostic` instead.
 * Deprecate `ErrorCode`; use `DiagnosticCode` instead.
 * Deprecate `ErrorSeverity`; use `DiagnosticSeverity` instead.
 * Deprecate `ErrorType`; use `DiagnosticType` instead.

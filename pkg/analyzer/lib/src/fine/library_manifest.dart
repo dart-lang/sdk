@@ -137,7 +137,7 @@ class LibraryManifestBuilder {
       typeParameters,
     ) {
       classItem.declaredMembers.clear();
-      _addInterfaceElementExecutables(
+      _addInterfaceElementMembers(
         encodingContext: encodingContext,
         instanceElement: element,
         interfaceItem: classItem,
@@ -205,11 +205,62 @@ class LibraryManifestBuilder {
     }
   }
 
-  void _addInstanceElementExecutables({
+  void _addInstanceElementField({
+    required EncodeContext encodingContext,
+    required InstanceItem instanceItem,
+    required FieldElementImpl2 element,
+  }) {
+    var lookupName = element.lookupName?.asLookupName;
+    if (lookupName == null) {
+      return;
+    }
+
+    var item = _getOrBuildElementItem(element, () {
+      return InstanceItemFieldItem.fromElement(
+        id: ManifestItemId.generate(),
+        context: encodingContext,
+        element: element,
+      );
+    });
+
+    instanceItem.declaredFields[lookupName] = item;
+  }
+
+  void _addInstanceElementGetter({
+    required EncodeContext encodingContext,
+    required InstanceItem instanceItem,
+    required GetterElementImpl element,
+  }) {
+    var lookupName = element.lookupName?.asLookupName;
+    if (lookupName == null) {
+      return;
+    }
+
+    var item = _getOrBuildElementItem(element, () {
+      return InstanceItemGetterItem.fromElement(
+        id: ManifestItemId.generate(),
+        context: encodingContext,
+        element: element,
+      );
+    });
+
+    var baseName = lookupName.asBaseName;
+    instanceItem.declaredMembers.addDeclaredGetter(baseName, item);
+  }
+
+  void _addInstanceElementMembers({
     required EncodeContext encodingContext,
     required InstanceElementImpl2 instanceElement,
     required InstanceItem instanceItem,
   }) {
+    for (var field in instanceElement.fields2) {
+      _addInstanceElementField(
+        encodingContext: encodingContext,
+        instanceItem: instanceItem,
+        element: field,
+      );
+    }
+
     for (var method in instanceElement.methods2) {
       _addInstanceElementMethod(
         encodingContext: encodingContext,
@@ -233,28 +284,6 @@ class LibraryManifestBuilder {
         element: setter,
       );
     }
-  }
-
-  void _addInstanceElementGetter({
-    required EncodeContext encodingContext,
-    required InstanceItem instanceItem,
-    required GetterElementImpl element,
-  }) {
-    var lookupName = element.lookupName?.asLookupName;
-    if (lookupName == null) {
-      return;
-    }
-
-    var item = _getOrBuildElementItem(element, () {
-      return InstanceItemGetterItem.fromElement(
-        id: ManifestItemId.generate(),
-        context: encodingContext,
-        element: element,
-      );
-    });
-
-    var baseName = lookupName.asBaseName;
-    instanceItem.declaredMembers.addDeclaredGetter(baseName, item);
   }
 
   void _addInstanceElementMethod({
@@ -327,7 +356,7 @@ class LibraryManifestBuilder {
     interfaceItem.declaredMembers.addDeclaredConstructor(baseName, item);
   }
 
-  void _addInterfaceElementExecutables({
+  void _addInterfaceElementMembers({
     required EncodeContext encodingContext,
     required InterfaceElementImpl2 instanceElement,
     required InterfaceItem interfaceItem,
@@ -347,7 +376,7 @@ class LibraryManifestBuilder {
       );
     }
 
-    _addInstanceElementExecutables(
+    _addInstanceElementMembers(
       encodingContext: encodingContext,
       instanceElement: instanceElement,
       instanceItem: interfaceItem,
@@ -373,7 +402,7 @@ class LibraryManifestBuilder {
       typeParameters,
     ) {
       mixinItem.declaredMembers.clear();
-      _addInterfaceElementExecutables(
+      _addInterfaceElementMembers(
         encodingContext: encodingContext,
         instanceElement: element,
         interfaceItem: mixinItem,
@@ -907,11 +936,45 @@ class _LibraryMatch {
     }
   }
 
+  bool _matchInstanceElementField({
+    required InstanceItem instanceItem,
+    required MatchContext instanceMatchContext,
+    required FieldElementImpl2 field,
+  }) {
+    var lookupName = field.lookupName?.asLookupName;
+    if (lookupName == null) {
+      return true;
+    }
+
+    var item = instanceItem.declaredFields[lookupName];
+    if (item == null) {
+      return false;
+    }
+
+    var matchContext = MatchContext(parent: instanceMatchContext);
+    if (!item.match(matchContext, field)) {
+      return false;
+    }
+
+    _addMatchingElementItem(field, item, matchContext);
+    return true;
+  }
+
   void _matchInstanceElementStaticExecutables({
     required MatchContext matchContext,
     required InstanceElementImpl2 element,
     required InstanceItem item,
   }) {
+    for (var field in element.fields2) {
+      if (!_matchInstanceElementField(
+        instanceItem: item,
+        instanceMatchContext: matchContext,
+        field: field,
+      )) {
+        structureMismatched.add(field);
+      }
+    }
+
     var executables = [
       ...element.getters2,
       ...element.methods2,

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/listener.dart';
 
 import '../scrape.dart';
@@ -18,7 +18,7 @@ class ErrorListener implements AnalysisErrorListener {
   bool get hadError => _hadError;
 
   @override
-  void onError(AnalysisError error) {
+  void onError(Diagnostic error) {
     _hadError = true;
 
     if (_printErrors) {

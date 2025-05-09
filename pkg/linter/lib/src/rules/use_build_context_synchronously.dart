@@ -918,7 +918,7 @@ class ProtectedFunction {
   });
 }
 
-class UseBuildContextSynchronously extends LintRule {
+class UseBuildContextSynchronously extends MultiAnalysisRule {
   UseBuildContextSynchronously()
     : super(
         name: LintNames.use_build_context_synchronously,
@@ -1100,7 +1100,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     ProtectedFunction('dart.async', 'Future', 'wait', named: ['cleanUp']),
   ];
 
-  final LintRule rule;
+  final MultiAnalysisRule rule;
 
   _Visitor(this.rule);
 

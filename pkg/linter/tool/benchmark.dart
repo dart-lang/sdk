@@ -145,7 +145,7 @@ Future<void> runLinter(List<String> args) async {
 
     linterOptions = LinterOptions(enabledRules: enabledRules);
   } else if (ruleNames is Iterable<String> && ruleNames.isNotEmpty) {
-    var rules = <LintRule>[];
+    var rules = <AbstractAnalysisRule>[];
     for (var ruleName in ruleNames) {
       var rule = Registry.ruleRegistry[ruleName];
       if (rule == null) {

@@ -20,7 +20,7 @@ const _desc =
     'Avoid using deprecated elements from within the package in which they are '
     'declared.';
 
-class DeprecatedMemberUseFromSamePackage extends LintRule {
+class DeprecatedMemberUseFromSamePackage extends MultiAnalysisRule {
   DeprecatedMemberUseFromSamePackage()
     : super(
         name: LintNames.deprecated_member_use_from_same_package,
@@ -44,7 +44,7 @@ class DeprecatedMemberUseFromSamePackage extends LintRule {
 }
 
 class _DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
-  final LintRule _rule;
+  final MultiAnalysisRule _rule;
   final WorkspacePackage _workspacePackage;
 
   _DeprecatedMemberUseVerifier(this._rule, this._workspacePackage);
@@ -98,7 +98,7 @@ class _DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
 class _RecursiveVisitor extends RecursiveAstVisitor<void> {
   final _DeprecatedMemberUseVerifier _deprecatedVerifier;
 
-  _RecursiveVisitor(LintRule rule, WorkspacePackage package)
+  _RecursiveVisitor(MultiAnalysisRule rule, WorkspacePackage package)
     : _deprecatedVerifier = _DeprecatedMemberUseVerifier(rule, package);
 
   @override
@@ -363,7 +363,7 @@ class _RecursiveVisitor extends RecursiveAstVisitor<void> {
 /// remainder of visitations to [_RecursiveVisitor], which keeps track of
 /// the deprecated-ness of ancestor declaration nodes.
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule _rule;
+  final MultiAnalysisRule _rule;
   final LinterContext _context;
 
   _Visitor(this._rule, this._context);

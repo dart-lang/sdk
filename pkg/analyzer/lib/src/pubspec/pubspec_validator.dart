@@ -57,7 +57,7 @@ List<Diagnostic> validatePubspec({
     validator(ctx);
   }
   if (analysisOptions != null && analysisOptions.lint) {
-    var visitors = <LintRule, PubspecVisitor>{};
+    var visitors = <AbstractAnalysisRule, PubspecVisitor>{};
     for (var linter in analysisOptions.lintRules) {
       var visitor = linter.getPubspecVisitor();
       if (visitor != null) {

@@ -6,6 +6,7 @@ import 'dart:io';
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -182,8 +183,8 @@ class AnalyzerImpl {
     return computeMaxErrorSeverity();
   }
 
-  DiagnosticSeverity? _defaultSeverityProcessor(AnalysisError error) =>
-      determineProcessedSeverity(error, options, analysisOptions);
+  DiagnosticSeverity? _defaultSeverityProcessor(Diagnostic diagnostic) =>
+      determineProcessedSeverity(diagnostic, options, analysisOptions);
 
   /// Returns true if we want to report diagnostics for this library.
   bool _isAnalyzedLibrary(LibraryElement library) {

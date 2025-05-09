@@ -28,9 +28,9 @@ main() {
 
         rule.reportAtToken(
           SimpleToken(TokenType.SEMICOLON, 0),
-          errorCode: customCode,
+          errorCode: TestRule.customCode,
         );
-        expect(reporter.code, customCode);
+        expect(reporter.code, TestRule.customCode);
       });
       test('reportLintForToken (default)', () {
         var rule = TestRule();
@@ -40,8 +40,11 @@ main() {
         );
         rule.reporter = reporter;
 
-        rule.reportAtToken(SimpleToken(TokenType.SEMICOLON, 0));
-        expect(reporter.code, rule.lintCode);
+        rule.reportAtToken(
+          SimpleToken(TokenType.SEMICOLON, 0),
+          errorCode: TestRule.code,
+        );
+        expect(reporter.code, TestRule.code);
       });
       test('reportLint (custom)', () {
         var rule = TestRule();
@@ -54,8 +57,8 @@ main() {
         var node = EmptyStatementImpl(
           semicolon: SimpleToken(TokenType.SEMICOLON, 0),
         );
-        rule.reportAtNode(node, errorCode: customCode);
-        expect(reporter.code, customCode);
+        rule.reportAtNode(node, errorCode: TestRule.customCode);
+        expect(reporter.code, TestRule.customCode);
       });
       test('reportLint (default)', () {
         var rule = TestRule();
@@ -68,18 +71,12 @@ main() {
         var node = EmptyStatementImpl(
           semicolon: SimpleToken(TokenType.SEMICOLON, 0),
         );
-        rule.reportAtNode(node);
-        expect(reporter.code, rule.lintCode);
+        rule.reportAtNode(node, errorCode: TestRule.code);
+        expect(reporter.code, TestRule.code);
       });
     });
   });
 }
-
-const LintCode customCode = LintCode(
-  'hash_and_equals',
-  'Override `==` if overriding `hashCode`.',
-  correctionMessage: 'Implement `==`.',
-);
 
 class CollectingReporter extends ErrorReporter {
   DiagnosticCode? code;
@@ -120,17 +117,23 @@ class CollectingReporter extends ErrorReporter {
   }
 }
 
-class TestRule extends LintRule {
+class TestRule extends MultiAnalysisRule {
   static const LintCode code = LintCode(
     'test_rule',
     'Test rule.',
     correctionMessage: 'Try test rule.',
   );
 
+  static const LintCode customCode = LintCode(
+    'hash_and_equals',
+    'Override `==` if overriding `hashCode`.',
+    correctionMessage: 'Implement `==`.',
+  );
+
   TestRule() : super(name: 'test_rule', description: '');
 
   @override
-  LintCode get lintCode => code;
+  List<LintCode> get lintCodes => [code, customCode];
 }
 
 class _MockSource implements Source {

@@ -467,7 +467,7 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
 
   Future<List<Diagnostic>> _resolvePubspecFile(String content) async {
     var path = convertPath(testPackagePubspecPath);
-    var pubspecRules = <LintRule, PubspecVisitor<Object?>>{};
+    var pubspecRules = <AbstractAnalysisRule, PubspecVisitor<Object?>>{};
     for (var rule in Registry.ruleRegistry.where(
       (rule) => _lintRules.contains(rule.name),
     )) {

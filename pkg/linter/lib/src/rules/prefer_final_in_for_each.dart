@@ -11,7 +11,7 @@ import '../extensions.dart';
 const _desc =
     r'Prefer final in for-each loop variable if reference is not reassigned.';
 
-class PreferFinalInForEach extends LintRule {
+class PreferFinalInForEach extends MultiAnalysisRule {
   PreferFinalInForEach()
     : super(name: LintNames.prefer_final_in_for_each, description: _desc);
 
@@ -36,7 +36,7 @@ class PreferFinalInForEach extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final MultiAnalysisRule rule;
 
   _Visitor(this.rule);
 

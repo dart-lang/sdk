@@ -241,20 +241,18 @@ Future<void> _reportWithPackages(String infoFile, String coverageFile) async {
       '${packageInfo.unusedSize}/$unusedTotal ($unusedCodeRatioString%)',
     );
 
-    var mainUnitPackageRatioString = (packageInfo.mainUnitSize /
-            packageInfo.totalSize *
-            100)
-        .toStringAsFixed(2);
+    var mainUnitPackageRatioString =
+        (packageInfo.mainUnitSize / packageInfo.totalSize * 100)
+            .toStringAsFixed(2);
     _leftPadded(
       '  proportion of main unit code to package code:',
       '${packageInfo.mainUnitSize}/${packageInfo.totalSize} '
           '($mainUnitPackageRatioString%)',
     );
 
-    var unusedMainUnitRatioString = (packageInfo.unusedMainUnitSize /
-            packageInfo.mainUnitSize *
-            100)
-        .toStringAsFixed(2);
+    var unusedMainUnitRatioString =
+        (packageInfo.unusedMainUnitSize / packageInfo.mainUnitSize * 100)
+            .toStringAsFixed(2);
     _leftPadded(
       '  proportion of main unit code that is unused:',
       '${packageInfo.unusedMainUnitSize}/${packageInfo.mainUnitSize} '

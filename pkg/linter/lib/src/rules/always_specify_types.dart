@@ -14,7 +14,7 @@ import '../util/ascii_utils.dart';
 
 const _desc = r'Specify type annotations.';
 
-class AlwaysSpecifyTypes extends LintRule {
+class AlwaysSpecifyTypes extends MultiAnalysisRule {
   AlwaysSpecifyTypes()
     : super(name: LintNames.always_specify_types, description: _desc);
 
@@ -51,7 +51,7 @@ class AlwaysSpecifyTypes extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final MultiAnalysisRule rule;
 
   _Visitor(this.rule);
 
@@ -73,14 +73,14 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (keyword.keyword == Keyword.VAR) {
           rule.reportAtToken(
             keyword,
-            arguments: [keyword.lexeme, element!.type],
             errorCode: LinterLintCode.always_specify_types_replace_keyword,
+            arguments: [keyword.lexeme, element!.type],
           );
         } else {
           rule.reportAtToken(
             keyword,
-            arguments: [element!.type],
             errorCode: LinterLintCode.always_specify_types_specify_type,
+            arguments: [element!.type],
           );
         }
       }

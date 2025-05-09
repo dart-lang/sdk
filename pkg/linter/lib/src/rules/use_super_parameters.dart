@@ -23,7 +23,7 @@ Set<FormalParameterElement> _referencedParameters(
   return collector.foundParameters;
 }
 
-class UseSuperParameters extends LintRule {
+class UseSuperParameters extends MultiAnalysisRule {
   UseSuperParameters()
     : super(
         name: LintNames.use_super_parameters,
@@ -63,7 +63,7 @@ class _ReferencedParameterCollector extends RecursiveAstVisitor<void> {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LinterContext context;
-  final LintRule rule;
+  final MultiAnalysisRule rule;
 
   _Visitor(this.rule, this.context);
 

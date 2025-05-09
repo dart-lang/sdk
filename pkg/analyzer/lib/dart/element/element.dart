@@ -54,7 +54,7 @@ import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
@@ -705,7 +705,7 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
   ///
   /// If a value has been produced but no errors were generated, then the
   /// list will be empty.
-  List<AnalysisError>? get constantEvaluationErrors;
+  List<Diagnostic>? get constantEvaluationErrors;
 
   /// Returns the element referenced by this annotation.
   ///

@@ -34,7 +34,9 @@ class LinterRuleOptionsValidator extends OptionsValidator {
     return sdk.allows(since);
   }
 
-  LintRule? getRegisteredLint(Object value) => Registry.ruleRegistry.rules
+  AbstractAnalysisRule? getRegisteredLint(Object value) => Registry
+      .ruleRegistry
+      .rules
       .firstWhereOrNull((rule) => rule.name == value);
 
   bool isDeprecatedInCurrentSdk(DeprecatedState state) =>
@@ -58,7 +60,7 @@ class LinterRuleOptionsValidator extends OptionsValidator {
   void _validateRules(YamlNode? rules, ErrorReporter reporter) {
     var seenRules = <String>{};
 
-    String? findIncompatibleRule(LintRule rule) {
+    String? findIncompatibleRule(AbstractAnalysisRule rule) {
       for (var incompatibleRule in rule.incompatibleRules) {
         if (seenRules.contains(incompatibleRule)) {
           return incompatibleRule;

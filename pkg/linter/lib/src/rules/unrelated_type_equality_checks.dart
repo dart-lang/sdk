@@ -13,7 +13,7 @@ import '../util/dart_type_utilities.dart';
 const _desc =
     r'Equality operator `==` invocation with references of unrelated types.';
 
-class UnrelatedTypeEqualityChecks extends LintRule {
+class UnrelatedTypeEqualityChecks extends MultiAnalysisRule {
   UnrelatedTypeEqualityChecks()
     : super(name: LintNames.unrelated_type_equality_checks, description: _desc);
 
@@ -35,7 +35,7 @@ class UnrelatedTypeEqualityChecks extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final MultiAnalysisRule rule;
   final TypeSystem typeSystem;
 
   _Visitor(this.rule, this.typeSystem);

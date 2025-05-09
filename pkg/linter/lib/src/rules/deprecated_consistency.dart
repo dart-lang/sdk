@@ -10,7 +10,7 @@ import '../analyzer.dart';
 
 const _desc = r'Missing deprecated annotation.';
 
-class DeprecatedConsistency extends LintRule {
+class DeprecatedConsistency extends MultiAnalysisRule {
   DeprecatedConsistency()
     : super(name: LintNames.deprecated_consistency, description: _desc);
 
@@ -33,7 +33,7 @@ class DeprecatedConsistency extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final MultiAnalysisRule rule;
 
   _Visitor(this.rule);
 
