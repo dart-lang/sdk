@@ -213,7 +213,9 @@ Future<void> testAOT(
             .key];
     final baseFieldIds = baseClass['fields'];
     final baseFields = [for (final int id in baseFieldIds) objects[id]];
-    final baseSlots = baseClass['instance_slots'];
+    final baseSlots = baseClass['instance_slots']
+        .map<Map>((e) => e as Map)
+        .toList();
     final subFieldIds = subClass['fields'];
     final subFields = [for (final int id in subFieldIds) objects[id]];
     final subSlots = subClass['instance_slots'];
@@ -246,7 +248,7 @@ Future<void> testAOT(
         offsetBytes: 8,
       );
       slotOffset += expectUnknownReference(
-        baseSlots.skip(slotOffset),
+        baseSlots[slotOffset],
         offsetReferences: 0,
         offsetBytes: 16,
       );
