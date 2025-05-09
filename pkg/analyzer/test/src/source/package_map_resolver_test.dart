@@ -6,7 +6,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer_testing/utilities/extensions/resource_provider.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -22,7 +22,7 @@ class _PackageMapUriResolverTest {
   MemoryResourceProvider provider = MemoryResourceProvider();
 
   String convertPath(String filePath) =>
-      ResourceProviderExtensions(provider).convertPath(filePath);
+      ResourceProviderExtension(provider).convertPath(filePath);
 
   void test_isPackageUri() {
     Uri uri = Uri.parse('package:test/test.dart');

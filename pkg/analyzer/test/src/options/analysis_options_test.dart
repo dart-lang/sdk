@@ -12,7 +12,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/registry.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer_testing/utilities/extensions/resource_provider.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -32,7 +32,7 @@ class AnalysisOptionsTest {
   final resourceProvider = MemoryResourceProvider();
 
   String convertPath(String filePath) =>
-      ResourceProviderExtensions(resourceProvider).convertPath(filePath);
+      ResourceProviderExtension(resourceProvider).convertPath(filePath);
 
   // TODO(srawlins): Add tests that exercise
   // `optionsProvider.getOptionsFromString` throwing an exception.

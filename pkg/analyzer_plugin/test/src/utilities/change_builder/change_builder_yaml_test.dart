@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_yaml.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
+import 'package:analyzer_testing/utilities/extensions/resource_provider.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -23,7 +23,7 @@ void main() {
 
 class AbstractYamlChangeBuilderTest extends AbstractChangeBuilderTest {
   String get testFilePath {
-    return ResourceProviderExtensions(resourceProvider)
+    return ResourceProviderExtension(resourceProvider)
         .convertPath('/home/my/pubspec.yaml');
   }
 

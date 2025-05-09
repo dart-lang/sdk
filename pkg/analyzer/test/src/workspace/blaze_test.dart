@@ -5,9 +5,9 @@
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/workspace/blaze.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:async/async.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';

@@ -9,7 +9,7 @@ import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/generated/source.dart'
     show SourceFactory, UriResolver;
 import 'package:analyzer/src/source/package_map_resolver.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
