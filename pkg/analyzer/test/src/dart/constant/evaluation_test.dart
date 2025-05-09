@@ -1345,6 +1345,7 @@ const c = x ?? 1;
           23,
           1,
         ),
+        error(WarningCode.DEAD_CODE, 25, 4),
         error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 28, 1),
       ],
     );
@@ -1357,6 +1358,7 @@ final x = 1;
 const c = 0 ?? x;
 ''',
       [
+        error(WarningCode.DEAD_CODE, 25, 4),
         error(
           CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
           28,

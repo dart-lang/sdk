@@ -419,6 +419,7 @@ analysisOptions
       records
       sealed-class
       set-literals
+      sound-flow-analysis
       spread-collections
       super-parameters
       triple-shift
@@ -497,6 +498,7 @@ analysisOptions
       records
       sealed-class
       set-literals
+      sound-flow-analysis
       spread-collections
       super-parameters
       triple-shift

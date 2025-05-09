@@ -398,7 +398,10 @@ void f(void Function() x) {
   if (x case (null)) {}
 }
 ''',
-      [error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 42, 4)],
+      [
+        error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 42, 4),
+        error(WarningCode.DEAD_CODE, 49, 2),
+      ],
     );
   }
 
@@ -417,7 +420,10 @@ void f(int x) {
   if (x case (null)) {}
 }
 ''',
-      [error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 30, 4)],
+      [
+        error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 30, 4),
+        error(WarningCode.DEAD_CODE, 37, 2),
+      ],
     );
   }
 
@@ -436,7 +442,10 @@ void f<T extends Object>(T x) {
   if (x case null) {}
 }
 ''',
-      [error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 45, 4)],
+      [
+        error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 45, 4),
+        error(WarningCode.DEAD_CODE, 51, 2),
+      ],
     );
   }
 

@@ -122,7 +122,8 @@ void f(A? x) {
   }
 
   test_eqEq_operandNull() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {}
 
 void f(A x) {
@@ -131,7 +132,9 @@ void f(A x) {
       break;
   }
 }
-''');
+''',
+      [error(WarningCode.DEAD_CODE, 65, 6)],
+    );
   }
 
   test_eqEq_operandNullable() async {

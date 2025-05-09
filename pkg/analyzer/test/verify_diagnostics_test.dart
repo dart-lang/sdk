@@ -176,6 +176,9 @@ class DocumentationValidator {
     'PubspecWarningCode.WORKSPACE_VALUE_NOT_STRING',
     'PubspecWarningCode.WORKSPACE_VALUE_NOT_SUBDIRECTORY',
 
+    // Produces two diagnostics out of necessity.
+    'StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION',
+
     // Reports CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY
     'WarningCode.DEPRECATED_EXTENDS_FUNCTION',
     // Produces more than one error range by design.
@@ -183,6 +186,8 @@ class DocumentationValidator {
     'WarningCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT',
     // Produces more than one error range by design.
     'WarningCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL',
+    // Produces two diagnostics out of necessity.
+    'WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE',
   ];
 
   /// The buffer to which validation errors are written.

@@ -1,5 +1,15 @@
 ## 3.9.0
 
+### Language
+
+Dart 3.9 assumes null safety when computing type promotion, reachability, and
+definite assignment. This makes these features produce more accurate results for
+modern Dart programs. As a result of this change, more dead_code warnings may be
+produced. To take advantage of these improvements, set your package's [SDK
+constraint][language version] lower bound to 3.9 or greater (`sdk: '^3.9.0'`).
+
+[language version]: https://dart.dev/guides/language/evolution
+
 ### Tools
 
 #### Dart Development Compiler (dartdevc)

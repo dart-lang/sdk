@@ -12,18 +12,18 @@ void variable_if_null_assign_reachable(int? i) {
 
 void variable_if_null_unreachable(int i) {
   // Reachable since the value of i might come from legacy code
-  i ?? 0;
+  i ?? /*unreachable*/0;
 }
 
 void variable_if_null_assign_unreachable(int i) {
   // Reachable since the value of i might come from legacy code
-  i ??= 0;
+  /*cfe.update: unreachable*/i ??= /*unreachable*/0;
 }
 
 void variable_if_null_assign_unreachable_due_to_promotion(int? i) {
   if (i == null) return;
   // Reachable since the value of i might come from legacy code
-  i ??= 0;
+  /*cfe.update: unreachable*/i ??= /*unreachable*/0;
 }
 
 /*member: topLevelNullable:doesNotComplete*/
@@ -45,13 +45,13 @@ void top_level_if_null_assign_reachable() {
 void top_level_if_null_unreachable() {
   // Reachable since the value returned by topLevelNonNullGet might come from
   // legacy code
-  topLevelNonNullGet ?? 0;
+  topLevelNonNullGet ?? /*unreachable*/0;
 }
 
 void top_level_if_null_assign_unreachable() {
   // Reachable since the value returned by topLevelNonNullGet might come from
   // legacy code
-  topLevelNonNullGet ??= 0;
+  topLevelNonNullGet /*cfe.update: unreachable*/??= /*unreachable*/0;
 }
 
 class HasProperty<T> {
@@ -70,12 +70,12 @@ void property_if_null_assign_reachable(HasProperty<int?> x) {
 
 void property_if_null_unreachable(HasProperty<int> x) {
   // Reachable since the value returned by prop might come from legacy code
-  x.prop ?? 0;
+  x.prop ?? /*unreachable*/0;
 }
 
 void property_if_null_assign_unreachable(HasProperty<int> x) {
   // Reachable since the value returned by prop might come from legacy code
-  x.prop ??= 0;
+  x.prop ??= /*unreachable*/0;
 }
 
 void null_aware_property_if_null_reachable(HasProperty<int?>? x) {
@@ -94,7 +94,7 @@ void null_aware_property_if_null_not_shortened(HasProperty<int>? x) {
 
 void null_aware_property_if_null_assign_unreachable(HasProperty<int>? x) {
   // Reachable since the value returned by prop might come from legacy code.
-  x?.prop ??= 0;
+  x?.prop ??= /*unreachable*/0;
 }
 
 class SuperIntQuestionProperty extends HasProperty<int?> {
@@ -110,12 +110,12 @@ class SuperIntQuestionProperty extends HasProperty<int?> {
 class SuperIntProperty extends HasProperty<int> {
   void if_null_unreachable() {
     // Reachable since the value returned by prop might come from legacy code.
-    super.prop ?? 0;
+    super.prop ?? /*unreachable*/0;
   }
 
   void if_null_assign_unreachable() {
     // Reachable since the value returned by prop might come from legacy code.
-    super.prop ??= 0;
+    super.prop ??= /*unreachable*/0;
   }
 }
 
@@ -138,13 +138,13 @@ void extended_property_if_null_assign_reachable(HasProperty<int?> x) {
 void extended_property_if_null_unreachable(HasProperty<int> x) {
   // Reachable since the value returned by extendedProp might come from legacy
   // code.
-  x.extendedProp ?? 0;
+  x.extendedProp ?? /*unreachable*/0;
 }
 
 void extended_property_if_null_assign_unreachable(HasProperty<int> x) {
   // Reachable since the value returned by extendedProp might come from legacy
   // code.
-  x.extendedProp ??= 0;
+  x.extendedProp ??= /*unreachable*/0;
 }
 
 void null_aware_extended_property_if_null_reachable(HasProperty<int?>? x) {
@@ -166,7 +166,7 @@ void null_aware_extended_property_if_null_assign_unreachable(
     HasProperty<int>? x) {
   // Reachable since the value returned by extendedProp might come from legacy
   // code.
-  x?.extendedProp ??= 0;
+  x?.extendedProp ??= /*unreachable*/0;
 }
 
 void explicit_extended_property_if_null_reachable(HasProperty<int?> x) {
@@ -180,13 +180,13 @@ void explicit_extended_property_if_null_assign_reachable(HasProperty<int?> x) {
 void explicit_extended_property_if_null_unreachable(HasProperty<int> x) {
   // Reachable since the value returned by extendedProp might come from legacy
   // code.
-  ExtensionProperty(x).extendedProp ?? 0;
+  ExtensionProperty(x).extendedProp ?? /*unreachable*/0;
 }
 
 void explicit_extended_property_if_null_assign_unreachable(HasProperty<int> x) {
   // Reachable since the value returned by extendedProp might come from legacy
   // code.
-  ExtensionProperty(x).extendedProp ??= 0;
+  ExtensionProperty(x).extendedProp ??= /*unreachable*/0;
 }
 
 void null_aware_explicit_extended_property_if_null_reachable(
@@ -210,7 +210,7 @@ void null_aware_explicit_extended_property_if_null_assign_unreachable(
     HasProperty<int>? x) {
   // Reachable since the value returned by extendedProp might come from legacy
   // code.
-  ExtensionProperty(x)?.extendedProp ??= 0;
+  ExtensionProperty(x)?.extendedProp ??= /*unreachable*/0;
 }
 
 class Indexable<T> {
@@ -226,7 +226,7 @@ void index_if_null_reachable(Indexable<int?> x) {
 void index_if_null_unreachable(Indexable<int> x) {
   // Reachable since the value returned by operator[] might come from legacy
   // code.
-  x[0] ?? 0;
+  x[0] ?? /*unreachable*/0;
 }
 
 void index_if_null_assign_reachable(Indexable<int?> x) {
@@ -236,7 +236,7 @@ void index_if_null_assign_reachable(Indexable<int?> x) {
 void index_if_null_assign_unreachable(Indexable<int> x) {
   // Reachable since the value returned by operator[] might come from legacy
   // code.
-  x[0] ??= 0;
+  x[0] ??= /*unreachable*/0;
 }
 
 void null_aware_index_if_null_reachable(Indexable<int?>? x) {
@@ -256,7 +256,7 @@ void null_aware_index_if_null_assign_reachable(Indexable<int?>? x) {
 void null_aware_index_if_null_assign_unreachable(Indexable<int>? x) {
   // Reachable since the value returned by operator[] might come from legacy
   // code.
-  x?[0] ??= 0;
+  x?[0] ??= /*unreachable*/0;
 }
 
 class SuperIntQuestionIndex extends Indexable<int?> {
@@ -273,13 +273,13 @@ class SuperIntIndex extends Indexable<int> {
   void if_null_unreachable() {
     // Reachable since the value returned by operator[] might come from legacy
     // code.
-    super[0] ?? 0;
+    super[0] ?? /*unreachable*/0;
   }
 
   void if_null_assign_unreachable() {
     // Reachable since the value returned by operator[] might come from legacy
     // code.
-    super[0] ??= 0;
+    super[0] ??= /*unreachable*/0;
   }
 }
 
@@ -302,13 +302,13 @@ void extended_index_if_null_assign_reachable(HasProperty<int?> x) {
 void extended_index_if_null_unreachable(HasProperty<int> x) {
   // Reachable since the value returned by operator[] might come from legacy
   // code.
-  x[0] ?? 0;
+  x[0] ?? /*unreachable*/0;
 }
 
 void extended_index_if_null_assign_unreachable(HasProperty<int> x) {
   // Reachable since the value returned by operator[] might come from legacy
   // code.
-  x[0] ??= 0;
+  x[0] ??= /*unreachable*/0;
 }
 
 void null_aware_extended_index_if_null_reachable(HasProperty<int?>? x) {
@@ -328,7 +328,7 @@ void null_aware_extended_index_if_null_not_shortened(HasProperty<int>? x) {
 void null_aware_extended_index_if_null_assign_unreachable(HasProperty<int>? x) {
   // Reachable since the value returned by operator[] might come from legacy
   // code.
-  x?[0] ??= 0;
+  x?[0] ??= /*unreachable*/0;
 }
 
 void explicit_extended_index_if_null_reachable(HasProperty<int?> x) {
@@ -342,13 +342,13 @@ void explicit_extended_index_if_null_assign_reachable(HasProperty<int?> x) {
 void explicit_extended_index_if_null_unreachable(HasProperty<int> x) {
   // Reachable since the value returned by operator[] might come from legacy
   // code.
-  ExtensionIndex(x)[0] ?? 0;
+  ExtensionIndex(x)[0] ?? /*unreachable*/0;
 }
 
 void explicit_extended_index_if_null_assign_unreachable(HasProperty<int> x) {
   // Reachable since the value returned by operator[] might come from legacy
   // code.
-  ExtensionIndex(x)[0] ??= 0;
+  ExtensionIndex(x)[0] ??= /*unreachable*/0;
 }
 
 void null_aware_explicit_extended_index_if_null_reachable(
@@ -372,5 +372,5 @@ void null_aware_explicit_extended_index_if_null_assign_unreachable(
     HasProperty<int>? x) {
   // Reachable since the value returned by operator[] might come from legacy
   // code.
-  ExtensionIndex(x)?[0] ??= 0;
+  ExtensionIndex(x)?[0] ??= /*unreachable*/0;
 }

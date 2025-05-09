@@ -5381,6 +5381,7 @@ main() {
           34,
           1,
         ),
+        error(WarningCode.DEAD_CODE, 36, 5),
         error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 39, 2),
         error(WarningCode.UNUSED_LOCAL_VARIABLE, 55, 1),
       ],
@@ -5404,6 +5405,7 @@ main() {
           40,
           1,
         ),
+        error(WarningCode.DEAD_CODE, 42, 5),
         error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 45, 2),
       ],
     );
