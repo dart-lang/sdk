@@ -158,7 +158,7 @@ The following custom fields/methods/notifications are also provided by the Dart 
 
 ### Message.clientRequestTime Field
 
-The server accepts an optional `int?` on all incoming messages named `clientRequestTime` (alongside `id`, `method`, `params`) containing a timestamp (milliseconds since epoch) of when the client made that request. Providing clientRequestTime helps track how responsive analysis server is to client requests and better address any issues that occur.
+The server accepts an optional `int?` on all incoming messages named `clientRequestTime` (alongside `id`, `method`, `params`) containing a timestamp (milliseconds since epoch) of when the client made that request. Providing `clientRequestTime` helps track how responsive the analysis server is to client requests and better address any issues that occur.
 
 ### dart/diagnosticServer Method
 

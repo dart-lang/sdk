@@ -32,7 +32,7 @@ class AddContentOverlay implements HasToJson {
   /// since the edits were computed.
   ///
   /// If version numbers are supplied with AddContentOverlay and
-  /// ChangeContentOverlay, they must be increasing (not not necessarily
+  /// ChangeContentOverlay, they must be increasing (but not necessarily
   /// consecutive) numbers.
   int? version;
 
@@ -397,7 +397,7 @@ class ChangeContentOverlay implements HasToJson {
   /// since the edits were computed.
   ///
   /// If version numbers are supplied with AddContentOverlay and
-  /// ChangeContentOverlay, they must be increasing (not not necessarily
+  /// ChangeContentOverlay, they must be increasing (but not necessarily
   /// consecutive) numbers.
   int? version;
 
