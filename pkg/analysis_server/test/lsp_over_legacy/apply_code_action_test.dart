@@ -2,12 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../shared/shared_apply_code_action_tests.dart';
-import '../code_actions_mixin.dart';
-import '../server_abstract.dart';
+import '../shared/shared_apply_code_action_tests.dart';
+import 'abstract_lsp_over_legacy.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -16,15 +17,19 @@ void main() {
 }
 
 @reflectiveTest
-class ApplyCodeActionTest extends AbstractLspAnalysisServerTest
+class ApplyCodeActionTest extends SharedLspOverLegacyTest
     with
-        LspSharedTestMixin,
-        CodeActionsTestMixin,
         // Tests are defined in SharedApplyCodeActionTests.
         SharedApplyCodeActionTests {
   @override
-  void setUp() {
-    super.setUp();
+  Future<void> initializeServer() async {
+    await super.initializeServer();
+    await sendClientCapabilities();
+  }
+
+  @override
+  Future<void> setUp() async {
+    await super.setUp();
 
     setApplyEditSupport();
     setDocumentChangesSupport();

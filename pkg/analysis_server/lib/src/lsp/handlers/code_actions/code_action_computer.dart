@@ -8,6 +8,7 @@
 library;
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/extensions/code_action.dart';
@@ -17,7 +18,6 @@ import 'package:analysis_server/src/lsp/handlers/code_actions/dart.dart';
 import 'package:analysis_server/src/lsp/handlers/code_actions/plugins.dart';
 import 'package:analysis_server/src/lsp/handlers/code_actions/pubspec.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -30,13 +30,7 @@ import 'package:path/src/context.dart';
 
 /// A helper class for computing [CodeAction]s that is used by both the
 /// [CodeActionHandler] and [ApplyCodeActionCommandHandler].
-class CodeActionComputer
-    with
-        HandlerHelperMixin<
-          // TODO(dantup): Make this (and the code action producers) work with
-          //  either server.
-          LspAnalysisServer
-        > {
+class CodeActionComputer with HandlerHelperMixin<AnalysisServer> {
   /// The text document to compute code actions for.
   final TextDocumentIdentifier textDocument;
 
@@ -78,7 +72,7 @@ class CodeActionComputer
   final LspClientCapabilities editorCapabilities;
 
   @override
-  final LspAnalysisServer server;
+  final AnalysisServer server;
 
   /// The kinds of [CodeAction]s that the caller supports.
   ///

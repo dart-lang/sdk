@@ -82,17 +82,6 @@ mixin CodeActionsTestMixin on AbstractLspAnalysisServerTest {
     return action.asCodeActionLiteral;
   }
 
-  /// Expects that command [commandName] was logged to the analytics manager.
-  void expectCommandLogged(String commandName) {
-    expect(
-      server.analyticsManager
-          .getRequestData(Method.workspace_executeCommand.toString())
-          .additionalEnumCounts['command']!
-          .keys,
-      contains(commandName),
-    );
-  }
-
   /// Initializes the server with some basic configuration and expects not to
   /// find a [CodeAction] with [kind]/[command]/[title].
   Future<void> expectNoAction(

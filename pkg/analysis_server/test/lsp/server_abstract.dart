@@ -35,6 +35,7 @@ import 'package:unified_analytics/unified_analytics.dart';
 import '../constants.dart';
 import '../mocks.dart';
 import '../mocks_lsp.dart';
+import '../shared/mixins/analytics_test_mixin.dart';
 import '../shared/shared_test_interface.dart';
 import '../support/configuration_files.dart';
 import '../utils/message_scheduler_test_view.dart';
@@ -52,7 +53,8 @@ abstract class AbstractLspAnalysisServerTest
         LspVerifyEditHelpersMixin,
         LspAnalysisServerTestMixin,
         MockPackagesMixin,
-        ConfigurationFilesMixin {
+        ConfigurationFilesMixin,
+        AnalyticsTestMixin {
   late MockLspServerChannel channel;
   late ErrorNotifier errorNotifier;
   late TestPluginManager pluginManager;
@@ -64,6 +66,9 @@ abstract class AbstractLspAnalysisServerTest
   /// The number of context builds that had already occurred the last time
   /// resetContextBuildCounter() was called.
   int _previousContextBuilds = 0;
+
+  @override
+  AnalyticsManager get analyticsManager => server.analyticsManager;
 
   DartFixPromptManager? get dartFixPromptManager => null;
 
@@ -131,19 +136,6 @@ abstract class AbstractLspAnalysisServerTest
     }
 
     return info;
-  }
-
-  /// Executes [command] which is expected to call back to the client to apply
-  /// a [WorkspaceEdit].
-  ///
-  /// Returns a [LspChangeVerifier] that can be used to verify changes.
-  Future<LspChangeVerifier> executeCommandForEdits(
-    Command command, {
-    ProgressToken? workDoneToken,
-  }) {
-    return executeForEdits(
-      () => executeCommand(command, workDoneToken: workDoneToken),
-    );
   }
 
   void expectContextBuilds() => expect(
@@ -326,23 +318,6 @@ $experiments
   Future<void> tearDown() async {
     channel.close();
     await server.shutdown();
-  }
-
-  /// Verifies that executing the given command on the server results in an edit
-  /// being sent in the client that updates the files to match the expected
-  /// content.
-  Future<LspChangeVerifier> verifyCommandEdits(
-    Command command,
-    String expectedContent, {
-    ProgressToken? workDoneToken,
-  }) async {
-    var verifier = await executeCommandForEdits(
-      command,
-      workDoneToken: workDoneToken,
-    );
-
-    verifier.verifyFiles(expectedContent);
-    return verifier;
   }
 
   LspChangeVerifier verifyEdit(

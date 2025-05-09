@@ -50,7 +50,6 @@ import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
-import 'package:path/path.dart' as path;
 
 /// Instances of the class [LspAnalysisServer] implement an LSP-based server
 /// that listens on a [LspServerCommunicationChannel] for LSP messages and
@@ -264,8 +263,6 @@ class LspAnalysisServer extends AnalysisServer {
       sendLspNotification(message);
     };
   }
-
-  path.Context get pathContext => resourceProvider.pathContext;
 
   @override
   set pluginManager(PluginManager value) {

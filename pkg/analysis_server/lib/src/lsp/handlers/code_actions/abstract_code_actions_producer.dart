@@ -8,9 +8,9 @@ library;
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/protocol_server.dart'
     hide AnalysisOptions, Position;
@@ -32,7 +32,7 @@ typedef CodeActionWithPriorityAndIndex =
 
 /// A base for classes that produce [CodeAction]s for the LSP handler.
 abstract class AbstractCodeActionsProducer
-    with RequestHandlerMixin<LspAnalysisServer> {
+    with RequestHandlerMixin<AnalysisServer> {
   final File file;
   final LineInfo lineInfo;
   final int offset;
@@ -50,7 +50,7 @@ abstract class AbstractCodeActionsProducer
   final AnalysisOptions analysisOptions;
 
   @override
-  final LspAnalysisServer server;
+  final AnalysisServer server;
 
   /// Whether [CodeAction]s can be [Command]s or not.
   ///
