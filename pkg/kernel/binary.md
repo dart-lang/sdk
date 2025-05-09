@@ -415,7 +415,7 @@ type Constructor extends Member {
   FileOffset startFileOffset; // Offset of the start of the constructor including any annotations.
   FileOffset fileOffset; // Offset of the constructor name.
   FileOffset fileEndOffset;
-  Byte flags (isConst, isExternal, isSynthetic);
+  Byte flags (isConst, isExternal, isSynthetic, isErroneous);
   Name name;
   List<Expression> annotations;
   FunctionNode function;
