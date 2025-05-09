@@ -1,7 +1,6 @@
 package:analyzer/dart/analysis/analysis_context.dart:
   AnalysisContext@1 (class extends Object):
     new (constructor: AnalysisContext@1 Function())
-    analysisOptions (getter: AnalysisOptions, deprecated)
     contextRoot (getter: ContextRoot)
     currentSession (getter: AnalysisSession)
     sdkRoot (getter: Folder?)
@@ -4803,7 +4802,6 @@ package:analyzer/src/dart/resolver/scope.dart:
 package:analyzer/src/generated/engine.dart:
   AnalysisContext@2 (class extends Object):
     new (constructor: AnalysisContext@2 Function())
-    analysisOptions (getter: AnalysisOptions, deprecated)
     declaredVariables (getter: DeclaredVariables)
     sourceFactory (getter: SourceFactory)
     getAnalysisOptionsForFile (method: AnalysisOptions Function(File), experimental)

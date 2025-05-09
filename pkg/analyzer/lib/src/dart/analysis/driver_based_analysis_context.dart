@@ -32,10 +32,6 @@ class DriverBasedAnalysisContext implements AnalysisContext {
   ];
 
   @override
-  @Deprecated("Use 'getAnalysisOptionsForFile(file)' instead")
-  AnalysisOptions get analysisOptions => driver.analysisOptions;
-
-  @override
   AnalysisSession get currentSession => driver.currentSession;
 
   @override
