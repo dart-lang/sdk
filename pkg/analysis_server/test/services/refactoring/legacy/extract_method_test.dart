@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/refactoring/legacy/extract_method.dart';
 import 'package:analyzer/source/source.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 import 'package:analyzer_utilities/testing/test_support.dart';

@@ -13,8 +13,6 @@ import 'package:test/test.dart';
 
 import 'abstract_refactoring.dart';
 
-export 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
-
 /// The base class for all [RenameRefactoring] tests.
 class RenameRefactoringTest extends RefactoringTest {
   @override

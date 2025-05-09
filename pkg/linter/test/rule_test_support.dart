@@ -19,8 +19,8 @@ import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/lint/util.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
-import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_testing/experiments/experiments.dart';
 import 'package:analyzer_testing/mock_packages/mock_packages.dart';
 import 'package:analyzer_utilities/testing/test_support.dart';
@@ -32,7 +32,6 @@ import 'package:test/test.dart';
 
 export 'package:analyzer/src/dart/error/syntactic_errors.dart';
 export 'package:analyzer/src/error/codes.dart';
-export 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 export 'package:linter/src/lint_names.dart';
 
 ExpectedDiagnostic error(

@@ -4828,6 +4828,12 @@ package:analyzer/utilities/extensions/uri.dart:
   UriExtension (extension on Uri):
     isImplementation (getter: bool)
     isSamePackageAs (method: bool Function(Uri))
+package:analyzer/utilities/package_config_file_builder.dart:
+  PackageConfigFileBuilder (class extends Object):
+    new (constructor: PackageConfigFileBuilder Function())
+    add (method: void Function({String? languageVersion, required String name, String packageUri, required String rootPath}))
+    copy (method: PackageConfigFileBuilder Function())
+    toContent (method: String Function({required String Function(String) toUriStr}))
 dart:async:
   Future (referenced)
   Stream (referenced)
