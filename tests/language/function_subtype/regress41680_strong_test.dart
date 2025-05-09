@@ -5,6 +5,7 @@
 // Requirements=nnbd-strong
 
 import "package:expect/expect.dart";
+import 'package:expect/variations.dart' as v;
 
 typedef dynamicToDynamic = dynamic Function(dynamic);
 
@@ -22,5 +23,8 @@ main() {
   Expect.throwsTypeError(() => dynamicNull as dynamicToDynamic);
   Expect.throwsTypeError(() => cast<dynamic Function(dynamic)>(dynamicNull));
   Expect.throwsTypeError(() => dynamicNull as voidToT);
-  Expect.throwsTypeError(() => allowsArgument(dynamicNull));
+  Expect.throwsTypeErrorWhen(
+    v.checkedParameters,
+    () => allowsArgument(dynamicNull),
+  );
 }

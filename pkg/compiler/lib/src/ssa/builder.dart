@@ -670,7 +670,6 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     // TODO(sra): The source information should indicate the field and
     // possibly its type but not the initializer.
     value.sourceInformation ??= _sourceInformationBuilder.buildSet(node);
-    value = _potentiallyAssertNotNull(field, node, value, type);
     if (!_fieldAnalysis.getFieldData(field).isElided) {
       add(HFieldSet(field, thisInstruction, value));
     }
@@ -1999,13 +1998,6 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
           type,
         );
       }
-      // TODO(sra): Hoist out of loop.
-      newParameter = _potentiallyAssertNotNull(
-        member,
-        variable,
-        newParameter,
-        type,
-      );
       localsHandler.updateLocal(local, newParameter);
     }
 
@@ -2033,49 +2025,6 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
           _checkTypeBound(newParameter, bound, local.name!, method.name!);
         }
       }
-    }
-  }
-
-  /// In mixed mode, inserts an assertion of the form `assert(x != null)` for
-  /// parameters in opt-in libraries that have a static type that cannot be
-  /// nullable under a strong interpretation.
-  HInstruction _potentiallyAssertNotNull(
-    MemberEntity member,
-    ir.TreeNode context,
-    HInstruction value,
-    DartType type,
-  ) {
-    if (!dartTypes.isNonNullable(type)) return value;
-
-    // `operator==` is usually augmented to handle a `null`-argument before this
-    // test would be inserted.  There are a few exceptions (Object,
-    // Interceptor), where the body of the `==` method is designed to handle a
-    // `null` argument. In the usual case the null assertion is unnecessary and
-    // will be optimized away. In the exception cases a null assertion would be
-    // incorrect. Either way we should not do a null-assertion on the parameter
-    // of any `operator==` method.
-    if (member.name == '==') return value;
-
-    if (options.enableUserAssertions) {
-      pushCheckNull(value);
-      push(HNot(pop(), _abstractValueDomain.boolType));
-      var sourceInformation = _sourceInformationBuilder.buildAssert(context);
-      _pushStaticInvocation(
-        _commonElements.assertHelper,
-        [pop()],
-        _typeInferenceMap.getReturnTypeOf(_commonElements.assertHelper),
-        const <DartType>[],
-        sourceInformation: sourceInformation,
-      );
-      pop();
-      return value;
-    } else {
-      HInstruction nullCheck = HNullCheck(
-        value,
-        _abstractValueDomain.excludeNull(value.instructionType),
-      )..sourceInformation = value.sourceInformation;
-      add(nullCheck);
-      return nullCheck;
     }
   }
 
@@ -8595,12 +8544,6 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
           type,
         );
       }
-      checkedOrTrusted = _potentiallyAssertNotNull(
-        function,
-        variable,
-        checkedOrTrusted,
-        type,
-      );
       localsHandler.updateLocal(parameter, checkedOrTrusted);
     });
   }
