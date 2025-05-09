@@ -370,7 +370,7 @@ void main() {
   print(c);
 }
 ''',
-      [error(CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_GETTER, 48, 4)],
+      [error(CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_GETTER, 49, 3)],
     );
   }
 
@@ -512,7 +512,35 @@ DotShorthandPropertyAccess
 ''');
   }
 
-  test_object_new() async {
+  test_tearOff_constructor() async {
+    await assertNoErrorsInCode(r'''
+class C1 {
+  C1.id();
+
+  @override
+  bool operator ==(Object other) => identical(C1.id, other);
+}
+
+main() {
+  bool x = C1.id() == .id;
+  print(x);
+}
+''');
+
+    var identifier = findNode.singleDotShorthandPropertyAccess;
+    assertResolvedNodeText(identifier, r'''
+DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: id
+    element: <testLibraryFragment>::@class::C1::@constructor::id#element
+    staticType: C1 Function()
+  correspondingParameter: <testLibraryFragment>::@class::C1::@method::==::@parameter::other#element
+  staticType: C1 Function()
+''');
+  }
+
+  test_tearOff_constructor_new() async {
     await assertNoErrorsInCode('''
 void main() {
   Object o = .new;
