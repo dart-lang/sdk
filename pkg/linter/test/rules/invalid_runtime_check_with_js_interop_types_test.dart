@@ -442,7 +442,10 @@ class InvalidRuntimeCheckWithJSInteropTypesTest extends LintRuleTest {
       null as JSArray?;
     }
     ''',
-      [error(WarningCode.CAST_FROM_NULL_ALWAYS_FAILS, 54, 13)],
+      [
+        error(WarningCode.CAST_FROM_NULL_ALWAYS_FAILS, 54, 13),
+        error(WarningCode.DEAD_CODE, 75, 17),
+      ],
     );
   }
 

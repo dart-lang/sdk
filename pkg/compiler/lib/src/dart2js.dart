@@ -925,12 +925,16 @@ Future<api.CompilationResult> compile(
         break;
     }
 
+    final memoryUsed = await currentHeapCapacityInMb();
+    final memoryUsedString = memoryUsed != null
+        ? ' using $memoryUsed of memory'
+        : '';
+
     print(
       '$processName '
       '${_formatCharacterCount(inputSize)} $inputName to '
       '${_formatCharacterCount(outputSize)} $outputName in '
-      '${_formatDurationAsSeconds(wallclock.elapsed)} seconds using '
-      '${await currentHeapCapacityInMb()} of memory',
+      '${_formatDurationAsSeconds(wallclock.elapsed)} seconds$memoryUsedString',
     );
     if (primaryOutputSize != null && out != null) {
       diagnostic.info(

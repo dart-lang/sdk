@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// This test verifies that `is` and `==` tests performed on `this` do not lead
-/// to code being considered unreachable.  (In principle, we could soundly mark
-/// some such code as unreachable, but we have decided not to do so at this
-/// time).
+/// This test verifies that `is` and `==` tests performed on `this` lead to code
+/// being considered unreachable. (Prior to Dart 3.9, they didn't do so.)
 
 import 'package:expect/static_type_helper.dart';
 
@@ -19,9 +17,9 @@ class C {
     } else {
       y = null;
     }
-    // Since the assignments to x and y were both reachable, they should have
-    // static type `int?` now.
-    x.expectStaticType<Exactly<int?>>();
+    // Since the assignment to y was reachable, it should have static type
+    // `int?` now.
+    x.expectStaticType<Exactly<int>>();
     y.expectStaticType<Exactly<int?>>();
   }
 
@@ -36,10 +34,10 @@ class C {
         y = null;
       }
     }
-    // Since the assignments to x and y were both reachable, they should have
-    // static type `int?` now.
-    x.expectStaticType<Exactly<int?>>();
-    y.expectStaticType<Exactly<int?>>();
+    // Since the assignments to x and y were both unreachable, they should still
+    // have static type `int`.
+    x.expectStaticType<Exactly<int>>();
+    y.expectStaticType<Exactly<int>>();
   }
 
   void isSimple(int? x, int? y) {
@@ -68,10 +66,10 @@ class C {
         y = null;
       }
     }
-    // Since the assignment to y was reachable, it should have static type
-    // `int?` now.  But x should still have static type `int`.
+    // Since the assignments to x an y were both unreachable, they should still
+    // have static type `int`.
     x.expectStaticType<Exactly<int>>();
-    y.expectStaticType<Exactly<int?>>();
+    y.expectStaticType<Exactly<int>>();
   }
 }
 
@@ -87,9 +85,9 @@ extension on D {
     } else {
       y = null;
     }
-    // Since the assignments to x and y were both reachable, they should have
-    // static type `int?` now.
-    x.expectStaticType<Exactly<int?>>();
+    // Since the assignment to y was reachable, it should have static type
+    // `int?` now.
+    x.expectStaticType<Exactly<int>>();
     y.expectStaticType<Exactly<int?>>();
   }
 
@@ -104,10 +102,10 @@ extension on D {
         y = null;
       }
     }
-    // Since the assignments to x and y were both reachable, they should have
-    // static type `int?` now.
-    x.expectStaticType<Exactly<int?>>();
-    y.expectStaticType<Exactly<int?>>();
+    // Since the assignments to x and y were both unreachable, they should still
+    // have static type `int`.
+    x.expectStaticType<Exactly<int>>();
+    y.expectStaticType<Exactly<int>>();
   }
 
   void isSimple(int? x, int? y) {
@@ -136,10 +134,10 @@ extension on D {
         y = null;
       }
     }
-    // Since the assignment to y was reachable, it should have static type
-    // `int?` now.  But x should still have static type `int`.
+    // Since the assignments to x and y were both unreachable, they should still
+    // have static type `int`.
     x.expectStaticType<Exactly<int>>();
-    y.expectStaticType<Exactly<int?>>();
+    y.expectStaticType<Exactly<int>>();
   }
 }
 

@@ -185,7 +185,10 @@ abstract class C extends A {
 
 void Function() f(A a, bool b, C c, dynamic d) => b ? d : c ?? a;
 ''',
-      [error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 130, 1)],
+      [
+        error(WarningCode.DEAD_CODE, 127, 4),
+        error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 130, 1),
+      ],
     );
     // `c` is on the LHS of an if-null expression, so implicit call tearoff
     // logic should not apply to it.

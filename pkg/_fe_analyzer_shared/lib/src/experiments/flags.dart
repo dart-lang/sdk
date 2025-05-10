@@ -222,10 +222,10 @@ enum ExperimentalFlag {
 
   soundFlowAnalysis(
       name: 'sound-flow-analysis',
-      isEnabledByDefault: false,
+      isEnabledByDefault: true,
       isExpired: false,
-      experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: defaultLanguageVersion),
+      experimentEnabledVersion: const Version(3, 9),
+      experimentReleasedVersion: const Version(3, 9)),
 
   spreadCollections(
       name: 'spread-collections',

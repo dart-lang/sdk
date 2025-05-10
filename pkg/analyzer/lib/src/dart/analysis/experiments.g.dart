@@ -528,7 +528,7 @@ class ExperimentalFeatures {
     documentation:
         'Assume sound null safety when computing type promotion, reachability, and definite assignment.',
     experimentalReleaseVersion: null,
-    releaseVersion: null,
+    releaseVersion: Version.parse('3.9.0'),
     channels: ["stable", "beta", "dev", "main"],
   );
 
@@ -717,7 +717,7 @@ class IsEnabledByDefault {
   static const bool set_literals = true;
 
   /// Default state of the experiment "sound-flow-analysis"
-  static const bool sound_flow_analysis = false;
+  static const bool sound_flow_analysis = true;
 
   /// Default state of the experiment "spread-collections"
   static const bool spread_collections = true;
