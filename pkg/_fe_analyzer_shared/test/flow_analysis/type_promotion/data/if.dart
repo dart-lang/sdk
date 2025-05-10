@@ -41,24 +41,28 @@ isNotType(v) {
   if (v is! String) {
     v;
   } else {
-    /*String*/ v;
+    /*String*/
+    v;
   }
   v;
 }
 
 isNotType_return(v) {
   if (v is! String) return;
-  /*String*/ v;
+  /*String*/
+  v;
 }
 
 isNotType_throw(v) {
   if (v is! String) throw 42;
-  /*String*/ v;
+  /*String*/
+  v;
 }
 
 isType(v) {
   if (v is String) {
-    /*String*/ v;
+    /*String*/
+    v;
   } else {
     v;
   }
@@ -67,18 +71,22 @@ isType(v) {
 
 isType_factor_Null(int? v) {
   if (v is Null) {
-    /*Null*/ v;
+    /*Null*/
+    v;
   } else {
-    /*int*/ v;
+    /*int*/
+    v;
   }
   v;
 }
 
 isType_factor_nullable(num? v) {
   if (v is int?) {
-    /*int?*/ v;
+    /*int?*/
+    v;
   } else {
-    /*num*/ v;
+    /*num*/
+    v;
   }
   v;
 }
@@ -113,18 +121,22 @@ isType_factor_supertype(int? v) {
 
 isType_factor_futureOr_future(FutureOr<int> v) {
   if (v is Future<int>) {
-    /*Future<int>*/ v;
+    /*Future<int>*/
+    v;
   } else {
-    /*int*/ v;
+    /*int*/
+    v;
   }
   v;
 }
 
 isType_factor_futureOr_type(FutureOr<int> v) {
   if (v is int) {
-    /*int*/ v;
+    /*int*/
+    v;
   } else {
-    /*Future<int>*/ v;
+    /*Future<int>*/
+    v;
   }
   v;
 }
@@ -138,19 +150,23 @@ isType_thenNonBoolean(Object x) {
 joinIntersectsPromotedTypes(Object a, bool b) {
   if (b) {
     a as A;
-    /*A*/ a as C;
+    /*A*/
+    a as C;
   } else {
     a as B;
-    /*B*/ a as C;
+    /*B*/
+    a as C;
   }
-  /*C*/ a;
+  /*C*/
+  a;
 }
 
 logicalNot_isType(v) {
   if (!(v is String)) {
     v;
   } else {
-    /*String*/ v;
+    /*String*/
+    v;
   }
   v;
 }

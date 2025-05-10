@@ -4,8 +4,8 @@
 
 import 'ast.dart';
 
-typedef GetFieldInitializer = Expression? Function(
-    FieldReference fieldReference);
+typedef GetFieldInitializer =
+    Expression? Function(FieldReference fieldReference);
 
 /// Evaluates an [expression] based on the semantics that can be deduced from
 /// the syntax.
@@ -19,23 +19,26 @@ typedef GetFieldInitializer = Expression? Function(
 /// which [getFieldInitializer] has provided a constant initializer
 /// [Expression], are mapped to there corresponding in constant initializer
 /// [Expression]s in [dereferences].
-Expression evaluateExpression(Expression expression,
-    {GetFieldInitializer? getFieldInitializer,
-    Map<FieldReference, Expression>? dereferences}) {
+Expression evaluateExpression(
+  Expression expression, {
+  GetFieldInitializer? getFieldInitializer,
+  Map<FieldReference, Expression>? dereferences,
+}) {
   return new Evaluator(
-          getFieldInitializer: getFieldInitializer, dereferences: dereferences)
-      .evaluate(expression);
+    getFieldInitializer: getFieldInitializer,
+    dereferences: dereferences,
+  ).evaluate(expression);
 }
 
 class Evaluator {
   final GetFieldInitializer? _getFieldInitializer;
   final Map<FieldReference, Expression>? _dereferences;
 
-  Evaluator(
-      {required GetFieldInitializer? getFieldInitializer,
-      required Map<FieldReference, Expression>? dereferences})
-      : _getFieldInitializer = getFieldInitializer,
-        _dereferences = dereferences;
+  Evaluator({
+    required GetFieldInitializer? getFieldInitializer,
+    required Map<FieldReference, Expression>? dereferences,
+  }) : _getFieldInitializer = getFieldInitializer,
+       _dereferences = dereferences;
 
   Expression evaluate(Expression expression) {
     return _visitExpression(expression);
@@ -64,27 +67,39 @@ class Evaluator {
       case SymbolLiteral():
         return expression;
       case ConstructorInvocation():
-        return new ConstructorInvocation(expression.type,
-            expression.constructor, _visitArguments(expression.arguments));
+        return new ConstructorInvocation(
+          expression.type,
+          expression.constructor,
+          _visitArguments(expression.arguments),
+        );
       case StringLiteral():
         return _visitStringLiteral(expression);
       case AdjacentStringLiterals():
         return _visitAdjacentStringLiterals(expression);
       case ImplicitInvocation():
-        return new ImplicitInvocation(_visitExpression(expression.receiver),
-            expression.typeArguments, _visitArguments(expression.arguments));
+        return new ImplicitInvocation(
+          _visitExpression(expression.receiver),
+          expression.typeArguments,
+          _visitArguments(expression.arguments),
+        );
       case StaticInvocation():
-        return new StaticInvocation(expression.function,
-            expression.typeArguments, _visitArguments(expression.arguments));
+        return new StaticInvocation(
+          expression.function,
+          expression.typeArguments,
+          _visitArguments(expression.arguments),
+        );
       case Instantiation():
         return new Instantiation(
-            _visitExpression(expression.receiver), expression.typeArguments);
+          _visitExpression(expression.receiver),
+          expression.typeArguments,
+        );
       case MethodInvocation():
         return new MethodInvocation(
-            _visitExpression(expression.receiver),
-            expression.name,
-            expression.typeArguments,
-            _visitArguments(expression.arguments));
+          _visitExpression(expression.receiver),
+          expression.name,
+          expression.typeArguments,
+          _visitArguments(expression.arguments),
+        );
       case PropertyGet():
         Expression receiver = _visitExpression(expression.receiver);
         if (expression.name == 'length') {
@@ -97,10 +112,13 @@ class Evaluator {
         Expression receiver = _visitExpression(expression.receiver);
         return switch (_isNull(receiver)) {
           NullValue.isNull => new NullLiteral(),
-          NullValue.isNonNull =>
-            _visitExpression(new PropertyGet(receiver, expression.name)),
-          NullValue.unknown =>
-            new NullAwarePropertyGet(receiver, expression.name),
+          NullValue.isNonNull => _visitExpression(
+            new PropertyGet(receiver, expression.name),
+          ),
+          NullValue.unknown => new NullAwarePropertyGet(
+            receiver,
+            expression.name,
+          ),
         };
       case TypeLiteral():
         return expression;
@@ -110,19 +128,25 @@ class Evaluator {
         Expression condition = _visitExpression(expression.condition);
         return switch (condition) {
           BooleanLiteral(value: true) => _visitExpression(expression.then),
-          BooleanLiteral(value: false) =>
-            _visitExpression(expression.otherwise),
+          BooleanLiteral(value: false) => _visitExpression(
+            expression.otherwise,
+          ),
           _ => new ConditionalExpression(
-              condition,
-              _visitExpression(expression.then),
-              _visitExpression(expression.otherwise)),
+            condition,
+            _visitExpression(expression.then),
+            _visitExpression(expression.otherwise),
+          ),
         };
       case ListLiteral():
         return new ListLiteral(
-            expression.typeArguments, _visitElements(expression.elements));
+          expression.typeArguments,
+          _visitElements(expression.elements),
+        );
       case SetOrMapLiteral():
         return new SetOrMapLiteral(
-            expression.typeArguments, _visitElements(expression.elements));
+          expression.typeArguments,
+          _visitElements(expression.elements),
+        );
       case RecordLiteral():
         return new RecordLiteral(_visitRecordFields(expression.fields));
       case IfNull():
@@ -130,8 +154,10 @@ class Evaluator {
         return switch (_isNull(left)) {
           NullValue.isNull => _visitExpression(expression.right),
           NullValue.isNonNull => left,
-          NullValue.unknown =>
-            new IfNull(left, _visitExpression(expression.right)),
+          NullValue.unknown => new IfNull(
+            left,
+            _visitExpression(expression.right),
+          ),
         };
       case LogicalExpression():
         return _visitLogicalExpression(expression);
@@ -143,18 +169,22 @@ class Evaluator {
         return _visitUnaryExpression(expression);
       case IsTest():
         return new IsTest(
-            _visitExpression(expression.expression), expression.type,
-            isNot: expression.isNot);
+          _visitExpression(expression.expression),
+          expression.type,
+          isNot: expression.isNot,
+        );
       case AsExpression():
         return new AsExpression(
-            _visitExpression(expression.expression), expression.type);
+          _visitExpression(expression.expression),
+          expression.type,
+        );
       case NullCheck():
         Expression operand = _visitExpression(expression.expression);
         return switch (_isNull(operand)) {
           // This is known to fail but we have no way to represent failure.
           NullValue.isNull => new NullCheck(operand),
           NullValue.isNonNull => operand,
-          NullValue.unknown => new NullCheck(operand)
+          NullValue.unknown => new NullCheck(operand),
         };
 
       case UnresolvedExpression():
@@ -231,15 +261,18 @@ class Evaluator {
     Expression left = _visitExpression(expression.left);
     return switch (left) {
       BooleanLiteral(value: true) => switch (expression.operator) {
-          LogicalOperator.and => _visitExpression(expression.right),
-          LogicalOperator.or => left,
-        },
+        LogicalOperator.and => _visitExpression(expression.right),
+        LogicalOperator.or => left,
+      },
       BooleanLiteral(value: false) => switch (expression.operator) {
-          LogicalOperator.and => left,
-          LogicalOperator.or => _visitExpression(expression.right),
-        },
+        LogicalOperator.and => left,
+        LogicalOperator.or => _visitExpression(expression.right),
+      },
       _ => new LogicalExpression(
-          left, expression.operator, _visitExpression(expression.right)),
+        left,
+        expression.operator,
+        _visitExpression(expression.right),
+      ),
     };
   }
 
@@ -247,23 +280,27 @@ class Evaluator {
     Expression leftExpression = _visitExpression(expression.left);
     Expression rightExpression = _visitExpression(expression.right);
     switch ((leftExpression, rightExpression)) {
-      case (
-          NullLiteral(),
-          NullLiteral(),
-        ):
+      case (NullLiteral(), NullLiteral()):
         return new BooleanLiteral(!expression.isNotEquals);
       case (IntegerLiteral(value: int left), IntegerLiteral(value: int right)):
         return new BooleanLiteral(
-            expression.isNotEquals ? left != right : left == right);
+          expression.isNotEquals ? left != right : left == right,
+        );
       default:
         // TODO(johnniwinther): Support all cases.
-        return new EqualityExpression(leftExpression, rightExpression,
-            isNotEquals: expression.isNotEquals);
+        return new EqualityExpression(
+          leftExpression,
+          rightExpression,
+          isNotEquals: expression.isNotEquals,
+        );
     }
   }
 
   Expression? _visitBinaryIntExpression(
-      int left, BinaryOperator operator, int right) {
+    int left,
+    BinaryOperator operator,
+    int right,
+  ) {
     switch (operator) {
       case BinaryOperator.lessThan:
         return new BooleanLiteral(left < right);
@@ -316,11 +353,17 @@ class Evaluator {
       case (IntegerLiteral(value: int left), IntegerLiteral(value: int right)):
         return _visitBinaryIntExpression(left, expression.operator, right) ??
             new BinaryExpression(
-                leftExpression, expression.operator, rightExpression);
+              leftExpression,
+              expression.operator,
+              rightExpression,
+            );
       default:
         // TODO(johnniwinther): Support more cases.
         return new BinaryExpression(
-            leftExpression, expression.operator, rightExpression);
+          leftExpression,
+          expression.operator,
+          rightExpression,
+        );
     }
   }
 
@@ -362,10 +405,15 @@ class Evaluator {
       switch (argument) {
         case PositionalArgument():
           list.add(
-              new PositionalArgument(_visitExpression(argument.expression)));
+            new PositionalArgument(_visitExpression(argument.expression)),
+          );
         case NamedArgument():
-          list.add(new NamedArgument(
-              argument.name, _visitExpression(argument.expression)));
+          list.add(
+            new NamedArgument(
+              argument.name,
+              _visitExpression(argument.expression),
+            ),
+          );
       }
     }
     return list;
@@ -376,11 +424,16 @@ class Evaluator {
     for (RecordField field in fields) {
       switch (field) {
         case RecordNamedField():
-          list.add(new RecordNamedField(
-              field.name, _visitExpression(field.expression)));
+          list.add(
+            new RecordNamedField(
+              field.name,
+              _visitExpression(field.expression),
+            ),
+          );
         case RecordPositionalField():
           list.add(
-              new RecordPositionalField(_visitExpression(field.expression)));
+            new RecordPositionalField(_visitExpression(field.expression)),
+          );
       }
     }
     return list;
@@ -429,9 +482,14 @@ class Evaluator {
               case NullValue.unknown:
             }
           }
-          list.add(new MapEntryElement(key, value,
+          list.add(
+            new MapEntryElement(
+              key,
+              value,
               isNullAwareKey: isNullAwareKey,
-              isNullAwareValue: isNullAwareValue));
+              isNullAwareValue: isNullAwareValue,
+            ),
+          );
         case SpreadElement():
           Expression expression = _visitExpression(element.expression);
           bool isNullAware = element.isNullAware;
@@ -468,15 +526,19 @@ class Evaluator {
               }
             default:
               Element? then = _visitElement(element.then);
-              Element? otherwise = element.otherwise != null
-                  ? _visitElement(element.otherwise!)
-                  : null;
+              Element? otherwise =
+                  element.otherwise != null
+                      ? _visitElement(element.otherwise!)
+                      : null;
               if (then != null) {
                 list.add(new IfElement(condition, then, otherwise));
               } else if (otherwise != null) {
-                list.add(new IfElement(
+                list.add(
+                  new IfElement(
                     new UnaryExpression(UnaryOperator.bang, condition),
-                    otherwise));
+                    otherwise,
+                  ),
+                );
               } else {
                 // Skip element.
                 continue;
@@ -502,8 +564,10 @@ class Evaluator {
             case NullValue.unknown:
           }
         }
-        return new ExpressionElement(expression,
-            isNullAware: element.isNullAware);
+        return new ExpressionElement(
+          expression,
+          isNullAware: element.isNullAware,
+        );
       case MapEntryElement():
         Expression key = _visitExpression(element.key);
         Expression value = _visitExpression(element.value);
@@ -529,8 +593,12 @@ class Evaluator {
             case NullValue.unknown:
           }
         }
-        return new MapEntryElement(key, value,
-            isNullAwareKey: isNullAwareKey, isNullAwareValue: isNullAwareValue);
+        return new MapEntryElement(
+          key,
+          value,
+          isNullAwareKey: isNullAwareKey,
+          isNullAwareValue: isNullAwareValue,
+        );
       case SpreadElement():
         Expression expression = _visitExpression(element.expression);
         bool isNullAware = element.isNullAware;
@@ -569,15 +637,17 @@ class Evaluator {
             }
           default:
             Element? then = _visitElement(element.then);
-            Element? otherwise = element.otherwise != null
-                ? _visitElement(element.otherwise!)
-                : null;
+            Element? otherwise =
+                element.otherwise != null
+                    ? _visitElement(element.otherwise!)
+                    : null;
             if (then != null) {
               return new IfElement(condition, then, otherwise);
             } else if (otherwise != null) {
               return new IfElement(
-                  new UnaryExpression(UnaryOperator.bang, condition),
-                  otherwise);
+                new UnaryExpression(UnaryOperator.bang, condition),
+                otherwise,
+              );
             } else {
               // Skip element.
               return null;
@@ -627,8 +697,4 @@ class Evaluator {
   }
 }
 
-enum NullValue {
-  isNull,
-  isNonNull,
-  unknown,
-}
+enum NullValue { isNull, isNonNull, unknown }

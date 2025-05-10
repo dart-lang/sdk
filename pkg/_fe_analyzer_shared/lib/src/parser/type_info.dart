@@ -155,20 +155,27 @@ bool isValidNonRecordTypeReference(Token token) {
 ///
 /// If [inDeclaration] is `true`, then this will more aggressively recover
 /// given unbalanced `<` `>` and invalid parameters or arguments.
-TypeInfo computeType(final Token token, bool required,
-    [bool inDeclaration = false, bool acceptKeywordForSimpleType = false]) {
+TypeInfo computeType(
+  final Token token,
+  bool required, [
+  bool inDeclaration = false,
+  bool acceptKeywordForSimpleType = false,
+]) {
   Token next = token.next!;
   if (!isValidNonRecordTypeReference(next) && !isPossibleRecordType(next)) {
     // As next is not a valid type reference, this is all recovery.
     if (next.type.isBuiltIn) {
-      TypeParamOrArgInfo typeParamOrArg =
-          computeTypeParamOrArg(next, inDeclaration);
+      TypeParamOrArgInfo typeParamOrArg = computeTypeParamOrArg(
+        next,
+        inDeclaration,
+      );
       if (typeParamOrArg != noTypeParamOrArg) {
         // Recovery: built-in `<` ... `>`
         if (required || looksLikeName(typeParamOrArg.skip(next).next!)) {
-          return new ComplexTypeInfo(token, typeParamOrArg)
-              .computeBuiltinOrVarAsType(required)
-            ..recovered = true;
+          return new ComplexTypeInfo(
+            token,
+            typeParamOrArg,
+          ).computeBuiltinOrVarAsType(required)..recovered = true;
         }
       } else if (required || isGeneralizedFunctionType(next.next!)) {
         String? value = next.stringValue;
@@ -177,9 +184,10 @@ TypeInfo computeType(final Token token, bool required,
             !identical('factory', value) &&
             !identical('operator', value) &&
             !(identical('typedef', value) && next.next!.isIdentifier))) {
-          return new ComplexTypeInfo(token, typeParamOrArg)
-              .computeBuiltinOrVarAsType(required)
-            ..recovered = true;
+          return new ComplexTypeInfo(
+            token,
+            typeParamOrArg,
+          ).computeBuiltinOrVarAsType(required)..recovered = true;
         }
       }
     } else if (required) {
@@ -187,17 +195,21 @@ TypeInfo computeType(final Token token, bool required,
       if (next.isA(TokenType.PERIOD)) {
         // Looks like prefixed type missing the prefix
         TypeInfo result = new ComplexTypeInfo(
-                token, computeTypeParamOrArg(next, inDeclaration))
-            .computePrefixedType(required);
+          token,
+          computeTypeParamOrArg(next, inDeclaration),
+        ).computePrefixedType(required);
         if (result is ComplexTypeInfo) result.recovered = true;
         return result;
       } else if (next.isA(Keyword.VAR) &&
-          isAnyOf(next.next!,
-              const [TokenType.LT, TokenType.COMMA, TokenType.GT])) {
+          isAnyOf(next.next!, const [
+            TokenType.LT,
+            TokenType.COMMA,
+            TokenType.GT,
+          ])) {
         return new ComplexTypeInfo(
-                token, computeTypeParamOrArg(next, inDeclaration))
-            .computeBuiltinOrVarAsType(required)
-          ..recovered = true;
+          token,
+          computeTypeParamOrArg(next, inDeclaration),
+        ).computeBuiltinOrVarAsType(required)..recovered = true;
       }
     }
     return noType;
@@ -207,8 +219,10 @@ TypeInfo computeType(final Token token, bool required,
     next = next.next!;
     if (isGeneralizedFunctionType(next)) {
       // `void` `Function` ...
-      return new ComplexTypeInfo(token, noTypeParamOrArg)
-          .computeVoidGFT(required);
+      return new ComplexTypeInfo(
+        token,
+        noTypeParamOrArg,
+      ).computeVoidGFT(required);
     }
     // `void`
     return voidType;
@@ -216,8 +230,10 @@ TypeInfo computeType(final Token token, bool required,
 
   if (isGeneralizedFunctionType(next)) {
     // `Function` ...
-    return new ComplexTypeInfo(token, noTypeParamOrArg)
-        .computeNoTypeGFT(token, required);
+    return new ComplexTypeInfo(
+      token,
+      noTypeParamOrArg,
+    ).computeNoTypeGFT(token, required);
   }
 
   if (isPossibleRecordType(next)) {
@@ -225,23 +241,31 @@ TypeInfo computeType(final Token token, bool required,
     Token after = next.endGroup!.next!;
     if (isGeneralizedFunctionType(after)) {
       // ([...]) `Function`
-      return new ComplexTypeInfo(token, noTypeParamOrArg)
-          .computeRecordTypeGFT(required);
+      return new ComplexTypeInfo(
+        token,
+        noTypeParamOrArg,
+      ).computeRecordTypeGFT(required);
     }
     if (after.isA(TokenType.QUESTION) &&
         isGeneralizedFunctionType(after.next!)) {
       // ([...]) `?` `Function`
-      return new ComplexTypeInfo(token, noTypeParamOrArg)
-          .computeRecordTypeQuestionGFT(required);
+      return new ComplexTypeInfo(
+        token,
+        noTypeParamOrArg,
+      ).computeRecordTypeQuestionGFT(required);
     }
-    return new ComplexTypeInfo(token, noTypeParamOrArg)
-        .computeRecordType(required);
+    return new ComplexTypeInfo(
+      token,
+      noTypeParamOrArg,
+    ).computeRecordType(required);
   }
 
   // We've seen an identifier.
 
-  TypeParamOrArgInfo typeParamOrArg =
-      computeTypeParamOrArg(next, inDeclaration);
+  TypeParamOrArgInfo typeParamOrArg = computeTypeParamOrArg(
+    next,
+    inDeclaration,
+  );
   if (typeParamOrArg != noTypeParamOrArg) {
     if (typeParamOrArg.isSimpleTypeArgument) {
       // We've seen identifier `<` identifier `>`
@@ -271,8 +295,10 @@ TypeInfo computeType(final Token token, bool required,
     // if that proves to be a common case.
 
     // identifier `<` ... `>`
-    return new ComplexTypeInfo(token, typeParamOrArg)
-        .computeSimpleWithTypeArguments(required);
+    return new ComplexTypeInfo(
+      token,
+      typeParamOrArg,
+    ).computeSimpleWithTypeArguments(required);
   }
 
   assert(typeParamOrArg == noTypeParamOrArg);
@@ -310,14 +336,18 @@ TypeInfo computeType(final Token token, bool required,
         }
       }
       // identifier `.` identifier
-      return new ComplexTypeInfo(token, typeParamOrArg)
-          .computePrefixedType(required);
+      return new ComplexTypeInfo(
+        token,
+        typeParamOrArg,
+      ).computePrefixedType(required);
     }
     // identifier `.` non-identifier
     if (required) {
       typeParamOrArg = computeTypeParamOrArg(token.next!.next!, inDeclaration);
-      return new ComplexTypeInfo(token, typeParamOrArg)
-          .computePrefixedType(required);
+      return new ComplexTypeInfo(
+        token,
+        typeParamOrArg,
+      ).computePrefixedType(required);
     }
     return noType;
   }
@@ -325,16 +355,20 @@ TypeInfo computeType(final Token token, bool required,
   assert(typeParamOrArg == noTypeParamOrArg);
   if (isGeneralizedFunctionType(next)) {
     // identifier `Function`
-    return new ComplexTypeInfo(token, noTypeParamOrArg)
-        .computeIdentifierGFT(required);
+    return new ComplexTypeInfo(
+      token,
+      noTypeParamOrArg,
+    ).computeIdentifierGFT(required);
   }
 
   if (next.isA(TokenType.QUESTION)) {
     next = next.next!;
     if (isGeneralizedFunctionType(next)) {
       // identifier `?` Function `(`
-      return new ComplexTypeInfo(token, noTypeParamOrArg)
-          .computeIdentifierQuestionGFT(required);
+      return new ComplexTypeInfo(
+        token,
+        noTypeParamOrArg,
+      ).computeIdentifierQuestionGFT(required);
     } else if (required || looksLikeName(next)) {
       // identifier `?`
       return simpleNullableType;
@@ -382,8 +416,11 @@ TypeInfo computeVariablePatternType(Token token, [bool required = false]) {
 ///
 /// If [inDeclaration] is `true`, then this will more aggressively recover
 /// given unbalanced `<` `>` and invalid parameters or arguments.
-TypeParamOrArgInfo computeTypeParamOrArg(Token token,
-    [bool inDeclaration = false, bool allowsVariance = false]) {
+TypeParamOrArgInfo computeTypeParamOrArg(
+  Token token, [
+  bool inDeclaration = false,
+  bool allowsVariance = false,
+]) {
   Token beginGroup = token.next!;
   if (!beginGroup.isA(TokenType.LT)) {
     return noTypeParamOrArg;
@@ -417,8 +454,11 @@ TypeParamOrArgInfo computeTypeParamOrArg(Token token,
   }
 
   // TODO(danrubel): Consider adding additional const for common situations.
-  return new ComplexTypeParamOrArgInfo(token, inDeclaration, allowsVariance)
-      .compute();
+  return new ComplexTypeParamOrArgInfo(
+    token,
+    inDeclaration,
+    allowsVariance,
+  ).compute();
 }
 
 /// Called by the parser to obtain information about a possible group of type
@@ -455,7 +495,7 @@ bool mayFollowTypeArgs(Token token) {
   const Set<String> stopTokens = {')', ']', '}', ';', ':', ','};
   const Set<String> tokensThatMayFollowTypeArg = {
     ...continuationTokens,
-    ...stopTokens
+    ...stopTokens,
   };
   if (token.isA(TokenType.EOF)) {
     // The spec doesn't have anything to say about this case, since an

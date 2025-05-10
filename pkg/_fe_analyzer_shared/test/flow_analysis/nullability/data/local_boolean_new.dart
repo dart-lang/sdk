@@ -5,7 +5,8 @@
 finalLocalBool(int? x) {
   final bool b = x == null;
   if (!b) {
-    /*nonNullable*/ x;
+    /*nonNullable*/
+    x;
   } else {
     x;
   }
@@ -14,7 +15,8 @@ finalLocalBool(int? x) {
 finalLocalBool_untyped(int? x) {
   final b = x == null;
   if (!b) {
-    /*nonNullable*/ x;
+    /*nonNullable*/
+    x;
   } else {
     x;
   }
@@ -23,7 +25,8 @@ finalLocalBool_untyped(int? x) {
 localBool(int? x) {
   bool b = x == null;
   if (!b) {
-    /*nonNullable*/ x;
+    /*nonNullable*/
+    x;
   } else {
     x;
   }
@@ -32,7 +35,8 @@ localBool(int? x) {
 localBool_untyped(int? x) {
   var b = x == null;
   if (!b) {
-    /*nonNullable*/ x;
+    /*nonNullable*/
+    x;
   } else {
     x;
   }
@@ -42,7 +46,8 @@ localBool_assigned(int? x, bool b1) {
   bool b2 = b1;
   b2 = x == null;
   if (!b2) {
-    /*nonNullable*/ x;
+    /*nonNullable*/
+    x;
   } else {
     x;
   }
@@ -52,7 +57,8 @@ localBool_assigned_untyped(int? x, bool b1) {
   var b2 = b1;
   b2 = x == null;
   if (!b2) {
-    /*nonNullable*/ x;
+    /*nonNullable*/
+    x;
   } else {
     x;
   }
@@ -62,7 +68,8 @@ localBool_assignedDynamic(int? x, bool b1) {
   dynamic b2 = b1;
   b2 = x == null;
   if (!b2) {
-    /*nonNullable*/ x;
+    /*nonNullable*/
+    x;
   } else {
     x;
   }
@@ -71,7 +78,8 @@ localBool_assignedDynamic(int? x, bool b1) {
 parameter_assigned(int? x, bool b) {
   b = x == null;
   if (!b) {
-    /*nonNullable*/ x;
+    /*nonNullable*/
+    x;
   } else {
     x;
   }
@@ -80,7 +88,8 @@ parameter_assigned(int? x, bool b) {
 parameter_assigned_untyped(int? x, b) {
   b = x == null;
   if (!b) {
-    /*nonNullable*/ x;
+    /*nonNullable*/
+    x;
   } else {
     x;
   }
@@ -89,7 +98,8 @@ parameter_assigned_untyped(int? x, b) {
 parameter_assignedDynamic(int? x, dynamic b) {
   b = x == null;
   if (!b) {
-    /*nonNullable*/ x;
+    /*nonNullable*/
+    x;
   } else {
     x;
   }
@@ -143,7 +153,8 @@ lateLocalBool_assignedAndInitialized(int? x, bool b1) {
   late bool b2 = b1;
   b2 = x == null;
   if (!b2) {
-    /*nonNullable*/ x;
+    /*nonNullable*/
+    x;
   } else {
     x;
   }
@@ -153,7 +164,8 @@ lateLocalBool_assignedAndInitialized_untyped(int? x, bool b1) {
   late var b2 = b1;
   b2 = x == null;
   if (!b2) {
-    /*nonNullable*/ x;
+    /*nonNullable*/
+    x;
   } else {
     x;
   }
@@ -163,7 +175,8 @@ lateLocalBool_assignedButNotInitialized(int? x) {
   late bool b;
   b = x == null;
   if (!b) {
-    /*nonNullable*/ x;
+    /*nonNullable*/
+    x;
   } else {
     x;
   }
@@ -173,7 +186,8 @@ lateLocalBool_assignedButNotInitialized_untyped(int? x) {
   late var b;
   b = x == null;
   if (!b) {
-    /*nonNullable*/ x;
+    /*nonNullable*/
+    x;
   } else {
     x;
   }
@@ -185,24 +199,31 @@ rebaseWithDemotion(int? x, int? y, int? z, int? a) {
   z;
   if (y == null) return;
   x;
-  /*nonNullable*/ y;
+  /*nonNullable*/
+  y;
   z;
   bool b = x == null;
   x;
-  /*nonNullable*/ y;
+  /*nonNullable*/
+  y;
   z;
   if (z == null) return;
   x;
-  /*nonNullable*/ y;
-  /*nonNullable*/ z;
+  /*nonNullable*/
+  y;
+  /*nonNullable*/
+  z;
   y = a;
   x;
   y;
-  /*nonNullable*/ z;
+  /*nonNullable*/
+  z;
   if (b) return;
-  /*nonNullable*/ x;
+  /*nonNullable*/
+  x;
   y;
-  /*nonNullable*/ z;
+  /*nonNullable*/
+  z;
 }
 
 compoundAssignment(int? x, dynamic b) {

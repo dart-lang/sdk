@@ -55,7 +55,11 @@ String canonicalizeSubString(String string, int start, int end) {
 /// It may avoid the overhead of UTF-8 decoding if the string is already in the
 /// cache.
 String canonicalizeUtf8SubString(
-    Uint8List bytes, int start, int end, bool isAscii) {
+  Uint8List bytes,
+  int start,
+  int end,
+  bool isAscii,
+) {
   return _canonicalizer.canonicalizeBytes(bytes, start, end, isAscii);
 }
 
@@ -114,7 +118,7 @@ class _Utf8Node extends _Node {
   final int end;
 
   _Utf8Node(this.data, this.start, this.end, String payload, _Node? next)
-      : super(payload, next);
+    : super(payload, next);
 
   @override
   int get hash => _StringCanonicalizer.hashBytes(data, start, end);
@@ -148,8 +152,10 @@ class _StringCanonicalizer {
   int _estimatedStringMemoryConsumption = 0;
 
   /// The table itself.
-  List<_Node?> _nodes =
-      new List<_Node?>.filled(INITIAL_SIZE, /* fill = */ null);
+  List<_Node?> _nodes = new List<_Node?>.filled(
+    INITIAL_SIZE,
+    /* fill = */ null,
+  );
 
   static int hashBytes(Uint8List data, int start, int end) {
     int h = 5381;
@@ -208,7 +214,13 @@ class _StringCanonicalizer {
       t = t.next;
     }
     return insertUtf8Node(
-        index, s, data, start, end, decodeString(data, start, end, asciiOnly));
+      index,
+      s,
+      data,
+      start,
+      end,
+      decodeString(data, start, end, asciiOnly),
+    );
   }
 
   String canonicalizeSubString(String data, int start, int end) {
@@ -261,8 +273,14 @@ class _StringCanonicalizer {
     return value;
   }
 
-  String insertUtf8Node(int index, _Node? next, Uint8List buffer, int start,
-      int end, String value) {
+  String insertUtf8Node(
+    int index,
+    _Node? next,
+    Uint8List buffer,
+    int start,
+    int end,
+    String value,
+  ) {
     final _Utf8Node newNode = new _Utf8Node(buffer, start, end, value, next);
     _nodes[index] = newNode;
     _count++;
@@ -303,7 +321,9 @@ class _StringCanonicalizer {
     // leaving some space before we'll have to prune again next time.
 
     final List<_StringNode> stringNodes = new List<_StringNode>.filled(
-        _stringCount, new _StringNode('dummy', /* next = */ null));
+      _stringCount,
+      new _StringNode('dummy', /* next = */ null),
+    );
     int writeIndex = 0;
     for (int i = 0; i < _nodes.length; ++i) {
       _Node? node = _nodes[i];

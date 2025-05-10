@@ -190,7 +190,7 @@ class Features {
           '[': ']',
           '{': '}',
           '(': ')',
-          '<': '>'
+          '<': '>',
         };
         List<String> endDelimiters = <String>[];
         bool isList = index < text.length && text.startsWith('[', index);
@@ -287,8 +287,10 @@ class FeaturesDataInterpreter implements DataInterpreter<Features> {
               bool matchFound = false;
               if (wildcard != null && expectedText.endsWith(wildcard!)) {
                 // Wildcard matcher.
-                String prefix =
-                    expectedText.substring(0, expectedText.indexOf(wildcard!));
+                String prefix = expectedText.substring(
+                  0,
+                  expectedText.indexOf(wildcard!),
+                );
                 List matches = [];
                 for (Object actualObject in actualList) {
                   if ('$actualObject'.startsWith(prefix)) {
@@ -313,16 +315,21 @@ class FeaturesDataInterpreter implements DataInterpreter<Features> {
               }
             }
             if (actualList.isNotEmpty) {
-              errorsFound
-                  .add("Extra data found $key=[${actualList.join(',')}]");
+              errorsFound.add(
+                "Extra data found $key=[${actualList.join(',')}]",
+              );
             }
           } else {
-            errorsFound.add("List data expected for $key: "
-                "expected '$expectedValue', found '${actualValue}'");
+            errorsFound.add(
+              "List data expected for $key: "
+              "expected '$expectedValue', found '${actualValue}'",
+            );
           }
         } else if (expectedValue != actualValue) {
-          errorsFound.add("Mismatch for $key: expected '$expectedValue', "
-              "found '${actualValue}'");
+          errorsFound.add(
+            "Mismatch for $key: expected '$expectedValue', "
+            "found '${actualValue}'",
+          );
         }
       });
       actualFeatures.forEach((String key, Object value) {

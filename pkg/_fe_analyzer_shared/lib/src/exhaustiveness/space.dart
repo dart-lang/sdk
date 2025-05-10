@@ -26,14 +26,18 @@ class SingleSpace {
   /// Additional properties for map/list semantics.
   final Map<Key, Space> additionalProperties;
 
-  SingleSpace(this.type,
-      {this.properties = const {}, this.additionalProperties = const {}});
+  SingleSpace(
+    this.type, {
+    this.properties = const {},
+    this.additionalProperties = const {},
+  });
 
   @override
   late final int hashCode = Object.hash(
-      type,
-      Object.hashAllUnordered(properties.keys),
-      Object.hashAllUnordered(properties.values));
+    type,
+    Object.hashAllUnordered(properties.keys),
+    Object.hashAllUnordered(properties.values),
+  );
 
   @override
   bool operator ==(Object other) {
@@ -71,14 +75,18 @@ class Space {
   /// Create an empty space.
   Space.empty(this.path) : singleSpaces = [SingleSpace.empty];
 
-  Space(Path path, StaticType type,
-      {Map<Key, Space> properties = const {},
-      Map<Key, Space> additionalProperties = const {}})
-      : this._(path, [
-          new SingleSpace(type,
-              properties: properties,
-              additionalProperties: additionalProperties)
-        ]);
+  Space(
+    Path path,
+    StaticType type, {
+    Map<Key, Space> properties = const {},
+    Map<Key, Space> additionalProperties = const {},
+  }) : this._(path, [
+         new SingleSpace(
+           type,
+           properties: properties,
+           additionalProperties: additionalProperties,
+         ),
+       ]);
 
   Space._(this.path, this.singleSpaces);
 
@@ -112,8 +120,10 @@ class Space {
   }
 
   Space union(Space other) {
-    return new Space.fromSingleSpaces(
-        path, [...singleSpaces, ...other.singleSpaces]);
+    return new Space.fromSingleSpaces(path, [
+      ...singleSpaces,
+      ...other.singleSpaces,
+    ]);
   }
 
   @override

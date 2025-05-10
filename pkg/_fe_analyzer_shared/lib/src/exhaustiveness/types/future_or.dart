@@ -15,14 +15,21 @@ class FutureOrStaticType<Type extends Object>
   /// The type for `Future<T>`.
   final StaticType _futureType;
 
-  FutureOrStaticType(super.typeOperations, super.fieldLookup, super.type,
-      this._typeArgument, this._futureType,
-      {required super.isImplicitlyNullable});
+  FutureOrStaticType(
+    super.typeOperations,
+    super.fieldLookup,
+    super.type,
+    this._typeArgument,
+    this._futureType, {
+    required super.isImplicitlyNullable,
+  });
 
   @override
   bool get isSealed => true;
 
   @override
-  Iterable<StaticType> getSubtypes(Set<Key> keysOfInterest) =>
-      [_typeArgument, _futureType];
+  Iterable<StaticType> getSubtypes(Set<Key> keysOfInterest) => [
+    _typeArgument,
+    _futureType,
+  ];
 }

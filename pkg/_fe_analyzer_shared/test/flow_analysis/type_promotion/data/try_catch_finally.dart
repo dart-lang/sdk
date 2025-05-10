@@ -7,20 +7,25 @@ void g() {}
 void outerIsType(Object x) {
   if (x is String) {
     try {
-      /*String*/ x;
+      /*String*/
+      x;
     } catch (_) {
-      /*String*/ x;
+      /*String*/
+      x;
     } finally {
-      /*String*/ x;
+      /*String*/
+      x;
     }
-    /*String*/ x;
+    /*String*/
+    x;
   }
 }
 
 void outerIsType_assigned_body(Object x) {
   if (x is String) {
     try {
-      /*String*/ x;
+      /*String*/
+      x;
       x = 42;
       g();
     } catch (_) {
@@ -35,9 +40,11 @@ void outerIsType_assigned_body(Object x) {
 void outerIsType_assigned_catch(Object x) {
   if (x is String) {
     try {
-      /*String*/ x;
+      /*String*/
+      x;
     } catch (_) {
-      /*String*/ x;
+      /*String*/
+      x;
       x = 42;
     } finally {
       x;

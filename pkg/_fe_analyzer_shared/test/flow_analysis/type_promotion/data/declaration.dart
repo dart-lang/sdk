@@ -10,7 +10,8 @@
 parameter(Object a) {
   if (a is int) {
     () {
-      /*int*/ a;
+      /*int*/
+      a;
     };
   }
 }
@@ -19,7 +20,8 @@ localParameter() {
   localFunction(Object a) {
     if (a is int) {
       () {
-        /*int*/ a;
+        /*int*/
+        a;
       };
     }
   }
@@ -27,7 +29,8 @@ localParameter() {
   (Object b) {
     if (b is int) {
       () {
-        /*int*/ b;
+        /*int*/
+        b;
       };
     }
   };
@@ -37,7 +40,8 @@ localVariable() {
   Object a = 1;
   if (a is int) {
     () {
-      /*int*/ a;
+      /*int*/
+      a;
     };
   }
 }
@@ -50,12 +54,14 @@ catchParameters() {
   try {} on Object catch (e, st) {
     if (e is int) {
       () {
-        /*int*/ e;
+        /*int*/
+        e;
       };
     }
     if (st is MyStackTrace) {
       () {
-        /*MyStackTrace*/ st;
+        /*MyStackTrace*/
+        st;
       };
     }
   }

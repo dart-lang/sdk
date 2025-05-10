@@ -38,23 +38,20 @@ simpleCast(o1, o2) {
    checkingOrder={Object?,Object,Null},
    subtypes={Object,Null},
    type=Object?
-  */
-      switch (o1) {
+  */ switch (o1) {
     _ as A /*space=()*/ => 0,
     _ /*
      error=unreachable,
      space=()
-    */
-      =>
-      1
+    */ =>
+      1,
   };
 
   var b = /*
    checkingOrder={Object?,Object,Null},
    subtypes={Object,Null},
    type=Object?
-  */
-      switch (o2) {
+  */ switch (o2) {
     _ as A /*space=()*/ => 0,
   };
 }
@@ -67,10 +64,9 @@ restrictedCase(o1, o2) {
    fields={field:-},
    subtypes={Object,Null},
    type=Object?
-  */
-      switch (o1) {
+  */ switch (o1) {
     A(field: 42) as A /*space=A(field: 42)|Null*/ => 0,
-    _ /*space=()*/ => 1
+    _ /*space=()*/ => 1,
   };
 
   var b = /*
@@ -79,8 +75,7 @@ restrictedCase(o1, o2) {
    fields={field:-},
    subtypes={Object,Null},
    type=Object?
-  */
-      switch (o2) {
+  */ switch (o2) {
     A(field: 42) as A /*space=A(field: 42)|Null*/ => 0,
   };
 }
@@ -140,16 +135,14 @@ nullCast(A? a1, A? a2) {
    checkingOrder={A?,A,Null},
    subtypes={A,Null},
    type=A?
-  */
-      switch (a1) {
+  */ switch (a1) {
     A() as A /*space=A?*/ => 0,
   };
   var b2 = /*
    checkingOrder={A?,A,Null},
    subtypes={A,Null},
    type=A?
-  */
-      switch (a2) {
+  */ switch (a2) {
     Null _ as Null /*space=A?*/ => 0,
   };
 }
@@ -365,7 +358,8 @@ exhaustiveNestedMultiple(J j1, J j2, J j3, J j4, J j5, J j6) {
    type=J
   */
   switch (j6) {
-    /*space=M*/ case M():
+    /*space=M*/
+    case M():
     /*space=J?*/
     case O() as O:
   }

@@ -17,11 +17,10 @@ method(M m) => /*
  error=non-exhaustive:C(),
  subtypes={A,B,C},
  type=M
-*/
-    switch (m) {
-      A() as B /*space=A?*/ => 0,
-      B() /*space=B*/ => 1,
-    };
+*/ switch (m) {
+  A() as B /*space=A?*/ => 0,
+  B() /*space=B*/ => 1,
+};
 
 main() {
   method(B());

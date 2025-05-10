@@ -9,6 +9,7 @@ void test(int? x) {
   if (core.identical(x, null)) {
     x;
   } else {
-    /*nonNullable*/ x;
+    /*nonNullable*/
+    x;
   }
 }

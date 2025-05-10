@@ -17,12 +17,15 @@ main() {
     assignedVariables.read(v1);
     assignedVariables.beginNode();
     assignedVariables.read(v2);
-    assignedVariables.endNode(_Node(),
-        isClosureOrLateVariableInitializer: true);
+    assignedVariables.endNode(
+      _Node(),
+      isClosureOrLateVariableInitializer: true,
+    );
     assignedVariables.read(v3);
     assignedVariables.finish();
-    expect(assignedVariables.readCapturedAnywhere,
-        {assignedVariables.keyForVariable(v2)});
+    expect(assignedVariables.readCapturedAnywhere, {
+      assignedVariables.keyForVariable(v2),
+    });
   });
 
   test('readCapturedAnywhere does not record variables local to a closure', () {
@@ -34,11 +37,14 @@ main() {
     assignedVariables.declare(v2);
     assignedVariables.read(v1);
     assignedVariables.read(v2);
-    assignedVariables.endNode(_Node(),
-        isClosureOrLateVariableInitializer: true);
+    assignedVariables.endNode(
+      _Node(),
+      isClosureOrLateVariableInitializer: true,
+    );
     assignedVariables.finish();
-    expect(assignedVariables.readCapturedAnywhere,
-        {assignedVariables.keyForVariable(v1)});
+    expect(assignedVariables.readCapturedAnywhere, {
+      assignedVariables.keyForVariable(v1),
+    });
   });
 
   test('capturedAnywhere records assignments in closures', () {
@@ -52,12 +58,15 @@ main() {
     assignedVariables.write(v1);
     assignedVariables.beginNode();
     assignedVariables.write(v2);
-    assignedVariables.endNode(_Node(),
-        isClosureOrLateVariableInitializer: true);
+    assignedVariables.endNode(
+      _Node(),
+      isClosureOrLateVariableInitializer: true,
+    );
     assignedVariables.write(v3);
     assignedVariables.finish();
-    expect(assignedVariables.capturedAnywhere,
-        {assignedVariables.keyForVariable(v2)});
+    expect(assignedVariables.capturedAnywhere, {
+      assignedVariables.keyForVariable(v2),
+    });
   });
 
   test('capturedAnywhere does not record variables local to a closure', () {
@@ -69,11 +78,14 @@ main() {
     assignedVariables.declare(v2);
     assignedVariables.write(v1);
     assignedVariables.write(v2);
-    assignedVariables.endNode(_Node(),
-        isClosureOrLateVariableInitializer: true);
+    assignedVariables.endNode(
+      _Node(),
+      isClosureOrLateVariableInitializer: true,
+    );
     assignedVariables.finish();
-    expect(assignedVariables.capturedAnywhere,
-        {assignedVariables.keyForVariable(v1)});
+    expect(assignedVariables.capturedAnywhere, {
+      assignedVariables.keyForVariable(v1),
+    });
   });
 
   test('readAnywhere records all reads', () {
@@ -87,14 +99,16 @@ main() {
     assignedVariables.read(v1);
     assignedVariables.beginNode();
     assignedVariables.read(v2);
-    assignedVariables.endNode(_Node(),
-        isClosureOrLateVariableInitializer: true);
+    assignedVariables.endNode(
+      _Node(),
+      isClosureOrLateVariableInitializer: true,
+    );
     assignedVariables.read(v3);
     assignedVariables.finish();
     expect(assignedVariables.readAnywhere, {
       assignedVariables.keyForVariable(v1),
       assignedVariables.keyForVariable(v2),
-      assignedVariables.keyForVariable(v3)
+      assignedVariables.keyForVariable(v3),
     });
   });
 
@@ -109,14 +123,16 @@ main() {
     assignedVariables.write(v1);
     assignedVariables.beginNode();
     assignedVariables.write(v2);
-    assignedVariables.endNode(_Node(),
-        isClosureOrLateVariableInitializer: true);
+    assignedVariables.endNode(
+      _Node(),
+      isClosureOrLateVariableInitializer: true,
+    );
     assignedVariables.write(v3);
     assignedVariables.finish();
     expect(assignedVariables.writtenAnywhere, {
       assignedVariables.keyForVariable(v1),
       assignedVariables.keyForVariable(v2),
-      assignedVariables.keyForVariable(v3)
+      assignedVariables.keyForVariable(v3),
     });
   });
 
@@ -144,8 +160,9 @@ main() {
     var node = _Node();
     assignedVariables.endNode(node);
     assignedVariables.finish();
-    expect(assignedVariables.readInNode(node),
-        {assignedVariables.keyForVariable(v1)});
+    expect(assignedVariables.readInNode(node), {
+      assignedVariables.keyForVariable(v1),
+    });
   });
 
   test('readInNode records reads in a nested node', () {
@@ -159,8 +176,9 @@ main() {
     var node = _Node();
     assignedVariables.endNode(node);
     assignedVariables.finish();
-    expect(assignedVariables.readInNode(node),
-        {assignedVariables.keyForVariable(v1)});
+    expect(assignedVariables.readInNode(node), {
+      assignedVariables.keyForVariable(v1),
+    });
   });
 
   test('readInNode records reads in a closure', () {
@@ -172,8 +190,9 @@ main() {
     var node = _Node();
     assignedVariables.endNode(node, isClosureOrLateVariableInitializer: true);
     assignedVariables.finish();
-    expect(assignedVariables.readInNode(node),
-        {assignedVariables.keyForVariable(v1)});
+    expect(assignedVariables.readInNode(node), {
+      assignedVariables.keyForVariable(v1),
+    });
   });
 
   test('writtenInNode ignores assignments outside the node', () {
@@ -200,8 +219,9 @@ main() {
     var node = _Node();
     assignedVariables.endNode(node);
     assignedVariables.finish();
-    expect(assignedVariables.writtenInNode(node),
-        {assignedVariables.keyForVariable(v1)});
+    expect(assignedVariables.writtenInNode(node), {
+      assignedVariables.keyForVariable(v1),
+    });
   });
 
   test('writtenInNode records assignments in a nested node', () {
@@ -215,8 +235,9 @@ main() {
     var node = _Node();
     assignedVariables.endNode(node);
     assignedVariables.finish();
-    expect(assignedVariables.writtenInNode(node),
-        {assignedVariables.keyForVariable(v1)});
+    expect(assignedVariables.writtenInNode(node), {
+      assignedVariables.keyForVariable(v1),
+    });
   });
 
   test('writtenInNode records assignments in a closure', () {
@@ -228,8 +249,9 @@ main() {
     var node = _Node();
     assignedVariables.endNode(node, isClosureOrLateVariableInitializer: true);
     assignedVariables.finish();
-    expect(assignedVariables.writtenInNode(node),
-        {assignedVariables.keyForVariable(v1)});
+    expect(assignedVariables.writtenInNode(node), {
+      assignedVariables.keyForVariable(v1),
+    });
   });
 
   test('readCapturedInNode ignores reads in non-nested closures', () {
@@ -240,15 +262,19 @@ main() {
     assignedVariables.declare(v2);
     assignedVariables.beginNode();
     assignedVariables.read(v1);
-    assignedVariables.endNode(_Node(),
-        isClosureOrLateVariableInitializer: true);
+    assignedVariables.endNode(
+      _Node(),
+      isClosureOrLateVariableInitializer: true,
+    );
     assignedVariables.beginNode();
     var node = _Node();
     assignedVariables.endNode(node);
     assignedVariables.beginNode();
     assignedVariables.read(v2);
-    assignedVariables.endNode(_Node(),
-        isClosureOrLateVariableInitializer: true);
+    assignedVariables.endNode(
+      _Node(),
+      isClosureOrLateVariableInitializer: true,
+    );
     assignedVariables.finish();
     expect(assignedVariables.readCapturedInNode(node), isEmpty);
   });
@@ -261,17 +287,21 @@ main() {
     assignedVariables.beginNode();
     assignedVariables.beginNode();
     assignedVariables.read(v1);
-    assignedVariables.endNode(_Node(),
-        isClosureOrLateVariableInitializer: true);
+    assignedVariables.endNode(
+      _Node(),
+      isClosureOrLateVariableInitializer: true,
+    );
     var innerNode = _Node();
     assignedVariables.endNode(innerNode);
     var outerNode = _Node();
     assignedVariables.endNode(outerNode);
     assignedVariables.finish();
-    expect(assignedVariables.readCapturedInNode(innerNode),
-        {assignedVariables.keyForVariable(v1)});
-    expect(assignedVariables.readCapturedInNode(outerNode),
-        {assignedVariables.keyForVariable(v1)});
+    expect(assignedVariables.readCapturedInNode(innerNode), {
+      assignedVariables.keyForVariable(v1),
+    });
+    expect(assignedVariables.readCapturedInNode(outerNode), {
+      assignedVariables.keyForVariable(v1),
+    });
   });
 
   test('capturedInNode ignores assignments in non-nested closures', () {
@@ -282,15 +312,19 @@ main() {
     assignedVariables.declare(v2);
     assignedVariables.beginNode();
     assignedVariables.write(v1);
-    assignedVariables.endNode(_Node(),
-        isClosureOrLateVariableInitializer: true);
+    assignedVariables.endNode(
+      _Node(),
+      isClosureOrLateVariableInitializer: true,
+    );
     assignedVariables.beginNode();
     var node = _Node();
     assignedVariables.endNode(node);
     assignedVariables.beginNode();
     assignedVariables.write(v2);
-    assignedVariables.endNode(_Node(),
-        isClosureOrLateVariableInitializer: true);
+    assignedVariables.endNode(
+      _Node(),
+      isClosureOrLateVariableInitializer: true,
+    );
     assignedVariables.finish();
     expect(assignedVariables.capturedInNode(node), isEmpty);
   });
@@ -303,83 +337,97 @@ main() {
     assignedVariables.beginNode();
     assignedVariables.beginNode();
     assignedVariables.write(v1);
-    assignedVariables.endNode(_Node(),
-        isClosureOrLateVariableInitializer: true);
+    assignedVariables.endNode(
+      _Node(),
+      isClosureOrLateVariableInitializer: true,
+    );
     var innerNode = _Node();
     assignedVariables.endNode(innerNode);
     var outerNode = _Node();
     assignedVariables.endNode(outerNode);
     assignedVariables.finish();
-    expect(assignedVariables.capturedInNode(innerNode),
-        {assignedVariables.keyForVariable(v1)});
-    expect(assignedVariables.capturedInNode(outerNode),
-        {assignedVariables.keyForVariable(v1)});
-  });
-
-  group('Variables do not percolate beyond the scope they were declared in',
-      () {
-    test('Non-closure scope', () {
-      var assignedVariables = AssignedVariablesForTesting<_Node, _Variable>();
-      var v1 = _Variable('v1');
-      var v2 = _Variable('v2');
-      assignedVariables.beginNode();
-      assignedVariables.beginNode();
-      assignedVariables.declare(v1);
-      assignedVariables.declare(v2);
-      assignedVariables.read(v1);
-      assignedVariables.write(v1);
-      assignedVariables.beginNode();
-      assignedVariables.read(v2);
-      assignedVariables.write(v2);
-      assignedVariables.endNode(_Node(),
-          isClosureOrLateVariableInitializer: true);
-      var innerNode = _Node();
-      assignedVariables.endNode(innerNode,
-          isClosureOrLateVariableInitializer: false);
-      var outerNode = _Node();
-      assignedVariables.endNode(outerNode);
-      assignedVariables.finish();
-      expect(assignedVariables.readInNode(innerNode), isEmpty);
-      expect(assignedVariables.writtenInNode(innerNode), isEmpty);
-      expect(assignedVariables.readCapturedInNode(innerNode), isEmpty);
-      expect(assignedVariables.capturedInNode(innerNode), isEmpty);
-      expect(assignedVariables.readInNode(outerNode), isEmpty);
-      expect(assignedVariables.writtenInNode(outerNode), isEmpty);
-      expect(assignedVariables.readCapturedInNode(outerNode), isEmpty);
-      expect(assignedVariables.capturedInNode(outerNode), isEmpty);
+    expect(assignedVariables.capturedInNode(innerNode), {
+      assignedVariables.keyForVariable(v1),
     });
-
-    test('Closure scope', () {
-      var assignedVariables = AssignedVariablesForTesting<_Node, _Variable>();
-      var v1 = _Variable('v1');
-      var v2 = _Variable('v2');
-      assignedVariables.beginNode();
-      assignedVariables.beginNode();
-      assignedVariables.declare(v1);
-      assignedVariables.declare(v2);
-      assignedVariables.read(v1);
-      assignedVariables.write(v1);
-      assignedVariables.beginNode();
-      assignedVariables.read(v2);
-      assignedVariables.write(v2);
-      assignedVariables.endNode(_Node(),
-          isClosureOrLateVariableInitializer: true);
-      var innerNode = _Node();
-      assignedVariables.endNode(innerNode,
-          isClosureOrLateVariableInitializer: true);
-      var outerNode = _Node();
-      assignedVariables.endNode(outerNode);
-      assignedVariables.finish();
-      expect(assignedVariables.readInNode(innerNode), isEmpty);
-      expect(assignedVariables.writtenInNode(innerNode), isEmpty);
-      expect(assignedVariables.readCapturedInNode(innerNode), isEmpty);
-      expect(assignedVariables.capturedInNode(innerNode), isEmpty);
-      expect(assignedVariables.readInNode(outerNode), isEmpty);
-      expect(assignedVariables.writtenInNode(outerNode), isEmpty);
-      expect(assignedVariables.readCapturedInNode(outerNode), isEmpty);
-      expect(assignedVariables.capturedInNode(outerNode), isEmpty);
+    expect(assignedVariables.capturedInNode(outerNode), {
+      assignedVariables.keyForVariable(v1),
     });
   });
+
+  group(
+    'Variables do not percolate beyond the scope they were declared in',
+    () {
+      test('Non-closure scope', () {
+        var assignedVariables = AssignedVariablesForTesting<_Node, _Variable>();
+        var v1 = _Variable('v1');
+        var v2 = _Variable('v2');
+        assignedVariables.beginNode();
+        assignedVariables.beginNode();
+        assignedVariables.declare(v1);
+        assignedVariables.declare(v2);
+        assignedVariables.read(v1);
+        assignedVariables.write(v1);
+        assignedVariables.beginNode();
+        assignedVariables.read(v2);
+        assignedVariables.write(v2);
+        assignedVariables.endNode(
+          _Node(),
+          isClosureOrLateVariableInitializer: true,
+        );
+        var innerNode = _Node();
+        assignedVariables.endNode(
+          innerNode,
+          isClosureOrLateVariableInitializer: false,
+        );
+        var outerNode = _Node();
+        assignedVariables.endNode(outerNode);
+        assignedVariables.finish();
+        expect(assignedVariables.readInNode(innerNode), isEmpty);
+        expect(assignedVariables.writtenInNode(innerNode), isEmpty);
+        expect(assignedVariables.readCapturedInNode(innerNode), isEmpty);
+        expect(assignedVariables.capturedInNode(innerNode), isEmpty);
+        expect(assignedVariables.readInNode(outerNode), isEmpty);
+        expect(assignedVariables.writtenInNode(outerNode), isEmpty);
+        expect(assignedVariables.readCapturedInNode(outerNode), isEmpty);
+        expect(assignedVariables.capturedInNode(outerNode), isEmpty);
+      });
+
+      test('Closure scope', () {
+        var assignedVariables = AssignedVariablesForTesting<_Node, _Variable>();
+        var v1 = _Variable('v1');
+        var v2 = _Variable('v2');
+        assignedVariables.beginNode();
+        assignedVariables.beginNode();
+        assignedVariables.declare(v1);
+        assignedVariables.declare(v2);
+        assignedVariables.read(v1);
+        assignedVariables.write(v1);
+        assignedVariables.beginNode();
+        assignedVariables.read(v2);
+        assignedVariables.write(v2);
+        assignedVariables.endNode(
+          _Node(),
+          isClosureOrLateVariableInitializer: true,
+        );
+        var innerNode = _Node();
+        assignedVariables.endNode(
+          innerNode,
+          isClosureOrLateVariableInitializer: true,
+        );
+        var outerNode = _Node();
+        assignedVariables.endNode(outerNode);
+        assignedVariables.finish();
+        expect(assignedVariables.readInNode(innerNode), isEmpty);
+        expect(assignedVariables.writtenInNode(innerNode), isEmpty);
+        expect(assignedVariables.readCapturedInNode(innerNode), isEmpty);
+        expect(assignedVariables.capturedInNode(innerNode), isEmpty);
+        expect(assignedVariables.readInNode(outerNode), isEmpty);
+        expect(assignedVariables.writtenInNode(outerNode), isEmpty);
+        expect(assignedVariables.readCapturedInNode(outerNode), isEmpty);
+        expect(assignedVariables.capturedInNode(outerNode), isEmpty);
+      });
+    },
+  );
 
   test('discardNode percolates declarations to enclosing node', () {
     var assignedVariables = AssignedVariablesForTesting<_Node, _Variable>();
@@ -394,11 +442,12 @@ main() {
     assignedVariables.endNode(node);
     assignedVariables.finish();
     expect(
-        assignedVariables.declaredInNode(node),
-        unorderedEquals([
-          assignedVariables.keyForVariable(v1),
-          assignedVariables.keyForVariable(v2)
-        ]));
+      assignedVariables.declaredInNode(node),
+      unorderedEquals([
+        assignedVariables.keyForVariable(v1),
+        assignedVariables.keyForVariable(v2),
+      ]),
+    );
   });
 
   test('discardNode percolates reads to enclosing node', () {
@@ -416,11 +465,12 @@ main() {
     assignedVariables.endNode(node);
     assignedVariables.finish();
     expect(
-        assignedVariables.readInNode(node),
-        unorderedEquals([
-          assignedVariables.keyForVariable(v1),
-          assignedVariables.keyForVariable(v2)
-        ]));
+      assignedVariables.readInNode(node),
+      unorderedEquals([
+        assignedVariables.keyForVariable(v1),
+        assignedVariables.keyForVariable(v2),
+      ]),
+    );
   });
 
   test('discardNode percolates writes to enclosing node', () {
@@ -438,11 +488,12 @@ main() {
     assignedVariables.endNode(node);
     assignedVariables.finish();
     expect(
-        assignedVariables.writtenInNode(node),
-        unorderedEquals([
-          assignedVariables.keyForVariable(v1),
-          assignedVariables.keyForVariable(v2)
-        ]));
+      assignedVariables.writtenInNode(node),
+      unorderedEquals([
+        assignedVariables.keyForVariable(v1),
+        assignedVariables.keyForVariable(v2),
+      ]),
+    );
   });
 
   test('discardNode percolates read captures to enclosing node', () {
@@ -457,17 +508,20 @@ main() {
     assignedVariables.beginNode();
     assignedVariables.read(v1);
     assignedVariables.read(v2);
-    assignedVariables.endNode(_Node(),
-        isClosureOrLateVariableInitializer: true);
+    assignedVariables.endNode(
+      _Node(),
+      isClosureOrLateVariableInitializer: true,
+    );
     assignedVariables.discardNode();
     assignedVariables.endNode(node);
     assignedVariables.finish();
     expect(
-        assignedVariables.readCapturedInNode(node),
-        unorderedEquals([
-          assignedVariables.keyForVariable(v1),
-          assignedVariables.keyForVariable(v2)
-        ]));
+      assignedVariables.readCapturedInNode(node),
+      unorderedEquals([
+        assignedVariables.keyForVariable(v1),
+        assignedVariables.keyForVariable(v2),
+      ]),
+    );
   });
 
   test('discardNode percolates write captures to enclosing node', () {
@@ -482,17 +536,20 @@ main() {
     assignedVariables.beginNode();
     assignedVariables.write(v1);
     assignedVariables.write(v2);
-    assignedVariables.endNode(_Node(),
-        isClosureOrLateVariableInitializer: true);
+    assignedVariables.endNode(
+      _Node(),
+      isClosureOrLateVariableInitializer: true,
+    );
     assignedVariables.discardNode();
     assignedVariables.endNode(node);
     assignedVariables.finish();
     expect(
-        assignedVariables.capturedInNode(node),
-        unorderedEquals([
-          assignedVariables.keyForVariable(v1),
-          assignedVariables.keyForVariable(v2)
-        ]));
+      assignedVariables.capturedInNode(node),
+      unorderedEquals([
+        assignedVariables.keyForVariable(v1),
+        assignedVariables.keyForVariable(v2),
+      ]),
+    );
   });
 
   test('deferNode allows deferring of node info', () {
@@ -509,8 +566,10 @@ main() {
     assignedVariables.declare(v3);
     assignedVariables.beginNode();
     assignedVariables.write(v2);
-    assignedVariables.endNode(_Node(),
-        isClosureOrLateVariableInitializer: true);
+    assignedVariables.endNode(
+      _Node(),
+      isClosureOrLateVariableInitializer: true,
+    );
     var info = assignedVariables.deferNode();
     assignedVariables.beginNode();
     assignedVariables.write(v4);
@@ -518,24 +577,28 @@ main() {
     var node = _Node();
     assignedVariables.storeInfo(node, info);
     assignedVariables.finish();
-    expect(assignedVariables.declaredInNode(node),
-        [assignedVariables.keyForVariable(v3)]);
+    expect(assignedVariables.declaredInNode(node), [
+      assignedVariables.keyForVariable(v3),
+    ]);
     expect(
-        assignedVariables.writtenInNode(node),
-        unorderedEquals([
-          assignedVariables.keyForVariable(v1),
-          assignedVariables.keyForVariable(v2)
-        ]));
-    expect(assignedVariables.capturedInNode(node),
-        [assignedVariables.keyForVariable(v2)]);
+      assignedVariables.writtenInNode(node),
+      unorderedEquals([
+        assignedVariables.keyForVariable(v1),
+        assignedVariables.keyForVariable(v2),
+      ]),
+    );
+    expect(assignedVariables.capturedInNode(node), [
+      assignedVariables.keyForVariable(v2),
+    ]);
   });
 
   group('Final assertions:', () {
     bool assertionsEnabled = false;
     assert(assertionsEnabled = true);
-    var asserts = assertionsEnabled
-        ? throwsA(TypeMatcher<AssertionError>())
-        : returnsNormally;
+    var asserts =
+        assertionsEnabled
+            ? throwsA(TypeMatcher<AssertionError>())
+            : returnsNormally;
 
     test('finish may not be called twice', () {
       var assignedVariables = AssignedVariablesForTesting<_Node, _Variable>();

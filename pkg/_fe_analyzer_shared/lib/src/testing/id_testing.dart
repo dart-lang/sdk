@@ -15,17 +15,10 @@ const String analyzerMarker = 'analyzer';
 const String ddcMarker = 'ddc';
 
 /// Markers used in annotated tests shared by CFE, analyzer and dart2js.
-const List<String> sharedMarkers = [
-  cfeMarker,
-  dart2jsMarker,
-  analyzerMarker,
-];
+const List<String> sharedMarkers = [cfeMarker, dart2jsMarker, analyzerMarker];
 
 /// Markers used in annotated tests shared by CFE and analyzer.
-const List<String> cfeAnalyzerMarkers = [
-  cfeMarker,
-  analyzerMarker,
-];
+const List<String> cfeAnalyzerMarkers = [cfeMarker, analyzerMarker];
 
 /// `true` if ANSI colors are supported by stdout.
 bool useColors = stdout.supportsAnsiEscapes;
@@ -103,37 +96,40 @@ Annotation? createAnnotationsDiff(Annotation? expected, Annotation? actual) {
   if (identical(expected, actual)) return null;
   if (expected != null && actual != null) {
     return new Annotation(
-        expected.index,
-        expected.lineNo,
-        expected.columnNo,
-        expected.offset,
-        expected.prefix,
-        '${colorizeExpected(expected.text)}'
-        '${colorizeDelimiter(' | ')}'
-        '${colorizeActual(actual.text)}',
-        expected.suffix);
+      expected.index,
+      expected.lineNo,
+      expected.columnNo,
+      expected.offset,
+      expected.prefix,
+      '${colorizeExpected(expected.text)}'
+      '${colorizeDelimiter(' | ')}'
+      '${colorizeActual(actual.text)}',
+      expected.suffix,
+    );
   } else if (expected != null) {
     return new Annotation(
-        expected.index,
-        expected.lineNo,
-        expected.columnNo,
-        expected.offset,
-        expected.prefix,
-        '${colorizeExpected(expected.text)}'
-        '${colorizeDelimiter(' | ')}'
-        '${colorizeActual('---')}',
-        expected.suffix);
+      expected.index,
+      expected.lineNo,
+      expected.columnNo,
+      expected.offset,
+      expected.prefix,
+      '${colorizeExpected(expected.text)}'
+      '${colorizeDelimiter(' | ')}'
+      '${colorizeActual('---')}',
+      expected.suffix,
+    );
   } else if (actual != null) {
     return new Annotation(
-        actual.index,
-        actual.lineNo,
-        actual.columnNo,
-        actual.offset,
-        actual.prefix,
-        '${colorizeExpected('---')}'
-        '${colorizeDelimiter(' | ')}'
-        '${colorizeActual(actual.text)}',
-        actual.suffix);
+      actual.index,
+      actual.lineNo,
+      actual.columnNo,
+      actual.offset,
+      actual.prefix,
+      '${colorizeExpected('---')}'
+      '${colorizeDelimiter(' | ')}'
+      '${colorizeActual(actual.text)}',
+      actual.suffix,
+    );
   } else {
     return null;
   }
@@ -201,11 +197,15 @@ class MemberAnnotations<DataType> {
 /// corresponding test configuration. Otherwise it is expected for all
 /// configurations.
 // TODO(johnniwinther): Support an empty marker set.
-void computeExpectedMap(Uri sourceUri, String filename, AnnotatedCode code,
-    Map<String, MemberAnnotations<IdValue>> maps,
-    {required void onFailure(String message),
-    bool preserveWhitespaceInAnnotations = false,
-    bool preserveInfixWhitespaceInAnnotations = false}) {
+void computeExpectedMap(
+  Uri sourceUri,
+  String filename,
+  AnnotatedCode code,
+  Map<String, MemberAnnotations<IdValue>> maps, {
+  required void onFailure(String message),
+  bool preserveWhitespaceInAnnotations = false,
+  bool preserveInfixWhitespaceInAnnotations = false,
+}) {
   List<String> mapKeys = maps.keys.toList();
   Map<String, AnnotatedCode> split = splitByPrefixes(code, mapKeys);
 
@@ -214,21 +214,29 @@ void computeExpectedMap(Uri sourceUri, String filename, AnnotatedCode code,
     Map<Id, IdValue> expectedValues = fileAnnotations[sourceUri]!;
     for (Annotation annotation in code.annotations) {
       String text = annotation.text;
-      IdValue idValue = IdValue.decode(sourceUri, annotation, text,
-          preserveWhitespaceInAnnotations: preserveWhitespaceInAnnotations,
-          preserveInfixWhitespace: preserveInfixWhitespaceInAnnotations);
+      IdValue idValue = IdValue.decode(
+        sourceUri,
+        annotation,
+        text,
+        preserveWhitespaceInAnnotations: preserveWhitespaceInAnnotations,
+        preserveInfixWhitespace: preserveInfixWhitespaceInAnnotations,
+      );
       if (idValue.id.isGlobal) {
         if (fileAnnotations.globalData.containsKey(idValue.id)) {
-          onFailure("Error in test '$filename': "
-              "Duplicate annotations for ${idValue.id} in $marker: "
-              "${idValue} and ${fileAnnotations.globalData[idValue.id]}.");
+          onFailure(
+            "Error in test '$filename': "
+            "Duplicate annotations for ${idValue.id} in $marker: "
+            "${idValue} and ${fileAnnotations.globalData[idValue.id]}.",
+          );
         }
         fileAnnotations.globalData[idValue.id] = idValue;
       } else {
         if (expectedValues.containsKey(idValue.id)) {
-          onFailure("Error in test '$filename': "
-              "Duplicate annotations for ${idValue.id} in $marker: "
-              "${idValue} and ${expectedValues[idValue.id]}.");
+          onFailure(
+            "Error in test '$filename': "
+            "Duplicate annotations for ${idValue.id} in $marker: "
+            "${idValue} and ${expectedValues[idValue.id]}.",
+          );
         }
         expectedValues[idValue.id] = idValue;
       }
@@ -240,13 +248,15 @@ void computeExpectedMap(Uri sourceUri, String filename, AnnotatedCode code,
 ///
 /// If [testFile] is a file, use that directly. If it's a directory include
 /// everything in that directory.
-TestData computeTestData(FileSystemEntity testFile,
-    {required Iterable<String> supportedMarkers,
-    required Uri createTestUri(Uri uri, String fileName),
-    required void onFailure(String message),
-    String Function(String) preprocessFile = _noProcessing,
-    bool preserveWhitespaceInAnnotations = false,
-    bool preserveInfixWhitespaceInAnnotations = false}) {
+TestData computeTestData(
+  FileSystemEntity testFile, {
+  required Iterable<String> supportedMarkers,
+  required Uri createTestUri(Uri uri, String fileName),
+  required void onFailure(String message),
+  String Function(String) preprocessFile = _noProcessing,
+  bool preserveWhitespaceInAnnotations = false,
+  bool preserveInfixWhitespaceInAnnotations = false,
+}) {
   Uri? entryPoint;
 
   String testName;
@@ -273,29 +283,38 @@ TestData computeTestData(FileSystemEntity testFile,
       }
     }
     assert(
-        mainTestFile != null, "No 'main.dart' test file found for $testFile.");
+      mainTestFile != null,
+      "No 'main.dart' test file found for $testFile.",
+    );
   } else {
     throw new UnimplementedError();
   }
 
-  String annotatedCode =
-      preprocessFile(new File.fromUri(mainTestFile!.uri).readAsStringSync());
+  String annotatedCode = preprocessFile(
+    new File.fromUri(mainTestFile!.uri).readAsStringSync(),
+  );
   Map<Uri, AnnotatedCode> code = {
-    entryPoint!:
-        new AnnotatedCode.fromText(annotatedCode, commentStart, commentEnd)
+    entryPoint!: new AnnotatedCode.fromText(
+      annotatedCode,
+      commentStart,
+      commentEnd,
+    ),
   };
   Map<String, MemberAnnotations<IdValue>> expectedMaps = {};
   for (String testMarker in supportedMarkers) {
     expectedMaps[testMarker] = new MemberAnnotations<IdValue>();
   }
-  computeExpectedMap(entryPoint, testFile.uri.pathSegments.last,
-      code[entryPoint]!, expectedMaps,
-      onFailure: onFailure,
-      preserveWhitespaceInAnnotations: preserveWhitespaceInAnnotations,
-      preserveInfixWhitespaceInAnnotations:
-          preserveInfixWhitespaceInAnnotations);
+  computeExpectedMap(
+    entryPoint,
+    testFile.uri.pathSegments.last,
+    code[entryPoint]!,
+    expectedMaps,
+    onFailure: onFailure,
+    preserveWhitespaceInAnnotations: preserveWhitespaceInAnnotations,
+    preserveInfixWhitespaceInAnnotations: preserveInfixWhitespaceInAnnotations,
+  );
   Map<String, String> memorySourceFiles = {
-    entryPoint.path: code[entryPoint]!.sourceCode
+    entryPoint.path: code[entryPoint]!.sourceCode,
   };
 
   if (additionalFiles != null) {
@@ -304,21 +323,34 @@ TestData computeTestData(FileSystemEntity testFile,
       File libEntity = additionalFileData.value;
       Uri libFileUri = createTestUri(libEntity.uri, libFileName);
       String libCode = preprocessFile(libEntity.readAsStringSync());
-      AnnotatedCode annotatedLibCode =
-          new AnnotatedCode.fromText(libCode, commentStart, commentEnd);
+      AnnotatedCode annotatedLibCode = new AnnotatedCode.fromText(
+        libCode,
+        commentStart,
+        commentEnd,
+      );
       memorySourceFiles[libFileUri.path] = annotatedLibCode.sourceCode;
       code[libFileUri] = annotatedLibCode;
       computeExpectedMap(
-          libFileUri, libFileName, annotatedLibCode, expectedMaps,
-          onFailure: onFailure,
-          preserveWhitespaceInAnnotations: preserveWhitespaceInAnnotations,
-          preserveInfixWhitespaceInAnnotations:
-              preserveInfixWhitespaceInAnnotations);
+        libFileUri,
+        libFileName,
+        annotatedLibCode,
+        expectedMaps,
+        onFailure: onFailure,
+        preserveWhitespaceInAnnotations: preserveWhitespaceInAnnotations,
+        preserveInfixWhitespaceInAnnotations:
+            preserveInfixWhitespaceInAnnotations,
+      );
     }
   }
 
   return new TestData(
-      testName, testFileUri, entryPoint, memorySourceFiles, code, expectedMaps);
+    testName,
+    testFileUri,
+    entryPoint,
+    memorySourceFiles,
+    code,
+    expectedMaps,
+  );
 }
 
 /// Data for an annotated test.
@@ -330,8 +362,14 @@ class TestData {
   final Map<Uri, AnnotatedCode> code;
   final Map<String, MemberAnnotations<IdValue>> expectedMaps;
 
-  TestData(this.name, this.testFileUri, this.entryPoint, this.memorySourceFiles,
-      this.code, this.expectedMaps);
+  TestData(
+    this.name,
+    this.testFileUri,
+    this.entryPoint,
+    this.memorySourceFiles,
+    this.code,
+    this.expectedMaps,
+  );
 }
 
 /// The results for running a test on a single configuration.
@@ -349,13 +387,13 @@ class TestResult<T> {
   final CompiledData<T>? compiledData;
 
   TestResult(this.interpreter, this.compiledData, this.hasMismatches)
-      : isErroneous = false;
+    : isErroneous = false;
 
   TestResult.erroneous()
-      : isErroneous = true,
-        hasMismatches = false,
-        interpreter = null,
-        compiledData = null;
+    : isErroneous = true,
+      hasMismatches = false,
+      interpreter = null,
+      compiledData = null;
 
   bool get hasFailures => hasMismatches || isErroneous;
 }
@@ -388,8 +426,11 @@ abstract class CompiledData<T> {
   }
 
   Map<int, List<String>> computeDiffAnnotationsAgainst(
-      Map<Id, ActualData<T>> thisMap, Map<Id, ActualData<T>> otherMap, Uri uri,
-      {bool includeMatches = false}) {
+    Map<Id, ActualData<T>> thisMap,
+    Map<Id, ActualData<T>> otherMap,
+    Uri uri, {
+    bool includeMatches = false,
+  }) {
     Map<int, List<String>> annotations = <int, List<String>>{};
     thisMap.forEach((Id id, ActualData<T> thisData) {
       ActualData<T>? otherData = otherMap[id];
@@ -419,8 +460,12 @@ abstract class CompiledData<T> {
 
   int getOffsetFromId(Id id, Uri uri);
 
-  void reportError(Uri uri, int offset, String message,
-      {bool succinct = false});
+  void reportError(
+    Uri uri,
+    int offset,
+    String message, {
+    bool succinct = false,
+  });
 }
 
 /// Interface used for interpreting annotations.
@@ -489,25 +534,29 @@ String withAnnotations(String sourceCode, Map<int, List<String>> annotations) {
 /// Checks [compiledData] against the expected data in [expectedMaps] derived
 /// from [testData].code.
 Future<TestResult<T>> checkCode<T>(
-    MarkerOptions markerOptions,
-    String marker,
-    String modeName,
-    TestData testData,
-    MemberAnnotations<IdValue> expectedMaps,
-    CompiledData<T> compiledData,
-    DataInterpreter<T> dataInterpreter,
-    {bool filterActualData(IdValue? expected, ActualData<T> actualData)?,
-    bool fatalErrors = true,
-    bool succinct = false,
-    required void onFailure(String message)}) async {
+  MarkerOptions markerOptions,
+  String marker,
+  String modeName,
+  TestData testData,
+  MemberAnnotations<IdValue> expectedMaps,
+  CompiledData<T> compiledData,
+  DataInterpreter<T> dataInterpreter, {
+  bool filterActualData(IdValue? expected, ActualData<T> actualData)?,
+  bool fatalErrors = true,
+  bool succinct = false,
+  required void onFailure(String message),
+}) async {
   String testName = testData.name;
   Map<Uri, AnnotatedCode> code = testData.code;
 
   bool hasFailure = false;
   Set<Uri> neededDiffs = new Set<Uri>();
 
-  void checkActualMap(Map<Id, ActualData<T>> actualMap,
-      Map<Id, IdValue>? expectedMap, Uri uri) {
+  void checkActualMap(
+    Map<Id, ActualData<T>> actualMap,
+    Map<Id, IdValue>? expectedMap,
+    Uri uri,
+  ) {
     expectedMap ??= {};
     bool hasLocalFailure = false;
     actualMap.forEach((Id id, ActualData<T> actualData) {
@@ -518,36 +567,40 @@ Future<TestResult<T>> checkCode<T>(
         if (!dataInterpreter.isEmpty(actual)) {
           String actualValueText = IdValue.idToString(id, actualText);
           compiledData.reportError(
-              actualData.uri,
-              actualData.offset,
-              succinct
-                  ? 'EXTRA $modeName DATA for ${id.descriptor}'
-                  : 'EXTRA $modeName DATA for ${id.descriptor}:\n '
-                      'object   : ${actualData.objectText}\n '
-                      'actual   : ${colorizeActual(actualValueText)}\n '
-                      'Data was expected for these ids: ${expectedMap.keys}',
-              succinct: succinct);
+            actualData.uri,
+            actualData.offset,
+            succinct
+                ? 'EXTRA $modeName DATA for ${id.descriptor}'
+                : 'EXTRA $modeName DATA for ${id.descriptor}:\n '
+                    'object   : ${actualData.objectText}\n '
+                    'actual   : ${colorizeActual(actualValueText)}\n '
+                    'Data was expected for these ids: ${expectedMap.keys}',
+            succinct: succinct,
+          );
           if (filterActualData == null || filterActualData(null, actualData)) {
             hasLocalFailure = true;
           }
         }
       } else {
         IdValue expected = expectedMap[id]!;
-        String? unexpectedMessage =
-            dataInterpreter.isAsExpected(actual, expected.value);
+        String? unexpectedMessage = dataInterpreter.isAsExpected(
+          actual,
+          expected.value,
+        );
         if (unexpectedMessage != null) {
           String actualValueText = IdValue.idToString(id, actualText);
           compiledData.reportError(
-              actualData.uri,
-              actualData.offset,
-              succinct
-                  ? 'UNEXPECTED $modeName DATA for ${id.descriptor}'
-                  : 'UNEXPECTED $modeName DATA for ${id.descriptor}:\n '
-                      'detail  : ${colorizeMessage(unexpectedMessage)}\n '
-                      'object  : ${actualData.objectText}\n '
-                      'expected: ${colorizeExpected('$expected')}\n '
-                      'actual  : ${colorizeActual(actualValueText)}',
-              succinct: succinct);
+            actualData.uri,
+            actualData.offset,
+            succinct
+                ? 'UNEXPECTED $modeName DATA for ${id.descriptor}'
+                : 'UNEXPECTED $modeName DATA for ${id.descriptor}:\n '
+                    'detail  : ${colorizeMessage(unexpectedMessage)}\n '
+                    'object  : ${actualData.objectText}\n '
+                    'expected: ${colorizeExpected('$expected')}\n '
+                    'actual  : ${colorizeActual(actualValueText)}',
+            succinct: succinct,
+          );
           if (filterActualData == null ||
               filterActualData(expected, actualData)) {
             hasLocalFailure = true;
@@ -564,23 +617,32 @@ Future<TestResult<T>> checkCode<T>(
   compiledData.actualMaps.forEach((Uri uri, Map<Id, ActualData<T>> actualMap) {
     checkActualMap(actualMap, expectedMaps[uri], uri);
   });
-  checkActualMap(compiledData.globalData, expectedMaps.globalData,
-      Uri.parse("global:data"));
+  checkActualMap(
+    compiledData.globalData,
+    expectedMaps.globalData,
+    Uri.parse("global:data"),
+  );
 
   Set<Id> missingIds = new Set<Id>();
   void checkMissing(
-      Map<Id, IdValue>? expectedMap, Map<Id, ActualData<T>>? actualMap,
-      [Uri? uri]) {
+    Map<Id, IdValue>? expectedMap,
+    Map<Id, ActualData<T>>? actualMap, [
+    Uri? uri,
+  ]) {
     actualMap ??= {};
     expectedMap?.forEach((Id id, IdValue expected) {
       if (!actualMap!.containsKey(id)) {
         missingIds.add(id);
-        String message = 'MISSING $modeName DATA for ${id.descriptor}: '
+        String message =
+            'MISSING $modeName DATA for ${id.descriptor}: '
             'Expected ${colorizeExpected('$expected')}';
         if (uri != null) {
           compiledData.reportError(
-              uri, compiledData.getOffsetFromId(id, uri), message,
-              succinct: succinct);
+            uri,
+            compiledData.getOffsetFromId(id, uri),
+            message,
+            succinct: succinct,
+          );
         } else {
           print(message);
         }
@@ -598,18 +660,23 @@ Future<TestResult<T>> checkCode<T>(
   if (!succinct) {
     if (neededDiffs.isNotEmpty) {
       Map<Uri, List<Annotation>> annotations = computeAnnotationsPerUri(
-          code,
-          {'dummyMarker': expectedMaps},
-          compiledData.mainUri,
-          {'dummyMarker': compiledData.actualMaps},
-          dataInterpreter,
-          createDiff: createAnnotationsDiff);
+        code,
+        {'dummyMarker': expectedMaps},
+        compiledData.mainUri,
+        {'dummyMarker': compiledData.actualMaps},
+        dataInterpreter,
+        createDiff: createAnnotationsDiff,
+      );
       for (Uri uri in neededDiffs) {
         print('--annotations diff [${uri.pathSegments.last}]-------------');
         AnnotatedCode? annotatedCode = code[uri];
-        print(new AnnotatedCode(annotatedCode?.annotatedCode ?? "",
-                annotatedCode?.sourceCode ?? "", annotations[uri] ?? const [])
-            .toText());
+        print(
+          new AnnotatedCode(
+            annotatedCode?.annotatedCode ?? "",
+            annotatedCode?.sourceCode ?? "",
+            annotations[uri] ?? const [],
+          ).toText(),
+        );
         print('----------------------------------------------------------');
       }
     }
@@ -619,24 +686,28 @@ Future<TestResult<T>> checkCode<T>(
     hasFailure = true;
   }
   if (hasFailure && fatalErrors) {
-    onFailure(generateErrorMessage(
-      markerOptions,
-      mismatches: {
-        testName: {marker}
-      },
-    ));
+    onFailure(
+      generateErrorMessage(
+        markerOptions,
+        mismatches: {
+          testName: {marker},
+        },
+      ),
+    );
   }
   return new TestResult<T>(dataInterpreter, compiledData, hasFailure);
 }
 
 typedef Future<Map<String, TestResult<T>>> RunTestFunction<T>(
-    MarkerOptions markerOptions, TestData testData,
-    {required bool testAfterFailures,
-    required bool verbose,
-    required bool succinct,
-    required bool printCode,
-    Map<String, List<String>>? skipMap,
-    required Uri nullUri});
+  MarkerOptions markerOptions,
+  TestData testData, {
+  required bool testAfterFailures,
+  required bool verbose,
+  required bool succinct,
+  required bool printCode,
+  Map<String, List<String>>? skipMap,
+  required Uri nullUri,
+});
 
 /// Compute the file: URI of the file located at `path`, where `path` is
 /// relative to the root of the SDK repository.
@@ -646,10 +717,12 @@ typedef Future<Map<String, TestResult<T>>> RunTestFunction<T>(
 Uri _fileUriFromSdkRoot(String path) {
   Uri uri = Platform.script;
   List<String> pathSegments = uri.pathSegments;
-  return uri.replace(pathSegments: [
-    ...pathSegments.sublist(0, pathSegments.lastIndexOf('pkg')),
-    ...path.split('/')
-  ]);
+  return uri.replace(
+    pathSegments: [
+      ...pathSegments.sublist(0, pathSegments.lastIndexOf('pkg')),
+      ...path.split('/'),
+    ],
+  );
 }
 
 /// Description of a tester for a specific marker.
@@ -686,13 +759,16 @@ class MarkerOptions {
 
   MarkerOptions.internal(this.markers);
 
-  factory MarkerOptions.fromDataDir(Directory dataDir,
-      {bool shouldFindScript = true}) {
+  factory MarkerOptions.fromDataDir(
+    Directory dataDir, {
+    bool shouldFindScript = true,
+  }) {
     File file = new File.fromUri(dataDir.uri.resolve('marker.options'));
     File script = new File.fromUri(Platform.script);
     if (!file.existsSync()) {
       throw new ArgumentError(
-          "Marker option file '${file.uri}' doesn't exist.");
+        "Marker option file '${file.uri}' doesn't exist.",
+      );
     }
 
     Map<String, MarkerTester> markers = {};
@@ -704,15 +780,17 @@ class MarkerOptions {
       int eqPos = line.indexOf('=');
       if (eqPos == -1) {
         throw new ArgumentError(
-            "Unsupported marker option '$line' in ${file.uri}");
+          "Unsupported marker option '$line' in ${file.uri}",
+        );
       }
       String marker = line.substring(0, eqPos);
       String tester = line.substring(eqPos + 1);
       File testerFile = new File.fromUri(_fileUriFromSdkRoot(tester));
       if (!testerFile.existsSync()) {
         throw new ArgumentError(
-            "Tester '$tester' does not exist for marker '$marker' in "
-            "${file.uri}");
+          "Tester '$tester' does not exist for marker '$marker' in "
+          "${file.uri}",
+        );
       }
       if (markers.containsKey(marker)) {
         throw new ArgumentError("Duplicate marker '$marker' in ${file.uri}");
@@ -724,7 +802,8 @@ class MarkerOptions {
     }
     if (shouldFindScript && !isScriptFound) {
       throw new ArgumentError(
-          "Script '${script.uri}' not found in ${file.uri}");
+        "Script '${script.uri}' not found in ${file.uri}",
+      );
     }
     return new MarkerOptions.internal(markers);
   }
@@ -743,14 +822,11 @@ class MarkerOptions {
       print('================================================================');
       print('Running tester: ${tester.path} ${args.join(' ')}');
       print('================================================================');
-      Process process = await Process.start(
-          Platform.resolvedExecutable,
-          [
-            if (assertsEnabled) '--enable_asserts',
-            tester.uri.toString(),
-            ...args
-          ],
-          mode: ProcessStartMode.inheritStdio);
+      Process process = await Process.start(Platform.resolvedExecutable, [
+        if (assertsEnabled) '--enable_asserts',
+        tester.uri.toString(),
+        ...args,
+      ], mode: ProcessStartMode.inheritStdio);
       if (await process.exitCode != 0) {
         errorsCount++;
       }
@@ -771,25 +847,45 @@ String getTestName(FileSystemEntity entity) {
 
 // TODO(johnniwinther): Support --show to show actual data for an input.
 class Options {
-  static const Option<bool> runAll =
-      const Option<bool>('--run-all', const BoolValue(false));
-  static const Option<bool> verbose =
-      const Option<bool>('--verbose', const BoolValue(false), aliases: ['-v']);
-  static const Option<bool> succinct =
-      const Option<bool>('--succinct', const BoolValue(false), aliases: ['-s']);
-  static const Option<bool> shouldContinue =
-      const Option<bool>('--continue', const BoolValue(false), aliases: ['-c']);
+  static const Option<bool> runAll = const Option<bool>(
+    '--run-all',
+    const BoolValue(false),
+  );
+  static const Option<bool> verbose = const Option<bool>(
+    '--verbose',
+    const BoolValue(false),
+    aliases: ['-v'],
+  );
+  static const Option<bool> succinct = const Option<bool>(
+    '--succinct',
+    const BoolValue(false),
+    aliases: ['-s'],
+  );
+  static const Option<bool> shouldContinue = const Option<bool>(
+    '--continue',
+    const BoolValue(false),
+    aliases: ['-c'],
+  );
   static const Option<bool> stopAfterFailures = const Option<bool>(
-      '--stop-after-failures', const BoolValue(false),
-      aliases: ['-a']);
+    '--stop-after-failures',
+    const BoolValue(false),
+    aliases: ['-a'],
+  );
   static const Option<bool> printCode = const Option<bool>(
-      '--print-code', const BoolValue(false),
-      aliases: ['-p']);
-  static const Option<bool> generateAnnotations =
-      const Option<bool>('--generate', const BoolValue(false), aliases: ['-g']);
+    '--print-code',
+    const BoolValue(false),
+    aliases: ['-p'],
+  );
+  static const Option<bool> generateAnnotations = const Option<bool>(
+    '--generate',
+    const BoolValue(false),
+    aliases: ['-g'],
+  );
   static const Option<bool> forceUpdate = const Option<bool>(
-      '--force-update', const BoolValue(false),
-      aliases: ['-f']);
+    '--force-update',
+    const BoolValue(false),
+    aliases: ['-f'],
+  );
 }
 
 const List<Option> idTestOptions = [
@@ -806,23 +902,27 @@ const List<Option> idTestOptions = [
 String _noProcessing(String s) => s;
 
 /// Check code for all tests in [dataDir] using [runTest].
-Future<void> runTests<T>(Directory dataDir,
-    {List<String> args = const <String>[],
-    int shards = 1,
-    int shardIndex = 0,
-    void onTest(Uri uri)?,
-    required Uri createUriForFileName(String fileName),
-    required void onFailure(String message),
-    required RunTestFunction<T> runTest,
-    List<String>? skipList,
-    Map<String, List<String>>? skipMap,
-    bool preserveWhitespaceInAnnotations = false,
-    bool preserveInfixWhitespaceInAnnotations = false,
-    String Function(String) preProcessFile = _noProcessing,
-    String Function(String) postProcessFile = _noProcessing}) async {
+Future<void> runTests<T>(
+  Directory dataDir, {
+  List<String> args = const <String>[],
+  int shards = 1,
+  int shardIndex = 0,
+  void onTest(Uri uri)?,
+  required Uri createUriForFileName(String fileName),
+  required void onFailure(String message),
+  required RunTestFunction<T> runTest,
+  List<String>? skipList,
+  Map<String, List<String>>? skipMap,
+  bool preserveWhitespaceInAnnotations = false,
+  bool preserveInfixWhitespaceInAnnotations = false,
+  String Function(String) preProcessFile = _noProcessing,
+  String Function(String) postProcessFile = _noProcessing,
+}) async {
   ParsedOptions parsedOptions = ParsedOptions.parse(args, idTestOptions);
-  MarkerOptions markerOptions =
-      new MarkerOptions.fromDataDir(dataDir, shouldFindScript: shards == 1);
+  MarkerOptions markerOptions = new MarkerOptions.fromDataDir(
+    dataDir,
+    shouldFindScript: shards == 1,
+  );
   if (Options.runAll.read(parsedOptions)) {
     await markerOptions.runAll(Options.runAll.remove(args.toList()));
     return;
@@ -843,13 +943,16 @@ Future<void> runTests<T>(Directory dataDir,
 
   String relativeDir = dataDir.uri.path.replaceAll(Uri.base.path, '');
   print('Data dir: ${relativeDir}');
-  List<FileSystemEntity> entities = dataDir
-      .listSync()
-      .where((entity) =>
-          !entity.path.endsWith('~') &&
-          !entity.path.endsWith('marker.options') &&
-          !entity.path.endsWith('.expect'))
-      .toList();
+  List<FileSystemEntity> entities =
+      dataDir
+          .listSync()
+          .where(
+            (entity) =>
+                !entity.path.endsWith('~') &&
+                !entity.path.endsWith('marker.options') &&
+                !entity.path.endsWith('.expect'),
+          )
+          .toList();
   if (shards > 1) {
     entities.sort((a, b) => getTestName(a).compareTo(getTestName(b)));
     int start = entities.length * shardIndex ~/ shards;
@@ -884,23 +987,28 @@ Future<void> runTests<T>(Directory dataDir,
       return testUri;
     }
 
-    TestData testData = computeTestData(entity,
-        supportedMarkers: markerOptions.supportedMarkers,
-        createTestUri: createTestUri,
-        onFailure: onFailure,
-        preserveWhitespaceInAnnotations: preserveWhitespaceInAnnotations,
-        preserveInfixWhitespaceInAnnotations:
-            preserveInfixWhitespaceInAnnotations,
-        preprocessFile: preProcessFile);
+    TestData testData = computeTestData(
+      entity,
+      supportedMarkers: markerOptions.supportedMarkers,
+      createTestUri: createTestUri,
+      onFailure: onFailure,
+      preserveWhitespaceInAnnotations: preserveWhitespaceInAnnotations,
+      preserveInfixWhitespaceInAnnotations:
+          preserveInfixWhitespaceInAnnotations,
+      preprocessFile: preProcessFile,
+    );
     print('Test: ${testData.testFileUri}');
 
-    Map<String, TestResult<T>> results = await runTest(markerOptions, testData,
-        testAfterFailures: !stopAfterFailures || generateAnnotations,
-        verbose: verbose,
-        succinct: succinct,
-        printCode: printCode,
-        skipMap: skipMap,
-        nullUri: createTestUri(entity.uri.resolve("null"), "null"));
+    Map<String, TestResult<T>> results = await runTest(
+      markerOptions,
+      testData,
+      testAfterFailures: !stopAfterFailures || generateAnnotations,
+      verbose: verbose,
+      succinct: succinct,
+      printCode: printCode,
+      skipMap: skipMap,
+      nullUri: createTestUri(entity.uri.resolve("null"), "null"),
+    );
 
     Set<String> mismatchMarkers = {};
     Set<String> errorMarkers = {};
@@ -928,8 +1036,10 @@ Future<void> runTests<T>(Directory dataDir,
               actualData[marker] = {};
 
           void addActualData(Uri uri, Map<Id, ActualData<T>> actualData) {
-            assert(testData.code.containsKey(uri) || actualData.isEmpty,
-                "Unexpected data ${actualData} for $uri");
+            assert(
+              testData.code.containsKey(uri) || actualData.isEmpty,
+              "Unexpected data ${actualData} for $uri",
+            );
             if (actualData.isEmpty) {
               // TODO(johnniwinther): Avoid collecting data without
               //  invalid uris.
@@ -942,25 +1052,34 @@ Future<void> runTests<T>(Directory dataDir,
 
           result.compiledData!.actualMaps.forEach(addActualData);
           addActualData(
-              result.compiledData!.mainUri, result.compiledData!.globalData);
+            result.compiledData!.mainUri,
+            result.compiledData!.globalData,
+          );
         });
 
         Map<Uri, List<Annotation>> annotations = computeAnnotationsPerUri(
-            testData.code,
-            testData.expectedMaps,
-            testData.entryPoint,
-            actualData,
-            dataInterpreter!,
-            forceUpdate: forceUpdate);
+          testData.code,
+          testData.expectedMaps,
+          testData.entryPoint,
+          actualData,
+          dataInterpreter!,
+          forceUpdate: forceUpdate,
+        );
         annotations.forEach((Uri uri, List<Annotation> annotations) {
           AnnotatedCode? code = testData.code[uri];
-          assert(code != null,
-              "No annotated code for $uri with annotations: $annotations");
+          assert(
+            code != null,
+            "No annotated code for $uri with annotations: $annotations",
+          );
           AnnotatedCode generated = new AnnotatedCode(
-              code?.annotatedCode ?? "", code?.sourceCode ?? "", annotations);
+            code?.annotatedCode ?? "",
+            code?.sourceCode ?? "",
+            annotations,
+          );
           Uri fileUri = testToFileUri[uri]!;
-          new File.fromUri(fileUri)
-              .writeAsStringSync(postProcessFile(generated.toText()));
+          new File.fromUri(
+            fileUri,
+          ).writeAsStringSync(postProcessFile(generated.toText()));
           print('Generated annotations for ${fileUri}');
         });
       } else {
@@ -969,8 +1088,13 @@ Future<void> runTests<T>(Directory dataDir,
     }
   }
   if (mismatches.isNotEmpty || errors.isNotEmpty) {
-    onFailure(generateErrorMessage(markerOptions,
-        mismatches: mismatches, errors: errors));
+    onFailure(
+      generateErrorMessage(
+        markerOptions,
+        mismatches: mismatches,
+        errors: errors,
+      ),
+    );
   }
   if (testCount == 0) {
     onFailure("No files were tested.");
@@ -989,9 +1113,11 @@ const String _dartLocationMessage = """
 ///
 /// [mismatches] and [errors] are maps from the test names of the failing tests
 /// to the markers for the configurations in which they failed.
-String generateErrorMessage(MarkerOptions markerOptions,
-    {Map<String, Set<String>> mismatches = const {},
-    Map<String, Set<String>> errors = const {}}) {
+String generateErrorMessage(
+  MarkerOptions markerOptions, {
+  Map<String, Set<String>> mismatches = const {},
+  Map<String, Set<String>> errors = const {},
+}) {
   Set<String> testNames = {...mismatches.keys, ...errors.keys};
   StringBuffer message = new StringBuffer();
   message.writeln();
@@ -1063,7 +1189,10 @@ String generateErrorMessage(MarkerOptions markerOptions,
 /// Returns `true` if [testName] is marked as skipped in [skipMap] for
 /// the given [configMarker].
 bool skipForConfig(
-    String testName, String configMarker, Map<String, List<String>>? skipMap) {
+  String testName,
+  String configMarker,
+  Map<String, List<String>>? skipMap,
+) {
   if (skipMap != null) {
     List<String>? skipList = skipMap[configMarker];
     if (skipList != null && skipList.contains(testName)) {
@@ -1088,15 +1217,13 @@ Future<void> updateAllTests(List<String> relativeTestPaths) async {
     if (Platform.packageConfig != null) {
       arguments.add('--packages=${Platform.packageConfig}');
     }
-    arguments.addAll([
-      testPath,
-      '-g',
-      '--run-all',
-    ]);
+    arguments.addAll([testPath, '-g', '--run-all']);
     print('Running: ${Platform.resolvedExecutable} ${arguments.join(' ')}');
     Process process = await Process.start(
-        Platform.resolvedExecutable, arguments,
-        mode: ProcessStartMode.inheritStdio);
+      Platform.resolvedExecutable,
+      arguments,
+      mode: ProcessStartMode.inheritStdio,
+    );
     await process.exitCode;
   }
 }

@@ -10,13 +10,15 @@ eagerVariableInitializerDoesNotCapture(Object x) {
   f() {
     if (x is String) {
       // Promotion is ok because we know exactly when x might change.
-      /*String*/ x;
+      /*String*/
+      x;
     }
   }
 
   int y = (x = 0);
   if (x is String) {
-    /*String*/ x;
+    /*String*/
+    x;
   }
   f();
 }

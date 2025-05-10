@@ -6,7 +6,10 @@ class Helper {
   const Helper(a);
 }
 
-@Helper("a" "b")
+@Helper(
+  "a"
+  "b",
+)
 /*member: adjacentStrings1:
 resolved=AdjacentStringLiterals(
     StringLiteral('a')
@@ -14,7 +17,11 @@ resolved=AdjacentStringLiterals(
 evaluate=StringLiteral('ab')*/
 void adjacentStrings1() {}
 
-@Helper("a" "b" "c")
+@Helper(
+  "a"
+  "b"
+  "c",
+)
 /*member: adjacentStrings2:
 resolved=AdjacentStringLiterals(
     StringLiteral('a')

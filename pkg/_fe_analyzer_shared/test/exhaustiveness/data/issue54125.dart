@@ -18,8 +18,7 @@ void test1() {
    checkingOrder={Object?,Object,Null},
    subtypes={Object,Null},
    type=Object?
-  */
-      switch (json['someKey']) {
+  */ switch (json['someKey']) {
     final bool value /*space=bool*/ => MyModelExpectingABoolean(value),
     final value as String /*space=()*/ => MyModelExpectingAString(value),
   };
@@ -31,8 +30,7 @@ void test2() {
    checkingOrder={Object?,Object,Null},
    subtypes={Object,Null},
    type=Object?
-  */
-      switch (json['someKey']) {
+  */ switch (json['someKey']) {
     final bool value /*space=bool*/ => MyModelExpectingABoolean(value),
     _ as String /*space=()*/ => MyModelExpectingAString(''),
   };

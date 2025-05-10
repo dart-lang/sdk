@@ -22,9 +22,11 @@ resolved=ConditionalExpression(
     : IntegerLiteral(1))*/
 void conditional1() {}
 
-@Helper(bool.fromEnvironment('foo', defaultValue: true)
-    ? const String.fromEnvironment('bar', defaultValue: 'baz')
-    : int.fromEnvironment('boz', defaultValue: 42))
+@Helper(
+  bool.fromEnvironment('foo', defaultValue: true)
+      ? const String.fromEnvironment('bar', defaultValue: 'baz')
+      : int.fromEnvironment('boz', defaultValue: 42),
+)
 /*member: conditional2:
 unresolved=UnresolvedExpression(UnresolvedInvoke(
   UnresolvedIdentifier(Helper)

@@ -7,7 +7,8 @@ for_body(bool c) {
   for (; c;) {
     v = 0;
   }
-  /*unassigned*/ v;
+  /*unassigned*/
+  v;
 }
 
 for_break(bool c) {
@@ -17,8 +18,10 @@ for_break(bool c) {
     if (c) break;
     v2 = 0;
   }
-  /*unassigned*/ v1;
-  /*unassigned*/ v2;
+  /*unassigned*/
+  v1;
+  /*unassigned*/
+  v2;
 }
 
 for_break_updaters(bool c) {
@@ -45,8 +48,10 @@ for_continue(bool c) {
     if (c) continue;
     v2 = 0;
   }
-  /*unassigned*/ v1;
-  /*unassigned*/ v2;
+  /*unassigned*/
+  v1;
+  /*unassigned*/
+  v2;
 }
 
 for_continue_updaters(bool c) {
@@ -60,7 +65,7 @@ for_continue_updaters(bool c) {
 
 for_initializer_expression() {
   late int v;
-  for (v = 0;;) {
+  for (v = 0; ;) {
     v;
   }
   v;
@@ -68,7 +73,7 @@ for_initializer_expression() {
 
 for_initializer_variable() {
   late int v;
-  for (var t = (v = 0);;) {
+  for (var t = (v = 0); ;) {
     v;
   }
   v;
@@ -77,9 +82,11 @@ for_initializer_variable() {
 for_updaters(bool c) {
   late int v1, v2, v3, v4;
   for (; c; v1 = 0, v2 = 0, v3 = 0, /*unassigned*/ v4) {
-    /*unassigned*/ v1;
+    /*unassigned*/
+    v1;
   }
-  /*unassigned*/ v2;
+  /*unassigned*/
+  v2;
 }
 
 for_updaters_afterBody(bool c) {
@@ -92,7 +99,8 @@ for_updaters_afterBody(bool c) {
 collection_for_body(bool c) {
   late int v;
   [for (; c;) (v = 0)];
-  /*unassigned*/ v;
+  /*unassigned*/
+  v;
 }
 
 collection_for_condition() {
@@ -103,20 +111,21 @@ collection_for_condition() {
 
 collection_for_initializer_expression() {
   late int v;
-  [for (v = 0;;) v];
+  [for (v = 0; ;) v];
   v;
 }
 
 collection_for_initializer_variable() {
   late int v;
-  [for (var t = (v = 0);;) v];
+  [for (var t = (v = 0); ;) v];
   v;
 }
 
 collection_for_updaters(bool c) {
   late int v1, v2, v3, v4;
-  [for (; c; v1 = 0, v2 = 0, v3 = 0, /*unassigned*/ v4) /*unassigned*/ v1 ];
-  /*unassigned*/ v2;
+  [for (; c; v1 = 0, v2 = 0, v3 = 0, /*unassigned*/ v4) /*unassigned*/ v1];
+  /*unassigned*/
+  v2;
 }
 
 collection_for_updaters_afterBody(bool c) {

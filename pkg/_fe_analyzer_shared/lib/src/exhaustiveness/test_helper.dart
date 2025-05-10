@@ -31,8 +31,11 @@ String spacesToText(Space space) {
 }
 
 /// Returns a textual representation for [fieldsOfInterest] used for testing.
-String fieldsToText(StaticType type, ObjectPropertyLookup objectFieldLookup,
-    Set<Key> fieldsOfInterest) {
+String fieldsToText(
+  StaticType type,
+  ObjectPropertyLookup objectFieldLookup,
+  Set<Key> fieldsOfInterest,
+) {
   List<Key> sortedNames = fieldsOfInterest.toList()..sort();
   StringBuffer sb = new StringBuffer();
   String comma = '';

@@ -8,10 +8,7 @@ emptyBool(bool b) {
    error=non-exhaustive:true;false,
    subtypes={true,false},
    type=bool
-  */
-      switch (b) {
-    
-  };
+  */ switch (b) {};
 }
 
 emptyNum(num n) {
@@ -20,20 +17,14 @@ emptyNum(num n) {
    error=non-exhaustive:double();int(),
    subtypes={double,int},
    type=num
-  */
-      switch (n) {
-    
-  };
+  */ switch (n) {};
 }
 
 emptyInt(int i) {
   return /*
    error=non-exhaustive:int(),
    type=int
-  */
-      switch (i) {
-    
-  };
+  */ switch (i) {};
 }
 
 enum E { a, b }
@@ -44,10 +35,7 @@ emptyEnum(E e) {
    error=non-exhaustive:E.a;E.b,
    subtypes={E.a,E.b},
    type=E
-  */
-      switch (e) {
-    
-  };
+  */ switch (e) {};
 }
 
 sealed class Empty {}
@@ -56,22 +44,16 @@ emptySealed(Empty empty) => /*
  checkingOrder={Empty},
  type=Empty
 */
-    switch (empty) {
-      
-    };
+    switch (empty) {};
 
-emptyNever(Never never) => /*type=Never*/ switch (never) {  };
+emptyNever(Never never) => /*type=Never*/ switch (never) {};
 
 emptyUnresolved(
-        Unresolved
-            unresolved) => /*cfe.type=Never*/ /*analyzer.type=InvalidType*/
-    switch (unresolved) {
-      
-    };
+  Unresolved unresolved,
+) => /*cfe.type=Never*/ /*analyzer.type=InvalidType*/ switch (unresolved) {};
 
 nonEmptyUnresolved(
-        Unresolved
-            unresolved) => /*cfe.type=Never*/ /*analyzer.type=InvalidType*/
-    switch (unresolved) {
-      _ /*cfe.space=∅*/ /*analyzer.space=InvalidType*/ => 0,
-    };
+  Unresolved unresolved,
+) => /*cfe.type=Never*/ /*analyzer.type=InvalidType*/ switch (unresolved) {
+  _ /*cfe.space=∅*/ /*analyzer.space=InvalidType*/ => 0,
+};

@@ -10,7 +10,8 @@ void outerIsType_assignedInCase(int e, Object x) {
         x;
         break;
       case 2: // no label
-        /*String*/ x;
+        /*String*/
+        x;
         break;
       case 3:
         x = 42;
@@ -24,7 +25,8 @@ void case_falls_through_end(int i, Object o) {
   switch (i) {
     case 1:
       if (o is! int) return;
-      /*int*/ o;
+      /*int*/
+      o;
       break;
     case 2:
       o;

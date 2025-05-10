@@ -6,14 +6,18 @@ void if_joinThenElse_ifNull(int? a, int? b) {
   if (a == null) {
     a;
     if (b == null) return;
-    /*nonNullable*/ b;
+    /*nonNullable*/
+    b;
   } else {
-    /*nonNullable*/ a;
+    /*nonNullable*/
+    a;
     if (b == null) return;
-    /*nonNullable*/ b;
+    /*nonNullable*/
+    b;
   }
   a;
-  /*nonNullable*/ b;
+  /*nonNullable*/
+  b;
 }
 
 void if_notNull_thenExit_left(int? x) {
@@ -28,19 +32,22 @@ void if_notNull_thenExit_right(int? x) {
 
 void if_null_thenExit_left(int? x) {
   if (null == x) return;
-  /*nonNullable*/ x;
+  /*nonNullable*/
+  x;
 }
 
 void if_null_thenExit_right(int? x) {
   if (x == null) return;
-  /*nonNullable*/ x;
+  /*nonNullable*/
+  x;
 }
 
 void if_then_else(int? x) {
   if (x == null) {
     x;
   } else {
-    /*nonNullable*/ x;
+    /*nonNullable*/
+    x;
   }
 }
 
@@ -48,7 +55,8 @@ void if_then_elseNullableTypeVariableWithNonNullableBound<T extends int>(T? x) {
   if (x == null) {
     x;
   } else {
-    /*nonNullable*/ x;
+    /*nonNullable*/
+    x;
   }
 }
 
@@ -56,7 +64,8 @@ void if_then_elseTypeVariableWithNullableBound<T extends int?>(T x) {
   if (x == null) {
     x;
   } else {
-    /*nonNullable*/ x;
+    /*nonNullable*/
+    x;
   }
 }
 
@@ -65,7 +74,8 @@ class C {
     if (x == null) {
       x;
     } else {
-      /*nonNullable*/ x;
+      /*nonNullable*/
+      x;
     }
   }
 
@@ -73,7 +83,8 @@ class C {
     if (x == null) {
       x;
     } else {
-      /*nonNullable*/ x;
+      /*nonNullable*/
+      x;
     }
   }
 }

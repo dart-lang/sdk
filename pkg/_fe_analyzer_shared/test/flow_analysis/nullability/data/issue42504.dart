@@ -15,10 +15,12 @@ abstract class Foo {
       return /*nonNullable*/ result;
     }
     result = loader();
-    /*nonNullable*/ result;
+    /*nonNullable*/
+    result;
     try {
       result = loader();
-      /*nonNullable*/ result;
+      /*nonNullable*/
+      result;
     } catch (error) {
       return null;
     }

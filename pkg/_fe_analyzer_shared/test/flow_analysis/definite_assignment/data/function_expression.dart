@@ -9,7 +9,8 @@ closure_read() {
 
   [0, 1, 2].forEach((t) {
     v1;
-    /*unassigned*/ v2;
+    /*unassigned*/
+    v2;
   });
 }
 
@@ -20,7 +21,8 @@ closure_write() {
     v = t;
   });
 
-  /*unassigned*/ v;
+  /*unassigned*/
+  v;
 }
 
 localFunction_local() {
@@ -30,7 +32,8 @@ localFunction_local() {
 
   void f() {
     late int v;
-    /*unassigned*/ v;
+    /*unassigned*/
+    v;
   }
 }
 
@@ -44,7 +47,8 @@ localFunction_local2() {
     v2 = 0;
     v1;
     v2;
-    /*unassigned*/ v3;
+    /*unassigned*/
+    v3;
   }
 }
 
@@ -55,7 +59,8 @@ localFunction_read() {
 
   void f() {
     v1;
-    /*unassigned*/ v2;
+    /*unassigned*/
+    v2;
   }
 
   v2 = 0;
@@ -68,5 +73,6 @@ localFunction_write() {
     v = 0;
   }
 
-  /*unassigned*/ v;
+  /*unassigned*/
+  v;
 }

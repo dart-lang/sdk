@@ -110,16 +110,28 @@ class PropertyWitness {
           Map<Key, PropertyWitness> witnessFields = entry.value;
           buffer.write(and);
           and = ' && ';
-          type.witnessToDart(buffer, this, witnessFields,
-              forCorrection: forCorrection);
+          type.witnessToDart(
+            buffer,
+            this,
+            witnessFields,
+            forCorrection: forCorrection,
+          );
         }
       } else {
-        valueType.witnessToDart(buffer, this, const {},
-            forCorrection: forCorrection);
+        valueType.witnessToDart(
+          buffer,
+          this,
+          const {},
+          forCorrection: forCorrection,
+        );
       }
     } else {
-      valueType.witnessToDart(buffer, this, const {},
-          forCorrection: forCorrection);
+      valueType.witnessToDart(
+        buffer,
+        this,
+        const {},
+        forCorrection: forCorrection,
+      );
     }
   }
 

@@ -14,7 +14,8 @@ case1_default(int e) {
     default:
       v = 0;
   }
-  /*unassigned*/ v;
+  /*unassigned*/
+  v;
 }
 
 case2_default(int e) {
@@ -30,7 +31,8 @@ case2_default(int e) {
       v1;
   }
   v1;
-  /*unassigned*/ v2;
+  /*unassigned*/
+  v2;
 }
 
 case_default_break(int e, bool c) {
@@ -47,7 +49,8 @@ case_default_break(int e, bool c) {
       v2 = 0;
   }
   v1;
-  /*unassigned*/ v2;
+  /*unassigned*/
+  v2;
 }
 
 case_default_continue(int e) {
@@ -72,12 +75,12 @@ case_noDefault(int e) {
       v = 0;
       break;
   }
-  /*unassigned*/ v;
+  /*unassigned*/
+  v;
 }
 
 condition() {
   late int v;
-  switch (v = 0) {
-  }
+  switch (v = 0) {}
   v;
 }

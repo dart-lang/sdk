@@ -134,7 +134,10 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void endInvalidAwaitExpression(
-      Token beginToken, Token endToken, MessageCode errorCode) {
+    Token beginToken,
+    Token endToken,
+    MessageCode errorCode,
+  ) {
     InvalidAwaitExpressionEnd data = new InvalidAwaitExpressionEnd(
         ParserAstType.END,
         beginToken: beginToken,
@@ -152,7 +155,11 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void endBlock(
-      int count, Token beginToken, Token endToken, BlockKind blockKind) {
+    int count,
+    Token beginToken,
+    Token endToken,
+    BlockKind blockKind,
+  ) {
     BlockEnd data = new BlockEnd(ParserAstType.END,
         count: count,
         beginToken: beginToken,
@@ -204,7 +211,11 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void endClassOrMixinOrExtensionBody(
-      DeclarationKind kind, int memberCount, Token beginToken, Token endToken) {
+    DeclarationKind kind,
+    int memberCount,
+    Token beginToken,
+    Token endToken,
+  ) {
     ClassOrMixinOrExtensionBodyEnd data = new ClassOrMixinOrExtensionBodyEnd(
         ParserAstType.END,
         kind: kind,
@@ -224,16 +235,17 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void beginClassDeclaration(
-      Token begin,
-      Token? abstractToken,
-      Token? macroToken,
-      Token? sealedToken,
-      Token? baseToken,
-      Token? interfaceToken,
-      Token? finalToken,
-      Token? augmentToken,
-      Token? mixinToken,
-      Token name) {
+    Token begin,
+    Token? abstractToken,
+    Token? macroToken,
+    Token? sealedToken,
+    Token? baseToken,
+    Token? interfaceToken,
+    Token? finalToken,
+    Token? augmentToken,
+    Token? mixinToken,
+    Token name,
+  ) {
     ClassDeclarationBegin data = new ClassDeclarationBegin(ParserAstType.BEGIN,
         begin: begin,
         abstractToken: abstractToken,
@@ -284,8 +296,13 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void beginMixinDeclaration(Token beginToken, Token? augmentToken,
-      Token? baseToken, Token mixinKeyword, Token name) {
+  void beginMixinDeclaration(
+    Token beginToken,
+    Token? augmentToken,
+    Token? baseToken,
+    Token mixinKeyword,
+    Token name,
+  ) {
     MixinDeclarationBegin data = new MixinDeclarationBegin(ParserAstType.BEGIN,
         beginToken: beginToken,
         augmentToken: augmentToken,
@@ -341,7 +358,10 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void beginExtensionDeclaration(
-      Token? augmentToken, Token extensionKeyword, Token? name) {
+    Token? augmentToken,
+    Token extensionKeyword,
+    Token? name,
+  ) {
     ExtensionDeclarationBegin data = new ExtensionDeclarationBegin(
         ParserAstType.BEGIN,
         augmentToken: augmentToken,
@@ -351,8 +371,12 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endExtensionDeclaration(Token beginToken, Token extensionKeyword,
-      Token? onKeyword, Token endToken) {
+  void endExtensionDeclaration(
+    Token beginToken,
+    Token extensionKeyword,
+    Token? onKeyword,
+    Token endToken,
+  ) {
     ExtensionDeclarationEnd data = new ExtensionDeclarationEnd(
         ParserAstType.END,
         beginToken: beginToken,
@@ -364,7 +388,10 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void beginExtensionTypeDeclaration(
-      Token? augmentKeyword, Token extensionKeyword, Token name) {
+    Token? augmentKeyword,
+    Token extensionKeyword,
+    Token name,
+  ) {
     ExtensionTypeDeclarationBegin data = new ExtensionTypeDeclarationBegin(
         ParserAstType.BEGIN,
         augmentKeyword: augmentKeyword,
@@ -374,8 +401,13 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endExtensionTypeDeclaration(Token beginToken, Token? augmentToken,
-      Token extensionKeyword, Token typeKeyword, Token endToken) {
+  void endExtensionTypeDeclaration(
+    Token beginToken,
+    Token? augmentToken,
+    Token extensionKeyword,
+    Token typeKeyword,
+    Token endToken,
+  ) {
     ExtensionTypeDeclarationEnd data = new ExtensionTypeDeclarationEnd(
         ParserAstType.END,
         beginToken: beginToken,
@@ -396,7 +428,10 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void endPrimaryConstructor(
-      Token beginToken, Token? constKeyword, bool hasConstructorName) {
+    Token beginToken,
+    Token? constKeyword,
+    bool hasConstructorName,
+  ) {
     PrimaryConstructorEnd data = new PrimaryConstructorEnd(ParserAstType.END,
         beginToken: beginToken,
         constKeyword: constKeyword,
@@ -468,8 +503,12 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endConstructorReference(Token start, Token? periodBeforeName,
-      Token endToken, ConstructorReferenceContext constructorReferenceContext) {
+  void endConstructorReference(
+    Token start,
+    Token? periodBeforeName,
+    Token endToken,
+    ConstructorReferenceContext constructorReferenceContext,
+  ) {
     ConstructorReferenceEnd data = new ConstructorReferenceEnd(
         ParserAstType.END,
         start: start,
@@ -488,7 +527,10 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void endDoWhileStatement(
-      Token doKeyword, Token whileKeyword, Token endToken) {
+    Token doKeyword,
+    Token whileKeyword,
+    Token endToken,
+  ) {
     DoWhileStatementEnd data = new DoWhileStatementEnd(ParserAstType.END,
         doKeyword: doKeyword, whileKeyword: whileKeyword, endToken: endToken);
     seen(data);
@@ -530,8 +572,13 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endEnum(Token beginToken, Token enumKeyword, Token leftBrace,
-      int memberCount, Token endToken) {
+  void endEnum(
+    Token beginToken,
+    Token enumKeyword,
+    Token leftBrace,
+    int memberCount,
+    Token endToken,
+  ) {
     EnumEnd data = new EnumEnd(ParserAstType.END,
         beginToken: beginToken,
         enumKeyword: enumKeyword,
@@ -542,8 +589,13 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endEnumConstructor(Token? getOrSet, Token beginToken, Token beginParam,
-      Token? beginInitializers, Token endToken) {
+  void endEnumConstructor(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
     EnumConstructorEnd data = new EnumConstructorEnd(ParserAstType.END,
         getOrSet: getOrSet,
         beginToken: beginToken,
@@ -562,7 +614,10 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void handleEnumHeader(
-      Token? augmentToken, Token enumKeyword, Token leftBrace) {
+    Token? augmentToken,
+    Token enumKeyword,
+    Token leftBrace,
+  ) {
     EnumHeaderHandle data = new EnumHeaderHandle(ParserAstType.HANDLE,
         augmentToken: augmentToken,
         enumKeyword: enumKeyword,
@@ -579,7 +634,10 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void endEnumFactoryMethod(
-      Token beginToken, Token factoryKeyword, Token endToken) {
+    Token beginToken,
+    Token factoryKeyword,
+    Token endToken,
+  ) {
     EnumFactoryMethodEnd data = new EnumFactoryMethodEnd(ParserAstType.END,
         beginToken: beginToken,
         factoryKeyword: factoryKeyword,
@@ -619,8 +677,12 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void beginFactoryMethod(DeclarationKind declarationKind, Token lastConsumed,
-      Token? externalToken, Token? constToken) {
+  void beginFactoryMethod(
+    DeclarationKind declarationKind,
+    Token lastConsumed,
+    Token? externalToken,
+    Token? constToken,
+  ) {
     FactoryMethodBegin data = new FactoryMethodBegin(ParserAstType.BEGIN,
         declarationKind: declarationKind,
         lastConsumed: lastConsumed,
@@ -631,7 +693,10 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void endClassFactoryMethod(
-      Token beginToken, Token factoryKeyword, Token endToken) {
+    Token beginToken,
+    Token factoryKeyword,
+    Token endToken,
+  ) {
     ClassFactoryMethodEnd data = new ClassFactoryMethodEnd(ParserAstType.END,
         beginToken: beginToken,
         factoryKeyword: factoryKeyword,
@@ -641,7 +706,10 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void endMixinFactoryMethod(
-      Token beginToken, Token factoryKeyword, Token endToken) {
+    Token beginToken,
+    Token factoryKeyword,
+    Token endToken,
+  ) {
     MixinFactoryMethodEnd data = new MixinFactoryMethodEnd(ParserAstType.END,
         beginToken: beginToken,
         factoryKeyword: factoryKeyword,
@@ -651,7 +719,10 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void endExtensionFactoryMethod(
-      Token beginToken, Token factoryKeyword, Token endToken) {
+    Token beginToken,
+    Token factoryKeyword,
+    Token endToken,
+  ) {
     ExtensionFactoryMethodEnd data = new ExtensionFactoryMethodEnd(
         ParserAstType.END,
         beginToken: beginToken,
@@ -662,7 +733,10 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void endExtensionTypeFactoryMethod(
-      Token beginToken, Token factoryKeyword, Token endToken) {
+    Token beginToken,
+    Token factoryKeyword,
+    Token endToken,
+  ) {
     ExtensionTypeFactoryMethodEnd data = new ExtensionTypeFactoryMethodEnd(
         ParserAstType.END,
         beginToken: beginToken,
@@ -672,8 +746,13 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void beginFormalParameter(Token token, MemberKind kind, Token? requiredToken,
-      Token? covariantToken, Token? varFinalOrConst) {
+  void beginFormalParameter(
+    Token token,
+    MemberKind kind,
+    Token? requiredToken,
+    Token? covariantToken,
+    Token? varFinalOrConst,
+  ) {
     FormalParameterBegin data = new FormalParameterBegin(ParserAstType.BEGIN,
         token: token,
         kind: kind,
@@ -685,14 +764,15 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void endFormalParameter(
-      Token? thisKeyword,
-      Token? superKeyword,
-      Token? periodAfterThisOrSuper,
-      Token nameToken,
-      Token? initializerStart,
-      Token? initializerEnd,
-      FormalParameterKind kind,
-      MemberKind memberKind) {
+    Token? thisKeyword,
+    Token? superKeyword,
+    Token? periodAfterThisOrSuper,
+    Token nameToken,
+    Token? initializerStart,
+    Token? initializerEnd,
+    FormalParameterKind kind,
+    MemberKind memberKind,
+  ) {
     FormalParameterEnd data = new FormalParameterEnd(ParserAstType.END,
         thisKeyword: thisKeyword,
         superKeyword: superKeyword,
@@ -723,7 +803,11 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void endFormalParameters(
-      int count, Token beginToken, Token endToken, MemberKind kind) {
+    int count,
+    Token beginToken,
+    Token endToken,
+    MemberKind kind,
+  ) {
     FormalParametersEnd data = new FormalParametersEnd(ParserAstType.END,
         count: count, beginToken: beginToken, endToken: endToken, kind: kind);
     seen(data);
@@ -731,16 +815,17 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void endClassFields(
-      Token? abstractToken,
-      Token? augmentToken,
-      Token? externalToken,
-      Token? staticToken,
-      Token? covariantToken,
-      Token? lateToken,
-      Token? varFinalOrConst,
-      int count,
-      Token beginToken,
-      Token endToken) {
+    Token? abstractToken,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? lateToken,
+    Token? varFinalOrConst,
+    int count,
+    Token beginToken,
+    Token endToken,
+  ) {
     ClassFieldsEnd data = new ClassFieldsEnd(ParserAstType.END,
         abstractToken: abstractToken,
         augmentToken: augmentToken,
@@ -757,16 +842,17 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void endMixinFields(
-      Token? abstractToken,
-      Token? augmentToken,
-      Token? externalToken,
-      Token? staticToken,
-      Token? covariantToken,
-      Token? lateToken,
-      Token? varFinalOrConst,
-      int count,
-      Token beginToken,
-      Token endToken) {
+    Token? abstractToken,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? lateToken,
+    Token? varFinalOrConst,
+    int count,
+    Token beginToken,
+    Token endToken,
+  ) {
     MixinFieldsEnd data = new MixinFieldsEnd(ParserAstType.END,
         abstractToken: abstractToken,
         augmentToken: augmentToken,
@@ -783,16 +869,17 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void endExtensionFields(
-      Token? abstractToken,
-      Token? augmentToken,
-      Token? externalToken,
-      Token? staticToken,
-      Token? covariantToken,
-      Token? lateToken,
-      Token? varFinalOrConst,
-      int count,
-      Token beginToken,
-      Token endToken) {
+    Token? abstractToken,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? lateToken,
+    Token? varFinalOrConst,
+    int count,
+    Token beginToken,
+    Token endToken,
+  ) {
     ExtensionFieldsEnd data = new ExtensionFieldsEnd(ParserAstType.END,
         abstractToken: abstractToken,
         augmentToken: augmentToken,
@@ -809,16 +896,17 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void endExtensionTypeFields(
-      Token? abstractToken,
-      Token? augmentToken,
-      Token? externalToken,
-      Token? staticToken,
-      Token? covariantToken,
-      Token? lateToken,
-      Token? varFinalOrConst,
-      int count,
-      Token beginToken,
-      Token endToken) {
+    Token? abstractToken,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? lateToken,
+    Token? varFinalOrConst,
+    int count,
+    Token beginToken,
+    Token endToken,
+  ) {
     ExtensionTypeFieldsEnd data = new ExtensionTypeFieldsEnd(ParserAstType.END,
         abstractToken: abstractToken,
         augmentToken: augmentToken,
@@ -835,16 +923,17 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void endEnumFields(
-      Token? abstractToken,
-      Token? augmentToken,
-      Token? externalToken,
-      Token? staticToken,
-      Token? covariantToken,
-      Token? lateToken,
-      Token? varFinalOrConst,
-      int count,
-      Token beginToken,
-      Token endToken) {
+    Token? abstractToken,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? lateToken,
+    Token? varFinalOrConst,
+    int count,
+    Token beginToken,
+    Token endToken,
+  ) {
     EnumFieldsEnd data = new EnumFieldsEnd(ParserAstType.END,
         abstractToken: abstractToken,
         augmentToken: augmentToken,
@@ -860,8 +949,13 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endEnumMethod(Token? getOrSet, Token beginToken, Token beginParam,
-      Token? beginInitializers, Token endToken) {
+  void endEnumMethod(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
     EnumMethodEnd data = new EnumMethodEnd(ParserAstType.END,
         getOrSet: getOrSet,
         beginToken: beginToken,
@@ -897,7 +991,9 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void handleForInitializerPatternVariableAssignment(
-      Token keyword, Token equals) {
+    Token keyword,
+    Token equals,
+  ) {
     ForInitializerPatternVariableAssignmentHandle data =
         new ForInitializerPatternVariableAssignmentHandle(ParserAstType.HANDLE,
             keyword: keyword, equals: equals);
@@ -912,8 +1008,13 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void handleForLoopParts(Token forKeyword, Token leftParen,
-      Token leftSeparator, Token rightSeparator, int updateExpressionCount) {
+  void handleForLoopParts(
+    Token forKeyword,
+    Token leftParen,
+    Token leftSeparator,
+    Token rightSeparator,
+    int updateExpressionCount,
+  ) {
     ForLoopPartsHandle data = new ForLoopPartsHandle(ParserAstType.HANDLE,
         forKeyword: forKeyword,
         leftParen: leftParen,
@@ -945,8 +1046,13 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void handleForInLoopParts(Token? awaitToken, Token forToken,
-      Token leftParenthesis, Token? patternKeyword, Token inKeyword) {
+  void handleForInLoopParts(
+    Token? awaitToken,
+    Token forToken,
+    Token leftParenthesis,
+    Token? patternKeyword,
+    Token inKeyword,
+  ) {
     ForInLoopPartsHandle data = new ForInLoopPartsHandle(ParserAstType.HANDLE,
         awaitToken: awaitToken,
         forToken: forToken,
@@ -1055,7 +1161,10 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void endFunctionName(
-      Token beginToken, Token token, bool isFunctionExpression) {
+    Token beginToken,
+    Token token,
+    bool isFunctionExpression,
+  ) {
     FunctionNameEnd data = new FunctionNameEnd(ParserAstType.END,
         beginToken: beginToken,
         token: token,
@@ -1070,8 +1179,12 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endTypedef(Token? augmentToken, Token typedefKeyword, Token? equals,
-      Token endToken) {
+  void endTypedef(
+    Token? augmentToken,
+    Token typedefKeyword,
+    Token? equals,
+    Token endToken,
+  ) {
     TypedefEnd data = new TypedefEnd(ParserAstType.END,
         augmentToken: augmentToken,
         typedefKeyword: typedefKeyword,
@@ -1117,16 +1230,17 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void beginNamedMixinApplication(
-      Token beginToken,
-      Token? abstractToken,
-      Token? macroToken,
-      Token? sealedToken,
-      Token? baseToken,
-      Token? interfaceToken,
-      Token? finalToken,
-      Token? augmentToken,
-      Token? mixinToken,
-      Token name) {
+    Token beginToken,
+    Token? abstractToken,
+    Token? macroToken,
+    Token? sealedToken,
+    Token? baseToken,
+    Token? interfaceToken,
+    Token? finalToken,
+    Token? augmentToken,
+    Token? mixinToken,
+    Token name,
+  ) {
     NamedMixinApplicationBegin data = new NamedMixinApplicationBegin(
         ParserAstType.BEGIN,
         beginToken: beginToken,
@@ -1151,8 +1265,13 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endNamedMixinApplication(Token begin, Token classKeyword, Token equals,
-      Token? implementsKeyword, Token endToken) {
+  void endNamedMixinApplication(
+    Token begin,
+    Token classKeyword,
+    Token equals,
+    Token? implementsKeyword,
+    Token endToken,
+  ) {
     NamedMixinApplicationEnd data = new NamedMixinApplicationEnd(
         ParserAstType.END,
         begin: begin,
@@ -1460,7 +1579,10 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void endLibraryAugmentation(
-      Token augmentKeyword, Token libraryKeyword, Token semicolon) {
+    Token augmentKeyword,
+    Token libraryKeyword,
+    Token semicolon,
+  ) {
     LibraryAugmentationEnd data = new LibraryAugmentationEnd(ParserAstType.END,
         augmentKeyword: augmentKeyword,
         libraryKeyword: libraryKeyword,
@@ -1483,8 +1605,12 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void handleLiteralMapEntry(Token colon, Token endToken,
-      {Token? nullAwareKeyToken, Token? nullAwareValueToken}) {
+  void handleLiteralMapEntry(
+    Token colon,
+    Token endToken, {
+    Token? nullAwareKeyToken,
+    Token? nullAwareValueToken,
+  }) {
     LiteralMapEntryHandle data = new LiteralMapEntryHandle(ParserAstType.HANDLE,
         colon: colon,
         endToken: endToken,
@@ -1553,15 +1679,16 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void beginMethod(
-      DeclarationKind declarationKind,
-      Token? augmentToken,
-      Token? externalToken,
-      Token? staticToken,
-      Token? covariantToken,
-      Token? varFinalOrConst,
-      Token? getOrSet,
-      Token name,
-      String? enclosingDeclarationName) {
+    DeclarationKind declarationKind,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? varFinalOrConst,
+    Token? getOrSet,
+    Token name,
+    String? enclosingDeclarationName,
+  ) {
     MethodBegin data = new MethodBegin(ParserAstType.BEGIN,
         declarationKind: declarationKind,
         augmentToken: augmentToken,
@@ -1576,8 +1703,13 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endClassMethod(Token? getOrSet, Token beginToken, Token beginParam,
-      Token? beginInitializers, Token endToken) {
+  void endClassMethod(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
     ClassMethodEnd data = new ClassMethodEnd(ParserAstType.END,
         getOrSet: getOrSet,
         beginToken: beginToken,
@@ -1588,8 +1720,13 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endMixinMethod(Token? getOrSet, Token beginToken, Token beginParam,
-      Token? beginInitializers, Token endToken) {
+  void endMixinMethod(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
     MixinMethodEnd data = new MixinMethodEnd(ParserAstType.END,
         getOrSet: getOrSet,
         beginToken: beginToken,
@@ -1600,8 +1737,13 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endExtensionMethod(Token? getOrSet, Token beginToken, Token beginParam,
-      Token? beginInitializers, Token endToken) {
+  void endExtensionMethod(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
     ExtensionMethodEnd data = new ExtensionMethodEnd(ParserAstType.END,
         getOrSet: getOrSet,
         beginToken: beginToken,
@@ -1612,8 +1754,13 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endExtensionTypeMethod(Token? getOrSet, Token beginToken,
-      Token beginParam, Token? beginInitializers, Token endToken) {
+  void endExtensionTypeMethod(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
     ExtensionTypeMethodEnd data = new ExtensionTypeMethodEnd(ParserAstType.END,
         getOrSet: getOrSet,
         beginToken: beginToken,
@@ -1624,8 +1771,13 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endClassConstructor(Token? getOrSet, Token beginToken, Token beginParam,
-      Token? beginInitializers, Token endToken) {
+  void endClassConstructor(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
     ClassConstructorEnd data = new ClassConstructorEnd(ParserAstType.END,
         getOrSet: getOrSet,
         beginToken: beginToken,
@@ -1636,8 +1788,13 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endMixinConstructor(Token? getOrSet, Token beginToken, Token beginParam,
-      Token? beginInitializers, Token endToken) {
+  void endMixinConstructor(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
     MixinConstructorEnd data = new MixinConstructorEnd(ParserAstType.END,
         getOrSet: getOrSet,
         beginToken: beginToken,
@@ -1648,8 +1805,13 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endExtensionConstructor(Token? getOrSet, Token beginToken,
-      Token beginParam, Token? beginInitializers, Token endToken) {
+  void endExtensionConstructor(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
     ExtensionConstructorEnd data = new ExtensionConstructorEnd(
         ParserAstType.END,
         getOrSet: getOrSet,
@@ -1661,8 +1823,13 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endExtensionTypeConstructor(Token? getOrSet, Token beginToken,
-      Token beginParam, Token? beginInitializers, Token endToken) {
+  void endExtensionTypeConstructor(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
     ExtensionTypeConstructorEnd data = new ExtensionTypeConstructorEnd(
         ParserAstType.END,
         getOrSet: getOrSet,
@@ -1710,7 +1877,11 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void endOptionalFormalParameters(
-      int count, Token beginToken, Token endToken, MemberKind kind) {
+    int count,
+    Token beginToken,
+    Token endToken,
+    MemberKind kind,
+  ) {
     OptionalFormalParametersEnd data = new OptionalFormalParametersEnd(
         ParserAstType.END,
         count: count,
@@ -1741,7 +1912,11 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void endPartOf(
-      Token partKeyword, Token ofKeyword, Token semicolon, bool hasName) {
+    Token partKeyword,
+    Token ofKeyword,
+    Token semicolon,
+    bool hasName,
+  ) {
     PartOfEnd data = new PartOfEnd(ParserAstType.END,
         partKeyword: partKeyword,
         ofKeyword: ofKeyword,
@@ -1818,7 +1993,10 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void endReturnStatement(
-      bool hasExpression, Token beginToken, Token endToken) {
+    bool hasExpression,
+    Token beginToken,
+    Token endToken,
+  ) {
     ReturnStatementEnd data = new ReturnStatementEnd(ParserAstType.END,
         hasExpression: hasExpression,
         beginToken: beginToken,
@@ -1897,7 +2075,10 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void endSwitchExpressionBlock(
-      int caseCount, Token beginToken, Token endToken) {
+    int caseCount,
+    Token beginToken,
+    Token endToken,
+  ) {
     SwitchExpressionBlockEnd data = new SwitchExpressionBlockEnd(
         ParserAstType.END,
         caseCount: caseCount,
@@ -1965,15 +2146,16 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void beginFields(
-      DeclarationKind declarationKind,
-      Token? abstractToken,
-      Token? augmentToken,
-      Token? externalToken,
-      Token? staticToken,
-      Token? covariantToken,
-      Token? lateToken,
-      Token? varFinalOrConst,
-      Token lastConsumed) {
+    DeclarationKind declarationKind,
+    Token? abstractToken,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? lateToken,
+    Token? varFinalOrConst,
+    Token lastConsumed,
+  ) {
     FieldsBegin data = new FieldsBegin(ParserAstType.BEGIN,
         declarationKind: declarationKind,
         abstractToken: abstractToken,
@@ -1989,15 +2171,16 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void endTopLevelFields(
-      Token? augmentToken,
-      Token? externalToken,
-      Token? staticToken,
-      Token? covariantToken,
-      Token? lateToken,
-      Token? varFinalOrConst,
-      int count,
-      Token beginToken,
-      Token endToken) {
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? lateToken,
+    Token? varFinalOrConst,
+    int count,
+    Token beginToken,
+    Token endToken,
+  ) {
     TopLevelFieldsEnd data = new TopLevelFieldsEnd(ParserAstType.END,
         augmentToken: augmentToken,
         externalToken: externalToken,
@@ -2013,7 +2196,10 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void beginTopLevelMethod(
-      Token lastConsumed, Token? augmentToken, Token? externalToken) {
+    Token lastConsumed,
+    Token? augmentToken,
+    Token? externalToken,
+  ) {
     TopLevelMethodBegin data = new TopLevelMethodBegin(ParserAstType.BEGIN,
         lastConsumed: lastConsumed,
         augmentToken: augmentToken,
@@ -2064,7 +2250,11 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void endTryStatement(
-      int catchCount, Token tryKeyword, Token? finallyKeyword, Token endToken) {
+    int catchCount,
+    Token tryKeyword,
+    Token? finallyKeyword,
+    Token endToken,
+  ) {
     TryStatementEnd data = new TryStatementEnd(ParserAstType.END,
         catchCount: catchCount,
         tryKeyword: tryKeyword,
@@ -2110,8 +2300,11 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void handleDeclaredVariablePattern(Token? keyword, Token variable,
-      {required bool inAssignmentPattern}) {
+  void handleDeclaredVariablePattern(
+    Token? keyword,
+    Token variable, {
+    required bool inAssignmentPattern,
+  }) {
     DeclaredVariablePatternHandle data = new DeclaredVariablePatternHandle(
         ParserAstType.HANDLE,
         keyword: keyword,
@@ -2142,7 +2335,11 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void endRecordType(
-      Token leftBracket, Token? questionMark, int count, bool hasNamedFields) {
+    Token leftBracket,
+    Token? questionMark,
+    int count,
+    bool hasNamedFields,
+  ) {
     RecordTypeEnd data = new RecordTypeEnd(ParserAstType.END,
         leftBracket: leftBracket,
         questionMark: questionMark,
@@ -2240,7 +2437,11 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void endTypeVariable(
-      Token token, int index, Token? extendsOrSuper, Token? variance) {
+    Token token,
+    int index,
+    Token? extendsOrSuper,
+    Token? variance,
+  ) {
     TypeVariableEnd data = new TypeVariableEnd(ParserAstType.END,
         token: token,
         index: index,
@@ -2279,7 +2480,10 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void beginVariablesDeclaration(
-      Token token, Token? lateToken, Token? varFinalOrConst) {
+    Token token,
+    Token? lateToken,
+    Token? varFinalOrConst,
+  ) {
     VariablesDeclarationBegin data = new VariablesDeclarationBegin(
         ParserAstType.BEGIN,
         token: token,
@@ -2535,7 +2739,10 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void handleIndexedExpression(
-      Token? question, Token openSquareBracket, Token closeSquareBracket) {
+    Token? question,
+    Token openSquareBracket,
+    Token closeSquareBracket,
+  ) {
     IndexedExpressionHandle data = new IndexedExpressionHandle(
         ParserAstType.HANDLE,
         question: question,
@@ -2574,7 +2781,10 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void handleBreakStatement(
-      bool hasTarget, Token breakKeyword, Token endToken) {
+    bool hasTarget,
+    Token breakKeyword,
+    Token endToken,
+  ) {
     BreakStatementHandle data = new BreakStatementHandle(ParserAstType.HANDLE,
         hasTarget: hasTarget, breakKeyword: breakKeyword, endToken: endToken);
     seen(data);
@@ -2582,7 +2792,10 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void handleContinueStatement(
-      bool hasTarget, Token continueKeyword, Token endToken) {
+    bool hasTarget,
+    Token continueKeyword,
+    Token endToken,
+  ) {
     ContinueStatementHandle data = new ContinueStatementHandle(
         ParserAstType.HANDLE,
         hasTarget: hasTarget,
@@ -2606,8 +2819,13 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endAssert(Token assertKeyword, Assert kind, Token leftParenthesis,
-      Token? commaToken, Token endToken) {
+  void endAssert(
+    Token assertKeyword,
+    Assert kind,
+    Token leftParenthesis,
+    Token? commaToken,
+    Token endToken,
+  ) {
     AssertEnd data = new AssertEnd(ParserAstType.END,
         assertKeyword: assertKeyword,
         kind: kind,
@@ -2648,7 +2866,11 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void handleLiteralList(
-      int count, Token leftBracket, Token? constKeyword, Token rightBracket) {
+    int count,
+    Token leftBracket,
+    Token? constKeyword,
+    Token rightBracket,
+  ) {
     LiteralListHandle data = new LiteralListHandle(ParserAstType.HANDLE,
         count: count,
         leftBracket: leftBracket,
@@ -2921,7 +3143,10 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void handleObjectPattern(
-      Token firstIdentifier, Token? dot, Token? secondIdentifier) {
+    Token firstIdentifier,
+    Token? dot,
+    Token? secondIdentifier,
+  ) {
     ObjectPatternHandle data = new ObjectPatternHandle(ParserAstType.HANDLE,
         firstIdentifier: firstIdentifier,
         dot: dot,
@@ -2952,7 +3177,10 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void handleAugmentSuperExpression(
-      Token augmentToken, Token superToken, IdentifierContext context) {
+    Token augmentToken,
+    Token superToken,
+    IdentifierContext context,
+  ) {
     AugmentSuperExpressionHandle data = new AugmentSuperExpressionHandle(
         ParserAstType.HANDLE,
         augmentToken: augmentToken,
@@ -2972,13 +3200,14 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void endSwitchCase(
-      int labelCount,
-      int expressionCount,
-      Token? defaultKeyword,
-      Token? colonAfterDefault,
-      int statementCount,
-      Token beginToken,
-      Token endToken) {
+    int labelCount,
+    int expressionCount,
+    Token? defaultKeyword,
+    Token? colonAfterDefault,
+    int statementCount,
+    Token beginToken,
+    Token endToken,
+  ) {
     SwitchCaseEnd data = new SwitchCaseEnd(ParserAstType.END,
         labelCount: labelCount,
         expressionCount: expressionCount,
@@ -2999,7 +3228,11 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void endSwitchExpressionCase(
-      Token beginToken, Token? when, Token arrow, Token endToken) {
+    Token beginToken,
+    Token? when,
+    Token arrow,
+    Token endToken,
+  ) {
     SwitchExpressionCaseEnd data = new SwitchExpressionCaseEnd(
         ParserAstType.END,
         beginToken: beginToken,
@@ -3062,7 +3295,10 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void handleValuedFormalParameter(
-      Token equals, Token token, FormalParameterKind kind) {
+    Token equals,
+    Token token,
+    FormalParameterKind kind,
+  ) {
     ValuedFormalParameterHandle data = new ValuedFormalParameterHandle(
         ParserAstType.HANDLE,
         equals: equals,
@@ -3109,8 +3345,12 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endInvalidYieldStatement(Token beginToken, Token? starToken,
-      Token endToken, MessageCode errorCode) {
+  void endInvalidYieldStatement(
+    Token beginToken,
+    Token? starToken,
+    Token endToken,
+    MessageCode errorCode,
+  ) {
     InvalidYieldStatementEnd data = new InvalidYieldStatementEnd(
         ParserAstType.END,
         beginToken: beginToken,
@@ -3122,7 +3362,10 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void handleRecoverableError(
-      Message message, Token startToken, Token endToken) {
+    Message message,
+    Token startToken,
+    Token endToken,
+  ) {
     RecoverableErrorHandle data = new RecoverableErrorHandle(
         ParserAstType.HANDLE,
         message: message,
@@ -3133,7 +3376,10 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void handleExperimentNotEnabled(
-      ExperimentalFlag experimentalFlag, Token startToken, Token endToken) {
+    ExperimentalFlag experimentalFlag,
+    Token startToken,
+    Token endToken,
+  ) {
     ExperimentNotEnabledHandle data = new ExperimentNotEnabledHandle(
         ParserAstType.HANDLE,
         experimentalFlag: experimentalFlag,
@@ -3151,7 +3397,11 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void handleUnescapeError(
-      Message message, Token location, int stringOffset, int length) {
+    Message message,
+    Token location,
+    int stringOffset,
+    int length,
+  ) {
     UnescapeErrorHandle data = new UnescapeErrorHandle(ParserAstType.HANDLE,
         message: message,
         location: location,
@@ -3192,7 +3442,10 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void handlePatternVariableDeclarationStatement(
-      Token keyword, Token equals, Token semicolon) {
+    Token keyword,
+    Token equals,
+    Token semicolon,
+  ) {
     PatternVariableDeclarationStatementHandle data =
         new PatternVariableDeclarationStatementHandle(ParserAstType.HANDLE,
             keyword: keyword, equals: equals, semicolon: semicolon);

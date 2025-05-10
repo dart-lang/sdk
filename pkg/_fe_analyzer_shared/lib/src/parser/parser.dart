@@ -56,21 +56,29 @@ class ErrorCollectingListener extends Listener {
 
   @override
   void handleRecoverableError(
-      Message message, Token startToken, Token endToken) {
+    Message message,
+    Token startToken,
+    Token endToken,
+  ) {
     /// TODO(danrubel): Ignore this error until we deprecate `native` support.
     if (message == messageNativeClauseShouldBeAnnotation) {
       return;
     }
-    recoverableErrors
-        .add(new ParserError.fromTokens(startToken, endToken, message));
+    recoverableErrors.add(
+      new ParserError.fromTokens(startToken, endToken, message),
+    );
   }
 }
 
-List<ParserError> parse(Token tokens,
-    {bool useImplicitCreationExpression = true}) {
+List<ParserError> parse(
+  Token tokens, {
+  bool useImplicitCreationExpression = true,
+}) {
   ErrorCollectingListener listener = new ErrorCollectingListener();
-  Parser parser = new Parser(listener,
-      useImplicitCreationExpression: useImplicitCreationExpression);
+  Parser parser = new Parser(
+    listener,
+    useImplicitCreationExpression: useImplicitCreationExpression,
+  );
   parser.parseUnit(tokens);
   return listener.recoverableErrors;
 }

@@ -97,9 +97,11 @@ class ExpressionState extends State {
   /// is determined by analysis to not need a static type.
   bool typeRecorded = false;
 
-  ExpressionState(
-      {required super.writer, required super.message, required super.nodeSet})
-      : super(kind: StateKind.expression);
+  ExpressionState({
+    required super.writer,
+    required super.message,
+    required super.nodeSet,
+  }) : super(kind: StateKind.expression);
 }
 
 /// Specialization of [State] used when generic type inference is being
@@ -108,12 +110,12 @@ class GenericInferenceState<TypeParameter extends Object> extends State {
   /// The formal type parameters whose types are being inferred.
   final List<TypeParameter> typeFormals;
 
-  GenericInferenceState(
-      {required super.writer,
-      required super.message,
-      required State parent,
-      required this.typeFormals})
-      : super(kind: StateKind.genericInference, nodeSet: parent.nodeSet);
+  GenericInferenceState({
+    required super.writer,
+    required super.message,
+    required State parent,
+    required this.typeFormals,
+  }) : super(kind: StateKind.genericInference, nodeSet: parent.nodeSet);
 }
 
 /// Public API to the interface log writer.
@@ -146,8 +148,11 @@ abstract interface class SharedInferenceLogWriter {
 
   /// Called when generic type inference starts collecting constraints by
   /// attempting to match one type schema against another.
-  void enterConstraintGeneration(ConstraintGenerationSource source,
-      covariant SharedType p, covariant SharedType q);
+  void enterConstraintGeneration(
+    ConstraintGenerationSource source,
+    covariant SharedType p,
+    covariant SharedType q,
+  );
 
   /// Called when type inference begins inferring a collection element.
   void enterElement(Object node);
@@ -168,7 +173,9 @@ abstract interface class SharedInferenceLogWriter {
 
   /// Called when generic type inference begins.
   void enterGenericInference(
-      List<SharedTypeParameter> typeFormals, covariant SharedType template);
+    List<SharedTypeParameter> typeFormals,
+    covariant SharedType template,
+  );
 
   /// Called when type inference begins inferring the left hand side of an
   /// assignment.
@@ -197,10 +204,11 @@ abstract interface class SharedInferenceLogWriter {
   void exitExtensionOverride(Object node);
 
   /// Called when generic type inference ends.
-  void exitGenericInference(
-      {bool aborted = false,
-      bool failed = false,
-      covariant List<SharedType>? finalTypes});
+  void exitGenericInference({
+    bool aborted = false,
+    bool failed = false,
+    covariant List<SharedType>? finalTypes,
+  });
 
   /// Called when type inference has finished inferring the left hand side of an
   /// assignment.
@@ -225,8 +233,10 @@ abstract interface class SharedInferenceLogWriter {
   /// [oldExpression] is the old expression that is being replaced. It is
   /// optional; if it is supplied, then the inference log infrastructure will
   /// double check that it's only recorded once in the log.
-  void recordExpressionRewrite(
-      {Object? oldExpression, required Object newExpression});
+  void recordExpressionRewrite({
+    Object? oldExpression,
+    required Object newExpression,
+  });
 
   /// Called when type inference is inferring an expression, and discovers that
   /// the expression should not have any type.
@@ -234,15 +244,18 @@ abstract interface class SharedInferenceLogWriter {
 
   /// Records a constraint that was generated during the process of matching one
   /// type schema to another.
-  void recordGeneratedConstraint(SharedTypeParameter parameter,
-      MergedTypeConstraint<Object, SharedType, Object> constraint);
+  void recordGeneratedConstraint(
+    SharedTypeParameter parameter,
+    MergedTypeConstraint<Object, SharedType, Object> constraint,
+  );
 
   /// Records that type inference has resolved a method name.
-  void recordLookupResult(
-      {required Object expression,
-      required SharedType type,
-      required Object? target,
-      required String methodName});
+  void recordLookupResult({
+    required Object expression,
+    required SharedType type,
+    required Object? target,
+    required String methodName,
+  });
 
   /// Records the preliminary types chosen during either a downwards or a
   /// horizontal inference step.
@@ -295,7 +308,9 @@ abstract class SharedInferenceLogWriterImpl
       print(' ' * _stateStack.length + event.message);
     } else if (subEvents.length > _eventTruncationThreshold) {
       subEvents.removeRange(
-          0, subEvents.length - _eventTruncationThreshold - 1);
+        0,
+        subEvents.length - _eventTruncationThreshold - 1,
+      );
       subEvents[0] = _truncationEvent;
     }
   }
@@ -304,8 +319,10 @@ abstract class SharedInferenceLogWriterImpl
   void assertGenericInferenceState({required bool inProgress}) {
     bool actualInProgress = state.kind == StateKind.genericInference;
     if (inProgress != actualInProgress) {
-      fail('Expected generic inference inProgress=$inProgress, '
-          'actual=$actualInProgress');
+      fail(
+        'Expected generic inference inProgress=$inProgress, '
+        'actual=$actualInProgress',
+      );
     }
   }
 
@@ -326,17 +343,18 @@ abstract class SharedInferenceLogWriterImpl
   ///
   /// If a check fails, then [method], [arguments], and [namedArguments] are
   /// used to describe the circumstances of the failure.
-  void checkCall(
-      {required String method,
-      List<Object?> arguments = const [],
-      Map<String, Object?> namedArguments = const {},
-      Object? expectedNode,
-      StateKind? expectedKind}) {
+  void checkCall({
+    required String method,
+    List<Object?> arguments = const [],
+    Map<String, Object?> namedArguments = const {},
+    Object? expectedNode,
+    StateKind? expectedKind,
+  }) {
     String describeMethod() {
       List<String> formattedArguments = [
         for (Object? argument in arguments) describe(argument),
         for (var MapEntry(:key, :value) in namedArguments.entries)
-          '$key: ${describe(value)}'
+          '$key: ${describe(value)}',
       ];
       return '$method(${formattedArguments.join(', ')})';
     }
@@ -344,13 +362,16 @@ abstract class SharedInferenceLogWriterImpl
     if (expectedNode != null &&
         !state.nodeSet.any((node) => identical(node, expectedNode))) {
       List<String> nodeSetDescriptions = [
-        for (Object? node in state.nodeSet) describe(node)
+        for (Object? node in state.nodeSet) describe(node),
       ];
-      String nodeSetDescription = nodeSetDescriptions.length == 1
-          ? nodeSetDescriptions[0]
-          : nodeSetDescriptions.join(', ');
-      fail('${describeMethod()}: expected containing node to be '
-          '${describe(expectedNode)}, actual is $nodeSetDescription');
+      String nodeSetDescription =
+          nodeSetDescriptions.length == 1
+              ? nodeSetDescriptions[0]
+              : nodeSetDescriptions.join(', ');
+      fail(
+        '${describeMethod()}: expected containing node to be '
+        '${describe(expectedNode)}, actual is $nodeSetDescription',
+      );
     }
 
     if (expectedKind != null) {
@@ -384,140 +405,182 @@ abstract class SharedInferenceLogWriterImpl
 
   @override
   void enterAnnotation(Object node) {
-    pushState(new State(
+    pushState(
+      new State(
         kind: StateKind.annotation,
         writer: this,
         message: 'INFER ANNOTATION ${describe(node)}',
-        nodeSet: [node]));
+        nodeSet: [node],
+      ),
+    );
   }
 
   @override
   void enterConstraintGeneration(
-      ConstraintGenerationSource source, SharedType p, SharedType q) {
+    ConstraintGenerationSource source,
+    SharedType p,
+    SharedType q,
+  ) {
     checkCall(
-        method: 'enterConstraintGeneration',
-        arguments: [source, p, q],
-        expectedKind: StateKind.genericInference);
-    pushState(new State(
+      method: 'enterConstraintGeneration',
+      arguments: [source, p, q],
+      expectedKind: StateKind.genericInference,
+    );
+    pushState(
+      new State(
         kind: StateKind.constraintGeneration,
         writer: this,
         message: 'GENERATE CONSTRAINTS FOR $source: $p <# $q',
-        nodeSet: state.nodeSet));
+        nodeSet: state.nodeSet,
+      ),
+    );
   }
 
   @override
   void enterElement(Object node) {
-    pushState(new State(
+    pushState(
+      new State(
         kind: StateKind.collectionElement,
         writer: this,
         message: 'INFER ELEMENT ${describe(node)}',
-        nodeSet: [node]));
+        nodeSet: [node],
+      ),
+    );
   }
 
   @override
   void enterExpression(Object node, SharedType contextType) {
-    pushState(new ExpressionState(
+    pushState(
+      new ExpressionState(
         writer: this,
         message: 'INFER EXPRESSION ${describe(node)} IN CONTEXT $contextType',
-        nodeSet: [node]));
+        nodeSet: [node],
+      ),
+    );
   }
 
   @override
   void enterExtensionOverride(Object node, SharedType contextType) {
-    pushState(new State(
+    pushState(
+      new State(
         kind: StateKind.extensionOverride,
         writer: this,
-        message: 'INFER EXTENSION OVERRIDE ${describe(node)} IN CONTEXT '
+        message:
+            'INFER EXTENSION OVERRIDE ${describe(node)} IN CONTEXT '
             '$contextType',
-        nodeSet: [node]));
+        nodeSet: [node],
+      ),
+    );
   }
 
   @override
   void enterFunctionExpressionInvocationTarget(Object node) {
-    pushState(new ExpressionState(
+    pushState(
+      new ExpressionState(
         writer: this,
         message: 'REINTERPRET METHOD NAME ${describe(node)} AS AN EXPRESSION',
-        nodeSet: [node]));
+        nodeSet: [node],
+      ),
+    );
   }
 
   @override
   void enterGenericInference(
-      List<SharedTypeParameter> typeFormals, SharedType template) {
+    List<SharedTypeParameter> typeFormals,
+    SharedType template,
+  ) {
     if (state.kind == StateKind.genericInference) {
       fail('Tried to start generic inference when already in progress');
     }
     String typeFormalNames = [
-      for (SharedTypeParameter typeFormal in typeFormals) typeFormal.displayName
+      for (SharedTypeParameter typeFormal in typeFormals)
+        typeFormal.displayName,
     ].join(', ');
-    pushState(new GenericInferenceState(
+    pushState(
+      new GenericInferenceState(
         writer: this,
         message: 'FIND $typeFormalNames IN $template',
         parent: state,
-        typeFormals: typeFormals));
+        typeFormals: typeFormals,
+      ),
+    );
   }
 
   @override
   void enterLValue(Object node) {
-    pushState(new State(
+    pushState(
+      new State(
         kind: StateKind.lValue,
         writer: this,
         message: 'INFER LVALUE ${describe(node)}',
-        nodeSet: [node]));
+        nodeSet: [node],
+      ),
+    );
   }
 
   @override
   void enterPattern(Object node) {
-    pushState(new State(
+    pushState(
+      new State(
         kind: StateKind.pattern,
         writer: this,
         message: 'INFER PATTERN ${describe(node)}',
-        nodeSet: [node]));
+        nodeSet: [node],
+      ),
+    );
   }
 
   @override
   void enterStatement(Object node) {
-    pushState(new State(
+    pushState(
+      new State(
         kind: StateKind.statement,
         writer: this,
         message: 'INFER STATEMENT ${describe(node)}',
-        nodeSet: [node]));
+        nodeSet: [node],
+      ),
+    );
   }
 
   @override
   void exitAnnotation(Object node) {
     checkCall(
-        method: 'exitAnnotation',
-        arguments: [node],
-        expectedNode: node,
-        expectedKind: StateKind.annotation);
+      method: 'exitAnnotation',
+      arguments: [node],
+      expectedNode: node,
+      expectedKind: StateKind.annotation,
+    );
     popState();
   }
 
   @override
   void exitConstraintGeneration() {
     checkCall(
-        method: 'exitConstraintGeneration',
-        expectedKind: StateKind.constraintGeneration);
+      method: 'exitConstraintGeneration',
+      expectedKind: StateKind.constraintGeneration,
+    );
     popState();
   }
 
   @override
   void exitElement(Object node) {
     checkCall(
-        method: 'exitElement',
-        arguments: [node],
-        expectedNode: node,
-        expectedKind: StateKind.collectionElement);
+      method: 'exitElement',
+      arguments: [node],
+      expectedNode: node,
+      expectedKind: StateKind.collectionElement,
+    );
     popState();
   }
 
   @override
   void exitExpression(Object node) {
     checkCall(
-        method: 'exitExpression',
-        arguments: [node],
-        expectedNode: node,
-        expectedKind: StateKind.expression);
+      method: 'exitExpression',
+      arguments: [node],
+      expectedNode: node,
+      expectedKind: StateKind.expression,
+    );
     bool typeRecorded = (state as ExpressionState).typeRecorded;
     if (!typeRecorded) {
       fail('Failed to record a type for $state');
@@ -528,31 +591,36 @@ abstract class SharedInferenceLogWriterImpl
   @override
   void exitExtensionOverride(Object node) {
     checkCall(
-        method: 'exitExtensionOverride',
-        arguments: [node],
-        expectedNode: node,
-        expectedKind: StateKind.extensionOverride);
+      method: 'exitExtensionOverride',
+      arguments: [node],
+      expectedNode: node,
+      expectedKind: StateKind.extensionOverride,
+    );
     popState();
   }
 
   @override
-  void exitGenericInference(
-      {bool aborted = false,
-      bool failed = false,
-      List<SharedType>? finalTypes}) {
+  void exitGenericInference({
+    bool aborted = false,
+    bool failed = false,
+    List<SharedType>? finalTypes,
+  }) {
     if ((aborted ? 1 : 0) + (failed ? 1 : 0) + (finalTypes != null ? 1 : 0) !=
         1) {
-      fail('Must specify exactly one of aborted=true, failed=true, '
-          'finalTypes=non-null');
+      fail(
+        'Must specify exactly one of aborted=true, failed=true, '
+        'finalTypes=non-null',
+      );
     }
     checkCall(
-        method: 'exitGenericInference',
-        namedArguments: {
-          if (aborted) 'aborted': aborted,
-          if (failed) 'failed': failed,
-          if (finalTypes != null) 'finalTypes': finalTypes
-        },
-        expectedKind: StateKind.genericInference);
+      method: 'exitGenericInference',
+      namedArguments: {
+        if (aborted) 'aborted': aborted,
+        if (failed) 'failed': failed,
+        if (finalTypes != null) 'finalTypes': finalTypes,
+      },
+      expectedKind: StateKind.genericInference,
+    );
     if (aborted) {
       addEvent(new Event(message: 'GENERIC INFERENCE ABORTED'));
     } else if (failed) {
@@ -561,10 +629,11 @@ abstract class SharedInferenceLogWriterImpl
       List<Object> typeFormals = (state as GenericInferenceState).typeFormals;
       List<String> typeAssignments = [
         for (int i = 0; i < finalTypes.length; i++)
-          '${typeFormals[i]}=${finalTypes[i]}'
+          '${typeFormals[i]}=${finalTypes[i]}',
       ];
-      addEvent(new Event(
-          message: 'FINAL GENERIC TYPES ${typeAssignments.join(', ')}'));
+      addEvent(
+        new Event(message: 'FINAL GENERIC TYPES ${typeAssignments.join(', ')}'),
+      );
     }
     popState();
   }
@@ -572,13 +641,14 @@ abstract class SharedInferenceLogWriterImpl
   @override
   void exitLValue(Object node, {bool reanalyzeAsRValue = false}) {
     checkCall(
-        method: 'exitLValue',
-        arguments: [node],
-        namedArguments: {
-          if (reanalyzeAsRValue) 'reanalyzeAsRValue': reanalyzeAsRValue
-        },
-        expectedNode: node,
-        expectedKind: StateKind.lValue);
+      method: 'exitLValue',
+      arguments: [node],
+      namedArguments: {
+        if (reanalyzeAsRValue) 'reanalyzeAsRValue': reanalyzeAsRValue,
+      },
+      expectedNode: node,
+      expectedKind: StateKind.lValue,
+    );
     if (reanalyzeAsRValue) {
       addEvent(new Event(message: 'WILL REANALYZE AS RVALUE'));
     }
@@ -588,20 +658,22 @@ abstract class SharedInferenceLogWriterImpl
   @override
   void exitPattern(Object node) {
     checkCall(
-        method: 'exitPattern',
-        arguments: [node],
-        expectedNode: node,
-        expectedKind: StateKind.pattern);
+      method: 'exitPattern',
+      arguments: [node],
+      expectedNode: node,
+      expectedKind: StateKind.pattern,
+    );
     popState();
   }
 
   @override
   void exitStatement(Object node) {
     checkCall(
-        method: 'exitStatement',
-        arguments: [node],
-        expectedNode: node,
-        expectedKind: StateKind.statement);
+      method: 'exitStatement',
+      arguments: [node],
+      expectedNode: node,
+      expectedKind: StateKind.statement,
+    );
     popState();
   }
 
@@ -632,16 +704,23 @@ abstract class SharedInferenceLogWriterImpl
   }
 
   @override
-  void recordExpressionRewrite(
-      {Object? oldExpression, required Object newExpression}) {
+  void recordExpressionRewrite({
+    Object? oldExpression,
+    required Object newExpression,
+  }) {
     checkCall(
-        method: 'recordExpressionRewrite',
-        arguments: [oldExpression, newExpression],
-        expectedNode: oldExpression,
-        expectedKind: StateKind.expression);
-    addEvent(new Event(
-        message: 'REWRITE ${describe(oldExpression)} TO '
-            '${describe(newExpression)}'));
+      method: 'recordExpressionRewrite',
+      arguments: [oldExpression, newExpression],
+      expectedNode: oldExpression,
+      expectedKind: StateKind.expression,
+    );
+    addEvent(
+      new Event(
+        message:
+            'REWRITE ${describe(oldExpression)} TO '
+            '${describe(newExpression)}',
+      ),
+    );
     (state as ExpressionState).nodeSet.add(newExpression);
     if (oldExpression != null) {
       if (_rewrittenExpressions[oldExpression] ?? false) {
@@ -654,12 +733,14 @@ abstract class SharedInferenceLogWriterImpl
   @override
   void recordExpressionWithNoType(Object expression) {
     checkCall(
-        method: 'recordExpressionWithNoType',
-        arguments: [expression],
-        expectedNode: expression,
-        expectedKind: StateKind.expression);
+      method: 'recordExpressionWithNoType',
+      arguments: [expression],
+      expectedNode: expression,
+      expectedKind: StateKind.expression,
+    );
     addEvent(
-        new Event(message: 'EXPRESSION ${describe(expression)} HAS NO TYPE'));
+      new Event(message: 'EXPRESSION ${describe(expression)} HAS NO TYPE'),
+    );
     ExpressionState state = this.state as ExpressionState;
     if (state.typeRecorded) {
       fail('A type (or lack thereof) was already recorded for this expression');
@@ -668,33 +749,40 @@ abstract class SharedInferenceLogWriterImpl
   }
 
   @override
-  void recordGeneratedConstraint(SharedTypeParameter parameter,
-      MergedTypeConstraint<Object, SharedType, Object> constraint) {
+  void recordGeneratedConstraint(
+    SharedTypeParameter parameter,
+    MergedTypeConstraint<Object, SharedType, Object> constraint,
+  ) {
     checkCall(
-        method: 'recordGeneratedConstraint',
-        arguments: [parameter, constraint],
-        expectedKind: StateKind.constraintGeneration);
-    String constraintText =
-        constraint.toString().replaceAll('<type>', parameter.toString());
+      method: 'recordGeneratedConstraint',
+      arguments: [parameter, constraint],
+      expectedKind: StateKind.constraintGeneration,
+    );
+    String constraintText = constraint.toString().replaceAll(
+      '<type>',
+      parameter.toString(),
+    );
     addEvent(new Event(message: 'ADDED CONSTRAINT $constraintText'));
   }
 
   @override
-  void recordLookupResult(
-      {required Object expression,
-      required SharedType type,
-      required Object? target,
-      required String methodName}) {
+  void recordLookupResult({
+    required Object expression,
+    required SharedType type,
+    required Object? target,
+    required String methodName,
+  }) {
     checkCall(
-        method: 'recordLookupResult',
-        namedArguments: {
-          'expression': expression,
-          'type': type,
-          'target': target,
-          'methodName': methodName
-        },
-        expectedNode: expression,
-        expectedKind: StateKind.expression);
+      method: 'recordLookupResult',
+      namedArguments: {
+        'expression': expression,
+        'type': type,
+        'target': target,
+        'methodName': methodName,
+      },
+      expectedNode: expression,
+      expectedKind: StateKind.expression,
+    );
     String query =
         target != null ? '${describe(target)}.$methodName' : methodName;
     addEvent(new Event(message: 'LOOKUP $query FINDS $type'));
@@ -703,26 +791,32 @@ abstract class SharedInferenceLogWriterImpl
   @override
   void recordPreliminaryTypes(List<SharedType> types) {
     checkCall(
-        method: 'recordPreliminaryTypes',
-        arguments: [types],
-        expectedKind: StateKind.genericInference);
+      method: 'recordPreliminaryTypes',
+      arguments: [types],
+      expectedKind: StateKind.genericInference,
+    );
     List<Object> typeFormals = (state as GenericInferenceState).typeFormals;
     List<String> typeAssignments = [
-      for (int i = 0; i < types.length; i++) '${typeFormals[i]}=${types[i]}'
+      for (int i = 0; i < types.length; i++) '${typeFormals[i]}=${types[i]}',
     ];
-    addEvent(new Event(
-        message: 'PRELIMINARY GENERIC TYPES ${typeAssignments.join(', ')}'));
+    addEvent(
+      new Event(
+        message: 'PRELIMINARY GENERIC TYPES ${typeAssignments.join(', ')}',
+      ),
+    );
   }
 
   @override
   void recordStaticType(Object expression, SharedType type) {
     checkCall(
-        method: 'recordStaticType',
-        arguments: [expression, type],
-        expectedNode: expression,
-        expectedKind: StateKind.expression);
+      method: 'recordStaticType',
+      arguments: [expression, type],
+      expectedNode: expression,
+      expectedKind: StateKind.expression,
+    );
     addEvent(
-        new Event(message: 'STATIC TYPE OF ${describe(expression)} IS $type'));
+      new Event(message: 'STATIC TYPE OF ${describe(expression)} IS $type'),
+    );
     ExpressionState state = this.state as ExpressionState;
     if (state.typeRecorded) {
       fail('A type (or lack thereof) was already recorded for this expression');
@@ -751,21 +845,18 @@ class State extends Event {
   final List<Object?> nodeSet;
 
   /// Creates a new state object and adds it to the log via [writer].
-  State(
-      {required this.kind,
-      required SharedInferenceLogWriterImpl writer,
-      required super.message,
-      required this.nodeSet})
-      : assert(kind != StateKind.top) {
+  State({
+    required this.kind,
+    required SharedInferenceLogWriterImpl writer,
+    required super.message,
+    required this.nodeSet,
+  }) : assert(kind != StateKind.top) {
     writer.addEvent(this);
   }
 
   /// Creates a new state object representing the outermost nesting level of the
   /// inference log.
-  State._top()
-      : kind = StateKind.top,
-        nodeSet = [null],
-        super(message: 'TOP');
+  State._top() : kind = StateKind.top, nodeSet = [null], super(message: 'TOP');
 
   @override
   String toString() => '$runtimeType(${describe(nodeSet.first)})';

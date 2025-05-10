@@ -13,8 +13,11 @@ import 'type_analyzer_operations.dart';
 /// `default` clause.
 ///
 /// The client is free to `implement` or `extend` this class.
-class CaseHeadOrDefaultInfo<Node extends Object, Expression extends Node,
-    Variable extends Object> {
+class CaseHeadOrDefaultInfo<
+  Node extends Object,
+  Expression extends Node,
+  Variable extends Object
+> {
   /// For a `case` clause, the case pattern.  For a `default` clause, `null`.
   final Node? pattern;
 
@@ -89,10 +92,7 @@ class MapPatternEntry<Expression extends Object, Pattern extends Object> {
   final Expression key;
   final Pattern value;
 
-  MapPatternEntry({
-    required this.key,
-    required this.value,
-  });
+  MapPatternEntry({required this.key, required this.value});
 }
 
 /// Information supplied by the client to [TypeAnalyzer.analyzeObjectPattern],
@@ -147,8 +147,11 @@ class RelationalOperatorResolution {
 /// about an individual `case` or `default` clause.
 ///
 /// The client is free to `implement` or `extend` this class.
-class SwitchExpressionMemberInfo<Node extends Object, Expression extends Node,
-    Variable extends Object> {
+class SwitchExpressionMemberInfo<
+  Node extends Object,
+  Expression extends Node,
+  Variable extends Object
+> {
   /// The [CaseHeadOrDefaultInfo] associated with this clause.
   final CaseHeadOrDefaultInfo<Node, Expression, Variable> head;
 
@@ -162,8 +165,12 @@ class SwitchExpressionMemberInfo<Node extends Object, Expression extends Node,
 /// about an individual `case` or `default` clause.
 ///
 /// The client is free to `implement` or `extend` this class.
-class SwitchStatementMemberInfo<Node extends Object, Statement extends Node,
-    Expression extends Node, Variable extends Object> {
+class SwitchStatementMemberInfo<
+  Node extends Object,
+  Statement extends Node,
+  Expression extends Node,
+  Variable extends Object
+> {
   /// The list of case heads for this case.
   ///
   /// The reason this is a list rather than a single head is because the front
@@ -187,11 +194,12 @@ class SwitchStatementMemberInfo<Node extends Object, Statement extends Node,
   /// might become not consistent.
   final Map<String, Variable> variables;
 
-  SwitchStatementMemberInfo(
-      {required this.heads,
-      required this.body,
-      required this.variables,
-      required this.hasLabels});
+  SwitchStatementMemberInfo({
+    required this.heads,
+    required this.body,
+    required this.variables,
+    required this.hasLabels,
+  });
 }
 
 /// Type analysis logic to be shared between the analyzer and front end.  The
@@ -262,14 +270,15 @@ class SwitchStatementMemberInfo<Node extends Object, Statement extends Node,
 /// of each entry in order to verify that when an entity is popped, it has the
 /// expected kind.
 mixin TypeAnalyzer<
-        Node extends Object,
-        Statement extends Node,
-        Expression extends Node,
-        Variable extends Object,
-        Pattern extends Node,
-        Error,
-        TypeDeclarationType extends Object,
-        TypeDeclaration extends Object>
+  Node extends Object,
+  Statement extends Node,
+  Expression extends Node,
+  Variable extends Object,
+  Pattern extends Node,
+  Error,
+  TypeDeclarationType extends Object,
+  TypeDeclaration extends Object
+>
     implements TypeAnalysisNullShortingInterface<Expression, SharedTypeView> {
   /// Cached context types and their respective dot shorthand nodes.
   ///
@@ -278,8 +287,16 @@ mixin TypeAnalyzer<
   /// two context types for the same node.
   final _dotShorthands = <(Node, SharedTypeSchemaView)>[];
 
-  TypeAnalyzerErrors<Node, Statement, Expression, Variable, SharedTypeView,
-      Pattern, Error> get errors;
+  TypeAnalyzerErrors<
+    Node,
+    Statement,
+    Expression,
+    Variable,
+    SharedTypeView,
+    Pattern,
+    Error
+  >
+  get errors;
 
   @override
   FlowAnalysis<Node, Statement, Expression, Variable, SharedTypeView> get flow;
@@ -290,7 +307,7 @@ mixin TypeAnalyzer<
 
   @override
   TypeAnalyzerOperations<Variable, TypeDeclarationType, TypeDeclaration>
-      get operations;
+  get operations;
 
   /// Options affecting the behavior of [TypeAnalyzer].
   TypeAnalyzerOptions get typeAnalyzerOptions;
@@ -309,9 +326,10 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: none.
   AssignedVariablePatternResult<Error> analyzeAssignedVariablePattern(
-      MatchContext<Node, Expression, Pattern, SharedTypeView, Variable> context,
-      Pattern node,
-      Variable variable) {
+    MatchContext<Node, Expression, Pattern, SharedTypeView, Variable> context,
+    Pattern node,
+    Variable variable,
+  ) {
     SharedTypeView matchedValueType = flow.getMatchedValueType();
     Error? duplicateAssignmentPatternVariableError;
     Map<Variable, Pattern>? assignedVariables = context.assignedVariables;
@@ -320,48 +338,55 @@ mixin TypeAnalyzer<
       if (original == null) {
         assignedVariables[variable] = node;
       } else {
-        duplicateAssignmentPatternVariableError =
-            errors.duplicateAssignmentPatternVariable(
-          variable: variable,
-          original: original,
-          duplicate: node,
-        );
+        duplicateAssignmentPatternVariableError = errors
+            .duplicateAssignmentPatternVariable(
+              variable: variable,
+              original: original,
+              duplicate: node,
+            );
       }
     }
 
     SharedTypeView variableDeclaredType = operations.variableType(variable);
     Node? irrefutableContext = context.irrefutableContext;
-    assert(irrefutableContext != null,
-        'Assigned variables must only appear in irrefutable pattern contexts');
+    assert(
+      irrefutableContext != null,
+      'Assigned variables must only appear in irrefutable pattern contexts',
+    );
     Error? patternTypeMismatchInIrrefutableContextError;
     if (irrefutableContext != null &&
         matchedValueType is! SharedDynamicType &&
         matchedValueType is! SharedInvalidType &&
         !operations.isSubtypeOf(matchedValueType, variableDeclaredType)) {
-      patternTypeMismatchInIrrefutableContextError =
-          errors.patternTypeMismatchInIrrefutableContext(
-              pattern: node,
-              context: irrefutableContext,
-              matchedType: matchedValueType,
-              requiredType: variableDeclaredType);
+      patternTypeMismatchInIrrefutableContextError = errors
+          .patternTypeMismatchInIrrefutableContext(
+            pattern: node,
+            context: irrefutableContext,
+            matchedType: matchedValueType,
+            requiredType: variableDeclaredType,
+          );
     }
     flow.promoteForPattern(
-        matchedType: matchedValueType, knownType: variableDeclaredType);
+      matchedType: matchedValueType,
+      knownType: variableDeclaredType,
+    );
     flow.assignedVariablePattern(node, variable, matchedValueType);
     return new AssignedVariablePatternResult(
-        duplicateAssignmentPatternVariableError:
-            duplicateAssignmentPatternVariableError,
-        patternTypeMismatchInIrrefutableContextError:
-            patternTypeMismatchInIrrefutableContextError,
-        matchedValueType: matchedValueType);
+      duplicateAssignmentPatternVariableError:
+          duplicateAssignmentPatternVariableError,
+      patternTypeMismatchInIrrefutableContextError:
+          patternTypeMismatchInIrrefutableContextError,
+      matchedValueType: matchedValueType,
+    );
   }
 
   /// Computes the type schema for a variable pattern appearing in an assignment
   /// context.  [variable] is the variable being referenced.
   SharedTypeSchemaView analyzeAssignedVariablePatternSchema(
-          Variable variable) =>
-      operations.typeToSchema(
-          flow.promotedType(variable) ?? operations.variableType(variable));
+    Variable variable,
+  ) => operations.typeToSchema(
+    flow.promotedType(variable) ?? operations.variableType(variable),
+  );
 
   /// Analyzes a cast pattern.  [innerPattern] is the sub-pattern] and
   /// [requiredType] is the type to cast to.
@@ -371,16 +396,17 @@ mixin TypeAnalyzer<
   /// Stack effect: pushes (Pattern innerPattern).
   PatternResult analyzeCastPattern({
     required MatchContext<Node, Expression, Pattern, SharedTypeView, Variable>
-        context,
+    context,
     required Pattern pattern,
     required Pattern innerPattern,
     required SharedTypeView requiredType,
   }) {
     SharedTypeView matchedValueType = flow.getMatchedValueType();
     flow.promoteForPattern(
-        matchedType: matchedValueType,
-        knownType: requiredType,
-        matchFailsIfWrongType: false);
+      matchedType: matchedValueType,
+      knownType: requiredType,
+      matchFailsIfWrongType: false,
+    );
     if (operations.isSubtypeOf(matchedValueType, requiredType) &&
         requiredType is! SharedInvalidType) {
       errors.matchedTypeIsSubtypeOfRequired(
@@ -418,23 +444,31 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: pushes (Expression).
   ConstantPatternResult<Error> analyzeConstantPattern(
-      MatchContext<Node, Expression, Pattern, SharedTypeView, Variable> context,
-      Node node,
-      Expression expression) {
+    MatchContext<Node, Expression, Pattern, SharedTypeView, Variable> context,
+    Node node,
+    Expression expression,
+  ) {
     SharedTypeView matchedValueType = flow.getMatchedValueType();
     // Stack: ()
     Node? irrefutableContext = context.irrefutableContext;
     Error? refutablePatternInIrrefutableContextError;
     if (irrefutableContext != null) {
-      refutablePatternInIrrefutableContextError =
-          errors.refutablePatternInIrrefutableContext(
-              pattern: node, context: irrefutableContext);
+      refutablePatternInIrrefutableContextError = errors
+          .refutablePatternInIrrefutableContext(
+            pattern: node,
+            context: irrefutableContext,
+          );
     }
     SharedTypeView expressionType = analyzeExpression(
-        expression, operations.typeToSchema(matchedValueType));
-    flow.constantPattern_end(expression, expressionType,
-        patternsEnabled: typeAnalyzerOptions.patternsEnabled,
-        matchedValueType: matchedValueType);
+      expression,
+      operations.typeToSchema(matchedValueType),
+    );
+    flow.constantPattern_end(
+      expression,
+      expressionType,
+      patternsEnabled: typeAnalyzerOptions.patternsEnabled,
+      matchedValueType: matchedValueType,
+    );
     // Stack: (Expression)
     Error? caseExpressionTypeMismatchError;
     if (!typeAnalyzerOptions.patternsEnabled) {
@@ -443,19 +477,21 @@ mixin TypeAnalyzer<
         bool matches = operations.isSubtypeOf(expressionType, matchedValueType);
         if (!matches) {
           caseExpressionTypeMismatchError = errors.caseExpressionTypeMismatch(
-              caseExpression: expression,
-              scrutinee: switchScrutinee,
-              caseExpressionType: expressionType,
-              scrutineeType: matchedValueType);
+            caseExpression: expression,
+            scrutinee: switchScrutinee,
+            caseExpressionType: expressionType,
+            scrutineeType: matchedValueType,
+          );
         }
       }
     }
     return new ConstantPatternResult(
-        expressionType: expressionType,
-        refutablePatternInIrrefutableContextError:
-            refutablePatternInIrrefutableContextError,
-        caseExpressionTypeMismatchError: caseExpressionTypeMismatchError,
-        matchedValueType: matchedValueType);
+      expressionType: expressionType,
+      refutablePatternInIrrefutableContextError:
+          refutablePatternInIrrefutableContextError,
+      caseExpressionTypeMismatchError: caseExpressionTypeMismatchError,
+      matchedValueType: matchedValueType,
+    );
   }
 
   /// Computes the type schema for a constant pattern.
@@ -498,36 +534,42 @@ mixin TypeAnalyzer<
         matchedValueType is! SharedDynamicType &&
         matchedValueType is! SharedInvalidType &&
         !operations.isSubtypeOf(matchedValueType, staticType)) {
-      patternTypeMismatchInIrrefutableContextError =
-          errors.patternTypeMismatchInIrrefutableContext(
-              pattern: node,
-              context: irrefutableContext,
-              matchedType: matchedValueType,
-              requiredType: staticType);
+      patternTypeMismatchInIrrefutableContextError = errors
+          .patternTypeMismatchInIrrefutableContext(
+            pattern: node,
+            context: irrefutableContext,
+            matchedType: matchedValueType,
+            requiredType: staticType,
+          );
     }
     flow.promoteForPattern(
-        matchedType: matchedValueType, knownType: staticType);
+      matchedType: matchedValueType,
+      knownType: staticType,
+    );
     // The promotion may have made the matched type even more specific than
     // either `matchedType` or `staticType`, so fetch it again and use that
     // in the call to `declaredVariablePattern` below.
     SharedTypeView promotedValueType = flow.getMatchedValueType();
     bool isImplicitlyTyped = declaredType == null;
     // TODO(paulberry): are we handling _isFinal correctly?
-    int promotionKey = context.patternVariablePromotionKeys[variableName] =
-        flow.declaredVariablePattern(
-            matchedType: promotedValueType,
-            staticType: staticType,
-            isFinal: context.isFinal || operations.isVariableFinal(variable),
-            isLate: false,
-            isImplicitlyTyped: isImplicitlyTyped);
+    int promotionKey =
+        context.patternVariablePromotionKeys[variableName] = flow
+            .declaredVariablePattern(
+              matchedType: promotedValueType,
+              staticType: staticType,
+              isFinal: context.isFinal || operations.isVariableFinal(variable),
+              isLate: false,
+              isImplicitlyTyped: isImplicitlyTyped,
+            );
     setVariableType(variable, staticType);
     (context.componentVariables[variableName] ??= []).add(variable);
     flow.assignMatchedPatternVariable(variable, promotionKey);
     return new DeclaredVariablePatternResult(
-        staticType: staticType,
-        patternTypeMismatchInIrrefutableContextError:
-            patternTypeMismatchInIrrefutableContextError,
-        matchedValueType: matchedValueType);
+      staticType: staticType,
+      patternTypeMismatchInIrrefutableContextError:
+          patternTypeMismatchInIrrefutableContextError,
+      matchedValueType: matchedValueType,
+    );
   }
 
   /// Computes the type schema for a variable pattern in a non-assignment
@@ -536,7 +578,8 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: none.
   SharedTypeSchemaView analyzeDeclaredVariablePatternSchema(
-      SharedTypeView? declaredType) {
+    SharedTypeView? declaredType,
+  ) {
     return declaredType == null
         ? operations.unknownType
         : operations.typeToSchema(declaredType);
@@ -545,10 +588,14 @@ mixin TypeAnalyzer<
   /// Analyzes a dot shorthand.
   /// Saves the [context] for when we resolve the dot shorthand head.
   SharedTypeView analyzeDotShorthand(
-      Expression node, SharedTypeSchemaView context) {
+    Expression node,
+    SharedTypeSchemaView context,
+  ) {
     pushDotShorthandContext(node, context);
-    ExpressionTypeAnalysisResult analysisResult =
-        dispatchExpression(node, context);
+    ExpressionTypeAnalysisResult analysisResult = dispatchExpression(
+      node,
+      context,
+    );
     popDotShorthandContext();
     return analysisResult.type;
   }
@@ -565,8 +612,11 @@ mixin TypeAnalyzer<
   /// [node] will be allowed to continue into the containing expression.
   ///
   /// Stack effect: pushes (Expression).
-  SharedTypeView analyzeExpression(Expression node, SharedTypeSchemaView schema,
-      {bool continueNullShorting = false}) {
+  SharedTypeView analyzeExpression(
+    Expression node,
+    SharedTypeSchemaView schema, {
+    bool continueNullShorting = false,
+  }) {
     int? nullShortingTargetDepth;
     if (!continueNullShorting) nullShortingTargetDepth = nullShortingDepth;
     // Stack: ()
@@ -618,8 +668,10 @@ mixin TypeAnalyzer<
   }) {
     // Stack: ()
     flow.ifCaseStatement_begin();
-    SharedTypeView initializerType =
-        analyzeExpression(expression, operations.unknownType);
+    SharedTypeView initializerType = analyzeExpression(
+      expression,
+      operations.unknownType,
+    );
     flow.ifCaseStatement_afterExpression(expression, initializerType);
     // Stack: (Expression)
     Map<String, List<Variable>> componentVariables = {};
@@ -635,13 +687,18 @@ mixin TypeAnalyzer<
     );
     // Stack: (Expression, Pattern)
     _finishJoinedPatternVariables(
-        variables, componentVariables, patternVariablePromotionKeys,
-        location: JoinedPatternVariableLocation.singlePattern);
+      variables,
+      componentVariables,
+      patternVariablePromotionKeys,
+      location: JoinedPatternVariableLocation.singlePattern,
+    );
     Error? nonBooleanGuardError;
     SharedTypeView? guardType;
     if (guard != null) {
       guardType = analyzeExpression(
-          guard, operations.typeToSchema(operations.boolType));
+        guard,
+        operations.typeToSchema(operations.boolType),
+      );
       nonBooleanGuardError = _checkGuardType(guard, guardType);
     } else {
       handleNoGuard(node, 0);
@@ -650,9 +707,10 @@ mixin TypeAnalyzer<
     flow.ifCaseStatement_thenBegin(guard);
     _analyzeIfElementCommon(node, ifTrue, ifFalse, context);
     return new IfCaseStatementResult(
-        matchedExpressionType: initializerType,
-        nonBooleanGuardError: nonBooleanGuardError,
-        guardType: guardType);
+      matchedExpressionType: initializerType,
+      nonBooleanGuardError: nonBooleanGuardError,
+      guardType: guardType,
+    );
   }
 
   /// Analyzes a statement of the form `if (expression case pattern) ifTrue` or
@@ -681,8 +739,10 @@ mixin TypeAnalyzer<
   ) {
     // Stack: ()
     flow.ifCaseStatement_begin();
-    SharedTypeView initializerType =
-        analyzeExpression(expression, operations.unknownType);
+    SharedTypeView initializerType = analyzeExpression(
+      expression,
+      operations.unknownType,
+    );
     flow.ifCaseStatement_afterExpression(expression, initializerType);
     // Stack: (Expression)
     Map<String, List<Variable>> componentVariables = {};
@@ -710,7 +770,9 @@ mixin TypeAnalyzer<
     SharedTypeView? guardType;
     if (guard != null) {
       guardType = analyzeExpression(
-          guard, operations.typeToSchema(operations.boolType));
+        guard,
+        operations.typeToSchema(operations.boolType),
+      );
       nonBooleanGuardError = _checkGuardType(guard, guardType);
     } else {
       handleNoGuard(node, 0);
@@ -719,9 +781,10 @@ mixin TypeAnalyzer<
     flow.ifCaseStatement_thenBegin(guard);
     _analyzeIfCommon(node, ifTrue, ifFalse);
     return new IfCaseStatementResult(
-        matchedExpressionType: initializerType,
-        nonBooleanGuardError: nonBooleanGuardError,
-        guardType: guardType);
+      matchedExpressionType: initializerType,
+      nonBooleanGuardError: nonBooleanGuardError,
+      guardType: guardType,
+    );
   }
 
   /// Analyzes a collection element of the form `if (condition) ifTrue` or
@@ -761,8 +824,12 @@ mixin TypeAnalyzer<
   /// Stack effect: pushes (Expression condition, Statement ifTrue, Statement
   /// ifFalse).  Note that if there is no `else` clause, the representation for
   /// `ifFalse` will be pushed by [handleNoStatement].
-  void analyzeIfStatement(Statement node, Expression condition,
-      Statement ifTrue, Statement? ifFalse) {
+  void analyzeIfStatement(
+    Statement node,
+    Expression condition,
+    Statement ifTrue,
+    Statement? ifFalse,
+  ) {
     // Stack: ()
     flow.ifStatement_conditionBegin();
     analyzeExpression(condition, operations.typeToSchema(operations.boolType));
@@ -776,14 +843,21 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: none.
   IntTypeAnalysisResult analyzeIntLiteral(SharedTypeSchemaView schema) {
-    bool convertToDouble = !operations.isTypeSchemaSatisfied(
-            type: operations.intType, typeSchema: schema) &&
+    bool convertToDouble =
+        !operations.isTypeSchemaSatisfied(
+          type: operations.intType,
+          typeSchema: schema,
+        ) &&
         operations.isTypeSchemaSatisfied(
-            type: operations.doubleType, typeSchema: schema);
+          type: operations.doubleType,
+          typeSchema: schema,
+        );
     SharedTypeView type =
         convertToDouble ? operations.doubleType : operations.intType;
     return new IntTypeAnalysisResult(
-        type: type, convertedToDouble: convertToDouble);
+      type: type,
+      convertedToDouble: convertToDouble,
+    );
   }
 
   /// Analyzes a list pattern.  [node] is the pattern itself, [elementType] is
@@ -797,17 +871,19 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: pushes (n * Pattern) where n = elements.length.
   ListPatternResult<Error> analyzeListPattern(
-      MatchContext<Node, Expression, Pattern, SharedTypeView, Variable> context,
-      Pattern node,
-      {SharedTypeView? elementType,
-      required List<Node> elements}) {
+    MatchContext<Node, Expression, Pattern, SharedTypeView, Variable> context,
+    Pattern node, {
+    SharedTypeView? elementType,
+    required List<Node> elements,
+  }) {
     SharedTypeView matchedValueType = flow.getMatchedValueType();
     SharedTypeView valueType;
     if (elementType != null) {
       valueType = elementType;
     } else {
-      SharedTypeView? listElementType =
-          operations.matchListType(matchedValueType);
+      SharedTypeView? listElementType = operations.matchListType(
+        matchedValueType,
+      );
       if (listElementType != null) {
         valueType = listElementType;
       } else if (matchedValueType is SharedDynamicType) {
@@ -820,10 +896,11 @@ mixin TypeAnalyzer<
     }
     SharedTypeView requiredType = operations.listType(valueType);
     flow.promoteForPattern(
-        matchedType: matchedValueType,
-        knownType: requiredType,
-        matchMayFailEvenIfCorrectType:
-            !(elements.length == 1 && isRestPatternElement(elements[0])));
+      matchedType: matchedValueType,
+      knownType: requiredType,
+      matchMayFailEvenIfCorrectType:
+          !(elements.length == 1 && isRestPatternElement(elements[0])),
+    );
     // Stack: ()
     Node? previousRestPattern;
     Map<int, Error>? duplicateRestPatternErrors;
@@ -843,7 +920,9 @@ mixin TypeAnalyzer<
           SharedTypeView subPatternMatchedType = requiredType;
           flow.pushSubpattern(subPatternMatchedType);
           dispatchPattern(
-              context.withUnnecessaryWildcardKind(null), subPattern);
+            context.withUnnecessaryWildcardKind(null),
+            subPattern,
+          );
           flow.popSubpattern();
         }
         handleListPatternRestElement(node, element);
@@ -858,19 +937,21 @@ mixin TypeAnalyzer<
     Error? patternTypeMismatchInIrrefutableContextError;
     if (irrefutableContext != null &&
         !operations.isAssignableTo(matchedValueType, requiredType)) {
-      patternTypeMismatchInIrrefutableContextError =
-          errors.patternTypeMismatchInIrrefutableContext(
-              pattern: node,
-              context: irrefutableContext,
-              matchedType: matchedValueType,
-              requiredType: requiredType);
+      patternTypeMismatchInIrrefutableContextError = errors
+          .patternTypeMismatchInIrrefutableContext(
+            pattern: node,
+            context: irrefutableContext,
+            matchedType: matchedValueType,
+            requiredType: requiredType,
+          );
     }
     return new ListPatternResult(
-        requiredType: requiredType,
-        duplicateRestPatternErrors: duplicateRestPatternErrors,
-        patternTypeMismatchInIrrefutableContextError:
-            patternTypeMismatchInIrrefutableContextError,
-        matchedValueType: matchedValueType);
+      requiredType: requiredType,
+      duplicateRestPatternErrors: duplicateRestPatternErrors,
+      patternTypeMismatchInIrrefutableContextError:
+          patternTypeMismatchInIrrefutableContextError,
+      matchedValueType: matchedValueType,
+    );
   }
 
   /// Computes the type schema for a list pattern.  [elementType] is the list
@@ -896,8 +977,9 @@ mixin TypeAnalyzer<
       if (isRestPatternElement(element)) {
         Pattern? subPattern = getRestPatternElementPattern(element);
         if (subPattern != null) {
-          SharedTypeSchemaView subPatternType =
-              dispatchPatternSchema(subPattern);
+          SharedTypeSchemaView subPatternType = dispatchPatternSchema(
+            subPattern,
+          );
           typeToAdd = operations.matchIterableTypeSchema(subPatternType);
         }
       } else {
@@ -922,10 +1004,11 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: pushes (Pattern left, Pattern right)
   PatternResult analyzeLogicalAndPattern(
-      MatchContext<Node, Expression, Pattern, SharedTypeView, Variable> context,
-      Pattern node,
-      Node lhs,
-      Node rhs) {
+    MatchContext<Node, Expression, Pattern, SharedTypeView, Variable> context,
+    Pattern node,
+    Node lhs,
+    Node rhs,
+  ) {
     SharedTypeView matchedValueType = flow.getMatchedValueType();
     // Stack: ()
     dispatchPattern(
@@ -951,7 +1034,9 @@ mixin TypeAnalyzer<
   /// Stack effect: none.
   SharedTypeSchemaView analyzeLogicalAndPatternSchema(Node lhs, Node rhs) {
     return operations.typeSchemaGlb(
-        dispatchPatternSchema(lhs), dispatchPatternSchema(rhs));
+      dispatchPatternSchema(lhs),
+      dispatchPatternSchema(rhs),
+    );
   }
 
   /// Analyzes a logical-or pattern.  [node] is the pattern itself, and [lhs]
@@ -963,17 +1048,20 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: pushes (Pattern left, Pattern right)
   LogicalOrPatternResult<Error> analyzeLogicalOrPattern(
-      MatchContext<Node, Expression, Pattern, SharedTypeView, Variable> context,
-      Pattern node,
-      Node lhs,
-      Node rhs) {
+    MatchContext<Node, Expression, Pattern, SharedTypeView, Variable> context,
+    Pattern node,
+    Node lhs,
+    Node rhs,
+  ) {
     SharedTypeView matchedValueType = flow.getMatchedValueType();
     Node? irrefutableContext = context.irrefutableContext;
     Error? refutablePatternInIrrefutableContextError;
     if (irrefutableContext != null) {
-      refutablePatternInIrrefutableContextError =
-          errors.refutablePatternInIrrefutableContext(
-              pattern: node, context: irrefutableContext);
+      refutablePatternInIrrefutableContextError = errors
+          .refutablePatternInIrrefutableContext(
+            pattern: node,
+            context: irrefutableContext,
+          );
       // Avoid cascading errors
       context = context.makeRefutable();
     }
@@ -1022,7 +1110,9 @@ mixin TypeAnalyzer<
       } else {
         // Copy the promotion data over to the merged key.
         flow.copyPromotionData(
-            sourceKey: rightPromotionKey, destinationKey: mergedPromotionKey);
+          sourceKey: rightPromotionKey,
+          destinationKey: mergedPromotionKey,
+        );
       }
     }
     // Since the promotion data is now all stored in the merged keys in both
@@ -1030,9 +1120,10 @@ mixin TypeAnalyzer<
     // accordingly.
     flow.logicalOrPattern_end();
     return new LogicalOrPatternResult(
-        refutablePatternInIrrefutableContextError:
-            refutablePatternInIrrefutableContextError,
-        matchedValueType: matchedValueType);
+      refutablePatternInIrrefutableContextError:
+          refutablePatternInIrrefutableContextError,
+      matchedValueType: matchedValueType,
+    );
   }
 
   /// Computes the type schema for a logical-or pattern.  [lhs] and [rhs] are
@@ -1060,10 +1151,8 @@ mixin TypeAnalyzer<
   MapPatternResult<Error> analyzeMapPattern(
     MatchContext<Node, Expression, Pattern, SharedTypeView, Variable> context,
     Pattern node, {
-    required ({
-      SharedTypeView keyType,
-      SharedTypeView valueType
-    })? typeArguments,
+    required ({SharedTypeView keyType, SharedTypeView valueType})?
+    typeArguments,
     required List<Node> elements,
   }) {
     SharedTypeView matchedValueType = flow.getMatchedValueType();
@@ -1105,17 +1194,20 @@ mixin TypeAnalyzer<
       matchMayFailEvenIfCorrectType = false;
     }
     flow.promoteForPattern(
-        matchedType: matchedValueType,
-        knownType: requiredType,
-        matchMayFailEvenIfCorrectType: matchMayFailEvenIfCorrectType);
+      matchedType: matchedValueType,
+      knownType: requiredType,
+      matchMayFailEvenIfCorrectType: matchMayFailEvenIfCorrectType,
+    );
     // Stack: ()
 
     Map<int, Error>? restPatternErrors;
     for (int i = 0; i < elements.length; i++) {
       Node element = elements[i];
       if (isRestPatternElement(element)) {
-        (restPatternErrors ??= {})[i] =
-            errors.restPatternInMap(node: node, element: element);
+        (restPatternErrors ??= {})[i] = errors.restPatternInMap(
+          node: node,
+          element: element,
+        );
       }
     }
 
@@ -1125,10 +1217,7 @@ mixin TypeAnalyzer<
       if (entry != null) {
         SharedTypeView keyType = analyzeExpression(entry.key, keySchema);
         flow.pushSubpattern(valueType);
-        dispatchPattern(
-          context.withUnnecessaryWildcardKind(null),
-          entry.value,
-        );
+        dispatchPattern(context.withUnnecessaryWildcardKind(null), entry.value);
         handleMapPatternEntry(node, element, keyType);
         flow.popSubpattern();
       } else {
@@ -1150,25 +1239,26 @@ mixin TypeAnalyzer<
     Error? patternTypeMismatchInIrrefutableContextError;
     if (irrefutableContext != null &&
         !operations.isAssignableTo(matchedValueType, requiredType)) {
-      patternTypeMismatchInIrrefutableContextError =
-          errors.patternTypeMismatchInIrrefutableContext(
-        pattern: node,
-        context: irrefutableContext,
-        matchedType: matchedValueType,
-        requiredType: requiredType,
-      );
+      patternTypeMismatchInIrrefutableContextError = errors
+          .patternTypeMismatchInIrrefutableContext(
+            pattern: node,
+            context: irrefutableContext,
+            matchedType: matchedValueType,
+            requiredType: requiredType,
+          );
     }
     Error? emptyMapPatternError;
     if (elements.isEmpty) {
       emptyMapPatternError = errors.emptyMapPattern(pattern: node);
     }
     return new MapPatternResult(
-        requiredType: requiredType,
-        patternTypeMismatchInIrrefutableContextError:
-            patternTypeMismatchInIrrefutableContextError,
-        emptyMapPatternError: emptyMapPatternError,
-        restPatternErrors: restPatternErrors,
-        matchedValueType: matchedValueType);
+      requiredType: requiredType,
+      patternTypeMismatchInIrrefutableContextError:
+          patternTypeMismatchInIrrefutableContextError,
+      emptyMapPatternError: emptyMapPatternError,
+      restPatternErrors: restPatternErrors,
+      matchedValueType: matchedValueType,
+    );
   }
 
   /// Computes the type schema for a map pattern.  [typeArguments] contain
@@ -1177,25 +1267,26 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: none.
   SharedTypeSchemaView analyzeMapPatternSchema({
-    required ({
-      SharedTypeView keyType,
-      SharedTypeView valueType
-    })? typeArguments,
+    required ({SharedTypeView keyType, SharedTypeView valueType})?
+    typeArguments,
     required List<Node> elements,
   }) {
     if (typeArguments != null) {
-      return operations.typeToSchema(operations.mapType(
-        keyType: typeArguments.keyType,
-        valueType: typeArguments.valueType,
-      ));
+      return operations.typeToSchema(
+        operations.mapType(
+          keyType: typeArguments.keyType,
+          valueType: typeArguments.valueType,
+        ),
+      );
     }
 
     SharedTypeSchemaView? valueType;
     for (Node element in elements) {
       MapPatternEntry<Expression, Pattern>? entry = getMapPatternEntry(element);
       if (entry != null) {
-        SharedTypeSchemaView entryValueType =
-            dispatchPatternSchema(entry.value);
+        SharedTypeSchemaView entryValueType = dispatchPatternSchema(
+          entry.value,
+        );
         if (valueType == null) {
           valueType = entryValueType;
         } else {
@@ -1220,43 +1311,46 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: pushes (Pattern innerPattern).
   NullCheckOrAssertPatternResult<Error> analyzeNullCheckOrAssertPattern(
-      MatchContext<Node, Expression, Pattern, SharedTypeView, Variable> context,
-      Pattern node,
-      Pattern innerPattern,
-      {required bool isAssert}) {
+    MatchContext<Node, Expression, Pattern, SharedTypeView, Variable> context,
+    Pattern node,
+    Pattern innerPattern, {
+    required bool isAssert,
+  }) {
     SharedTypeView matchedValueType = flow.getMatchedValueType();
     // Stack: ()
     Error? refutablePatternInIrrefutableContextError;
     Error? matchedTypeIsStrictlyNonNullableError;
     Node? irrefutableContext = context.irrefutableContext;
     bool matchedTypeIsStrictlyNonNullable = flow.nullCheckOrAssertPattern_begin(
-        isAssert: isAssert, matchedValueType: matchedValueType);
+      isAssert: isAssert,
+      matchedValueType: matchedValueType,
+    );
     if (irrefutableContext != null && !isAssert) {
-      refutablePatternInIrrefutableContextError =
-          errors.refutablePatternInIrrefutableContext(
-              pattern: node, context: irrefutableContext);
+      refutablePatternInIrrefutableContextError = errors
+          .refutablePatternInIrrefutableContext(
+            pattern: node,
+            context: irrefutableContext,
+          );
       // Avoid cascading errors
       context = context.makeRefutable();
     } else if (matchedTypeIsStrictlyNonNullable) {
-      matchedTypeIsStrictlyNonNullableError =
-          errors.matchedTypeIsStrictlyNonNullable(
-        pattern: node,
-        matchedType: matchedValueType,
-      );
+      matchedTypeIsStrictlyNonNullableError = errors
+          .matchedTypeIsStrictlyNonNullable(
+            pattern: node,
+            matchedType: matchedValueType,
+          );
     }
-    dispatchPattern(
-      context.withUnnecessaryWildcardKind(null),
-      innerPattern,
-    );
+    dispatchPattern(context.withUnnecessaryWildcardKind(null), innerPattern);
     // Stack: (Pattern)
     flow.nullCheckOrAssertPattern_end();
 
     return new NullCheckOrAssertPatternResult(
-        refutablePatternInIrrefutableContextError:
-            refutablePatternInIrrefutableContextError,
-        matchedTypeIsStrictlyNonNullableError:
-            matchedTypeIsStrictlyNonNullableError,
-        matchedValueType: matchedValueType);
+      refutablePatternInIrrefutableContextError:
+          refutablePatternInIrrefutableContextError,
+      matchedTypeIsStrictlyNonNullableError:
+          matchedTypeIsStrictlyNonNullableError,
+      matchedValueType: matchedValueType,
+    );
   }
 
   /// Computes the type schema for a null-check or null-assert pattern.
@@ -1265,11 +1359,13 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: none.
   SharedTypeSchemaView analyzeNullCheckOrAssertPatternSchema(
-      Pattern innerPattern,
-      {required bool isAssert}) {
+    Pattern innerPattern, {
+    required bool isAssert,
+  }) {
     if (isAssert) {
-      return operations
-          .makeTypeSchemaNullable(dispatchPatternSchema(innerPattern));
+      return operations.makeTypeSchemaNullable(
+        dispatchPatternSchema(innerPattern),
+      );
     } else {
       // Null-check patterns are only allowed in refutable contexts, and
       // refutable contexts don't propagate a type schema into the scrutinee.
@@ -1302,7 +1398,9 @@ mixin TypeAnalyzer<
       pattern: node,
     );
     flow.promoteForPattern(
-        matchedType: matchedValueType, knownType: requiredType);
+      matchedType: matchedValueType,
+      knownType: requiredType,
+    );
 
     // If the required type is `dynamic` or `Never`, then every getter is
     // treated as having the same type.
@@ -1317,48 +1415,50 @@ mixin TypeAnalyzer<
     Error? patternTypeMismatchInIrrefutableContextError;
     if (irrefutableContext != null &&
         !operations.isAssignableTo(matchedValueType, requiredType)) {
-      patternTypeMismatchInIrrefutableContextError =
-          errors.patternTypeMismatchInIrrefutableContext(
-        pattern: node,
-        context: irrefutableContext,
-        matchedType: matchedValueType,
-        requiredType: requiredType,
-      );
+      patternTypeMismatchInIrrefutableContextError = errors
+          .patternTypeMismatchInIrrefutableContext(
+            pattern: node,
+            context: irrefutableContext,
+            matchedType: matchedValueType,
+            requiredType: requiredType,
+          );
     }
 
     // Stack: ()
     for (RecordPatternField<Node, Pattern> field in fields) {
       var (Object? propertyMember, SharedTypeView unpromotedPropertyType) =
           overridePropertyGetType ??
-              resolveObjectPatternPropertyGet(
-                objectPattern: node,
-                receiverType: requiredType,
-                field: field,
-              );
+          resolveObjectPatternPropertyGet(
+            objectPattern: node,
+            receiverType: requiredType,
+            field: field,
+          );
       // Note: an object pattern field must always have a property name, but in
       // error recovery circumstances, one may be absent; when this happens, use
       // the empty string as a the property name to prevent a crash.
       String propertyName = field.name ?? '';
-      SharedTypeView promotedPropertyType = flow.pushPropertySubpattern(
-              propertyName, propertyMember, unpromotedPropertyType) ??
+      SharedTypeView promotedPropertyType =
+          flow.pushPropertySubpattern(
+            propertyName,
+            propertyMember,
+            unpromotedPropertyType,
+          ) ??
           unpromotedPropertyType;
       if (operations.isBottomType(promotedPropertyType)) {
         flow.handleExit();
       }
-      dispatchPattern(
-        context.withUnnecessaryWildcardKind(null),
-        field.pattern,
-      );
+      dispatchPattern(context.withUnnecessaryWildcardKind(null), field.pattern);
       flow.popPropertySubpattern();
     }
     // Stack: (n * Pattern) where n = fields.length
 
     return new ObjectPatternResult(
-        requiredType: requiredType,
-        duplicateRecordPatternFieldErrors: duplicateRecordPatternFieldErrors,
-        patternTypeMismatchInIrrefutableContextError:
-            patternTypeMismatchInIrrefutableContextError,
-        matchedValueType: matchedValueType);
+      requiredType: requiredType,
+      duplicateRecordPatternFieldErrors: duplicateRecordPatternFieldErrors,
+      patternTypeMismatchInIrrefutableContextError:
+          patternTypeMismatchInIrrefutableContextError,
+      matchedValueType: matchedValueType,
+    );
   }
 
   /// Computes the type schema for an object pattern.  [type] is the type
@@ -1376,7 +1476,10 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: pushes (Expression, Pattern).
   PatternAssignmentAnalysisResult analyzePatternAssignment(
-      Expression node, Pattern pattern, Expression rhs) {
+    Expression node,
+    Pattern pattern,
+    Expression rhs,
+  ) {
     // Stack: ()
     SharedTypeSchemaView patternSchema = dispatchPatternSchema(pattern);
     SharedTypeView rhsType = analyzeExpression(rhs, patternSchema);
@@ -1430,29 +1533,33 @@ mixin TypeAnalyzer<
   }) {
     // Stack: ()
     SharedTypeSchemaView patternTypeSchema = dispatchPatternSchema(pattern);
-    SharedTypeSchemaView expressionTypeSchema = hasAwait
-        ? operations.streamTypeSchema(patternTypeSchema)
-        : operations.iterableTypeSchema(patternTypeSchema);
-    SharedTypeView expressionType =
-        analyzeExpression(expression, expressionTypeSchema);
+    SharedTypeSchemaView expressionTypeSchema =
+        hasAwait
+            ? operations.streamTypeSchema(patternTypeSchema)
+            : operations.iterableTypeSchema(patternTypeSchema);
+    SharedTypeView expressionType = analyzeExpression(
+      expression,
+      expressionTypeSchema,
+    );
     // Stack: (Expression)
 
     Error? patternForInExpressionIsNotIterableError;
-    SharedTypeView? elementType = hasAwait
-        ? operations.matchStreamType(expressionType)
-        : operations.matchIterableType(expressionType);
+    SharedTypeView? elementType =
+        hasAwait
+            ? operations.matchStreamType(expressionType)
+            : operations.matchIterableType(expressionType);
     if (elementType == null) {
       if (expressionType is SharedDynamicType) {
         elementType = operations.dynamicType;
       } else if (expressionType is SharedInvalidType) {
         elementType = operations.errorType;
       } else {
-        patternForInExpressionIsNotIterableError =
-            errors.patternForInExpressionIsNotIterable(
-          node: node,
-          expression: expression,
-          expressionType: expressionType,
-        );
+        patternForInExpressionIsNotIterableError = errors
+            .patternForInExpressionIsNotIterable(
+              node: node,
+              expression: expression,
+              expressionType: expressionType,
+            );
         elementType = operations.errorType;
       }
     }
@@ -1477,10 +1584,11 @@ mixin TypeAnalyzer<
     flow.patternForIn_end();
 
     return new PatternForInResult(
-        elementType: elementType,
-        expressionType: expressionType,
-        patternForInExpressionIsNotIterableError:
-            patternForInExpressionIsNotIterableError);
+      elementType: elementType,
+      expressionType: expressionType,
+      patternForInExpressionIsNotIterableError:
+          patternForInExpressionIsNotIterableError,
+    );
   }
 
   /// Analyzes a patternVariableDeclaration node of the form
@@ -1495,15 +1603,22 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: pushes (Expression, Pattern).
   PatternVariableDeclarationAnalysisResult analyzePatternVariableDeclaration(
-      Node node, Pattern pattern, Expression initializer,
-      {required bool isFinal}) {
+    Node node,
+    Pattern pattern,
+    Expression initializer, {
+    required bool isFinal,
+  }) {
     // Stack: ()
     SharedTypeSchemaView patternSchema = dispatchPatternSchema(pattern);
-    SharedTypeView initializerType =
-        analyzeExpression(initializer, patternSchema);
+    SharedTypeView initializerType = analyzeExpression(
+      initializer,
+      patternSchema,
+    );
     // Stack: (Expression)
     flow.patternVariableDeclaration_afterInitializer(
-        initializer, initializerType);
+      initializer,
+      initializerType,
+    );
     Map<String, List<Variable>> componentVariables = {};
     Map<String, int> patternVariablePromotionKeys = {};
     dispatchPattern(
@@ -1516,12 +1631,17 @@ mixin TypeAnalyzer<
       pattern,
     );
     _finishJoinedPatternVariables(
-        {}, componentVariables, patternVariablePromotionKeys,
-        location: JoinedPatternVariableLocation.singlePattern);
+      {},
+      componentVariables,
+      patternVariablePromotionKeys,
+      location: JoinedPatternVariableLocation.singlePattern,
+    );
     flow.patternVariableDeclaration_end();
     // Stack: (Expression, Pattern)
     return new PatternVariableDeclarationAnalysisResult(
-        initializerType: initializerType, patternSchema: patternSchema);
+      initializerType: initializerType,
+      patternSchema: patternSchema,
+    );
   }
 
   /// Analyzes a record pattern.  [node] is the pattern itself, and [fields]
@@ -1548,10 +1668,7 @@ mixin TypeAnalyzer<
     void dispatchField(int i, SharedTypeView matchedType) {
       RecordPatternField<Node, Pattern> field = fields[i];
       flow.pushSubpattern(matchedType);
-      dispatchPattern(
-        context.withUnnecessaryWildcardKind(null),
-        field.pattern,
-      );
+      dispatchPattern(context.withUnnecessaryWildcardKind(null), field.pattern);
       SharedTypeView demonstratedType = flow.getMatchedValueType();
       String? name = field.name;
       if (name == null) {
@@ -1579,9 +1696,7 @@ mixin TypeAnalyzer<
         requiredTypePositionalCount++;
       } else if (duplicateRecordPatternFieldErrors == null ||
           !duplicateRecordPatternFieldErrors.containsKey(i)) {
-        requiredTypeNamedTypes.add(
-          (name, operations.objectQuestionType),
-        );
+        requiredTypeNamedTypes.add((name, operations.objectQuestionType));
       }
     }
     SharedTypeView requiredType = operations.recordType(
@@ -1592,12 +1707,16 @@ mixin TypeAnalyzer<
       named: requiredTypeNamedTypes,
     );
     flow.promoteForPattern(
-        matchedType: matchedValueType, knownType: requiredType);
+      matchedType: matchedValueType,
+      knownType: requiredType,
+    );
 
     // Stack: ()
     if (matchedValueType is SharedRecordTypeView) {
-      List<SharedTypeView>? fieldTypes =
-          _matchRecordTypeShape(fields, matchedValueType);
+      List<SharedTypeView>? fieldTypes = _matchRecordTypeShape(
+        fields,
+        matchedValueType,
+      );
       if (fieldTypes != null) {
         assert(fieldTypes.length == fields.length);
         for (int i = 0; i < fields.length; i++) {
@@ -1619,27 +1738,31 @@ mixin TypeAnalyzer<
     Error? patternTypeMismatchInIrrefutableContextError;
     if (irrefutableContext != null &&
         !operations.isAssignableTo(matchedValueType, requiredType)) {
-      patternTypeMismatchInIrrefutableContextError =
-          errors.patternTypeMismatchInIrrefutableContext(
-        pattern: node,
-        context: irrefutableContext,
-        matchedType: matchedValueType,
-        requiredType: requiredType,
-      );
+      patternTypeMismatchInIrrefutableContextError = errors
+          .patternTypeMismatchInIrrefutableContext(
+            pattern: node,
+            context: irrefutableContext,
+            matchedType: matchedValueType,
+            requiredType: requiredType,
+          );
     }
 
     SharedTypeView demonstratedType = operations.recordType(
-        positional: demonstratedPositionalTypes, named: demonstratedNamedTypes);
+      positional: demonstratedPositionalTypes,
+      named: demonstratedNamedTypes,
+    );
     flow.promoteForPattern(
-        matchedType: matchedValueType,
-        knownType: demonstratedType,
-        matchFailsIfWrongType: false);
+      matchedType: matchedValueType,
+      knownType: demonstratedType,
+      matchFailsIfWrongType: false,
+    );
     return new RecordPatternResult(
-        requiredType: requiredType,
-        duplicateRecordPatternFieldErrors: duplicateRecordPatternFieldErrors,
-        patternTypeMismatchInIrrefutableContextError:
-            patternTypeMismatchInIrrefutableContextError,
-        matchedValueType: matchedValueType);
+      requiredType: requiredType,
+      duplicateRecordPatternFieldErrors: duplicateRecordPatternFieldErrors,
+      patternTypeMismatchInIrrefutableContextError:
+          patternTypeMismatchInIrrefutableContextError,
+      matchedValueType: matchedValueType,
+    );
   }
 
   /// Computes the type schema for a record pattern.
@@ -1676,25 +1799,30 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: pushes (Expression).
   RelationalPatternResult<Error> analyzeRelationalPattern(
-      MatchContext<Node, Expression, Pattern, SharedTypeView, Variable> context,
-      Pattern node,
-      Expression operand) {
+    MatchContext<Node, Expression, Pattern, SharedTypeView, Variable> context,
+    Pattern node,
+    Expression operand,
+  ) {
     SharedTypeView matchedValueType = flow.getMatchedValueType();
     // Stack: ()
     Error? refutablePatternInIrrefutableContextError;
     Node? irrefutableContext = context.irrefutableContext;
     if (irrefutableContext != null) {
-      refutablePatternInIrrefutableContextError =
-          errors.refutablePatternInIrrefutableContext(
-              pattern: node, context: irrefutableContext);
+      refutablePatternInIrrefutableContextError = errors
+          .refutablePatternInIrrefutableContext(
+            pattern: node,
+            context: irrefutableContext,
+          );
     }
-    RelationalOperatorResolution? operator =
-        resolveRelationalPatternOperator(node, matchedValueType);
+    RelationalOperatorResolution? operator = resolveRelationalPatternOperator(
+      node,
+      matchedValueType,
+    );
     SharedTypeView? parameterType = operator?.parameterType;
     bool isEquality = switch (operator?.kind) {
       RelationalOperatorKind.equals => true,
       RelationalOperatorKind.notEquals => true,
-      _ => false
+      _ => false,
     };
     if (isEquality && parameterType != null) {
       parameterType = operations.makeNullable(parameterType);
@@ -1710,9 +1838,12 @@ mixin TypeAnalyzer<
     }
     SharedTypeView operandType = analyzeExpression(operand, operandSchema);
     if (isEquality) {
-      flow.equalityRelationalPattern_end(operand, operandType,
-          notEqual: operator?.kind == RelationalOperatorKind.notEquals,
-          matchedValueType: matchedValueType);
+      flow.equalityRelationalPattern_end(
+        operand,
+        operandType,
+        notEqual: operator?.kind == RelationalOperatorKind.notEquals,
+        matchedValueType: matchedValueType,
+      );
     } else {
       flow.nonEqualityRelationalPattern_end();
     }
@@ -1722,30 +1853,33 @@ mixin TypeAnalyzer<
     if (operator != null) {
       if (parameterType != null &&
           !operations.isAssignableTo(operandType, parameterType)) {
-        argumentTypeNotAssignableError =
-            errors.relationalPatternOperandTypeNotAssignable(
-          pattern: node,
-          operandType: operandType,
-          parameterType: operator.parameterType,
-        );
+        argumentTypeNotAssignableError = errors
+            .relationalPatternOperandTypeNotAssignable(
+              pattern: node,
+              operandType: operandType,
+              parameterType: operator.parameterType,
+            );
       }
       if (!operations.isAssignableTo(
-          operator.returnType, operations.boolType)) {
-        operatorReturnTypeNotAssignableToBoolError =
-            errors.relationalPatternOperatorReturnTypeNotAssignableToBool(
-          pattern: node,
-          returnType: operator.returnType,
-        );
+        operator.returnType,
+        operations.boolType,
+      )) {
+        operatorReturnTypeNotAssignableToBoolError = errors
+            .relationalPatternOperatorReturnTypeNotAssignableToBool(
+              pattern: node,
+              returnType: operator.returnType,
+            );
       }
     }
     return new RelationalPatternResult(
-        operandType: operandType,
-        refutablePatternInIrrefutableContextError:
-            refutablePatternInIrrefutableContextError,
-        operatorReturnTypeNotAssignableToBoolError:
-            operatorReturnTypeNotAssignableToBoolError,
-        argumentTypeNotAssignableError: argumentTypeNotAssignableError,
-        matchedValueType: matchedValueType);
+      operandType: operandType,
+      refutablePatternInIrrefutableContextError:
+          refutablePatternInIrrefutableContextError,
+      operatorReturnTypeNotAssignableToBoolError:
+          operatorReturnTypeNotAssignableToBoolError,
+      argumentTypeNotAssignableError: argumentTypeNotAssignableError,
+      matchedValueType: matchedValueType,
+    );
   }
 
   /// Computes the type schema for a relational pattern.
@@ -1766,8 +1900,12 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: pushes (Expression, n * ExpressionCase), where n is the
   /// number of cases.
-  SwitchExpressionResult<Error> analyzeSwitchExpression(Expression node,
-      Expression scrutinee, int numCases, SharedTypeSchemaView schema) {
+  SwitchExpressionResult<Error> analyzeSwitchExpression(
+    Expression node,
+    Expression scrutinee,
+    int numCases,
+    SharedTypeSchemaView schema,
+  ) {
     // Stack: ()
 
     // The static type of a switch expression `E` of the form `switch (e0) { p1
@@ -1775,8 +1913,10 @@ mixin TypeAnalyzer<
     // follows:
     //
     // - The scrutinee (`e0`) is first analyzed with context type `_`.
-    SharedTypeView expressionType =
-        analyzeExpression(scrutinee, operations.unknownType);
+    SharedTypeView expressionType = analyzeExpression(
+      scrutinee,
+      operations.unknownType,
+    );
     // Stack: (Expression)
     handleSwitchScrutinee(expressionType);
     flow.switchStatement_expressionEnd(null, scrutinee, expressionType);
@@ -1809,8 +1949,13 @@ mixin TypeAnalyzer<
           Map<String, List<Variable>> componentVariables = {};
           Map<String, int> patternVariablePromotionKeys = {};
           dispatchPattern(
-            new MatchContext<Node, Expression, Pattern, SharedTypeView,
-                Variable>(
+            new MatchContext<
+              Node,
+              Expression,
+              Pattern,
+              SharedTypeView,
+              Variable
+            >(
               isFinal: false,
               switchScrutinee: scrutinee,
               componentVariables: componentVariables,
@@ -1829,7 +1974,9 @@ mixin TypeAnalyzer<
           bool hasGuard = guard != null;
           if (hasGuard) {
             SharedTypeView guardType = analyzeExpression(
-                guard, operations.typeToSchema(operations.boolType));
+              guard,
+              operations.typeToSchema(operations.boolType),
+            );
             Error? nonBooleanGuardError = _checkGuardType(guard, guardType);
             (guardTypes ??= {})[i] = guardType;
             if (nonBooleanGuardError != null) {
@@ -1881,9 +2028,10 @@ mixin TypeAnalyzer<
     // Stack: (Expression, numCases * ExpressionCase)
     flow.switchStatement_end(true);
     return new SwitchExpressionResult(
-        type: staticType,
-        nonBooleanGuardErrors: nonBooleanGuardErrors,
-        guardTypes: guardTypes);
+      type: staticType,
+      nonBooleanGuardErrors: nonBooleanGuardErrors,
+      guardTypes: guardTypes,
+    );
   }
 
   /// Analyzes a statement of the form `switch (expression) { cases }`.
@@ -1891,10 +2039,15 @@ mixin TypeAnalyzer<
   /// Stack effect: pushes (Expression, n * StatementCase), where n is the
   /// number of cases after merging together cases that share a body.
   SwitchStatementTypeAnalysisResult<Error> analyzeSwitchStatement(
-      Statement node, Expression scrutinee, final int numCases) {
+    Statement node,
+    Expression scrutinee,
+    final int numCases,
+  ) {
     // Stack: ()
-    SharedTypeView scrutineeType =
-        analyzeExpression(scrutinee, operations.unknownType);
+    SharedTypeView scrutineeType = analyzeExpression(
+      scrutinee,
+      operations.unknownType,
+    );
     // Stack: (Expression)
     handleSwitchScrutinee(scrutineeType);
     flow.switchStatement_expressionEnd(node, scrutinee, scrutineeType);
@@ -1909,7 +2062,7 @@ mixin TypeAnalyzer<
       // Stack: (Expression, numExecutionPaths * StatementCase,
       //         numHeads * CaseHead)
       SwitchStatementMemberInfo<Node, Statement, Expression, Variable>
-          memberInfo = getSwitchStatementMemberInfo(node, caseIndex);
+      memberInfo = getSwitchStatementMemberInfo(node, caseIndex);
       List<CaseHeadOrDefaultInfo<Node, Expression, Variable>> heads =
           memberInfo.heads;
       for (int headIndex = 0; headIndex < heads.length; headIndex++) {
@@ -1917,15 +2070,23 @@ mixin TypeAnalyzer<
             heads[headIndex];
         Node? pattern = head.pattern;
         flow.switchStatement_beginAlternative();
-        handleSwitchBeforeAlternative(node,
-            caseIndex: caseIndex, subIndex: headIndex);
+        handleSwitchBeforeAlternative(
+          node,
+          caseIndex: caseIndex,
+          subIndex: headIndex,
+        );
         Expression? guard;
         if (pattern != null) {
           Map<String, List<Variable>> componentVariables = {};
           Map<String, int> patternVariablePromotionKeys = {};
           dispatchPattern(
-            new MatchContext<Node, Expression, Pattern, SharedTypeView,
-                Variable>(
+            new MatchContext<
+              Node,
+              Expression,
+              Pattern,
+              SharedTypeView,
+              Variable
+            >(
               isFinal: false,
               switchScrutinee: scrutinee,
               componentVariables: componentVariables,
@@ -1944,7 +2105,9 @@ mixin TypeAnalyzer<
           guard = head.guard;
           if (guard != null) {
             SharedTypeView guardType = analyzeExpression(
-                guard, operations.typeToSchema(operations.boolType));
+              guard,
+              operations.typeToSchema(operations.boolType),
+            );
             Error? nonBooleanGuardError = _checkGuardType(guard, guardType);
             ((guardTypes ??= {})[caseIndex] ??= {})[headIndex] = guardType;
             if (nonBooleanGuardError != null) {
@@ -1967,9 +2130,11 @@ mixin TypeAnalyzer<
       }
       // Stack: (Expression, numExecutionPaths * StatementCase,
       //         numHeads * CaseHead)
-      PatternVariableInfo<Variable> patternVariableInfo =
-          flow.switchStatement_endAlternatives(node,
-              hasLabels: memberInfo.hasLabels);
+      PatternVariableInfo<Variable> patternVariableInfo = flow
+          .switchStatement_endAlternatives(
+            node,
+            hasLabels: memberInfo.hasLabels,
+          );
       Map<String, Variable> variables = memberInfo.variables;
       if (memberInfo.hasLabels || heads.length > 1) {
         _finishJoinedPatternVariables(
@@ -1994,8 +2159,11 @@ mixin TypeAnalyzer<
         (switchCaseCompletesNormallyErrors ??= {})[caseIndex] = errors
             .switchCaseCompletesNormally(node: node, caseIndex: caseIndex);
       }
-      handleMergedStatementCase(node,
-          caseIndex: caseIndex, isTerminating: lastCaseTerminates);
+      handleMergedStatementCase(
+        node,
+        caseIndex: caseIndex,
+        isTerminating: lastCaseTerminates,
+      );
       // Stack: (Expression, (numExecutionPaths + 1) * StatementCase)
     }
     // Stack: (Expression, numExecutionPaths * StatementCase)
@@ -2035,8 +2203,11 @@ mixin TypeAnalyzer<
   ///
   /// Returns the inferred type of the variable.
   SharedTypeView analyzeUninitializedVariableDeclaration(
-      Node node, Variable variable, SharedTypeView? declaredType,
-      {required bool isFinal}) {
+    Node node,
+    Variable variable,
+    SharedTypeView? declaredType, {
+    required bool isFinal,
+  }) {
     SharedTypeView inferredType = declaredType ?? operations.dynamicType;
     setVariableType(variable, inferredType);
     flow.declare(variable, inferredType, initialized: false);
@@ -2052,7 +2223,7 @@ mixin TypeAnalyzer<
   /// Stack effect: none.
   WildcardPatternResult<Error> analyzeWildcardPattern({
     required MatchContext<Node, Expression, Pattern, SharedTypeView, Variable>
-        context,
+    context,
     required Pattern node,
     required SharedTypeView? declaredType,
   }) {
@@ -2061,20 +2232,22 @@ mixin TypeAnalyzer<
     Error? patternTypeMismatchInIrrefutableContextError;
     if (irrefutableContext != null && declaredType != null) {
       if (!operations.isAssignableTo(matchedValueType, declaredType)) {
-        patternTypeMismatchInIrrefutableContextError =
-            errors.patternTypeMismatchInIrrefutableContext(
-          pattern: node,
-          context: irrefutableContext,
-          matchedType: matchedValueType,
-          requiredType: declaredType,
-        );
+        patternTypeMismatchInIrrefutableContextError = errors
+            .patternTypeMismatchInIrrefutableContext(
+              pattern: node,
+              context: irrefutableContext,
+              matchedType: matchedValueType,
+              requiredType: declaredType,
+            );
       }
     }
 
     bool isAlwaysMatching;
     if (declaredType != null) {
       isAlwaysMatching = flow.promoteForPattern(
-          matchedType: matchedValueType, knownType: declaredType);
+        matchedType: matchedValueType,
+        knownType: declaredType,
+      );
     } else {
       isAlwaysMatching = true;
     }
@@ -2088,9 +2261,10 @@ mixin TypeAnalyzer<
       );
     }
     return new WildcardPatternResult(
-        patternTypeMismatchInIrrefutableContextError:
-            patternTypeMismatchInIrrefutableContextError,
-        matchedValueType: matchedValueType);
+      patternTypeMismatchInIrrefutableContextError:
+          patternTypeMismatchInIrrefutableContextError,
+      matchedValueType: matchedValueType,
+    );
   }
 
   /// Computes the type schema for a wildcard pattern.  [declaredType] is the
@@ -2123,7 +2297,9 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: pushes (Expression).
   ExpressionTypeAnalysisResult dispatchExpression(
-      Expression node, SharedTypeSchemaView schema);
+    Expression node,
+    SharedTypeSchemaView schema,
+  );
 
   /// Calls the appropriate `analyze` method according to the form of [pattern].
   ///
@@ -2133,8 +2309,9 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: pushes (Pattern).
   PatternResult dispatchPattern(
-      MatchContext<Node, Expression, Pattern, SharedTypeView, Variable> context,
-      Node pattern);
+    MatchContext<Node, Expression, Pattern, SharedTypeView, Variable> context,
+    Node pattern,
+  );
 
   /// Calls the appropriate `analyze...Schema` method according to the form of
   /// [pattern].
@@ -2192,7 +2369,7 @@ mixin TypeAnalyzer<
   ///
   /// See [analyzeSwitchExpression].
   SwitchExpressionMemberInfo<Node, Expression, Variable>
-      getSwitchExpressionMemberInfo(Expression node, int index);
+  getSwitchExpressionMemberInfo(Expression node, int index);
 
   /// Returns a [SwitchStatementMemberInfo] object describing the [caseIndex]th
   /// `case` or `default` clause in the switch statement [node].
@@ -2203,7 +2380,7 @@ mixin TypeAnalyzer<
   ///
   /// See [analyzeSwitchStatement].
   SwitchStatementMemberInfo<Node, Statement, Expression, Variable>
-      getSwitchStatementMemberInfo(Statement node, int caseIndex);
+  getSwitchStatementMemberInfo(Statement node, int caseIndex);
 
   /// Called after visiting the pattern in `if-case` statement.
   void handle_ifCaseStatement_afterPattern({required Statement node}) {}
@@ -2236,7 +2413,10 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: pops (numHeads * CaseHead) and pushes (CaseHeads).
   void handleCase_afterCaseHeads(
-      Statement node, int caseIndex, Iterable<Variable> variables);
+    Statement node,
+    int caseIndex,
+    Iterable<Variable> variables,
+  );
 
   /// Called after visiting a single `case` clause, consisting of a pattern and
   /// an optional guard.
@@ -2246,8 +2426,11 @@ mixin TypeAnalyzer<
   /// of the case head.
   ///
   /// Stack effect: pops (Pattern, Expression) and pushes (CaseHead).
-  void handleCaseHead(Node node,
-      {required int caseIndex, required int subIndex});
+  void handleCaseHead(
+    Node node, {
+    required int caseIndex,
+    required int subIndex,
+  });
 
   /// Called after visiting a `default` clause.
   ///
@@ -2271,7 +2454,10 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: pushes (MapPatternElement).
   void handleMapPatternEntry(
-      Pattern container, Node entryElement, SharedTypeView keyType);
+    Pattern container,
+    Node entryElement,
+    SharedTypeView keyType,
+  );
 
   /// Called after visiting a rest element in a map pattern.
   ///
@@ -2290,8 +2476,11 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: pops (CaseHeads, numStatements * Statement) and pushes
   /// (StatementCase).
-  void handleMergedStatementCase(Statement node,
-      {required int caseIndex, required bool isTerminating});
+  void handleMergedStatementCase(
+    Statement node, {
+    required int caseIndex,
+    required bool isTerminating,
+  });
 
   /// Called when visiting a syntactic construct where there is an implicit
   /// no-op collection element.  For example, this is called in place of the
@@ -2322,8 +2511,11 @@ mixin TypeAnalyzer<
   /// [node] is the enclosing switch statement or switch expression and
   /// [caseIndex] is the index of the `case` or `default` clause.
   /// [subIndex] is the index of the case head.
-  void handleSwitchBeforeAlternative(Node node,
-      {required int caseIndex, required int subIndex});
+  void handleSwitchBeforeAlternative(
+    Node node, {
+    required int caseIndex,
+    required int subIndex,
+  });
 
   /// Called after visiting the scrutinee part of a switch statement or switch
   /// expression.  This is a hook to allow the client to start exhaustiveness
@@ -2383,7 +2575,9 @@ mixin TypeAnalyzer<
   /// either because the code is invalid, or because [matchedValueType] is
   /// `dynamic`).
   RelationalOperatorResolution? resolveRelationalPatternOperator(
-      Pattern node, SharedTypeView matchedValueType);
+    Pattern node,
+    SharedTypeView matchedValueType,
+  );
 
   /// Records that type inference has assigned a [type] to a [variable].  This
   /// is called once per variable, regardless of whether the variable's type is
@@ -2421,7 +2615,11 @@ mixin TypeAnalyzer<
   /// Stack effect: pushes (CollectionElement ifTrue,
   /// CollectionElement ifFalse).
   void _analyzeIfElementCommon(
-      Node node, Node ifTrue, Node? ifFalse, Object? context) {
+    Node node,
+    Node ifTrue,
+    Node? ifFalse,
+    Object? context,
+  ) {
     // Stack: ()
     dispatchCollectionElement(ifTrue, context);
     handle_ifElement_thenEnd(node, ifTrue);
@@ -2485,7 +2683,9 @@ mixin TypeAnalyzer<
           bool inconsistencyFound = false;
           if (typeIfConsistent != null &&
               !_structurallyEqualAfterNormTypes(
-                  typeIfConsistent, componentType)) {
+                typeIfConsistent,
+                componentType,
+              )) {
             typeIfConsistent = null;
             inconsistencyFound = true;
           }
@@ -2498,20 +2698,25 @@ mixin TypeAnalyzer<
               location == JoinedPatternVariableLocation.singlePattern &&
               variable != null) {
             errors.inconsistentJoinedPatternVariable(
-                variable: variable, component: component);
+              variable: variable,
+              component: component,
+            );
           }
         }
       }
       if (variable != null) {
         if (!isIdenticalToComponent) {
-          finishJoinedPatternVariable(variable,
-              location: location,
-              inconsistency: typeIfConsistent != null &&
-                      isFinalIfConsistent != null
-                  ? JoinedPatternVariableInconsistency.none
-                  : JoinedPatternVariableInconsistency.differentFinalityOrType,
-              isFinal: isFinalIfConsistent ?? false,
-              type: typeIfConsistent ?? operations.errorType);
+          finishJoinedPatternVariable(
+            variable,
+            location: location,
+            inconsistency:
+                typeIfConsistent != null && isFinalIfConsistent != null
+                    ? JoinedPatternVariableInconsistency.none
+                    : JoinedPatternVariableInconsistency
+                        .differentFinalityOrType,
+            isFinal: isFinalIfConsistent ?? false,
+            type: typeIfConsistent ?? operations.errorType,
+          );
           flow.assignMatchedPatternVariable(variable, promotionKey);
         }
       }
@@ -2564,7 +2769,9 @@ mixin TypeAnalyzer<
 
   /// Reports errors for duplicate named record fields.
   Map<int, Error>? _reportDuplicateRecordPatternFields(
-      Pattern pattern, List<RecordPatternField<Node, Pattern>> fields) {
+    Pattern pattern,
+    List<RecordPatternField<Node, Pattern>> fields,
+  ) {
     Map<int, Error>? errorResults;
     Map<String, RecordPatternField<Node, Pattern>> nameToField = {};
     for (int i = 0; i < fields.length; i++) {
@@ -2588,7 +2795,9 @@ mixin TypeAnalyzer<
   }
 
   bool _structurallyEqualAfterNormTypes(
-      SharedTypeView type1, SharedTypeView type2) {
+    SharedTypeView type1,
+    SharedTypeView type2,
+  ) {
     SharedTypeView norm1 = operations.normalize(type1);
     SharedTypeView norm2 = operations.normalize(type2);
     return norm1.unwrapTypeView().isStructurallyEqualTo(norm2.unwrapTypeView());
@@ -2598,20 +2807,23 @@ mixin TypeAnalyzer<
 /// Interface used by the shared [TypeAnalyzer] logic to report error conditions
 /// up to the client during the "visit" phase of type analysis.
 abstract class TypeAnalyzerErrors<
-    Node extends Object,
-    Statement extends Node,
-    Expression extends Node,
-    Variable extends Object,
-    Type extends Object,
-    Pattern extends Node,
-    Error> implements TypeAnalyzerErrorsBase {
+  Node extends Object,
+  Statement extends Node,
+  Expression extends Node,
+  Variable extends Object,
+  Type extends Object,
+  Pattern extends Node,
+  Error
+>
+    implements TypeAnalyzerErrorsBase {
   /// Called if pattern support is disabled and a case constant's static type
   /// doesn't properly match the scrutinee's static type.
-  Error caseExpressionTypeMismatch(
-      {required Expression scrutinee,
-      required Expression caseExpression,
-      required Type scrutineeType,
-      required Type caseExpressionType});
+  Error caseExpressionTypeMismatch({
+    required Expression scrutinee,
+    required Expression caseExpression,
+    required Type scrutineeType,
+    required Type caseExpressionType,
+  });
 
   /// Called for variable that is assigned more than once.
   ///
@@ -2640,9 +2852,7 @@ abstract class TypeAnalyzerErrors<
   /// Called if a map pattern does not have elements.
   ///
   /// [pattern] is the map pattern.
-  Error emptyMapPattern({
-    required Pattern pattern,
-  });
+  Error emptyMapPattern({required Pattern pattern});
 
   /// Called when both branches have variables with the same name, but these
   /// variables either don't have the same finality, or their `NORM` types
@@ -2687,11 +2897,12 @@ abstract class TypeAnalyzerErrors<
   /// the containing AST node that established an irrefutable context,
   /// [matchedType] is the matched type, and [requiredType] is the required
   /// type.
-  Error patternTypeMismatchInIrrefutableContext(
-      {required Pattern pattern,
-      required Node context,
-      required Type matchedType,
-      required Type requiredType});
+  Error patternTypeMismatchInIrrefutableContext({
+    required Pattern pattern,
+    required Node context,
+    required Type matchedType,
+    required Type requiredType,
+  });
 
   /// Called if a refutable pattern is illegally used in an irrefutable context.
   ///
@@ -2699,8 +2910,10 @@ abstract class TypeAnalyzerErrors<
   /// containing AST node that established an irrefutable context.
   ///
   /// TODO(paulberry): move this error reporting to the parser.
-  Error refutablePatternInIrrefutableContext(
-      {required Node pattern, required Node context});
+  Error refutablePatternInIrrefutableContext({
+    required Node pattern,
+    required Node context,
+  });
 
   /// Called if the operand of the [pattern] has the type [operandType], which
   /// is not assignable to [parameterType] of the invoked relational operator.
@@ -2728,8 +2941,10 @@ abstract class TypeAnalyzerErrors<
   ///
   /// [node] is the AST node of the switch statement.  [caseIndex] is the index
   /// of the merged case with the erroneous case body.
-  Error switchCaseCompletesNormally(
-      {required Statement node, required int caseIndex});
+  Error switchCaseCompletesNormally({
+    required Statement node,
+    required int caseIndex,
+  });
 
   /// Called when a wildcard pattern appears in the context where it is not
   /// necessary, e.g. `0 && var _` vs. `[var _]`, and does not add anything

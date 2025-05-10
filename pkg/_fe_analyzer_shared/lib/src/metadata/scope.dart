@@ -29,25 +29,38 @@ abstract class TypeDeclarationScope {
 abstract base class BaseClassScope implements TypeDeclarationScope {
   ClassReference get classReference;
 
-  Proto createConstructorProto(List<TypeAnnotation>? typeArguments,
-      ConstructorReference constructorReference) {
+  Proto createConstructorProto(
+    List<TypeAnnotation>? typeArguments,
+    ConstructorReference constructorReference,
+  ) {
     return new ConstructorProto(
-        classReference, typeArguments ?? const [], constructorReference);
+      classReference,
+      typeArguments ?? const [],
+      constructorReference,
+    );
   }
 
-  Proto createMemberProto<T>(List<TypeAnnotation>? typeArguments, String name,
-      T? member, Proto Function(T, String) memberToProto) {
+  Proto createMemberProto<T>(
+    List<TypeAnnotation>? typeArguments,
+    String name,
+    T? member,
+    Proto Function(T, String) memberToProto,
+  ) {
     if (member == null) {
       if (typeArguments != null) {
         return new UnresolvedAccess(
-            new GenericClassProto(classReference, this, typeArguments), name);
+          new GenericClassProto(classReference, this, typeArguments),
+          name,
+        );
       } else {
         return new UnresolvedAccess(new ClassProto(classReference, this), name);
       }
     } else {
       if (typeArguments != null) {
         return new InvalidAccessProto(
-            new GenericClassProto(classReference, this, typeArguments), name);
+          new GenericClassProto(classReference, this, typeArguments),
+          name,
+        );
       } else {
         return memberToProto(member, name);
       }
@@ -59,16 +72,25 @@ abstract base class BaseClassScope implements TypeDeclarationScope {
 abstract base class BaseExtensionScope implements TypeDeclarationScope {
   ExtensionReference get extensionReference;
 
-  Proto createMemberProto<T>(List<TypeAnnotation>? typeArguments, String name,
-      T? member, Proto Function(T, String) memberToProto) {
+  Proto createMemberProto<T>(
+    List<TypeAnnotation>? typeArguments,
+    String name,
+    T? member,
+    Proto Function(T, String) memberToProto,
+  ) {
     if (typeArguments != null) {
       return new UnresolvedAccess(
-          new InvalidInstantiationProto(
-              new ExtensionProto(extensionReference, this), typeArguments),
-          name);
+        new InvalidInstantiationProto(
+          new ExtensionProto(extensionReference, this),
+          typeArguments,
+        ),
+        name,
+      );
     } else if (member == null) {
       return new UnresolvedAccess(
-          new ExtensionProto(extensionReference, this), name);
+        new ExtensionProto(extensionReference, this),
+        name,
+      );
     } else {
       return memberToProto(member, name);
     }
@@ -80,30 +102,49 @@ abstract base class BaseExtensionScope implements TypeDeclarationScope {
 abstract base class BaseExtensionTypeScope implements TypeDeclarationScope {
   ExtensionTypeReference get extensionTypeReference;
 
-  Proto createConstructorProto(List<TypeAnnotation>? typeArguments,
-      ConstructorReference constructorReference) {
-    return new ConstructorProto(extensionTypeReference,
-        typeArguments ?? const [], constructorReference);
+  Proto createConstructorProto(
+    List<TypeAnnotation>? typeArguments,
+    ConstructorReference constructorReference,
+  ) {
+    return new ConstructorProto(
+      extensionTypeReference,
+      typeArguments ?? const [],
+      constructorReference,
+    );
   }
 
-  Proto createMemberProto<T>(List<TypeAnnotation>? typeArguments, String name,
-      T? member, Proto Function(T, String) memberToProto) {
+  Proto createMemberProto<T>(
+    List<TypeAnnotation>? typeArguments,
+    String name,
+    T? member,
+    Proto Function(T, String) memberToProto,
+  ) {
     if (member == null) {
       if (typeArguments != null) {
         return new UnresolvedAccess(
-            new GenericExtensionTypeProto(
-                extensionTypeReference, this, typeArguments),
-            name);
+          new GenericExtensionTypeProto(
+            extensionTypeReference,
+            this,
+            typeArguments,
+          ),
+          name,
+        );
       } else {
         return new UnresolvedAccess(
-            new ExtensionTypeProto(extensionTypeReference, this), name);
+          new ExtensionTypeProto(extensionTypeReference, this),
+          name,
+        );
       }
     } else {
       if (typeArguments != null) {
         return new InvalidAccessProto(
-            new GenericExtensionTypeProto(
-                extensionTypeReference, this, typeArguments),
-            name);
+          new GenericExtensionTypeProto(
+            extensionTypeReference,
+            this,
+            typeArguments,
+          ),
+          name,
+        );
       } else {
         return memberToProto(member, name);
       }
@@ -117,19 +158,27 @@ abstract base class BaseEnumScope implements TypeDeclarationScope {
 
   // TODO(johnniwinther): Support constructor lookup to support full parsing.
 
-  Proto createMemberProto<T>(List<TypeAnnotation>? typeArguments, String name,
-      T? member, Proto Function(T, String) memberToProto) {
+  Proto createMemberProto<T>(
+    List<TypeAnnotation>? typeArguments,
+    String name,
+    T? member,
+    Proto Function(T, String) memberToProto,
+  ) {
     if (member == null) {
       if (typeArguments != null) {
         return new UnresolvedAccess(
-            new GenericEnumProto(enumReference, this, typeArguments), name);
+          new GenericEnumProto(enumReference, this, typeArguments),
+          name,
+        );
       } else {
         return new UnresolvedAccess(new EnumProto(enumReference, this), name);
       }
     } else {
       if (typeArguments != null) {
         return new InvalidAccessProto(
-            new GenericEnumProto(enumReference, this, typeArguments), name);
+          new GenericEnumProto(enumReference, this, typeArguments),
+          name,
+        );
       } else {
         return memberToProto(member, name);
       }
@@ -141,19 +190,27 @@ abstract base class BaseEnumScope implements TypeDeclarationScope {
 abstract base class BaseMixinScope implements TypeDeclarationScope {
   MixinReference get mixinReference;
 
-  Proto createMemberProto<T>(List<TypeAnnotation>? typeArguments, String name,
-      T? member, Proto Function(T, String) memberToProto) {
+  Proto createMemberProto<T>(
+    List<TypeAnnotation>? typeArguments,
+    String name,
+    T? member,
+    Proto Function(T, String) memberToProto,
+  ) {
     if (member == null) {
       if (typeArguments != null) {
         return new UnresolvedAccess(
-            new GenericMixinProto(mixinReference, this, typeArguments), name);
+          new GenericMixinProto(mixinReference, this, typeArguments),
+          name,
+        );
       } else {
         return new UnresolvedAccess(new MixinProto(mixinReference, this), name);
       }
     } else {
       if (typeArguments != null) {
         return new InvalidAccessProto(
-            new GenericMixinProto(mixinReference, this, typeArguments), name);
+          new GenericMixinProto(mixinReference, this, typeArguments),
+          name,
+        );
       } else {
         return memberToProto(member, name);
       }
@@ -165,19 +222,28 @@ abstract base class BaseMixinScope implements TypeDeclarationScope {
 abstract base class BaseTypedefScope implements TypeDeclarationScope {
   TypedefReference get typedefReference;
 
-  Proto createConstructorProto(List<TypeAnnotation>? typeArguments,
-      ConstructorReference constructorReference) {
+  Proto createConstructorProto(
+    List<TypeAnnotation>? typeArguments,
+    ConstructorReference constructorReference,
+  ) {
     return new ConstructorProto(
-        typedefReference, typeArguments ?? const [], constructorReference);
+      typedefReference,
+      typeArguments ?? const [],
+      constructorReference,
+    );
   }
 
   Proto createMemberProto(List<TypeAnnotation>? typeArguments, String name) {
     if (typeArguments != null) {
       return new UnresolvedAccess(
-          new GenericTypedefProto(typedefReference, this, typeArguments), name);
+        new GenericTypedefProto(typedefReference, this, typeArguments),
+        name,
+      );
     } else {
       return new UnresolvedAccess(
-          new TypedefProto(typedefReference, this), name);
+        new TypedefProto(typedefReference, this),
+        name,
+      );
     }
   }
 }

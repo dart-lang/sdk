@@ -25,27 +25,27 @@ cStyleWithDeclaration_unparenthesized(int a, bool b, bool c, int d, int e) {
 /*member: forEach:declared={a, b, c}, assigned={a, b, c}*/
 forEach(int a, int b, int c) {
   [
-    /*assigned={c}*/ for (a in [b = 0]) (c = 0)
+    /*assigned={c}*/ for (a in [b = 0]) (c = 0),
   ];
 }
 
 /*member: forEach_unparenthesized:declared={a, b, c}, assigned={a, b, c}*/
 forEach_unparenthesized(int a, int b, int c) {
   [
-    /*assigned={c}*/ for (a in [b = 0]) c = 0
+    /*assigned={c}*/ for (a in [b = 0]) c = 0,
   ];
 }
 
 /*member: forEachWithDeclaration:declared={a, b, c}, assigned={a, b}*/
 forEachWithDeclaration(int a, int b) {
   [
-    /*assigned={b}*/ for (var c in [a = 0]) (b = 0)
+    /*assigned={b}*/ for (var c in [a = 0]) (b = 0),
   ];
 }
 
 /*member: forEachWithDeclaration_unparenthesized:declared={a, b, c}, assigned={a, b}*/
 forEachWithDeclaration_unparenthesized(int a, int b) {
   [
-    /*assigned={b}*/ for (var c in [a = 0]) b = 0
+    /*assigned={b}*/ for (var c in [a = 0]) b = 0,
   ];
 }

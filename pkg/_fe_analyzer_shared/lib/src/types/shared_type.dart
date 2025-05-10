@@ -165,8 +165,8 @@ extension type SharedRecordTypeView(SharedRecordType _typeStructure)
 extension type SharedTypeParameterView(SharedTypeParameter _typeParameter)
     implements Object {
   TypeParameter unwrapTypeParameterViewAsTypeParameterStructure<
-          TypeParameter extends SharedTypeParameter>() =>
-      _typeParameter as TypeParameter;
+    TypeParameter extends SharedTypeParameter
+  >() => _typeParameter as TypeParameter;
 }
 
 extension type SharedTypeSchemaView(SharedType _typeStructure)
@@ -233,23 +233,21 @@ extension SharedTypeStructureExtension on SharedType {
   }
 }
 
-extension SharedTypeStructureMapEntryExtension on ({
-  SharedType keyType,
-  SharedType valueType
-}) {
+extension SharedTypeStructureMapEntryExtension
+    on ({SharedType keyType, SharedType valueType}) {
   ({SharedTypeView keyType, SharedTypeView valueType})
-      wrapSharedTypeMapEntryView() {
+  wrapSharedTypeMapEntryView() {
     return (
       keyType: new SharedTypeView(this.keyType),
-      valueType: new SharedTypeView(this.valueType)
+      valueType: new SharedTypeView(this.valueType),
     );
   }
 
   ({SharedTypeSchemaView keyType, SharedTypeSchemaView valueType})
-      wrapSharedTypeSchemaMapEntryView() {
+  wrapSharedTypeSchemaMapEntryView() {
     return (
       keyType: new SharedTypeSchemaView(this.keyType),
-      valueType: new SharedTypeSchemaView(this.valueType)
+      valueType: new SharedTypeSchemaView(this.valueType),
     );
   }
 }

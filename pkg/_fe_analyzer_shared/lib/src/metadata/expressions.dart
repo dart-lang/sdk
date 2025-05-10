@@ -85,7 +85,10 @@ class ConstructorInvocation extends Expression {
     return newType == null && newArguments == null
         ? null
         : new ConstructorInvocation(
-            newType ?? type, constructor, newArguments ?? arguments);
+          newType ?? type,
+          constructor,
+          newArguments ?? arguments,
+        );
   }
 }
 
@@ -197,15 +200,19 @@ class ImplicitInvocation extends Expression {
   @override
   Expression? resolve() {
     Expression? newReceiver = receiver.resolve();
-    List<TypeAnnotation>? newTypeArguments =
-        typeArguments.resolve((t) => t.resolve());
+    List<TypeAnnotation>? newTypeArguments = typeArguments.resolve(
+      (t) => t.resolve(),
+    );
     List<Argument>? newArguments = arguments.resolve((a) => a.resolve());
     return newReceiver == null &&
             newTypeArguments == null &&
             newArguments == null
         ? null
-        : new ImplicitInvocation(newReceiver ?? receiver,
-            newTypeArguments ?? typeArguments, newArguments ?? arguments);
+        : new ImplicitInvocation(
+          newReceiver ?? receiver,
+          newTypeArguments ?? typeArguments,
+          newArguments ?? arguments,
+        );
   }
 }
 
@@ -221,13 +228,17 @@ class StaticInvocation extends Expression {
 
   @override
   Expression? resolve() {
-    List<TypeAnnotation>? newTypeArguments =
-        typeArguments.resolve((t) => t.resolve());
+    List<TypeAnnotation>? newTypeArguments = typeArguments.resolve(
+      (t) => t.resolve(),
+    );
     List<Argument>? newArguments = arguments.resolve((a) => a.resolve());
     return newTypeArguments == null && newArguments == null
         ? null
-        : new StaticInvocation(function, newTypeArguments ?? typeArguments,
-            newArguments ?? arguments);
+        : new StaticInvocation(
+          function,
+          newTypeArguments ?? typeArguments,
+          newArguments ?? arguments,
+        );
   }
 }
 
@@ -243,12 +254,15 @@ class Instantiation extends Expression {
   @override
   Expression? resolve() {
     Expression? newReceiver = receiver.resolve();
-    List<TypeAnnotation>? newTypeArguments =
-        typeArguments.resolve((t) => t.resolve());
+    List<TypeAnnotation>? newTypeArguments = typeArguments.resolve(
+      (t) => t.resolve(),
+    );
     return newReceiver == null && newTypeArguments == null
         ? null
         : new Instantiation(
-            newReceiver ?? receiver, newTypeArguments ?? typeArguments);
+          newReceiver ?? receiver,
+          newTypeArguments ?? typeArguments,
+        );
   }
 }
 
@@ -259,7 +273,11 @@ class MethodInvocation extends Expression {
   final List<Argument> arguments;
 
   MethodInvocation(
-      this.receiver, this.name, this.typeArguments, this.arguments);
+    this.receiver,
+    this.name,
+    this.typeArguments,
+    this.arguments,
+  );
 
   @override
   String toString() =>
@@ -268,15 +286,20 @@ class MethodInvocation extends Expression {
   @override
   Expression? resolve() {
     Expression? newReceiver = receiver.resolve();
-    List<TypeAnnotation>? newTypeArguments =
-        typeArguments.resolve((t) => t.resolve());
+    List<TypeAnnotation>? newTypeArguments = typeArguments.resolve(
+      (t) => t.resolve(),
+    );
     List<Argument>? newArguments = arguments.resolve((a) => a.resolve());
     return newReceiver == null &&
             newTypeArguments == null &&
             newArguments == null
         ? null
-        : new MethodInvocation(newReceiver ?? receiver, name,
-            newTypeArguments ?? typeArguments, newArguments ?? arguments);
+        : new MethodInvocation(
+          newReceiver ?? receiver,
+          name,
+          newTypeArguments ?? typeArguments,
+          newArguments ?? arguments,
+        );
   }
 }
 
@@ -365,8 +388,11 @@ class ConditionalExpression extends Expression {
     Expression? newOtherwise = otherwise.resolve();
     return newCondition == null && newThen == null && newOtherwise == null
         ? null
-        : new ConditionalExpression(newCondition ?? condition, newThen ?? then,
-            newOtherwise ?? otherwise);
+        : new ConditionalExpression(
+          newCondition ?? condition,
+          newThen ?? then,
+          newOtherwise ?? otherwise,
+        );
   }
 }
 
@@ -381,13 +407,16 @@ class ListLiteral extends Expression {
 
   @override
   Expression? resolve() {
-    List<TypeAnnotation>? newTypeArguments =
-        typeArguments.resolve((t) => t.resolve());
+    List<TypeAnnotation>? newTypeArguments = typeArguments.resolve(
+      (t) => t.resolve(),
+    );
     List<Element>? newElements = elements.resolve((e) => e.resolve());
     return newTypeArguments == null && newElements == null
         ? null
         : new ListLiteral(
-            newTypeArguments ?? typeArguments, newElements ?? elements);
+          newTypeArguments ?? typeArguments,
+          newElements ?? elements,
+        );
   }
 }
 
@@ -402,13 +431,16 @@ class SetOrMapLiteral extends Expression {
 
   @override
   Expression? resolve() {
-    List<TypeAnnotation>? newTypeArguments =
-        typeArguments.resolve((t) => t.resolve());
+    List<TypeAnnotation>? newTypeArguments = typeArguments.resolve(
+      (t) => t.resolve(),
+    );
     List<Element>? newElements = elements.resolve((e) => e.resolve());
     return newTypeArguments == null && newElements == null
         ? null
         : new SetOrMapLiteral(
-            newTypeArguments ?? typeArguments, newElements ?? elements);
+          newTypeArguments ?? typeArguments,
+          newElements ?? elements,
+        );
   }
 }
 
@@ -448,8 +480,7 @@ class IfNull extends Expression {
 
 enum LogicalOperator {
   and('&&'),
-  or('||'),
-  ;
+  or('||');
 
   final String text;
 
@@ -493,8 +524,11 @@ class EqualityExpression extends Expression {
     Expression? newRight = right.resolve();
     return newLeft == null && newRight == null
         ? null
-        : new EqualityExpression(newLeft ?? left, newRight ?? right,
-            isNotEquals: isNotEquals);
+        : new EqualityExpression(
+          newLeft ?? left,
+          newRight ?? right,
+          isNotEquals: isNotEquals,
+        );
   }
 }
 
@@ -514,8 +548,7 @@ enum BinaryOperator {
   modulo('%'),
   bitwiseOr('|'),
   bitwiseAnd('&'),
-  bitwiseXor('^'),
-  ;
+  bitwiseXor('^');
 
   final String text;
 
@@ -545,8 +578,7 @@ class BinaryExpression extends Expression {
 enum UnaryOperator {
   minus('-'),
   bang('!'),
-  tilde('~'),
-  ;
+  tilde('~');
 
   final String text;
 
@@ -587,8 +619,11 @@ class IsTest extends Expression {
     Expression? newExpression = expression.resolve();
     return newType == null && newExpression == null
         ? null
-        : new IsTest(newExpression ?? expression, newType ?? type,
-            isNot: isNot);
+        : new IsTest(
+          newExpression ?? expression,
+          newType ?? type,
+          isNot: isNot,
+        );
   }
 }
 

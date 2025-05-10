@@ -20,7 +20,9 @@ test() {
   expect('test', resolveInputUri('test:/foo').scheme);
   expect('org-dartlang-foo', resolveInputUri('org-dartlang-foo:/bar').scheme);
   expect(
-      "${Uri.base.resolve('file.txt')}", "${resolveInputUri('file:file.txt')}");
+    "${Uri.base.resolve('file.txt')}",
+    "${resolveInputUri('file:file.txt')}",
+  );
 }
 
 main() {
