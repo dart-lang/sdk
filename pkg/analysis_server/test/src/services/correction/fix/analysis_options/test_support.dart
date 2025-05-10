@@ -9,9 +9,9 @@ import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/state.dart';
 import 'package:analyzer/src/task/options.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 

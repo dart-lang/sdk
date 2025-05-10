@@ -24,12 +24,47 @@ package:analyzer_testing/mock_packages/mock_packages.dart:
     addVectorMath (method: Folder Function())
 package:analyzer_testing/package_root.dart:
   packageRoot (static getter: String)
+package:analyzer_testing/resource_provider_mixin.dart:
+  ResourceProviderMixin (mixin on Object):
+    pathContext (getter: Context)
+    resourceProvider (getter: ResourceProvider)
+    convertPath (method: String Function(String))
+    deleteAnalysisOptionsYamlFile (method: void Function(String))
+    deleteFile (method: void Function(String))
+    deleteFolder (method: void Function(String))
+    deletePackageConfigJsonFile (method: void Function(String))
+    fromUri (method: String Function(Uri))
+    getFile (method: File Function(String))
+    getFolder (method: Folder Function(String))
+    join (method: String Function(String, [String?, String?, String?, String?, String?, String?, String?]))
+    modifyFile (method: void Function(String, String))
+    modifyFile2 (method: void Function(File, String))
+    newAnalysisOptionsYamlFile (method: File Function(String, String))
+    newBazelBuildFile (method: File Function(String, String))
+    newBuildGnFile (method: File Function(String, String))
+    newFile (method: File Function(String, String))
+    newFolder (method: Folder Function(String))
+    newLink (method: Link Function(String, String))
+    newPackageConfigJsonFile (method: File Function(String, String))
+    newPackageConfigJsonFileFromBuilder (method: File Function(String, PackageConfigFileBuilder))
+    newPubspecYamlFile (method: File Function(String, String))
+    newSinglePackageConfigJsonFile (method: void Function({required String name, required String packagePath}))
+    toUri (method: Uri Function(String))
+    toUriStr (method: String Function(String))
+package:analyzer_testing/utilities/extensions/resource_provider.dart:
+  ResourceProviderExtension (extension on ResourceProvider):
+    convertPath (method: String Function(String))
 dart:core:
   List (referenced)
   Object (referenced)
   String (referenced)
+  Uri (referenced)
 package:analyzer/file_system/file_system.dart:
+  File (referenced)
   Folder (referenced)
+  Link (referenced)
   ResourceProvider (referenced)
+package:analyzer/utilities/package_config_file_builder.dart:
+  PackageConfigFileBuilder (referenced)
 package:path/src/context.dart:
   Context (referenced)

@@ -12,7 +12,7 @@ import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart' show RecordingErrorListener;
 import 'package:analyzer/src/generated/parser.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 
 class ParseBase with ResourceProviderMixin {
   /// Override this to change the analysis options for a given set of tests.

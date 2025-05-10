@@ -6,8 +6,11 @@ import 'dart:io';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+// TODO(srawlins): Move this into public API.
+// ignore: implementation_imports
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/utilities/package_config_file_builder.dart';
+import 'package:analyzer_testing/utilities/extensions/resource_provider.dart';
 import 'package:path/path.dart' as path;
 
 /// A mixin for test classes that adds a memory-backed [ResourceProvider] and
@@ -192,22 +195,5 @@ mixin ResourceProviderMixin {
   /// of the URI.
   String toUriStr(String path) {
     return toUri(path).toString();
-  }
-}
-
-extension ResourceProviderExtensions on ResourceProvider {
-  /// Converts the given posix [filePath] to conform to this provider's path
-  /// context.
-  String convertPath(String filePath) {
-    if (pathContext.style == path.windows.style) {
-      if (filePath.startsWith(path.posix.separator)) {
-        filePath = r'C:' + filePath;
-      }
-      filePath = filePath.replaceAll(
-        path.posix.separator,
-        path.windows.separator,
-      );
-    }
-    return filePath;
   }
 }

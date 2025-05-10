@@ -12,8 +12,8 @@ import 'package:analyzer/src/error/codes.g.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 

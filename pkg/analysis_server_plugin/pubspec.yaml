@@ -17,6 +17,7 @@ dependencies:
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
+  analyzer_testing: any
   async: any
   lints: any
   test_reflective_loader: any

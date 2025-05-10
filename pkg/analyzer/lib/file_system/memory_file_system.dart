@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:watcher/watcher.dart' hide Watcher;
@@ -58,8 +57,23 @@ class MemoryResourceProvider implements ResourceProvider {
   /// This is a utility method for testing; paths passed in to other methods in
   /// this class are never converted automatically.
   @Deprecated("Use 'ResourceProviderExtensions.convertPath' directly")
-  String convertPath(String filePath) =>
-      ResourceProviderExtensions(this).convertPath(filePath);
+  String convertPath(String filePath) {
+    // This implementation is duplicate with that at
+    // 'package:analyzer_testing/utilities/extensions/resource_provider.dart'.
+    // But the analyzer package's lib code _cannot_ depend on the
+    // analyzer_testing package; hence this duplication until this test-only
+    // method is removed.
+    if (pathContext.style == pathos.windows.style) {
+      if (filePath.startsWith(pathos.posix.separator)) {
+        filePath = r'C:' + filePath;
+      }
+      filePath = filePath.replaceAll(
+        pathos.posix.separator,
+        pathos.windows.separator,
+      );
+    }
+    return filePath;
+  }
 
   /// Delete the file with the given path.
   void deleteFile(String path) {
@@ -136,9 +150,8 @@ class MemoryResourceProvider implements ResourceProvider {
 
   @override
   Folder getStateLocation(String pluginId) {
-    var path = ResourceProviderExtensions(
-      this,
-    ).convertPath('/user/home/$pluginId');
+    // ignore: deprecated_member_use_from_same_package
+    var path = convertPath('/user/home/$pluginId');
     return newFolder(path);
   }
 

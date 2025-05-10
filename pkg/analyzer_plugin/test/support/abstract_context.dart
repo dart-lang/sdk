@@ -11,10 +11,10 @@ import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_testing/experiments/experiments.dart';
 import 'package:analyzer_testing/mock_packages/mock_packages.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
 

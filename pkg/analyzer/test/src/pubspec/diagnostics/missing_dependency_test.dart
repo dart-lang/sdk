@@ -7,7 +7,7 @@ import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
 import 'package:analyzer/src/pubspec/validators/missing_dependency_validator.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:matcher/expect.dart';
 import 'package:meta/meta.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';

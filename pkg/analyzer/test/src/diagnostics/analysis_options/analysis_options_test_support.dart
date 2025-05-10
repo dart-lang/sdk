@@ -8,7 +8,7 @@ import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 

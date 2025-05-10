@@ -8,9 +8,9 @@ import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
+import 'package:analyzer_testing/utilities/extensions/resource_provider.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 

@@ -9,7 +9,7 @@ import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer_testing/utilities/extensions/resource_provider.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -900,7 +900,7 @@ class OverlayTestSupport {
 
   late final String defaultFilePath;
   String convertPath(String filePath) =>
-      ResourceProviderExtensions(baseProvider).convertPath(filePath);
+      ResourceProviderExtension(baseProvider).convertPath(filePath);
 
   void setUp() {
     baseProvider = MemoryResourceProvider();

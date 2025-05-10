@@ -19,7 +19,7 @@ import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer_testing/utilities/extensions/resource_provider.dart';
 
 /// Test configuration used for testing the analyzer without experiments.
 final TestConfig analyzerDefaultConfig = TestConfig(
@@ -125,7 +125,7 @@ Future<TestResult<T>> runTestForConfig<T>(
   var testFiles = <_TestFile>[];
   for (var entry in testData.memorySourceFiles.entries) {
     var uri = _toTestUri(entry.key);
-    var path = ResourceProviderExtensions(
+    var path = ResourceProviderExtension(
       resourceProvider,
     ).convertPath(uri.path);
     var file = resourceProvider.getFile(path);
@@ -134,7 +134,7 @@ Future<TestResult<T>> runTestForConfig<T>(
   }
 
   var sdkRoot = resourceProvider.newFolder(
-    ResourceProviderExtensions(resourceProvider).convertPath('/sdk'),
+    ResourceProviderExtension(resourceProvider).convertPath('/sdk'),
   );
   createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
 

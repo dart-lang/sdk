@@ -8,7 +8,7 @@ import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/manifest/manifest_validator.dart';
 import 'package:analyzer/src/manifest/manifest_values.dart';
 import 'package:analyzer/src/manifest/manifest_warning_code.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 

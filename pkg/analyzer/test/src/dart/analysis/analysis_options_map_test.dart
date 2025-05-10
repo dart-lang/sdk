@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 

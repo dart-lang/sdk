@@ -5,10 +5,10 @@
 import 'dart:async';
 import 'dart:isolate';
 
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/blaze_watcher.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:async/async.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';

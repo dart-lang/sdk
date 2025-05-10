@@ -10,7 +10,7 @@ import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/generated/engine.dart' show TimestampedData;
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer_testing/utilities/extensions/resource_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -61,7 +61,7 @@ abstract class BaseTest extends FileSystemTestSupport {
   MemoryResourceProvider get provider => _provider ??= createProvider();
 
   String convertPath(String filePath) =>
-      ResourceProviderExtensions(provider).convertPath(filePath);
+      ResourceProviderExtension(provider).convertPath(filePath);
 
   /// Create the resource provider to be used by the tests. Subclasses can
   /// override this method to change the class of resource provider that is

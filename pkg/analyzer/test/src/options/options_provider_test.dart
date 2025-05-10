@@ -11,7 +11,7 @@ import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 

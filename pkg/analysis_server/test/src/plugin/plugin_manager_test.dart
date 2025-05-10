@@ -10,7 +10,6 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer_plugin/channel/channel.dart';
@@ -18,6 +17,8 @@ import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart'
     hide ContextRoot;
+import 'package:analyzer_testing/resource_provider_mixin.dart';
+import 'package:analyzer_testing/utilities/extensions/resource_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
