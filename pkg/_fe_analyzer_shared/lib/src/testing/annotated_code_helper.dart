@@ -35,9 +35,15 @@ class Annotation {
   /// The annotation end text.
   final String suffix;
 
-  Annotation(this.index, this.lineNo, this.columnNo, this.offset, this.prefix,
-      this.text, this.suffix)
-      : assert(offset >= 0);
+  Annotation(
+    this.index,
+    this.lineNo,
+    this.columnNo,
+    this.offset,
+    this.prefix,
+    this.text,
+    this.suffix,
+  ) : assert(offset >= 0);
 
   @override
   String toString() =>
@@ -76,13 +82,20 @@ class AnnotatedCode {
   AnnotatedCode(this.annotatedCode, this.sourceCode, this.annotations);
 
   AnnotatedCode.internal(
-      this.annotatedCode, this.sourceCode, this.annotations, this._lineStarts);
+    this.annotatedCode,
+    this.sourceCode,
+    this.annotations,
+    this._lineStarts,
+  );
 
   /// Creates an [AnnotatedCode] by processing [annotatedCode]. Annotation
   /// delimited by [start] and [end] are converted into [Annotation]s and
   /// removed from the [annotatedCode] to produce the source code.
-  factory AnnotatedCode.fromText(String annotatedCode,
-      [Pattern start = atBraceStart, Pattern end = braceEnd]) {
+  factory AnnotatedCode.fromText(
+    String annotatedCode, [
+    Pattern start = atBraceStart,
+    Pattern end = braceEnd,
+  ]) {
     StringBuffer codeBuffer = new StringBuffer();
     List<Annotation> annotations = <Annotation>[];
     int index = 0;
@@ -95,17 +108,30 @@ class AnnotatedCode {
       Match? startMatch = start.matchAsPrefix(annotatedCode, index);
       if (startMatch != null) {
         int startIndex = startMatch.end;
-        Iterable<Match> endMatches =
-            end.allMatches(annotatedCode, startMatch.end);
+        Iterable<Match> endMatches = end.allMatches(
+          annotatedCode,
+          startMatch.end,
+        );
         if (!endMatches.isEmpty) {
           Match endMatch = endMatches.first;
           annotatedCode.indexOf(end, startIndex);
-          String prefix =
-              annotatedCode.substring(startMatch.start, startMatch.end);
+          String prefix = annotatedCode.substring(
+            startMatch.start,
+            startMatch.end,
+          );
           String text = annotatedCode.substring(startMatch.end, endMatch.start);
           String suffix = annotatedCode.substring(endMatch.start, endMatch.end);
-          annotations.add(new Annotation(annotations.length, lineNo, columnNo,
-              offset, prefix, text, suffix));
+          annotations.add(
+            new Annotation(
+              annotations.length,
+              lineNo,
+              columnNo,
+              offset,
+              prefix,
+              text,
+              suffix,
+            ),
+          );
           index = endMatch.end;
           continue;
         }
@@ -140,7 +166,11 @@ class AnnotatedCode {
     }
     lineStarts.add(offset);
     return new AnnotatedCode.internal(
-        annotatedCode, codeBuffer.toString(), annotations, lineStarts);
+      annotatedCode,
+      codeBuffer.toString(),
+      annotations,
+      lineStarts,
+    );
   }
 
   void _ensureLineStarts() {
@@ -175,11 +205,25 @@ class AnnotatedCode {
   }
 
   void addAnnotation(
-      int lineNo, int columnNo, String prefix, String text, String suffix) {
+    int lineNo,
+    int columnNo,
+    String prefix,
+    String text,
+    String suffix,
+  ) {
     _ensureLineStarts();
     int offset = _lineStarts![lineNo - 1] + (columnNo - 1);
-    annotations.add(new Annotation(
-        annotations.length, lineNo, columnNo, offset, prefix, text, suffix));
+    annotations.add(
+      new Annotation(
+        annotations.length,
+        lineNo,
+        columnNo,
+        offset,
+        prefix,
+        text,
+        suffix,
+      ),
+    );
   }
 
   int get lineCount {
@@ -219,23 +263,23 @@ class AnnotatedCode {
 
   String toText() {
     StringBuffer sb = new StringBuffer();
-    List<Annotation> list = annotations.toList()
-      ..sort((a, b) {
-        int result = a.offset.compareTo(b.offset);
-        if (result == 0) {
-          if (a.index != null && b.index != null) {
-            result = a.index!.compareTo(b.index!);
-          } else if (a.index != null) {
-            result = -1;
-          } else if (b.index != null) {
-            result = 1;
+    List<Annotation> list =
+        annotations.toList()..sort((a, b) {
+          int result = a.offset.compareTo(b.offset);
+          if (result == 0) {
+            if (a.index != null && b.index != null) {
+              result = a.index!.compareTo(b.index!);
+            } else if (a.index != null) {
+              result = -1;
+            } else if (b.index != null) {
+              result = 1;
+            }
           }
-        }
-        if (result == 0) {
-          result = annotations.indexOf(a).compareTo(annotations.indexOf(b));
-        }
-        return result;
-      });
+          if (result == 0) {
+            result = annotations.indexOf(a).compareTo(annotations.indexOf(b));
+          }
+          return result;
+        });
     int offset = 0;
     for (Annotation annotation in list) {
       sb.write(sourceCode.substring(offset, annotation.offset));
@@ -264,7 +308,9 @@ class AnnotatedCode {
 /// The prefixes are removed from the annotation texts in the returned
 /// [AnnotatedCode] objects.
 Map<String, AnnotatedCode> splitByPrefixes(
-    AnnotatedCode annotatedCode, Iterable<String> prefixes) {
+  AnnotatedCode annotatedCode,
+  Iterable<String> prefixes,
+) {
   Set<String> prefixSet = prefixes.toSet();
   Map<String, List<Annotation>> map = <String, List<Annotation>>{};
   for (String prefix in prefixSet) {
@@ -280,13 +326,14 @@ Map<String, AnnotatedCode> splitByPrefixes(
       if (prefixSet.containsAll(markers)) {
         for (String part in markers) {
           Annotation subAnnotation = new Annotation(
-              annotation.index,
-              annotation.lineNo,
-              annotation.columnNo,
-              annotation.offset,
-              annotation.prefix,
-              annotationText,
-              annotation.suffix);
+            annotation.index,
+            annotation.lineNo,
+            annotation.columnNo,
+            annotation.offset,
+            annotation.prefix,
+            annotationText,
+            annotation.suffix,
+          );
           map[part]!.add(subAnnotation);
         }
         continue outer;
@@ -299,7 +346,10 @@ Map<String, AnnotatedCode> splitByPrefixes(
   Map<String, AnnotatedCode> split = <String, AnnotatedCode>{};
   map.forEach((String prefix, List<Annotation> annotations) {
     split[prefix] = new AnnotatedCode(
-        annotatedCode.annotatedCode, annotatedCode.sourceCode, annotations);
+      annotatedCode.annotatedCode,
+      annotatedCode.sourceCode,
+      annotations,
+    );
   });
   return split;
 }

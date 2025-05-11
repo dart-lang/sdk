@@ -23,10 +23,10 @@ class GeneratedTypeConstraint<Variable extends Object> {
   final bool isUpper;
 
   GeneratedTypeConstraint.lower(this.typeParameter, this.constraint)
-      : isUpper = false;
+    : isUpper = false;
 
   GeneratedTypeConstraint.upper(this.typeParameter, this.constraint)
-      : isUpper = true;
+    : isUpper = true;
 
   @override
   String toString() {
@@ -35,8 +35,11 @@ class GeneratedTypeConstraint<Variable extends Object> {
 }
 
 /// A constraint on a type parameter that we're inferring.
-class MergedTypeConstraint<Variable extends Object,
-    TypeDeclarationType extends Object, TypeDeclaration extends Object> {
+class MergedTypeConstraint<
+  Variable extends Object,
+  TypeDeclarationType extends Object,
+  TypeDeclaration extends Object
+> {
   /// The lower bound of the type being constrained.  This bound must be a
   /// subtype of the type being constrained. In other words, lowerBound <: T.
   ///
@@ -85,67 +88,83 @@ class MergedTypeConstraint<Variable extends Object,
   /// Where this constraint comes from, used for error messages.
   TypeConstraintOrigin<Variable, TypeDeclarationType, TypeDeclaration> origin;
 
-  MergedTypeConstraint(
-      {required this.lower, required this.upper, required this.origin});
+  MergedTypeConstraint({
+    required this.lower,
+    required this.upper,
+    required this.origin,
+  });
 
-  MergedTypeConstraint.fromExtends(
-      {required String typeParameterName,
-      required SharedTypeView boundType,
-      required SharedTypeView extendsType,
-      required TypeAnalyzerOperations<Variable, TypeDeclarationType,
-              TypeDeclaration>
-          typeAnalyzerOperations})
-      : this(
-            origin: new TypeConstraintFromExtendsClause(
-              typeParameterName: typeParameterName,
-              boundType: boundType,
-              extendsType: extendsType,
-            ),
-            upper: typeAnalyzerOperations.typeToSchema(extendsType),
-            lower: typeAnalyzerOperations.unknownType);
+  MergedTypeConstraint.fromExtends({
+    required String typeParameterName,
+    required SharedTypeView boundType,
+    required SharedTypeView extendsType,
+    required TypeAnalyzerOperations<
+      Variable,
+      TypeDeclarationType,
+      TypeDeclaration
+    >
+    typeAnalyzerOperations,
+  }) : this(
+         origin: new TypeConstraintFromExtendsClause(
+           typeParameterName: typeParameterName,
+           boundType: boundType,
+           extendsType: extendsType,
+         ),
+         upper: typeAnalyzerOperations.typeToSchema(extendsType),
+         lower: typeAnalyzerOperations.unknownType,
+       );
 
   MergedTypeConstraint<Variable, TypeDeclarationType, TypeDeclaration> clone() {
     return new MergedTypeConstraint(lower: lower, upper: upper, origin: origin);
   }
 
   bool isEmpty(
-      TypeAnalyzerOperations<Variable, TypeDeclarationType, TypeDeclaration>
-          typeAnalyzerOperations) {
+    TypeAnalyzerOperations<Variable, TypeDeclarationType, TypeDeclaration>
+    typeAnalyzerOperations,
+  ) {
     return lower is SharedUnknownType && upper is SharedUnknownType;
   }
 
   bool isSatisfiedBy(
-      SharedTypeView type,
-      TypeAnalyzerOperations<Variable, TypeDeclarationType, TypeDeclaration>
-          typeAnalyzerOperations) {
+    SharedTypeView type,
+    TypeAnalyzerOperations<Variable, TypeDeclarationType, TypeDeclaration>
+    typeAnalyzerOperations,
+  ) {
     return typeAnalyzerOperations.typeIsSubtypeOfTypeSchema(type, upper) &&
         typeAnalyzerOperations.typeSchemaIsSubtypeOfType(lower, type);
   }
 
   void mergeIn(
-      GeneratedTypeConstraint<Variable> generatedTypeConstraint,
-      TypeAnalyzerOperations<Variable, TypeDeclarationType, TypeDeclaration>
-          typeAnalyzerOperations) {
+    GeneratedTypeConstraint<Variable> generatedTypeConstraint,
+    TypeAnalyzerOperations<Variable, TypeDeclarationType, TypeDeclaration>
+    typeAnalyzerOperations,
+  ) {
     if (generatedTypeConstraint.isUpper) {
       mergeInTypeSchemaUpper(
-          generatedTypeConstraint.constraint, typeAnalyzerOperations);
+        generatedTypeConstraint.constraint,
+        typeAnalyzerOperations,
+      );
     } else {
       mergeInTypeSchemaLower(
-          generatedTypeConstraint.constraint, typeAnalyzerOperations);
+        generatedTypeConstraint.constraint,
+        typeAnalyzerOperations,
+      );
     }
   }
 
   void mergeInTypeSchemaLower(
-      SharedTypeSchemaView constraint,
-      TypeAnalyzerOperations<Variable, TypeDeclarationType, TypeDeclaration>
-          typeAnalyzerOperations) {
+    SharedTypeSchemaView constraint,
+    TypeAnalyzerOperations<Variable, TypeDeclarationType, TypeDeclaration>
+    typeAnalyzerOperations,
+  ) {
     lower = typeAnalyzerOperations.typeSchemaLub(lower, constraint);
   }
 
   void mergeInTypeSchemaUpper(
-      SharedTypeSchemaView constraint,
-      TypeAnalyzerOperations<Variable, TypeDeclarationType, TypeDeclaration>
-          typeAnalyzerOperations) {
+    SharedTypeSchemaView constraint,
+    TypeAnalyzerOperations<Variable, TypeDeclarationType, TypeDeclaration>
+    typeAnalyzerOperations,
+  ) {
     upper = typeAnalyzerOperations.typeSchemaGlb(upper, constraint);
   }
 
@@ -155,27 +174,32 @@ class MergedTypeConstraint<Variable extends Object,
   }
 }
 
-class TypeConstraintFromArgument<Variable extends Object,
-        TypeDeclarationType extends Object, TypeDeclaration extends Object>
-    extends TypeConstraintOrigin<Variable, TypeDeclarationType,
-        TypeDeclaration> {
+class TypeConstraintFromArgument<
+  Variable extends Object,
+  TypeDeclarationType extends Object,
+  TypeDeclaration extends Object
+>
+    extends
+        TypeConstraintOrigin<Variable, TypeDeclarationType, TypeDeclaration> {
   final SharedTypeView argumentType;
   final SharedTypeView parameterType;
   final String parameterName;
   final String? genericClassName;
   final bool isGenericClassInDartCore;
 
-  TypeConstraintFromArgument(
-      {required this.argumentType,
-      required this.parameterType,
-      required this.parameterName,
-      required this.genericClassName,
-      this.isGenericClassInDartCore = false});
+  TypeConstraintFromArgument({
+    required this.argumentType,
+    required this.parameterType,
+    required this.parameterName,
+    required this.genericClassName,
+    this.isGenericClassInDartCore = false,
+  });
 
   @override
   List<String> formatError(
-      TypeAnalyzerOperations<Variable, TypeDeclarationType, TypeDeclaration>
-          typeAnalyzerOperations) {
+    TypeAnalyzerOperations<Variable, TypeDeclarationType, TypeDeclaration>
+    typeAnalyzerOperations,
+  ) {
     // TODO(cstefantsova): we should highlight the span. That would be more
     // useful.  However in summary code it doesn't look like the AST node with
     // span is available.
@@ -194,15 +218,18 @@ class TypeConstraintFromArgument<Variable extends Object,
     return [
       prefix,
       "declared as     '${parameterType.getDisplayString()}'",
-      "but argument is '${argumentType.getDisplayString()}'."
+      "but argument is '${argumentType.getDisplayString()}'.",
     ];
   }
 }
 
-class TypeConstraintFromExtendsClause<Variable extends Object,
-        TypeDeclarationType extends Object, TypeDeclaration extends Object>
-    extends TypeConstraintOrigin<Variable, TypeDeclarationType,
-        TypeDeclaration> {
+class TypeConstraintFromExtendsClause<
+  Variable extends Object,
+  TypeDeclarationType extends Object,
+  TypeDeclaration extends Object
+>
+    extends
+        TypeConstraintOrigin<Variable, TypeDeclarationType, TypeDeclaration> {
   /// Name of the type parameter with the extends clause.
   final String typeParameterName;
 
@@ -218,64 +245,78 @@ class TypeConstraintFromExtendsClause<Variable extends Object,
   /// For example `Iterable<int>` if `T` inferred to `int`.
   final SharedTypeView extendsType;
 
-  TypeConstraintFromExtendsClause(
-      {required this.typeParameterName,
-      required this.boundType,
-      required this.extendsType});
+  TypeConstraintFromExtendsClause({
+    required this.typeParameterName,
+    required this.boundType,
+    required this.extendsType,
+  });
 
   @override
   List<String> formatError(
-      TypeAnalyzerOperations<Variable, TypeDeclarationType, TypeDeclaration>
-          typeAnalyzerOperations) {
+    TypeAnalyzerOperations<Variable, TypeDeclarationType, TypeDeclaration>
+    typeAnalyzerOperations,
+  ) {
     String boundStr = boundType.getDisplayString();
     String extendsStr = extendsType.getDisplayString();
     return [
       "Type parameter '${typeParameterName}'",
-      "is declared to extend '${boundStr}' producing '${extendsStr}'."
+      "is declared to extend '${boundStr}' producing '${extendsStr}'.",
     ];
   }
 }
 
-class TypeConstraintFromFunctionContext<Variable extends Object,
-        TypeDeclarationType extends Object, TypeDeclaration extends Object>
-    extends TypeConstraintOrigin<Variable, TypeDeclarationType,
-        TypeDeclaration> {
+class TypeConstraintFromFunctionContext<
+  Variable extends Object,
+  TypeDeclarationType extends Object,
+  TypeDeclaration extends Object
+>
+    extends
+        TypeConstraintOrigin<Variable, TypeDeclarationType, TypeDeclaration> {
   final SharedType contextType;
   final SharedType functionType;
 
-  TypeConstraintFromFunctionContext(
-      {required this.functionType, required this.contextType});
+  TypeConstraintFromFunctionContext({
+    required this.functionType,
+    required this.contextType,
+  });
 
   @override
   List<String> formatError(
-      TypeAnalyzerOperations<Variable, TypeDeclarationType, TypeDeclaration>
-          typeAnalyzerOperations) {
+    TypeAnalyzerOperations<Variable, TypeDeclarationType, TypeDeclaration>
+    typeAnalyzerOperations,
+  ) {
     return [
       "Function type",
       "declared as '${functionType.getDisplayString()}'",
-      "used where  '${contextType.getDisplayString()}' is required."
+      "used where  '${contextType.getDisplayString()}' is required.",
     ];
   }
 }
 
-class TypeConstraintFromReturnType<Variable extends Object,
-        TypeDeclarationType extends Object, TypeDeclaration extends Object>
-    extends TypeConstraintOrigin<Variable, TypeDeclarationType,
-        TypeDeclaration> {
+class TypeConstraintFromReturnType<
+  Variable extends Object,
+  TypeDeclarationType extends Object,
+  TypeDeclaration extends Object
+>
+    extends
+        TypeConstraintOrigin<Variable, TypeDeclarationType, TypeDeclaration> {
   final SharedType contextType;
   final SharedType declaredType;
 
-  TypeConstraintFromReturnType(
-      {required this.declaredType, required this.contextType});
+  TypeConstraintFromReturnType({
+    required this.declaredType,
+    required this.contextType,
+  });
 
   @override
   List<String> formatError(
-      TypeAnalyzerOperations<Variable, TypeDeclarationType, TypeDeclaration>
-          typeAnalyzerOperations) {
+    TypeAnalyzerOperations<Variable, TypeDeclarationType, TypeDeclaration>
+    typeAnalyzerOperations,
+  ) {
     return [
       "Return type",
       "declared as '${declaredType.getDisplayString()}'",
-      "used where  '${contextType.getDisplayString()}' is required."
+      "used where  '${contextType.getDisplayString()}' is required.",
     ];
   }
 }
@@ -283,25 +324,33 @@ class TypeConstraintFromReturnType<Variable extends Object,
 /// The origin of a type constraint, for the purposes of producing a human
 /// readable error message during type inference as well as determining whether
 /// the constraint was used to fix the type parameter or not.
-abstract class TypeConstraintOrigin<Variable extends Object,
-    TypeDeclarationType extends Object, TypeDeclaration extends Object> {
+abstract class TypeConstraintOrigin<
+  Variable extends Object,
+  TypeDeclarationType extends Object,
+  TypeDeclaration extends Object
+> {
   const TypeConstraintOrigin();
 
   List<String> formatError(
-      TypeAnalyzerOperations<Variable, TypeDeclarationType, TypeDeclaration>
-          typeAnalyzerOperations);
+    TypeAnalyzerOperations<Variable, TypeDeclarationType, TypeDeclaration>
+    typeAnalyzerOperations,
+  );
 }
 
-class UnknownTypeConstraintOrigin<Variable extends Object,
-        TypeDeclarationType extends Object, TypeDeclaration extends Object>
-    extends TypeConstraintOrigin<Variable, TypeDeclarationType,
-        TypeDeclaration> {
+class UnknownTypeConstraintOrigin<
+  Variable extends Object,
+  TypeDeclarationType extends Object,
+  TypeDeclaration extends Object
+>
+    extends
+        TypeConstraintOrigin<Variable, TypeDeclarationType, TypeDeclaration> {
   const UnknownTypeConstraintOrigin();
 
   @override
   List<String> formatError(
-      TypeAnalyzerOperations<Variable, TypeDeclarationType, TypeDeclaration>
-          typeAnalyzerOperations) {
+    TypeAnalyzerOperations<Variable, TypeDeclarationType, TypeDeclaration>
+    typeAnalyzerOperations,
+  ) {
     return <String>[];
   }
 }
@@ -309,12 +358,14 @@ class UnknownTypeConstraintOrigin<Variable extends Object,
 /// Data structure maintaining intermediate type inference results, such as
 /// type constraints, for testing purposes.  Under normal execution, no
 /// instance of this class should be created.
-class TypeConstraintGenerationDataForTesting<Variable extends Object,
-    AstNode extends Object> {
+class TypeConstraintGenerationDataForTesting<
+  Variable extends Object,
+  AstNode extends Object
+> {
   /// Map from nodes requiring type inference to the generated type constraints
   /// for the node.
   final Map<AstNode, List<GeneratedTypeConstraint<Variable>>>
-      generatedTypeConstraints = {};
+  generatedTypeConstraints = {};
 
   /// Merges [other] into the receiver, combining the constraints.
   ///
@@ -323,7 +374,8 @@ class TypeConstraintGenerationDataForTesting<Variable extends Object,
   /// because the changes made to the reused structures will be visible to
   /// [other].
   void mergeIn(
-      TypeConstraintGenerationDataForTesting<Variable, AstNode> other) {
+    TypeConstraintGenerationDataForTesting<Variable, AstNode> other,
+  ) {
     for (AstNode node in other.generatedTypeConstraints.keys) {
       List<GeneratedTypeConstraint>? constraints =
           generatedTypeConstraints[node];

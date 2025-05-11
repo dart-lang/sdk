@@ -113,8 +113,11 @@ class MiniIRBuilder {
   ///
   /// See [let].
   MiniIRTmp allocateTmp({required String location}) {
-    return MiniIRTmp._('t${_tmpCounter++}', _pop(Kind.expression).ir,
-        location: location);
+    return MiniIRTmp._(
+      't${_tmpCounter++}',
+      _pop(Kind.expression).ir,
+      location: location,
+    );
   }
 
   /// Pops the top [inputKinds].length nodes from the stack and pushes a node
@@ -126,17 +129,27 @@ class MiniIRBuilder {
   /// For example, if the stack contains `1, 2, 3`, calling
   /// `apply('f', 3, names: ['a', 'b'])` results in a stack of
   /// `f(1, a: 2, b: 3)`.
-  void apply(String name, List<Kind> inputKinds, Kind outputKind,
-      {required String location, List<String> names = const []}) {
+  void apply(
+    String name,
+    List<Kind> inputKinds,
+    Kind outputKind, {
+    required String location,
+    List<String> names = const [],
+  }) {
     var args = [
-      for (var irNode in _popList(inputKinds.length, inputKinds)) irNode.ir
+      for (var irNode in _popList(inputKinds.length, inputKinds)) irNode.ir,
     ];
     for (int i = 1; i <= names.length; i++) {
       args[args.length - i] =
           '${names[names.length - i]}: ${args[args.length - i]}';
     }
-    _push(IRNode(
-        ir: '$name(${args.join(', ')})', kind: outputKind, location: location));
+    _push(
+      IRNode(
+        ir: '$name(${args.join(', ')})',
+        kind: outputKind,
+        location: location,
+      ),
+    );
   }
 
   /// Pushes a node on the stack representing a single atomic expression (for
@@ -155,16 +168,22 @@ class MiniIRBuilder {
   ///
   /// If [tmp] is non-null, it is used as the loop variable instead of obtaining
   /// it from the stack.
-  void forIn(MiniIRTmp? tmp,
-      {required String location, required bool isAsynchronous}) {
+  void forIn(
+    MiniIRTmp? tmp, {
+    required String location,
+    required bool isAsynchronous,
+  }) {
     var name = isAsynchronous ? 'forIn_async' : 'forIn';
     var body = _pop(Kind.statement);
     var iterable = _pop(Kind.expression);
     var variable = tmp == null ? _pop(Kind.variable) : tmp._name;
-    _push(IRNode(
+    _push(
+      IRNode(
         ir: '$name($variable, $iterable, $body)',
         kind: Kind.statement,
-        location: location));
+        location: location,
+      ),
+    );
   }
 
   /// Executes [callback], checking that it leaves all nodes presently on the
@@ -179,9 +198,11 @@ class MiniIRBuilder {
     var result = callback();
     var stackDelta = _stack.length - previousStackDepth;
     if (stackDelta != 1) {
-      fail('Stack delta of $stackDelta while visiting '
-          '${node.runtimeType} $node\n'
-          'Stack: $this');
+      fail(
+        'Stack delta of $stackDelta while visiting '
+        '${node.runtimeType} $node\n'
+        'Stack: $this',
+      );
     }
     if (_debug) {
       print('  ' * --_guardDepth + '=> ${_stack.last}');
@@ -197,10 +218,13 @@ class MiniIRBuilder {
   /// This is intended to be used as a building block for null shorting
   /// operations.
   void ifNotNull(MiniIRTmp tmp, {required String location}) {
-    _push(IRNode(
+    _push(
+      IRNode(
         ir: 'if(==(${tmp._name}, null), null, ${_pop(Kind.expression).ir})',
         kind: Kind.expression,
-        location: location));
+        location: location,
+      ),
+    );
     let(tmp, location: location);
   }
 
@@ -213,34 +237,46 @@ class MiniIRBuilder {
   void ifNull(MiniIRTmp tmp, {required String location}) {
     var ifNull = _pop(Kind.expression);
     var ifNotNull = _pop(Kind.expression);
-    _push(IRNode(
+    _push(
+      IRNode(
         ir: 'if(==(${tmp._name}, null), $ifNull, $ifNotNull)',
         kind: Kind.expression,
-        location: location));
+        location: location,
+      ),
+    );
     let(tmp, location: location);
   }
 
   /// Pushes a node representing a call to `operator[]` onto the stack, using
   /// a receiver and an index obtained from the stack.
-  void indexGet({required String location}) =>
-      apply('[]', [Kind.expression, Kind.expression], Kind.expression,
-          location: location);
+  void indexGet({required String location}) => apply(
+    '[]',
+    [Kind.expression, Kind.expression],
+    Kind.expression,
+    location: location,
+  );
 
   /// Pushes a node representing a call to `operator[]=` onto the stack, using
   /// a receiver, index, and value obtained from the stack.
   ///
   /// If [receiverTmp] and/or [indexTmp] is non-null, they are used instead of
   /// obtaining values from the stack.
-  void indexSet(MiniIRTmp? receiverTmp, MiniIRTmp? indexTmp,
-      {required String location}) {
+  void indexSet(
+    MiniIRTmp? receiverTmp,
+    MiniIRTmp? indexTmp, {
+    required String location,
+  }) {
     var value = _pop(Kind.expression);
     var index = indexTmp == null ? _pop(Kind.expression) : indexTmp._name;
     var receiver =
         receiverTmp == null ? _pop(Kind.expression) : receiverTmp._name;
-    _push(IRNode(
+    _push(
+      IRNode(
         ir: '[]=($receiver, $index, $value)',
         kind: Kind.expression,
-        location: location));
+        location: location,
+      ),
+    );
   }
 
   /// Pushes a node representing a labeled statement onto the stack, using an
@@ -255,10 +291,13 @@ class MiniIRBuilder {
   void labeled(MiniIRLabel label, {required String location}) {
     var name = label._name;
     if (name != null) {
-      _push(IRNode(
+      _push(
+        IRNode(
           ir: 'labeled($name, ${_pop(Kind.statement)})',
           kind: Kind.statement,
-          location: location));
+          location: location,
+        ),
+      );
     }
   }
 
@@ -276,32 +315,44 @@ class MiniIRBuilder {
   ///   variable as needed.
   /// - Call [let] to build the final `let` expression.
   void let(MiniIRTmp tmp, {required String location}) {
-    _push(IRNode(
+    _push(
+      IRNode(
         ir: 'let(${tmp._name}, ${tmp._value}, ${_pop(Kind.expression).ir})',
         kind: Kind.expression,
-        location: location));
+        location: location,
+      ),
+    );
   }
 
   /// Pushes a node representing a property get onto the stack, using a receiver
   /// obtained from the stack.
-  void propertyGet(String propertyName, {required String location}) =>
-      apply('get_$propertyName', [Kind.expression], Kind.expression,
-          location: location);
+  void propertyGet(String propertyName, {required String location}) => apply(
+    'get_$propertyName',
+    [Kind.expression],
+    Kind.expression,
+    location: location,
+  );
 
   /// Pushes a node representing a property set onto the stack, using a receiver
   /// and value obtained from the stack.
   ///
   /// If [receiverTmp] is non-null, it is used as the receiver rather than
   /// obtaining it from the stack.
-  void propertySet(MiniIRTmp? receiverTmp, String propertyName,
-      {required String location}) {
+  void propertySet(
+    MiniIRTmp? receiverTmp,
+    String propertyName, {
+    required String location,
+  }) {
     var value = _pop(Kind.expression);
     var receiver =
         receiverTmp == null ? _pop(Kind.expression) : receiverTmp._name;
-    _push(IRNode(
+    _push(
+      IRNode(
         ir: 'set_$propertyName($receiver, $value)',
         kind: Kind.expression,
-        location: location));
+        location: location,
+      ),
+    );
   }
 
   /// Pushes a node representing a read of [tmp] onto the stack.
@@ -310,10 +361,13 @@ class MiniIRBuilder {
 
   /// Pushes a node representing a reference to [label] onto the stack.
   void referToLabel(MiniIRLabel label, {required String location}) {
-    _push(IRNode(
+    _push(
+      IRNode(
         ir: label._name ??= 'L${_labelCounter++}',
         kind: Kind.label,
-        location: location));
+        location: location,
+      ),
+    );
   }
 
   @override
@@ -325,9 +379,12 @@ class MiniIRBuilder {
 
   /// Pushes a node representing a set of a local variable onto the stack, using
   /// a value obtained from the stack.
-  void variableSet(Var v, {required String location}) =>
-      apply('${v.name}=', [Kind.expression], Kind.expression,
-          location: location);
+  void variableSet(Var v, {required String location}) => apply(
+    '${v.name}=',
+    [Kind.expression],
+    Kind.expression,
+    location: location,
+  );
 
   TypeMatcher<IRNode> _nodeWithKind(Kind expectedKind) =>
       TypeMatcher<IRNode>().having((node) => node.kind, 'kind', expectedKind);
@@ -346,8 +403,9 @@ class MiniIRBuilder {
     expect(newLength, greaterThanOrEqualTo(_popLimit));
     var result = _stack.sublist(newLength);
     _stack.length = newLength;
-    expect(result,
-        [for (var expectedKind in expectedKinds) _nodeWithKind(expectedKind)]);
+    expect(result, [
+      for (var expectedKind in expectedKinds) _nodeWithKind(expectedKind),
+    ]);
     return result;
   }
 

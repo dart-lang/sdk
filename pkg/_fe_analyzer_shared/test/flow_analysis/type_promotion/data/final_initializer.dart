@@ -7,7 +7,8 @@
 
 nonFinalPromotesWhenInitializerNonNullable(int i) {
   num? n = i;
-  /*num*/ n;
+  /*num*/
+  n;
 }
 
 nonFinalDoesNotPromoteWhenInitializerNullable(int? i) {
@@ -22,7 +23,8 @@ finalDoesNotPromote(int i) {
 
 lateNonFinalPromotesWhenInitializerNonNullable(int i) {
   late num? n = i;
-  /*num*/ n;
+  /*num*/
+  n;
 }
 
 lateNonFinalDoesNotPromoteWhenInitializerNullable(int? i) {

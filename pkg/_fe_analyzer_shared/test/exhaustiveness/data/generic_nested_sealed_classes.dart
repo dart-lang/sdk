@@ -158,7 +158,8 @@ exhaustiveLevel2<T4>(A<T4> a) {
     case D3<dynamic> d3:
       print('d3');
       break;
-    /*space=D4*/ case D4 d4:
+    /*space=D4*/
+    case D4 d4:
       print('d4');
       break;
   }

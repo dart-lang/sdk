@@ -7,7 +7,8 @@ library _fe_analyzer_shared.util.relativize;
 import 'dart:math';
 
 /// Detect if we're on Windows without importing `dart:io`.
-bool isWindows = new Uri.directory("C:\\").path ==
+bool isWindows =
+    new Uri.directory("C:\\").path ==
     new Uri.directory("C:\\", windows: true).path;
 
 String relativizeUri(Uri base, Uri uri, bool isWindows) {

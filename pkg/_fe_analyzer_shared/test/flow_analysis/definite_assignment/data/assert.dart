@@ -5,5 +5,6 @@
 assertStatement() {
   late int v;
   assert((v = 0) >= 0, v);
-  /*unassigned*/ v;
+  /*unassigned*/
+  v;
 }

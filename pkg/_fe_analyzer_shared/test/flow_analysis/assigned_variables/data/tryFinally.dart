@@ -4,7 +4,8 @@
 
 /*member: tryFinally:declared={a, b, d}, assigned={a, b}*/
 tryFinally(int a, int b) {
-  /*assigned={a}*/ try /*declared={c}, assigned={a}*/ {
+  /*assigned={a}*/
+  try /*declared={c}, assigned={a}*/ {
     a = 0;
     var c;
   } finally {
@@ -19,7 +20,8 @@ tryCatchFinally(int a, int b, int c) {
   // try/finally.  The comment preceding the "try" refers to the outer
   // "try" block of the desugaring, and the comment after the "try"
   // refers to the inner "try" block of the desugaring.
-  /*declared={e}, assigned={a, b}*/ try /*declared={d}, assigned={a}*/ {
+  /*declared={e}, assigned={a, b}*/
+  try /*declared={d}, assigned={a}*/ {
     a = 0;
     var d;
   } on String {

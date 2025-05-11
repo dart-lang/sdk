@@ -18,18 +18,26 @@ mixin StackChecker {
   ///
   /// to document and validate the expected value kind.
   bool checkStackValue(
-      Uri uri, int? fileOffset, ValueKind kind, Object? value) {
+    Uri uri,
+    int? fileOffset,
+    ValueKind kind,
+    Object? value,
+  ) {
     if (!kind.check(value)) {
-      String message = 'Unexpected value `${value}` (${value.runtimeType}). '
+      String message =
+          'Unexpected value `${value}` (${value.runtimeType}). '
           'Expected ${kind}.';
       if (fileOffset != null) {
         // If offset is available report and internal problem to show the
         // parsed code in the output.
         throw internalProblem(
-            new Message(const Code<String>('Internal error'),
-                problemMessage: message),
-            fileOffset,
-            uri);
+          new Message(
+            const Code<String>('Internal error'),
+            problemMessage: message,
+          ),
+          fileOffset,
+          uri,
+        );
       } else {
         throw message;
       }
@@ -75,10 +83,11 @@ mixin StackChecker {
   bool checkStackBaseStateForAssert(Uri uri, int? fileOffset, int base) {
     if (base < 0) {
       _throwProblem(
-          uri,
-          fileOffset,
-          "Too few elements on stack. "
-          "Expected ${stackHeight - base}, found $stackHeight.");
+        uri,
+        fileOffset,
+        "Too few elements on stack. "
+        "Expected ${stackHeight - base}, found $stackHeight.",
+      );
     }
     return true;
   }
@@ -98,8 +107,12 @@ mixin StackChecker {
   ///
   /// to document the expected stack and get earlier errors on unexpected stack
   /// content.
-  bool checkStackStateForAssert(Uri uri, int? fileOffset, List<ValueKind> kinds,
-      {int? base}) {
+  bool checkStackStateForAssert(
+    Uri uri,
+    int? fileOffset,
+    List<ValueKind> kinds, {
+    int? base,
+  }) {
     String? heightError;
     String? kindError;
     bool success = true;
@@ -107,11 +120,13 @@ mixin StackChecker {
     if (base != null) {
       int relativeStackHeight = stackHeight - base;
       if (relativeStackHeight < kinds.length) {
-        heightError = "Too few elements on stack. "
+        heightError =
+            "Too few elements on stack. "
             "Expected ${kinds.length}, found $relativeStackHeight.";
         success = false;
       } else if (relativeStackHeight > kinds.length) {
-        heightError = "Too many elements on stack. "
+        heightError =
+            "Too many elements on stack. "
             "Expected ${kinds.length}, found $relativeStackHeight.";
         success = false;
       }
@@ -120,7 +135,8 @@ mixin StackChecker {
       stackShift = relativeStackHeight - kinds.length;
     } else {
       if (stackHeight < kinds.length) {
-        heightError = "Too few elements on stack. "
+        heightError =
+            "Too few elements on stack. "
             "Expected ${kinds.length}, found $stackHeight.";
         success = false;
       }
@@ -237,10 +253,13 @@ mixin StackChecker {
       // If offset is available report and internal problem to show the
       // parsed code in the output.
       throw internalProblem(
-          new Message(const Code<String>('Internal error'),
-              problemMessage: message),
-          fileOffset,
-          uri);
+        new Message(
+          const Code<String>('Internal error'),
+          problemMessage: message,
+        ),
+        fileOffset,
+        uri,
+      );
     } else {
       throw message;
     }

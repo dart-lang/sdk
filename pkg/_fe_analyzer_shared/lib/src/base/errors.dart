@@ -66,8 +66,8 @@ abstract class DiagnosticCode {
     required this.name,
     required String problemMessage,
     required this.uniqueName,
-  })  : _correctionMessage = correctionMessage,
-        _problemMessage = problemMessage;
+  }) : _correctionMessage = correctionMessage,
+       _problemMessage = problemMessage;
 
   /**
    * The template used to create the correction to be displayed for this error,
@@ -99,7 +99,7 @@ abstract class DiagnosticCode {
     String? correctionMessage = _correctionMessage;
     for (String s in [
       _problemMessage,
-      if (correctionMessage != null) correctionMessage
+      if (correctionMessage != null) correctionMessage,
     ]) {
       for (RegExpMatch match in _positionalArgumentRegExp.allMatches(s)) {
         result = max(result, int.parse(match.group(1)!) + 1);
@@ -145,33 +145,49 @@ class DiagnosticSeverity implements Comparable<DiagnosticSeverity> {
    * The severity representing a non-error. This is never used for any error
    * code, but is useful for clients.
    */
-  static const DiagnosticSeverity NONE =
-      const DiagnosticSeverity('NONE', 0, " ", "none");
+  static const DiagnosticSeverity NONE = const DiagnosticSeverity(
+    'NONE',
+    0,
+    " ",
+    "none",
+  );
 
   /**
    * The severity representing an informational level analysis issue.
    */
-  static const DiagnosticSeverity INFO =
-      const DiagnosticSeverity('INFO', 1, "I", "info");
+  static const DiagnosticSeverity INFO = const DiagnosticSeverity(
+    'INFO',
+    1,
+    "I",
+    "info",
+  );
 
   /**
    * The severity representing a warning. Warnings can become errors if the
    * `-Werror` command line flag is specified.
    */
-  static const DiagnosticSeverity WARNING =
-      const DiagnosticSeverity('WARNING', 2, "W", "warning");
+  static const DiagnosticSeverity WARNING = const DiagnosticSeverity(
+    'WARNING',
+    2,
+    "W",
+    "warning",
+  );
 
   /**
    * The severity representing an error.
    */
-  static const DiagnosticSeverity ERROR =
-      const DiagnosticSeverity('ERROR', 3, "E", "error");
+  static const DiagnosticSeverity ERROR = const DiagnosticSeverity(
+    'ERROR',
+    3,
+    "E",
+    "error",
+  );
 
   static const List<DiagnosticSeverity> values = const [
     NONE,
     INFO,
     WARNING,
-    ERROR
+    ERROR,
   ];
 
   final String name;
@@ -189,7 +205,11 @@ class DiagnosticSeverity implements Comparable<DiagnosticSeverity> {
   final String displayName;
 
   const DiagnosticSeverity(
-      this.name, this.ordinal, this.machineCode, this.displayName);
+    this.name,
+    this.ordinal,
+    this.machineCode,
+    this.displayName,
+  );
 
   @override
   int get hashCode => ordinal;
@@ -219,23 +239,32 @@ class DiagnosticType implements Comparable<DiagnosticType> {
   /**
    * Task (todo) comments in user code.
    */
-  static const DiagnosticType TODO =
-      const DiagnosticType('TODO', 0, DiagnosticSeverity.INFO);
+  static const DiagnosticType TODO = const DiagnosticType(
+    'TODO',
+    0,
+    DiagnosticSeverity.INFO,
+  );
 
   /**
    * Extra analysis run over the code to follow best practices, which are not in
    * the Dart Language Specification.
    */
-  static const DiagnosticType HINT =
-      const DiagnosticType('HINT', 1, DiagnosticSeverity.INFO);
+  static const DiagnosticType HINT = const DiagnosticType(
+    'HINT',
+    1,
+    DiagnosticSeverity.INFO,
+  );
 
   /**
    * Compile-time errors are errors that preclude execution. A compile time
    * error must be reported by a Dart compiler before the erroneous code is
    * executed.
    */
-  static const DiagnosticType COMPILE_TIME_ERROR =
-      const DiagnosticType('COMPILE_TIME_ERROR', 2, DiagnosticSeverity.ERROR);
+  static const DiagnosticType COMPILE_TIME_ERROR = const DiagnosticType(
+    'COMPILE_TIME_ERROR',
+    2,
+    DiagnosticSeverity.ERROR,
+  );
 
   /**
    * Checked mode compile-time errors are errors that preclude execution in
@@ -243,29 +272,41 @@ class DiagnosticType implements Comparable<DiagnosticType> {
    */
   static const DiagnosticType CHECKED_MODE_COMPILE_TIME_ERROR =
       const DiagnosticType(
-          'CHECKED_MODE_COMPILE_TIME_ERROR', 3, DiagnosticSeverity.ERROR);
+        'CHECKED_MODE_COMPILE_TIME_ERROR',
+        3,
+        DiagnosticSeverity.ERROR,
+      );
 
   /**
    * Static warnings are those warnings reported by the static checker. They
    * have no effect on execution. Static warnings must be provided by Dart
    * compilers used during development.
    */
-  static const DiagnosticType STATIC_WARNING =
-      const DiagnosticType('STATIC_WARNING', 4, DiagnosticSeverity.WARNING);
+  static const DiagnosticType STATIC_WARNING = const DiagnosticType(
+    'STATIC_WARNING',
+    4,
+    DiagnosticSeverity.WARNING,
+  );
 
   /**
    * Syntactic errors are errors produced as a result of input that does not
    * conform to the grammar.
    */
-  static const DiagnosticType SYNTACTIC_ERROR =
-      const DiagnosticType('SYNTACTIC_ERROR', 6, DiagnosticSeverity.ERROR);
+  static const DiagnosticType SYNTACTIC_ERROR = const DiagnosticType(
+    'SYNTACTIC_ERROR',
+    6,
+    DiagnosticSeverity.ERROR,
+  );
 
   /**
    * Lint warnings describe style and best practice recommendations that can be
    * used to formalize a project's style guidelines.
    */
-  static const DiagnosticType LINT =
-      const DiagnosticType('LINT', 7, DiagnosticSeverity.INFO);
+  static const DiagnosticType LINT = const DiagnosticType(
+    'LINT',
+    7,
+    DiagnosticSeverity.INFO,
+  );
 
   static const List<DiagnosticType> values = const [
     TODO,

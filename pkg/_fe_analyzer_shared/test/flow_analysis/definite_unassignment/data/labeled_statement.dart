@@ -12,7 +12,8 @@ block_break(bool c) {
     v = 0;
     return;
   }
-  /*unassigned*/ v;
+  /*unassigned*/
+  v;
 }
 
 if_break(bool c) {
@@ -25,7 +26,8 @@ if_break(bool c) {
     v = 0;
     return;
   }
-  /*unassigned*/ v;
+  /*unassigned*/
+  v;
 }
 
 try_break(bool c) {
@@ -38,5 +40,6 @@ try_break(bool c) {
     v = 0;
     return;
   } finally {}
-  /*unassigned*/ v;
+  /*unassigned*/
+  v;
 }

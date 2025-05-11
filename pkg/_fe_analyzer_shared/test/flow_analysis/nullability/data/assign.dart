@@ -6,19 +6,22 @@ void toNonNull(int? x) {
   if (x != null) return;
   x;
   x = 0;
-  /*nonNullable*/ x;
+  /*nonNullable*/
+  x;
 }
 
 void toNull(int? x) {
   if (x == null) return;
-  /*nonNullable*/ x;
+  /*nonNullable*/
+  x;
   x = null;
   x;
 }
 
 void toUnknown_fromNotNull(int? a, int? b) {
   if (a == null) return;
-  /*nonNullable*/ a;
+  /*nonNullable*/
+  a;
   a = b;
   a;
 }

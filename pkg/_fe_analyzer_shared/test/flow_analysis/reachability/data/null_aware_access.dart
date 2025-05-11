@@ -11,7 +11,8 @@ void index_reachable(List<int>? f()) {
 void index_unreachable(List<int> f()) {
   // Reachable since the value returned by f() might come from legacy code
   f()?[throw ''];
-  /*stmt: unreachable*/0;
+  /*stmt: unreachable*/
+  0;
 }
 
 void cascaded_index_reachable(List<int>? f()) {
@@ -23,7 +24,8 @@ void cascaded_index_reachable(List<int>? f()) {
 void cascaded_index_unreachable(List<int> f()) {
   // Reachable since the value returned by f() might come from legacy code
   f()?..[throw ''];
-  /*stmt: unreachable*/0;
+  /*stmt: unreachable*/
+  0;
 }
 
 void method_invocation_reachable(int? f()) {
@@ -35,7 +37,8 @@ void method_invocation_reachable(int? f()) {
 void method_invocation_unreachable(int f()) {
   // Reachable since the value returned by f() might come from legacy code
   f()?.remainder(throw '');
-  /*stmt: unreachable*/0;
+  /*stmt: unreachable*/
+  0;
 }
 
 void cascaded_method_invocation_reachable(int? f()) {
@@ -47,7 +50,8 @@ void cascaded_method_invocation_reachable(int? f()) {
 void cascaded_method_invocation_unreachable(int f()) {
   // Reachable since the value returned by f() might come from legacy code
   f()?..remainder(throw '');
-  /*stmt: unreachable*/0;
+  /*stmt: unreachable*/
+  0;
 }
 
 void property_get_reachable(int? f()) {
@@ -59,7 +63,8 @@ void property_get_reachable(int? f()) {
 void property_get_unreachable(int f()) {
   // Reachable since the value returned by f() might come from legacy code
   f()?.hashCode.remainder(throw '');
-  /*stmt: unreachable*/0;
+  /*stmt: unreachable*/
+  0;
 }
 
 void cascaded_property_get_reachable(int? f()) {
@@ -71,7 +76,8 @@ void cascaded_property_get_reachable(int? f()) {
 void cascaded_property_get_unreachable(int f()) {
   // Reachable since the value returned by f() might come from legacy code
   f()?..hashCode.remainder(throw '');
-  /*stmt: unreachable*/0;
+  /*stmt: unreachable*/
+  0;
 }
 
 void property_get_invocation_reachable(List<void Function(dynamic)>? f()) {
@@ -89,11 +95,13 @@ void property_get_invocation_unreachable(List<void Function(dynamic)> f()) {
   // invocation but the analyzer rewrites it as a property access followed by a
   // function expression invocation.
   f()?.first(throw '');
-  /*stmt: unreachable*/0;
+  /*stmt: unreachable*/
+  0;
 }
 
 void cascaded_property_get_invocation_reachable(
-    List<void Function(dynamic)>? f()) {
+  List<void Function(dynamic)>? f(),
+) {
   // We need a special test case for this because it parses like a method
   // invocation but the analyzer rewrites it as a property access followed by a
   // function expression invocation.
@@ -103,13 +111,15 @@ void cascaded_property_get_invocation_reachable(
 
 /*member: cascaded_property_get_invocation_unreachable:doesNotComplete*/
 void cascaded_property_get_invocation_unreachable(
-    List<void Function(dynamic)> f()) {
+  List<void Function(dynamic)> f(),
+) {
   // Reachable since the value returned by f() might come from legacy code
   // We need a special test case for this because it parses like a method
   // invocation but the analyzer rewrites it as a property access followed by a
   // function expression invocation.
   f()?..first(throw '');
-  /*stmt: unreachable*/0;
+  /*stmt: unreachable*/
+  0;
 }
 
 class C {
@@ -125,7 +135,8 @@ void property_set_reachable(C? f()) {
 void property_set_unreachable(C f()) {
   // Reachable since the value returned by f() might come from legacy code
   f()?.field = throw '';
-  /*stmt: unreachable*/0;
+  /*stmt: unreachable*/
+  0;
 }
 
 void cascaded_property_set_reachable(C? f()) {
@@ -137,5 +148,6 @@ void cascaded_property_set_reachable(C? f()) {
 void cascaded_property_set_unreachable(C f()) {
   // Reachable since the value returned by f() might come from legacy code
   f()?..field = throw '';
-  /*stmt: unreachable*/0;
+  /*stmt: unreachable*/
+  0;
 }

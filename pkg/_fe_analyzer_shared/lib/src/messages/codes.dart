@@ -30,8 +30,12 @@ class Code<T> {
 
   final Severity severity;
 
-  const Code(this.name,
-      {this.index = -1, this.analyzerCodes, this.severity = Severity.error});
+  const Code(
+    this.name, {
+    this.index = -1,
+    this.analyzerCodes,
+    this.severity = Severity.error,
+  });
 
   @override
   String toString() => name;
@@ -46,10 +50,12 @@ class Message {
 
   final Map<String, dynamic> arguments;
 
-  const Message(this.code,
-      {this.correctionMessage,
-      required this.problemMessage,
-      this.arguments = const {}});
+  const Message(
+    this.code, {
+    this.correctionMessage,
+    required this.problemMessage,
+    this.arguments = const {},
+  });
 
   LocatedMessage withLocation(Uri uri, int charOffset, int length) {
     return new LocatedMessage(uri, charOffset, length, this);
@@ -72,12 +78,14 @@ class MessageCode extends Code<Null> implements Message {
   @override
   final String? correctionMessage;
 
-  const MessageCode(super.name,
-      {super.index,
-      super.analyzerCodes,
-      super.severity,
-      required this.problemMessage,
-      this.correctionMessage});
+  const MessageCode(
+    super.name, {
+    super.index,
+    super.analyzerCodes,
+    super.severity,
+    required this.problemMessage,
+    this.correctionMessage,
+  });
 
   @override
   Map<String, dynamic> get arguments => const <String, dynamic>{};
@@ -105,10 +113,12 @@ class Template<T> {
 
   final T withArguments;
 
-  const Template(this.messageCode,
-      {this.correctionMessageTemplate,
-      required this.problemMessageTemplate,
-      required this.withArguments});
+  const Template(
+    this.messageCode, {
+    this.correctionMessageTemplate,
+    required this.problemMessageTemplate,
+    required this.withArguments,
+  });
 
   @override
   String toString() => 'Template($messageCode)';
@@ -124,7 +134,11 @@ class LocatedMessage implements Comparable<LocatedMessage> {
   final Message messageObject;
 
   const LocatedMessage(
-      this.uri, this.charOffset, this.length, this.messageObject);
+    this.uri,
+    this.charOffset,
+    this.length,
+    this.messageObject,
+  );
 
   Code<dynamic> get code => messageObject.code;
 
@@ -143,12 +157,24 @@ class LocatedMessage implements Comparable<LocatedMessage> {
     return problemMessage.compareTo(problemMessage);
   }
 
-  FormattedMessage withFormatting(PlainAndColorizedString formatted, int line,
-      int column, Severity severity, List<FormattedMessage>? relatedInformation,
-      {List<Uri>? involvedFiles}) {
-    return new FormattedMessage(this, formatted.plain, formatted.colorized,
-        line, column, severity, relatedInformation,
-        involvedFiles: involvedFiles);
+  FormattedMessage withFormatting(
+    PlainAndColorizedString formatted,
+    int line,
+    int column,
+    Severity severity,
+    List<FormattedMessage>? relatedInformation, {
+    List<Uri>? involvedFiles,
+  }) {
+    return new FormattedMessage(
+      this,
+      formatted.plain,
+      formatted.colorized,
+      line,
+      column,
+      severity,
+      relatedInformation,
+      involvedFiles: involvedFiles,
+    );
   }
 
   @override
@@ -209,14 +235,15 @@ class FormattedMessage implements DiagnosticMessage {
   final List<Uri>? involvedFiles;
 
   const FormattedMessage(
-      this.locatedMessage,
-      this.formattedPlain,
-      this.formattedColorized,
-      this.line,
-      this.column,
-      this.severity,
-      this.relatedInformation,
-      {this.involvedFiles});
+    this.locatedMessage,
+    this.formattedPlain,
+    this.formattedColorized,
+    this.line,
+    this.column,
+    this.severity,
+    this.relatedInformation, {
+    this.involvedFiles,
+  });
 
   Code<dynamic> get code => locatedMessage.code;
 
@@ -291,27 +318,42 @@ class DiagnosticMessageFromJson implements DiagnosticMessage {
   @override
   final String codeName;
 
-  DiagnosticMessageFromJson(this.ansiFormatted, this.plainTextFormatted,
-      this.severity, this.uri, this.involvedFiles, this.codeName);
+  DiagnosticMessageFromJson(
+    this.ansiFormatted,
+    this.plainTextFormatted,
+    this.severity,
+    this.uri,
+    this.involvedFiles,
+    this.codeName,
+  );
 
   factory DiagnosticMessageFromJson.fromJson(String jsonString) {
     Map<String, Object?> decoded = json.decode(jsonString);
-    List<String> ansiFormatted =
-        new List<String>.from(_asListOfString(decoded["ansiFormatted"]));
-    List<String> plainTextFormatted =
-        _asListOfString(decoded["plainTextFormatted"]);
+    List<String> ansiFormatted = new List<String>.from(
+      _asListOfString(decoded["ansiFormatted"]),
+    );
+    List<String> plainTextFormatted = _asListOfString(
+      decoded["plainTextFormatted"],
+    );
     Severity severity = Severity.values[decoded["severity"] as int];
     Uri? uri =
         decoded["uri"] == null ? null : Uri.parse(decoded["uri"] as String);
-    List<Uri>? involvedFiles = decoded["involvedFiles"] == null
-        ? null
-        : _asListOfString(decoded["involvedFiles"])
-            .map((e) => Uri.parse(e))
-            .toList();
+    List<Uri>? involvedFiles =
+        decoded["involvedFiles"] == null
+            ? null
+            : _asListOfString(
+              decoded["involvedFiles"],
+            ).map((e) => Uri.parse(e)).toList();
     String codeName = decoded["codeName"] as String;
 
-    return new DiagnosticMessageFromJson(ansiFormatted, plainTextFormatted,
-        severity, uri, involvedFiles, codeName);
+    return new DiagnosticMessageFromJson(
+      ansiFormatted,
+      plainTextFormatted,
+      severity,
+      uri,
+      involvedFiles,
+      codeName,
+    );
   }
 
   Map<String, Object?> toJson() {
@@ -383,12 +425,16 @@ final RegExp templateKey = new RegExp(r'#(\w+)');
 /// Replaces occurrences of '#key' in [template], where 'key' is a key in
 /// [arguments], with the corresponding values.
 String applyArgumentsToTemplate(
-    String template, Map<String, dynamic> arguments) {
+  String template,
+  Map<String, dynamic> arguments,
+) {
   // TODO(johnniwinther): Remove `as dynamic` when unsound null safety is
   // no longer supported.
   if (arguments as dynamic == null || arguments.isEmpty) {
-    assert(!template.contains(templateKey),
-        'Message requires arguments, but none were provided.');
+    assert(
+      !template.contains(templateKey),
+      'Message requires arguments, but none were provided.',
+    );
     return template;
   }
   return template.replaceAllMapped(templateKey, (Match match) {

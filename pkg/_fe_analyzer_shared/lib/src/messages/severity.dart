@@ -4,14 +4,7 @@
 
 library _fe_analyzer_shared.messages.severity;
 
-enum Severity {
-  context,
-  error,
-  ignored,
-  internalProblem,
-  warning,
-  info,
-}
+enum Severity { context, error, ignored, internalProblem, warning, info }
 
 const Map<String, String> severityEnumNames = const <String, String>{
   'CONTEXT': 'context',

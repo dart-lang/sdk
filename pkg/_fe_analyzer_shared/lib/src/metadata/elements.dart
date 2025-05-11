@@ -39,11 +39,16 @@ class MapEntryElement extends Element {
   final bool isNullAwareKey;
   final bool isNullAwareValue;
 
-  MapEntryElement(this.key, this.value,
-      {required this.isNullAwareKey, required this.isNullAwareValue});
+  MapEntryElement(
+    this.key,
+    this.value, {
+    required this.isNullAwareKey,
+    required this.isNullAwareValue,
+  });
 
   @override
-  String toString() => 'MapEntryElement($key,$value,'
+  String toString() =>
+      'MapEntryElement($key,$value,'
       'isNullAwareKey=$isNullAwareValue,isNullAwareValue=$isNullAwareValue)';
 
   @override
@@ -52,8 +57,12 @@ class MapEntryElement extends Element {
     Expression? newValue = value.resolve();
     return newKey == null && newValue == null
         ? null
-        : new MapEntryElement(newKey ?? key, newValue ?? value,
-            isNullAwareKey: isNullAwareKey, isNullAwareValue: isNullAwareValue);
+        : new MapEntryElement(
+          newKey ?? key,
+          newValue ?? value,
+          isNullAwareKey: isNullAwareKey,
+          isNullAwareValue: isNullAwareValue,
+        );
   }
 }
 
@@ -93,8 +102,11 @@ class IfElement extends Element {
     if (otherwise != null) {
       return newCondition == null && newThen == null && newOtherwise == null
           ? null
-          : new IfElement(newCondition ?? condition, newThen ?? then,
-              newOtherwise ?? otherwise);
+          : new IfElement(
+            newCondition ?? condition,
+            newThen ?? then,
+            newOtherwise ?? otherwise,
+          );
     } else {
       return newCondition == null && newThen == null
           ? null

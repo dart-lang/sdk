@@ -140,11 +140,15 @@ Token skipMetadata(Token token) {
 Token splitGtEq(Token token) {
   assert(token.isA(TokenType.GT_EQ));
   return new SimpleToken(
-      TokenType.GT, token.charOffset, token.precedingComments)
-    ..setNext(new SimpleToken(TokenType.EQ, token.charOffset + 1)
+    TokenType.GT,
+    token.charOffset,
+    token.precedingComments,
+  )..setNext(
+    new SimpleToken(TokenType.EQ, token.charOffset + 1)
       // Set next rather than calling Token.setNext
       // so that the previous token is not set.
-      ..next = token.next);
+      ..next = token.next,
+  );
 }
 
 /// Split `>>` into two separate tokens.
@@ -152,11 +156,15 @@ Token splitGtEq(Token token) {
 SimpleToken splitGtGt(Token token) {
   assert(token.isA(TokenType.GT_GT));
   return new SimpleToken(
-      TokenType.GT, token.charOffset, token.precedingComments)
-    ..setNext(new SimpleToken(TokenType.GT, token.charOffset + 1)
+    TokenType.GT,
+    token.charOffset,
+    token.precedingComments,
+  )..setNext(
+    new SimpleToken(TokenType.GT, token.charOffset + 1)
       // Set next rather than calling Token.setNext
       // so that the previous token is not set.
-      ..next = token.next);
+      ..next = token.next,
+  );
 }
 
 /// Split `>>=` into three separate tokens.
@@ -164,12 +172,17 @@ SimpleToken splitGtGt(Token token) {
 Token splitGtGtEq(Token token) {
   assert(token.isA(TokenType.GT_GT_EQ));
   return new SimpleToken(
-      TokenType.GT, token.charOffset, token.precedingComments)
-    ..setNext(new SimpleToken(TokenType.GT, token.charOffset + 1)
-      ..setNext(new SimpleToken(TokenType.EQ, token.charOffset + 2)
+    TokenType.GT,
+    token.charOffset,
+    token.precedingComments,
+  )..setNext(
+    new SimpleToken(TokenType.GT, token.charOffset + 1)..setNext(
+      new SimpleToken(TokenType.EQ, token.charOffset + 2)
         // Set next rather than calling Token.setNext
         // so that the previous token is not set.
-        ..next = token.next));
+        ..next = token.next,
+    ),
+  );
 }
 
 /// Split `>>=` into two separate tokens... `>` followed by `>=`.
@@ -177,11 +190,15 @@ Token splitGtGtEq(Token token) {
 Token splitGtFromGtGtEq(Token token) {
   assert(token.isA(TokenType.GT_GT_EQ));
   return new SimpleToken(
-      TokenType.GT, token.charOffset, token.precedingComments)
-    ..setNext(new SimpleToken(TokenType.GT_EQ, token.charOffset + 1)
+    TokenType.GT,
+    token.charOffset,
+    token.precedingComments,
+  )..setNext(
+    new SimpleToken(TokenType.GT_EQ, token.charOffset + 1)
       // Set next rather than calling Token.setNext
       // so that the previous token is not set.
-      ..next = token.next);
+      ..next = token.next,
+  );
 }
 
 /// Split `>>>` into two separate tokens... `>` followed by `>>`.
@@ -189,11 +206,15 @@ Token splitGtFromGtGtEq(Token token) {
 Token splitGtFromGtGtGt(Token token) {
   assert(token.isA(TokenType.GT_GT_GT));
   return new SimpleToken(
-      TokenType.GT, token.charOffset, token.precedingComments)
-    ..setNext(new SimpleToken(TokenType.GT_GT, token.charOffset + 1)
+    TokenType.GT,
+    token.charOffset,
+    token.precedingComments,
+  )..setNext(
+    new SimpleToken(TokenType.GT_GT, token.charOffset + 1)
       // Set next rather than calling Token.setNext
       // so that the previous token is not set.
-      ..next = token.next);
+      ..next = token.next,
+  );
 }
 
 /// Split `>>>=` into two separate tokens... `>` followed by `>>=`.
@@ -201,11 +222,15 @@ Token splitGtFromGtGtGt(Token token) {
 Token splitGtFromGtGtGtEq(Token token) {
   assert(token.isA(TokenType.GT_GT_GT_EQ));
   return new SimpleToken(
-      TokenType.GT, token.charOffset, token.precedingComments)
-    ..setNext(new SimpleToken(TokenType.GT_GT_EQ, token.charOffset + 1)
+    TokenType.GT,
+    token.charOffset,
+    token.precedingComments,
+  )..setNext(
+    new SimpleToken(TokenType.GT_GT_EQ, token.charOffset + 1)
       // Set next rather than calling Token.setNext
       // so that the previous token is not set.
-      ..next = token.next);
+      ..next = token.next,
+  );
 }
 
 /// Strips separator characters (underscore) from [source].
@@ -228,7 +253,7 @@ String stripSeparators(String source) {
   int writeIndex = 0;
   for (int i = 0; i < source.length; i++) {
     int char = source.codeUnitAt(i);
-    if (char != 0x5f /* _ */) list[writeIndex++] = char;
+    if (char != 0x5f /* _ */ ) list[writeIndex++] = char;
   }
   return new String.fromCharCodes(list, 0, writeIndex);
 }

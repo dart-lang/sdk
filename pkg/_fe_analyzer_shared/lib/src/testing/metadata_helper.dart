@@ -14,12 +14,11 @@ import '../metadata/evaluate.dart';
 /// clutter, these tests use a `Helper` class which is omitted in the test
 /// output.
 Expression unwrap(Expression expression) {
-  if (expression
-      case ConstructorInvocation(
-        type: NamedTypeAnnotation(reference: ClassReference(name: 'Helper')),
-        constructor: ConstructorReference(name: 'new'),
-        arguments: [PositionalArgument(expression: Expression argument)]
-      )) {
+  if (expression case ConstructorInvocation(
+    type: NamedTypeAnnotation(reference: ClassReference(name: 'Helper')),
+    constructor: ConstructorReference(name: 'new'),
+    arguments: [PositionalArgument(expression: Expression argument)],
+  )) {
     return argument;
   }
   return expression;
@@ -30,16 +29,21 @@ Expression unwrap(Expression expression) {
 ///
 /// If [getFieldInitializer] is provided, it is used to dereference constant
 /// field references during evaluation.
-List<String> evaluationToText(Expression resolved,
-    {GetFieldInitializer? getFieldInitializer}) {
+List<String> evaluationToText(
+  Expression resolved, {
+  GetFieldInitializer? getFieldInitializer,
+}) {
   List<String> list = [];
 
   Expression unwrappedResolved = unwrap(resolved);
   list.add('resolved=${expressionToText(unwrappedResolved)}');
 
   Map<FieldReference, Expression> dereferences = {};
-  Expression evaluated = evaluateExpression(unwrappedResolved,
-      getFieldInitializer: getFieldInitializer, dereferences: dereferences);
+  Expression evaluated = evaluateExpression(
+    unwrappedResolved,
+    getFieldInitializer: getFieldInitializer,
+    dereferences: dereferences,
+  );
   list.add('evaluate=${expressionToText(evaluated)}');
   for (MapEntry<FieldReference, Expression> entry in dereferences.entries) {
     list.add('${entry.key.name}=${expressionToText(entry.value)}');
@@ -50,8 +54,10 @@ List<String> evaluationToText(Expression resolved,
 
 /// Creates a list containing structured and readable textual representation of
 /// the [unresolved] and [resolved] expressions.
-List<String> expressionsToText(
-    {required Expression unresolved, required Expression resolved}) {
+List<String> expressionsToText({
+  required Expression unresolved,
+  required Expression resolved,
+}) {
   List<String> list = [];
   list.add('unresolved=${expressionToText(unwrap(unresolved))}');
 
@@ -522,10 +528,13 @@ class Writer {
     _write("'");
   }
 
-  void _listToText<E>(List<E> list, void Function(E) elementToText,
-      {required String delimiter,
-      bool useNewLine = false,
-      String prefix = ''}) {
+  void _listToText<E>(
+    List<E> list,
+    void Function(E) elementToText, {
+    required String delimiter,
+    bool useNewLine = false,
+    String prefix = '',
+  }) {
     if (list.isNotEmpty) {
       bool hasNewLine = useNewLine && list.length > 1;
       if (hasNewLine) {
@@ -553,10 +562,17 @@ class Writer {
     _write(')');
   }
 
-  void _expressionsToText(List<Expression> expressions,
-      {required String delimiter, String prefix = ''}) {
-    _listToText(expressions, _expressionToText,
-        delimiter: delimiter, useNewLine: true);
+  void _expressionsToText(
+    List<Expression> expressions, {
+    required String delimiter,
+    String prefix = '',
+  }) {
+    _listToText(
+      expressions,
+      _expressionToText,
+      delimiter: delimiter,
+      useNewLine: true,
+    );
   }
 
   void _metadataToText(List<Expression> metadata) {

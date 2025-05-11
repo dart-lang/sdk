@@ -7,8 +7,7 @@ method(int? i) => /*
  error=non-exhaustive:int();null,
  subtypes={int,Null},
  type=int?
-*/
-    switch (i) {
-      == null /*space=?*/ => null,
-      != null /*space=?*/ => i,
-    };
+*/ switch (i) {
+  == null /*space=?*/ => null,
+  != null /*space=?*/ => i,
+};

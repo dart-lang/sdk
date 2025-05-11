@@ -9,7 +9,8 @@
 /*member: asExpression:doesNotComplete*/
 void asExpression(int i) {
   i as Never;
-  /*stmt: unreachable*/ 1;
+  /*stmt: unreachable*/
+  1;
 }
 
 /*member: ifNullExpression:doesNotComplete*/
@@ -19,7 +20,8 @@ void ifNullExpression(Null Function() f) {
   // hence the shortcut branch of `f() ?? throw ''` is unreachable.  This means
   // that the code path after the whole expression `f() ?? throw ''` should be
   // unreachable.
-  /*stmt: unreachable*/ 1;
+  /*stmt: unreachable*/
+  1;
 }
 
 /*member: ifNullAssignment:doesNotComplete*/
@@ -29,12 +31,14 @@ void ifNullAssignment(int? x, Null n) {
   // shortcut branch of `n ??= throw ''` is unreachable.  This means that the
   // code path after the whole expression `n ??= throw ''` should be
   // unreachable.
-  /*stmt: unreachable*/ 1;
+  /*stmt: unreachable*/
+  1;
 }
 
 void ifExpression(Object? Function() f) {
   if (f() is Never) /*unreachable*/ {
-    /*stmt: unreachable*/ 1;
+    /*stmt: unreachable*/
+    1;
   } else {
     2;
   }
@@ -46,11 +50,12 @@ void nonNullAssert(Null Function() f) {
   // Since `f()` has static type `Null`, it must always evaluate to `null`,
   // hence the non-null assertion always fails.  This means that the code path
   // after the whole expression `f()!` should be unreachable.
-  /*stmt: unreachable*/ 1;
+  /*stmt: unreachable*/
+  1;
 }
 
 void nullAwareAccess(Null Function() f, Object? Function() g) {
-  f()?./*analyzer.unreachable*/extensionMethod(/*unreachable*/ 1);
+  f()?. /*analyzer.unreachable*/ extensionMethod(/*unreachable*/ 1);
   g()?.extensionMethod(2);
 }
 

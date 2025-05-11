@@ -36,11 +36,10 @@ exhaustiveBoolByValue(FutureOr<bool> f) {
    expandedSubtypes={true,false,Future<bool>},
    subtypes={bool,Future<bool>},
    type=FutureOr<bool>
-  */
-      switch (f) {
+  */ switch (f) {
     true /*space=true*/ => 0,
     false /*space=false*/ => 1,
-    Future<bool>() /*space=Future<bool>*/ => 2
+    Future<bool>() /*space=Future<bool>*/ => 2,
   };
 }
 
@@ -82,10 +81,9 @@ exhaustiveBoolByType(FutureOr<bool> f) {
    expandedSubtypes={true,false,Future<bool>},
    subtypes={bool,Future<bool>},
    type=FutureOr<bool>
-  */
-      switch (f) {
+  */ switch (f) {
     bool() /*space=bool*/ => 0,
-    Future<bool>() /*space=Future<bool>*/ => 1
+    Future<bool>() /*space=Future<bool>*/ => 1,
   };
 }
 
@@ -168,8 +166,7 @@ nonExhaustiveBool(FutureOr<bool> f) {
    expandedSubtypes={true,false,Future<bool>},
    subtypes={bool,Future<bool>},
    type=FutureOr<bool>
-  */
-      switch (f) {
+  */ switch (f) {
     true /*space=true*/ => 0,
     false /*space=false*/ => 1,
   };
@@ -179,10 +176,9 @@ nonExhaustiveBool(FutureOr<bool> f) {
    expandedSubtypes={true,false,Future<bool>},
    subtypes={bool,Future<bool>},
    type=FutureOr<bool>
-  */
-      switch (f) {
+  */ switch (f) {
     true /*space=true*/ => 0,
-    Future<bool>() /*space=Future<bool>*/ => 2
+    Future<bool>() /*space=Future<bool>*/ => 2,
   };
   var c = /*
    checkingOrder={FutureOr<bool>,bool,Future<bool>,true,false},
@@ -190,10 +186,9 @@ nonExhaustiveBool(FutureOr<bool> f) {
    expandedSubtypes={true,false,Future<bool>},
    subtypes={bool,Future<bool>},
    type=FutureOr<bool>
-  */
-      switch (f) {
+  */ switch (f) {
     false /*space=false*/ => 1,
-    Future<bool>() /*space=Future<bool>*/ => 2
+    Future<bool>() /*space=Future<bool>*/ => 2,
   };
   var d = /*
    checkingOrder={FutureOr<bool>,bool,Future<bool>,true,false},
@@ -201,8 +196,7 @@ nonExhaustiveBool(FutureOr<bool> f) {
    expandedSubtypes={true,false,Future<bool>},
    subtypes={bool,Future<bool>},
    type=FutureOr<bool>
-  */
-      switch (f) {
+  */ switch (f) {
     true /*space=true*/ => 0,
     false /*space=false*/ => 1,
     Future<A>() /*space=Future<A>*/ => 2,
@@ -235,11 +229,10 @@ exhaustiveSealedBySubtype(FutureOr<A> f) {
    expandedSubtypes={B,C,Future<A>},
    subtypes={A,Future<A>},
    type=FutureOr<A>
-  */
-      switch (f) {
+  */ switch (f) {
     B() /*space=B*/ => 0,
     C() /*space=C*/ => 1,
-    Future<A>() /*space=Future<A>*/ => 2
+    Future<A>() /*space=Future<A>*/ => 2,
   };
 }
 
@@ -265,10 +258,9 @@ exhaustiveSealedByType(FutureOr<A> f) {
    expandedSubtypes={B,C,Future<A>},
    subtypes={A,Future<A>},
    type=FutureOr<A>
-  */
-      switch (f) {
+  */ switch (f) {
     A() /*space=A*/ => 0,
-    Future<A>() /*space=Future<A>*/ => 1
+    Future<A>() /*space=Future<A>*/ => 1,
   };
 }
 
@@ -332,13 +324,16 @@ nonExhaustiveSealed(FutureOr<A> f) {
    type=FutureOr<A>
   */
   switch (f) {
-    /*space=B*/ case B():
+    /*space=B*/
+    case B():
       print('B');
       break;
-    /*space=C*/ case C():
+    /*space=C*/
+    case C():
       print('C');
       break;
-    /*space=Future<B>*/ case Future<B>():
+    /*space=Future<B>*/
+    case Future<B>():
       print('Future<B>');
       break;
     /*
@@ -356,8 +351,7 @@ nonExhaustiveSealed(FutureOr<A> f) {
    expandedSubtypes={B,C,Future<A>},
    subtypes={A,Future<A>},
    type=FutureOr<A>
-  */
-      switch (f) {
+  */ switch (f) {
     B() /*space=B*/ => 0,
     C() /*space=C*/ => 1,
   };
@@ -367,10 +361,9 @@ nonExhaustiveSealed(FutureOr<A> f) {
    expandedSubtypes={B,C,Future<A>},
    subtypes={A,Future<A>},
    type=FutureOr<A>
-  */
-      switch (f) {
+  */ switch (f) {
     B() /*space=B*/ => 0,
-    Future<A>() /*space=Future<A>*/ => 2
+    Future<A>() /*space=Future<A>*/ => 2,
   };
   var c = /*
    checkingOrder={FutureOr<A>,A,Future<A>,B,C},
@@ -378,10 +371,9 @@ nonExhaustiveSealed(FutureOr<A> f) {
    expandedSubtypes={B,C,Future<A>},
    subtypes={A,Future<A>},
    type=FutureOr<A>
-  */
-      switch (f) {
+  */ switch (f) {
     C() /*space=C*/ => 1,
-    Future<A>() /*space=Future<A>*/ => 2
+    Future<A>() /*space=Future<A>*/ => 2,
   };
 }
 
@@ -390,10 +382,9 @@ exhaustiveRegular(FutureOr<int> f) {
    checkingOrder={FutureOr<int>,int,Future<int>},
    subtypes={int,Future<int>},
    type=FutureOr<int>
-  */
-      switch (f) {
+  */ switch (f) {
     int() /*space=int*/ => 0,
-    Future<int>() /*space=Future<int>*/ => 1
+    Future<int>() /*space=Future<int>*/ => 1,
   };
 }
 
@@ -403,25 +394,26 @@ nonExhaustiveRegular(FutureOr<int> f) {
    error=non-exhaustive:Future<int>(),
    subtypes={int,Future<int>},
    type=FutureOr<int>
-  */
-      switch (f) {
+  */ switch (f) {
     int() /*space=int*/ => 0,
-    Future<String>() /*space=Future<String>*/ => 1
+    Future<String>() /*space=Future<String>*/ => 1,
   };
   var b = /*
    checkingOrder={FutureOr<int>,int,Future<int>},
    error=non-exhaustive:int(),
    subtypes={int,Future<int>},
    type=FutureOr<int>
-  */
-      switch (f) {
+  */ switch (f) {
     String() /*space=String*/ => 0,
-    Future<int>() /*space=Future<int>*/ => 1
+    Future<int>() /*space=Future<int>*/ => 1,
   };
 }
 
 exhaustiveNullable(
-    FutureOr<bool>? f1, FutureOr<bool?> f2, FutureOr<bool?>? f3) {
+  FutureOr<bool>? f1,
+  FutureOr<bool?> f2,
+  FutureOr<bool?>? f3,
+) {
   /*
    checkingOrder={FutureOr<bool>?,FutureOr<bool>,Null,bool,Future<bool>,true,false},
    expandedSubtypes={true,false,Future<bool>,Null},
@@ -497,7 +489,10 @@ exhaustiveNullable(
 }
 
 nonExhaustiveNullable(
-    FutureOr<bool>? f1, FutureOr<bool?> f2, FutureOr<bool?>? f3) {
+  FutureOr<bool>? f1,
+  FutureOr<bool?> f2,
+  FutureOr<bool?>? f3,
+) {
   /*
    checkingOrder={FutureOr<bool>?,FutureOr<bool>,Null,bool,Future<bool>,true,false},
    error=non-exhaustive:null,

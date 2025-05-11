@@ -4,10 +4,7 @@
 
 enum MyEnum { first, second }
 
-typedef MyData = (
-  MyEnum field1,
-  MyEnum field2,
-);
+typedef MyData = (MyEnum field1, MyEnum field2);
 
 void main() {
   print(myFn(MyEnum.first, null));
@@ -15,26 +12,16 @@ void main() {
 }
 
 MyData? myFn(MyEnum field1, MyEnum? field2) {
-  return /*type=(MyEnum, MyEnum?)*/
-      switch ((field1, field2)) {
-    final MyData a /*space=(MyEnum, MyEnum)*/
-      =>
-      a,
-    _ /*space=(MyEnum, MyEnum?)*/
-      =>
-      null,
+  return /*type=(MyEnum, MyEnum?)*/ switch ((field1, field2)) {
+    final MyData a /*space=(MyEnum, MyEnum)*/ => a,
+    _ /*space=(MyEnum, MyEnum?)*/ => null,
   };
 }
 
-method(
-        (
-          String,
-          Object
-        ) o) => /*
+method((String, Object) o) => /*
  fields={$1:String,$2:Object},
  type=(String, Object)
-*/
-    switch (o) {
-      (Object _, String s) /*space=(String, String)*/ => 0,
-      _ /*space=(String, Object)*/ => 1,
-    };
+*/ switch (o) {
+  (Object _, String s) /*space=(String, String)*/ => 0,
+  _ /*space=(String, Object)*/ => 1,
+};

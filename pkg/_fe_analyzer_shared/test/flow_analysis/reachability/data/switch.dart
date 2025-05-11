@@ -13,7 +13,8 @@ void case_never_completes(bool b, int i) {
       } else {
         return;
       }
-      /*stmt: unreachable*/ 2;
+      /*stmt: unreachable*/
+      2;
   }
   3;
 }
@@ -34,7 +35,8 @@ void all_cases_exit(int i) {
     default:
       return;
   }
-  /*stmt: unreachable*/ 1;
+  /*stmt: unreachable*/
+  1;
 }
 
 /*member: enum_no_default:doesNotComplete*/
@@ -45,5 +47,6 @@ void enum_no_default(MyEnum e) {
     case MyEnum.b:
       return;
   }
-  /*stmt: unreachable*/ 1;
+  /*stmt: unreachable*/
+  1;
 }

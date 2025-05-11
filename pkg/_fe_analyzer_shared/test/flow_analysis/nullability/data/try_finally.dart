@@ -5,11 +5,13 @@
 void eqNullExit_body(int? x) {
   try {
     if (x == null) return;
-    /*nonNullable*/ x;
+    /*nonNullable*/
+    x;
   } finally {
     x;
   }
-  /*nonNullable*/ x;
+  /*nonNullable*/
+  x;
 }
 
 void eqNullExit_finally(int? x) {
@@ -17,9 +19,11 @@ void eqNullExit_finally(int? x) {
     x;
   } finally {
     if (x == null) return;
-    /*nonNullable*/ x;
+    /*nonNullable*/
+    x;
   }
-  /*nonNullable*/ x;
+  /*nonNullable*/
+  x;
 }
 
 void outerEqNotNullExit_assignUnknown_body(int? a, int? b) {
@@ -37,7 +41,8 @@ void outerEqNotNullExit_assignUnknown_body(int? a, int? b) {
 void outerEqNullExit_assignUnknown_body(int? a, int? b) {
   if (a == null) return;
   try {
-    /*nonNullable*/ a;
+    /*nonNullable*/
+    a;
     a = b;
     a;
   } finally {
@@ -49,9 +54,11 @@ void outerEqNullExit_assignUnknown_body(int? a, int? b) {
 void outerEqNullExit_assignUnknown_finally(int? a, int? b) {
   if (a == null) return;
   try {
-    /*nonNullable*/ a;
+    /*nonNullable*/
+    a;
   } finally {
-    /*nonNullable*/ a;
+    /*nonNullable*/
+    a;
     a = b;
     a;
   }

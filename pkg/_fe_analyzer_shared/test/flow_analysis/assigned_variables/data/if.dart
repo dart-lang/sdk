@@ -9,12 +9,14 @@
 
 /*member: ifThenStatement:declared={a, b, c}, read={a, c}, assigned={b}*/
 ifThenStatement(bool a, bool b, bool c) {
-  /*read={c}, assigned={b}*/ if (a) b = c;
+  /*read={c}, assigned={b}*/
+  if (a) b = c;
 }
 
 /*member: ifThenElseStatement:declared={a, b, c, d, e}, read={a, c, e}, assigned={b, d}*/
 ifThenElseStatement(bool a, bool b, bool c, bool d, bool e) {
-  /*read={c}, assigned={b}*/ if (a)
+  /*read={c}, assigned={b}*/
+  if (a)
     b = c;
   else
     d = e;

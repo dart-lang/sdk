@@ -28,7 +28,7 @@ for_assignedInBody_condition() {
 for_assignedInBody_initializer() {
   bool firstTime = true;
   late int v;
-  for (var x = /*unassigned*/ v;;) {
+  for (var x = /*unassigned*/ v; ;) {
     v = 5;
   }
   v;
@@ -46,7 +46,7 @@ for_assignedInCondition() {
 for_assignedInUpdater() {
   bool firstTime = true;
   late int v;
-  for (var x = /*unassigned*/ v;; v = 0) {
+  for (var x = /*unassigned*/ v; ; v = 0) {
     v;
   }
   v;
@@ -110,7 +110,7 @@ for_continue_updaters(bool c) {
 
 for_initializer_expression() {
   late int v;
-  for (v = 0;;) {
+  for (v = 0; ;) {
     v;
   }
   v;
@@ -118,7 +118,7 @@ for_initializer_expression() {
 
 for_initializer_variable() {
   late int v;
-  for (var t = (v = 0);;) {
+  for (var t = (v = 0); ;) {
     v;
   }
   v;
@@ -153,13 +153,13 @@ collection_for_condition() {
 
 collection_for_initializer_expression() {
   late int v;
-  [for (v = 0;;) v];
+  [for (v = 0; ;) v];
   v;
 }
 
 collection_for_initializer_variable() {
   late int v;
-  [for (var t = (v = 0);;) v];
+  [for (var t = (v = 0); ;) v];
   v;
 }
 

@@ -4,7 +4,8 @@
 
 /*member: doStatement:declared={a, b}, assigned={a, b}*/
 doStatement(int a, int b) {
-  /*assigned={a, b}*/ do {
+  /*assigned={a, b}*/
+  do {
     a = 0;
   } while ((b = 0) != 0);
 }

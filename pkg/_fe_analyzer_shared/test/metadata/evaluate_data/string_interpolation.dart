@@ -56,4 +56,3 @@ resolved=StringLiteral('a ${StringLiteral(' b ${StaticGet(constBool)}')} c')
 evaluate=StringLiteral('a  b true c')
 constBool=BooleanLiteral(true)*/
 void stringInterpolation8() {}
-

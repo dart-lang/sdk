@@ -316,7 +316,8 @@ void unreachableCase3(A? r) {
     case A(a: Enum.b, b: true):
       print('A(b, true)');
       break;
-    /*space=Null*/ case null:
+    /*space=Null*/
+    case null:
       print('null #1');
       break;
     /*

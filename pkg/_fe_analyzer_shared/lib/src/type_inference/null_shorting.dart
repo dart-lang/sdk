@@ -72,7 +72,9 @@ mixin NullShortingMixin<Guard, Expression extends Object, Type extends Object>
 }
 
 abstract interface class TypeAnalysisNullShortingInterface<
-    Expression extends Object, Type extends Object> {
+  Expression extends Object,
+  Type extends Object
+> {
   /// Returns the client's [FlowAnalysis] object.
   FlowAnalysisNullShortingInterface<Expression, Type> get flow;
 

@@ -24,8 +24,10 @@ method(A a) {
    type=A
   */
   switch (a) {
-    /*space=B*/ case B():
-    /*space=C*/ case C():
+    /*space=B*/
+    case B():
+    /*space=C*/
+    case C():
   }
   /*
    checkingOrder={A,B,C},
@@ -34,8 +36,10 @@ method(A a) {
    type=A
   */
   switch (a) {
-    /*space=B(field: int)*/ case B(:var field):
-    /*space=C(field: int)*/ case C(:var field):
+    /*space=B(field: int)*/
+    case B(:var field):
+    /*space=C(field: int)*/
+    case C(:var field):
   }
   /*
    checkingOrder={A,B,C},
@@ -45,8 +49,10 @@ method(A a) {
    type=A
   */
   switch (a) {
-    /*space=B(field: int)*/ case B(:var field) when field > 0:
-    /*space=C(field: int)*/ case C(:var field):
+    /*space=B(field: int)*/
+    case B(:var field) when field > 0:
+    /*space=C(field: int)*/
+    case C(:var field):
   }
   /*
    checkingOrder={A,B,C},
@@ -56,7 +62,9 @@ method(A a) {
    type=A
   */
   switch (a) {
-    /*space=B(field: int)*/ case B(:var field):
-    /*space=C(field: int)*/ case C(:var field) when field > 0:
+    /*space=B(field: int)*/
+    case B(:var field):
+    /*space=C(field: int)*/
+    case C(:var field) when field > 0:
   }
 }

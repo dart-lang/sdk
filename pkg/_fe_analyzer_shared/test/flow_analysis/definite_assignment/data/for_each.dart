@@ -8,7 +8,8 @@ forEach() {
     v2 = 0;
   }
   v1;
-  /*unassigned*/ v2;
+  /*unassigned*/
+  v2;
 }
 
 forEach_break(bool c) {
@@ -18,8 +19,10 @@ forEach_break(bool c) {
     if (c) break;
     v2 = 0;
   }
-  /*unassigned*/ v1;
-  /*unassigned*/ v2;
+  /*unassigned*/
+  v1;
+  /*unassigned*/
+  v2;
 }
 
 forEach_continue(bool c) {
@@ -29,8 +32,10 @@ forEach_continue(bool c) {
     if (c) continue;
     v2 = 0;
   }
-  /*unassigned*/ v1;
-  /*unassigned*/ v2;
+  /*unassigned*/
+  v1;
+  /*unassigned*/
+  v2;
 }
 
 forEach_assigns_to_identifier() {
@@ -38,7 +43,8 @@ forEach_assigns_to_identifier() {
   for (i in [0, 1, 2]) {
     i;
   }
-  /*unassigned*/ i;
+  /*unassigned*/
+  i;
 }
 
 forEach_assigns_to_declared_var() {
@@ -50,22 +56,24 @@ forEach_assigns_to_declared_var() {
 collection_forEach() {
   late Object v1, v2;
   [
-    for (var _ in (v1 = [0, 1, 2])) (v2 = 0)
+    for (var _ in (v1 = [0, 1, 2])) (v2 = 0),
   ];
   v1;
-  /*unassigned*/ v2;
+  /*unassigned*/
+  v2;
 }
 
 collection_forEach_assigns_to_identifier() {
   late int i;
   [
-    for (i in [0, 1, 2]) i
+    for (i in [0, 1, 2]) i,
   ];
-  /*unassigned*/ i;
+  /*unassigned*/
+  i;
 }
 
 collection_forEach_assigns_to_declared_var() {
   [
-    for (int i in [0, 1, 2]) i
+    for (int i in [0, 1, 2]) i,
   ];
 }

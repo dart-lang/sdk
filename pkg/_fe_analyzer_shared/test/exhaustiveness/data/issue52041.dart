@@ -18,7 +18,8 @@ f(B b) {
    type=B
   */
   switch (b) {
-    /*space=C(_i: int)*/ case C(:var _i):
+    /*space=C(_i: int)*/
+    case C(:var _i):
       print('C($_i)');
   }
 }

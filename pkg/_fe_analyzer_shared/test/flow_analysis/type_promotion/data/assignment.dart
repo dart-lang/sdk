@@ -11,20 +11,24 @@ assignmentDepromotes(Object x) {
 
 assignmentDepromotes_partial(Object x) {
   if (x is num) {
-    if (/*num*/ x is int) {
+    if ( /*num*/ x is int) {
       x = 42.0;
-      /*num*/ x;
+      /*num*/
+      x;
     }
   }
 }
 
 assignmentDepromotes_partial_nonNull(Object? x) {
   if (x is num?) {
-    /*num?*/ x;
-    if (/*num?*/ x is int?) {
-      /*int?*/ x;
+    /*num?*/
+    x;
+    if ( /*num?*/ x is int?) {
+      /*int?*/
+      x;
       x = 1.2;
-      /*num*/ x;
+      /*num*/
+      x;
     }
   }
 }
@@ -32,30 +36,36 @@ assignmentDepromotes_partial_nonNull(Object? x) {
 assignmentPreservesPromotion(Object x) {
   if (x is num) {
     x = 42;
-    /*num*/ x;
+    /*num*/
+    x;
   }
 }
 
 compoundAssignmentDepromotes(Object x) {
   if (x is int) {
-    /*int*/ x += 0.5;
+    /*int*/
+    x += 0.5;
     x;
   }
 }
 
 compoundAssignmentDepromotes_partial(Object x) {
   if (x is num) {
-    if (/*num*/ x is int) {
-      /*int*/ x += 0.5;
-      /*num*/ x;
+    if ( /*num*/ x is int) {
+      /*int*/
+      x += 0.5;
+      /*num*/
+      x;
     }
   }
 }
 
 compoundAssignmentPreservesPromotion(Object x) {
   if (x is num) {
-    /*num*/ x += 0.5;
-    /*num*/ x;
+    /*num*/
+    x += 0.5;
+    /*num*/
+    x;
   }
 }
 
@@ -75,7 +85,8 @@ preIncrementDepromotes(Object x) {
 
 postIncrementDepromotes(Object x) {
   if (x is C) {
-    /*C*/ x++;
+    /*C*/
+    x++;
     x;
   }
 }
@@ -89,7 +100,8 @@ preDecrementDepromotes(Object x) {
 
 postDecrementDepromotes(Object x) {
   if (x is C) {
-    /*C*/ x--;
+    /*C*/
+    x--;
     x;
   }
 }
@@ -97,28 +109,34 @@ postDecrementDepromotes(Object x) {
 preIncrementPreservesPromotion(Object x) {
   if (x is int) {
     ++ /*int*/ x;
-    /*int*/ x;
+    /*int*/
+    x;
   }
 }
 
 postIncrementPreservesPromotion(Object x) {
   if (x is int) {
-    /*int*/ x++;
-    /*int*/ x;
+    /*int*/
+    x++;
+    /*int*/
+    x;
   }
 }
 
 preDecrementPreservesPromotion(Object x) {
   if (x is int) {
     -- /*int*/ x;
-    /*int*/ x;
+    /*int*/
+    x;
   }
 }
 
 postDecrementPreservesPromotion(Object x) {
   if (x is int) {
-    /*int*/ x--;
-    /*int*/ x;
+    /*int*/
+    x--;
+    /*int*/
+    x;
   }
 }
 

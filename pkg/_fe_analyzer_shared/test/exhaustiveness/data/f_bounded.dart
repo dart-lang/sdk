@@ -14,12 +14,7 @@ class D1 extends D<D1> {} // E{T=D1, D1 <: D<T>}
 
 class D2 extends D<D2> {} // E{T=D2, D2 <: D<T>}
 
-enum Enum<Z extends A<Z>> {
-  b<B>(),
-  c<C>(),
-  d1<D1>(),
-  d2<D2>(),
-}
+enum Enum<Z extends A<Z>> { b<B>(), c<C>(), d1<D1>(), d2<D2>() }
 
 exhaustiveSwitchDynamic(A<dynamic> a, Enum<dynamic> e) {
   /*
@@ -79,16 +74,20 @@ exhaustiveSwitchGeneric<T extends A<T>>(A<T> a, Enum<T> e) {
    type=A<T>
   */
   switch (a) {
-    /*space=B*/ case B b:
+    /*space=B*/
+    case B b:
       print('b');
       break;
-    /*space=C*/ case C c:
+    /*space=C*/
+    case C c:
       print('c');
       break;
-    /*space=D1*/ case D1 d1:
+    /*space=D1*/
+    case D1 d1:
       print('d1');
       break;
-    /*space=D2*/ case D2 d2:
+    /*space=D2*/
+    case D2 d2:
       print('d2');
       break;
   }
