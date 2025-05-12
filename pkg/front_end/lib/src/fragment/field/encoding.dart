@@ -613,12 +613,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
 
   @override
   void registerMembers(BuildNodesCallback f) {
-    f(
-        member: _field!,
-        kind: _fragment.builder.isExtensionMember ||
-                _fragment.builder.isExtensionTypeMember
-            ? BuiltMemberKind.ExtensionField
-            : BuiltMemberKind.Field);
+    f(member: _field!, kind: BuiltMemberKind.LateBackingField);
     if (_lateIsSetField != null) {
       _forceIncludeIsSetField = true;
       f(member: _lateIsSetField!, kind: BuiltMemberKind.LateIsSetField);

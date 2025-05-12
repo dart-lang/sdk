@@ -1277,6 +1277,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
       void writeReference(Reference reference, {required bool isTearOff}) {
         writeIndentation();
         writeModifier(descriptor.isStatic, 'static');
+        writeModifier(descriptor.isInternalImplementation, 'impl');
         switch (descriptor.kind) {
           case ExtensionMemberKind.Method:
             writeWord('method');
@@ -1352,6 +1353,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
       void writeReference(Reference reference, {required bool isTearOff}) {
         writeIndentation();
         writeModifier(descriptor.isStatic, 'static');
+        writeModifier(descriptor.isInternalImplementation, 'impl');
         switch (descriptor.kind) {
           case ExtensionTypeMemberKind.Constructor:
             writeWord('constructor');

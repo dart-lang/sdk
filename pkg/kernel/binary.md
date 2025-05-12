@@ -356,7 +356,7 @@ enum ExtensionMemberKind { Field = 0, Method = 1, Getter = 2, Setter = 3, Operat
 type ExtensionMemberDescriptor {
   Name name;
   ExtensionMemberKind kind;
-  Byte flags (isStatic);
+  Byte flags (isStatic, isInternalImplementation);
   MemberReference member;  // May be NullReference.
   MemberReference tearOff; // May be NullReference.
 }
@@ -382,7 +382,7 @@ enum ExtensionTypeMemberKind { Constructor = 0, Factory = 1, Field = 2, Method =
 type ExtensionTypeMemberDescriptor {
   Name name;
   ExtensionTypeMemberKind kind;
-  Byte flags (isStatic);
+  Byte flags (isStatic, isInternalImplementation);
   MemberReference member;  // May be NullReference.
   MemberReference tearOff; // May be NullReference.
 }

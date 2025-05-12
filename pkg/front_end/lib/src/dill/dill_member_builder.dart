@@ -59,6 +59,15 @@ abstract class DillMemberBuilder extends MemberBuilderImpl {
     final Member member = this.member;
     return member is Constructor && member.isSynthetic;
   }
+
+  @override
+  String toString() {
+    String fullName = member.name.text;
+    if (member.enclosingTypeDeclaration != null) {
+      fullName = '${member.enclosingTypeDeclaration?.name}.$fullName';
+    }
+    return '${runtimeType}($fullName)';
+  }
 }
 
 class DillFieldBuilder extends DillMemberBuilder
