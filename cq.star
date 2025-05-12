@@ -48,17 +48,21 @@ luci.cq_group(
     verifiers = default_verifiers(),
 )
 
-def basic_cq(repository, extra_verifies = []):
+def basic_cq(repository, extra_verifies = [], include_default_verifiers = True):
     luci.cq_group(
         name = repository,
         watch = cq.refset(DART_GERRIT + repository, refs = ["refs/heads/main"]),
         allow_submit_with_open_deps = True,
         tree_status_name = "dart",
         retry_config = cq.RETRY_NONE,
-        verifiers = default_verifiers() + extra_verifies,
+        verifiers = (default_verifiers() if include_default_verifiers else []) + extra_verifies,
     )
 
-basic_cq("dart_ci")
+basic_cq(
+    "dart_ci",
+    # The PRESUBMIT.py in this repo assumes `dart` is available on PATH, which is only true locally.
+    include_default_verifiers = False,
+)
 basic_cq("dart-docker", [
     luci.cq_tryjob_verifier(
         builder = "docker-try",
