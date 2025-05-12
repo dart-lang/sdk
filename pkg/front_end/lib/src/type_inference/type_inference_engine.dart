@@ -673,6 +673,8 @@ class OperationsCfe
       // use that if it exists.
       return new SharedTypeView(variable.lateType ?? variable.type);
     }
+    // TODO(paulberry): see if this code path can be eliminated.
+    // Coverage-ignore(suite): Not run.
     return new SharedTypeView(variable.type);
   }
 

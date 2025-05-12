@@ -6245,7 +6245,7 @@ class _MiniAstTypeAnalyzer
           Type,
           String
         >,
-        NullShortingMixin<MiniIRTmp, Expression, SharedTypeView> {
+        NullShortingMixin<MiniIRTmp, Expression, Var, SharedTypeView> {
   final Harness _harness;
 
   @override

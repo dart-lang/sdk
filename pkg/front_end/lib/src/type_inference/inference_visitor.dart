@@ -106,7 +106,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     with
         TypeAnalyzer<TreeNode, Statement, Expression, VariableDeclaration,
             Pattern, InvalidExpression, TypeDeclarationType, TypeDeclaration>,
-        NullShortingMixin<NullAwareGuard, Expression, SharedTypeView>,
+        NullShortingMixin<NullAwareGuard, Expression, VariableDeclaration,
+            SharedTypeView>,
         StackChecker
     implements
         ExpressionVisitor1<ExpressionInferenceResult, DartType>,
@@ -245,14 +246,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   void createNullAwareGuard(VariableDeclaration variable) {
     startNullShorting(new NullAwareGuard(variable, variable.fileOffset, this),
-        variable.initializer!, new SharedTypeView(variable.type));
-    // Ensure [variable] is promoted to non-nullable.
-    // TODO(johnniwinther): Avoid creating a [VariableGet] to promote the
-    // variable.
-    VariableGet read = new VariableGet(variable);
-    flowAnalysis.variableRead(read, variable);
-    flowAnalysis.nullAwareAccess_rightBegin(
-        read, new SharedTypeView(variable.type));
+        variable.initializer!, new SharedTypeView(variable.type),
+        guardVariable: variable);
   }
 
   @override
@@ -988,14 +983,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       // Ensure the initializer of [_nullAwareVariable] is promoted to
       // non-nullable.
       flow.nullAwareAccess_rightBegin(
-          node.variable.initializer!, new SharedTypeView(node.variable.type));
-      // Ensure [variable] is promoted to non-nullable.
-      // TODO(johnniwinther): Avoid creating a [VariableGet] to promote the
-      // variable.
-      VariableGet read = new VariableGet(node.variable);
-      flowAnalysis.variableRead(read, node.variable);
-      flowAnalysis.nullAwareAccess_rightBegin(
-          read, new SharedTypeView(node.variable.type));
+          node.variable.initializer!, new SharedTypeView(node.variable.type),
+          guardVariable: node.variable);
     }
 
     Cascade? previousEnclosingCascade = _enclosingCascade;

@@ -206,7 +206,7 @@ abstract class FlowAnalysis<
   Variable extends Object,
   Type extends Object
 >
-    implements FlowAnalysisNullShortingInterface<Expression, Type> {
+    implements FlowAnalysisNullShortingInterface<Expression, Variable, Type> {
   factory FlowAnalysis(
     FlowAnalysisOperations<Variable, Type> operations,
     AssignedVariables<Node, Variable> assignedVariables, {
@@ -1952,10 +1952,19 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void nullAwareAccess_rightBegin(Expression? target, Type targetType) {
+  void nullAwareAccess_rightBegin(
+    Expression? target,
+    Type targetType, {
+    Variable? guardVariable,
+  }) {
     _wrap(
-      'nullAwareAccess_rightBegin($target, $targetType)',
-      () => _wrapped.nullAwareAccess_rightBegin(target, targetType),
+      'nullAwareAccess_rightBegin($target, $targetType, '
+      'guardVariable: $guardVariable)',
+      () => _wrapped.nullAwareAccess_rightBegin(
+        target,
+        targetType,
+        guardVariable: guardVariable,
+      ),
     );
   }
 
@@ -2493,6 +2502,7 @@ class FlowAnalysisDebug<
 /// relevant to it.
 abstract interface class FlowAnalysisNullShortingInterface<
   Expression extends Object,
+  Variable extends Object,
   Type extends Object
 > {
   /// Call this method after visiting an expression using `?.`.
@@ -2508,12 +2518,22 @@ abstract interface class FlowAnalysisNullShortingInterface<
   /// null-aware operator, and should be non-null even if the null-aware access
   /// starts a cascade section.
   ///
+  /// If the client desugars the null-aware access using a guard variable (e.g.,
+  /// if it desugars `a?.b` into `let x = a in x == null ? null : x.b`), it
+  /// should pass in the variable used for desugaring as [guardVariable]. Flow
+  /// analysis will ensure that this variable is promoted to the appropriate
+  /// type in the "not null" code path.
+  ///
   /// Note that [nullAwareAccess_end] should be called after the conclusion
   /// of any null-shorting that is caused by the `?.`.  So, for example, if the
   /// code being analyzed is `x?.y?.z(x)`, [nullAwareAccess_rightBegin] should
   /// be called once upon reaching each `?.`, but [nullAwareAccess_end] should
   /// not be called until after processing the method call to `z(x)`.
-  void nullAwareAccess_rightBegin(Expression? target, Type targetType);
+  void nullAwareAccess_rightBegin(
+    Expression? target,
+    Type targetType, {
+    Variable? guardVariable,
+  });
 }
 
 /// An instance of the [FlowModel] class represents the information gathered by
@@ -4793,7 +4813,8 @@ class TrivialVariableReference<Type extends Object> extends _Reference<Type> {
   @override
   String toString() =>
       'TrivialVariableReference(type: $_type, '
-      'promotionKey: $promotionKey, isThisOrSuper: $isThisOrSuper)';
+      'promotionKey: $promotionKey, isThisOrSuper: $isThisOrSuper, '
+      'ssaNode: $ssaNode)';
 }
 
 class WhyNotPromotedInfo {}
@@ -5908,7 +5929,11 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void nullAwareAccess_rightBegin(Expression? target, Type targetType) {
+  void nullAwareAccess_rightBegin(
+    Expression? target,
+    Type targetType, {
+    Variable? guardVariable,
+  }) {
     _current = _current.split();
     FlowModel<Type> shortcutControlPath = _current;
     _Reference<Type>? targetReference = _getExpressionReference(target);
@@ -5930,6 +5955,22 @@ class _FlowAnalysisImpl<
         break;
     }
     _stack.add(new _NullAwareAccessContext<Type>(shortcutControlPath));
+    if (guardVariable != null) {
+      // Promote the guard variable as well.
+      int promotionKey = promotionKeyStore.keyForVariable(guardVariable);
+      Type nonNullType = operations.promoteToNonNull(targetType);
+      _current = _current.updatePromotionInfo(
+        this,
+        promotionKey,
+        new PromotionModel(
+          promotedTypes: nonNullType == targetType ? null : [nonNullType],
+          tested: const [],
+          assigned: true,
+          unassigned: false,
+          ssaNode: new SsaNode(null),
+        ),
+      );
+    }
   }
 
   @override
