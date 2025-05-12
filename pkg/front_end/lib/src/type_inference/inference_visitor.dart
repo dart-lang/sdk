@@ -9637,6 +9637,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if (nonNullableType != variable.type) {
         promotedType = nonNullableType;
       }
+      // It's still necessary to inform flow analysis about the read so that it
+      // can track field promotions.
+      flowAnalysis.variableRead(node, variable);
     } else if (!variable.isLocalFunction) {
       // Don't promote local functions.
       promotedType =
