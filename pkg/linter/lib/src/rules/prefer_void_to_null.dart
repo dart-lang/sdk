@@ -44,9 +44,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     // Make sure we're checking a return type.
     if (parent.returnType?.offset != node.offset) return false;
 
-    var member = context.inheritanceManager.overriddenMember(
-      parent.declaredFragment?.element,
-    );
+    var member = parent.declaredFragment?.element.overriddenMember;
     if (member == null) return false;
 
     var returnType = member.returnType;

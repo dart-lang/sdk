@@ -40,7 +40,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (element == null) return;
     if (element case Annotatable a when a.metadata2.hasOverride) return;
 
-    var member = context.inheritanceManager.overriddenMember(element);
+    var member = element.overriddenMember;
     if (member != null) {
       rule.reportAtToken(target, arguments: [member.name3!]);
     }

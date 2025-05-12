@@ -352,6 +352,27 @@ extension ElementExtension on Element? {
         self.name3 == 'print' &&
         self.firstFragment.libraryFragment.element.isDartCore;
   }
+
+  /// Returns the class member that is overridden by `this`, if there is one,
+  /// as defined by [InterfaceElement.getInheritedMember].
+  ExecutableElement? get overriddenMember {
+    var member = switch (this) {
+      FieldElement(:var getter2) => getter2,
+      MethodElement method => method,
+      PropertyAccessorElement accessor => accessor,
+      _ => null,
+    };
+
+    if (member == null) return null;
+
+    var interfaceElement = member.enclosingElement2;
+    if (interfaceElement is! InterfaceElement) return null;
+
+    var name = Name.forElement(member);
+    if (name == null) return null;
+
+    return interfaceElement.getInheritedMember(name);
+  }
 }
 
 extension ExpressionExtension on Expression {
@@ -511,29 +532,6 @@ extension FunctionBodyExtension on FunctionBody? {
       }
     }
     return returnType;
-  }
-}
-
-extension InhertanceManager3Extension on InheritanceManager3 {
-  /// Returns the class member that is overridden by [member], if there is one,
-  /// as defined by [getInherited].
-  ExecutableElement? overriddenMember(Element? member) {
-    var executable = switch (member) {
-      FieldElement() => member.getter2,
-      MethodElement() => member,
-      PropertyAccessorElement() => member,
-      _ => null,
-    };
-
-    if (executable == null) return null;
-
-    var interfaceElement = executable.enclosingElement2;
-    if (interfaceElement is! InterfaceElement) return null;
-
-    var nameObj = Name.forElement(executable);
-    if (nameObj == null) return null;
-
-    return getInherited3(interfaceElement.thisType, nameObj);
   }
 }
 
