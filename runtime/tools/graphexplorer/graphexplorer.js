@@ -1259,7 +1259,7 @@ function hash(string) {
 
 function color(string) {
   let hue = hash(string) % 360;
-  return "hsl(" + hue + ",60%,60%)";
+  return "hsl(" + hue + ",90%,80%)";
 }
 
 function prettySize(size) {
@@ -1322,7 +1322,7 @@ function createTreemapTile(graph, v, width, height, depth) {
 
   let label = graph.nameOf(v) + " [" + prettySize(graph.retainedSizeOf(v)) + "]";
   div.appendChild(document.createTextNode(label));
-  const kLabelHeight = 9;
+  const kLabelHeight = 13;
   top += kLabelHeight;
   height -= kLabelHeight;
 
@@ -1485,8 +1485,8 @@ function showDominatorTree(graph, v) {
   let h = content.offsetHeight;
 
   let topTile = createTreemapTile(graph, v, w, h, 0);
-  topTile.style.width = w;
-  topTile.style.height = h;
+  topTile.style.width = w + "px";
+  topTile.style.height = h + "px";
   topTile.style.border = "none";
   content.appendChild(topTile);
 }
