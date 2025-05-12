@@ -23,6 +23,7 @@ import 'command.dart';
 import 'configuration.dart';
 import 'expectation_set.dart';
 import 'multitest.dart';
+import 'options.dart';
 import 'path.dart';
 import 'repository.dart';
 import 'runtime_configuration.dart' show QemuConfig;
@@ -365,8 +366,13 @@ class VMTestSuite extends TestSuite {
 
   Iterable<VMUnitTest> _listTests() {
     var args = [...initialHostArguments, "--list"];
-    var result = Process.runSync(hostRunnerPath, args);
+    var result = Process.runSync(hostRunnerPath, args,
+        environment: sanitizerEnvironmentVariables);
     if (result.exitCode != 0) {
+      print("stdout:");
+      print(result.stdout);
+      print("stderr:");
+      print(result.stderr);
       throw "Failed to list tests: '$hostRunnerPath ${args.join(' ')}'. "
           "Process exited with ${result.exitCode}";
     }
@@ -488,8 +494,13 @@ class FfiTestSuite extends TestSuite {
   }
 
   Iterable<FfiUnitTest> _listTests(String runnerName, String runnerPath) {
-    final result = Process.runSync(runnerPath, ["--list"]);
+    final result = Process.runSync(runnerPath, ["--list"],
+        environment: sanitizerEnvironmentVariables);
     if (result.exitCode != 0) {
+      print("stdout:");
+      print(result.stdout);
+      print("stderr:");
+      print(result.stderr);
       throw "Failed to list tests: '$runnerPath --list'. "
           "Process exited with ${result.exitCode}";
     }
