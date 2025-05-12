@@ -66,7 +66,6 @@ class C {}
 /// This provides [C].
 import 'package:test/lib.dart';
 ''');
-    await resolveTestFile();
     await assertNoDiagnosticsInFile(bin.path);
   }
 
