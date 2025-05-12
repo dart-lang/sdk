@@ -135,9 +135,6 @@ regress/utf_16_le_content.crash: SemiFuzzCrash
 
 macros/scope_access: semiFuzzFailureOnForceRebuildBodies # probably augment imports that isn't split correctly. Previously was: SemiFuzzCrash
 
-dart2js/flutter_issue94561/main: SemiFuzzFailure
-dart2js/flutter_issue94561/main.no_link: SemiFuzzFailure
-
 macros/augment_concrete: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/49414
 macros/duplicate_augment: semiFuzzFailureOnForceRebuildBodies
 macros/extend_augmented: semiFuzzFailureOnForceRebuildBodies # probably augment imports that isn't split correctly. Previously was: SemiFuzzFailure # Similar to https://github.com/dart-lang/sdk/issues/49414

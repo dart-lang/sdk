@@ -65,6 +65,8 @@ class DillExtensionTypeDeclarationBuilder
     }
     for (ExtensionTypeMemberDescriptor descriptor
         in _extensionTypeDeclaration.memberDescriptors) {
+      if (descriptor.isInternalImplementation) continue;
+
       Name name = descriptor.name;
       switch (descriptor.kind) {
         case ExtensionTypeMemberKind.Method:

@@ -748,6 +748,7 @@ class SourceExtensionTypeDeclarationBuilder
       case BuiltMemberKind.ExtensionSetter:
       case BuiltMemberKind.ExtensionOperator:
       case BuiltMemberKind.ExtensionField:
+      case BuiltMemberKind.LateBackingField:
       case BuiltMemberKind.LateIsSetField:
       case BuiltMemberKind.ExtensionTypeConstructor:
       case BuiltMemberKind.ExtensionTypeFactory:
@@ -778,6 +779,7 @@ class SourceExtensionTypeDeclarationBuilder
       Reference? tearOffReference) {
     String name = memberBuilder.name;
     ExtensionTypeMemberKind kind;
+    bool isInternalImplementation = false;
     switch (memberKind) {
       case BuiltMemberKind.Constructor:
       case BuiltMemberKind.RedirectingFactory:
@@ -793,7 +795,11 @@ class SourceExtensionTypeDeclarationBuilder
         unhandled("$memberBuilder(${memberBuilder.runtimeType}):${memberKind}",
             "buildMembers", memberBuilder.fileOffset, memberBuilder.fileUri);
       case BuiltMemberKind.ExtensionField:
+        kind = ExtensionTypeMemberKind.Field;
+        break;
+      case BuiltMemberKind.LateBackingField:
       case BuiltMemberKind.LateIsSetField:
+        isInternalImplementation = true;
         kind = ExtensionTypeMemberKind.Field;
         break;
       case BuiltMemberKind.ExtensionTypeConstructor:
@@ -826,6 +832,7 @@ class SourceExtensionTypeDeclarationBuilder
             memberReference: memberReference,
             tearOffReference: tearOffReference,
             isStatic: memberBuilder.isStatic,
+            isInternalImplementation: isInternalImplementation,
             kind: kind));
   }
 

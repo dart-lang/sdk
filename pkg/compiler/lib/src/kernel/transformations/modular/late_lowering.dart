@@ -4,6 +4,7 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
+import 'package:kernel/extension_table.dart';
 import 'package:kernel/type_algebra.dart';
 
 import '../../../options.dart';
@@ -72,6 +73,8 @@ class LateLowering {
   final Map<Field, Field> _backingInstanceFields = {};
 
   Member? _contextMember;
+
+  final ExtensionTable _extensionTable = ExtensionTable();
 
   LateLowering(this._coreTypes, CompilerOptions? _options)
     : _omitLateNames = _options?.omitLateNames ?? false,
@@ -363,6 +366,17 @@ class LateLowering {
       // We need to unbind the canonical name since we reuse the reference but
       // change the name.
       field.fieldReference.canonicalName?.unbind();
+      ExtensionMemberInfo? extensionMemberInfo;
+      if (field.isExtensionMember) {
+        extensionMemberInfo = _extensionTable.getExtensionMemberInfo(field);
+      }
+      ExtensionTypeMemberInfo? extensionTypeMemberInfo;
+      if (field.isExtensionTypeMember) {
+        extensionTypeMemberInfo = _extensionTable.getExtensionTypeMemberInfo(
+          field,
+        );
+      }
+
       Field fieldCell =
           Field.immutable(
               _mangleFieldCellName(field),
@@ -396,6 +410,8 @@ class LateLowering {
         isStatic: true,
         fileUri: fileUri,
         reference: field.getterReference,
+        isExtensionMember: field.isExtensionMember,
+        isExtensionTypeMember: field.isExtensionTypeMember,
       )..fileOffset = fileOffset;
 
       VariableDeclaration setterValue = VariableDeclaration(
@@ -426,17 +442,67 @@ class LateLowering {
         isStatic: true,
         fileUri: fileUri,
         reference: field.setterReference,
+        isExtensionMember: field.isExtensionMember,
+        isExtensionTypeMember: field.isExtensionTypeMember,
       )..fileOffset = fileOffset;
 
-      TreeNode parent = field.parent!;
-      if (parent is Class) {
-        parent.addProcedure(getter);
-        parent.addProcedure(setter);
-      } else if (parent is Library) {
-        parent.addProcedure(getter);
-        parent.addProcedure(setter);
+      if (extensionMemberInfo != null) {
+        extensionMemberInfo.descriptor.isInternalImplementation = true;
+        extensionMemberInfo.extension.memberDescriptors.add(
+          ExtensionMemberDescriptor(
+            name: extensionMemberInfo.descriptor.name,
+            kind: ExtensionMemberKind.Getter,
+            isStatic: extensionMemberInfo.descriptor.isStatic,
+            memberReference: getter.reference,
+            tearOffReference: null,
+          ),
+        );
+        extensionMemberInfo.extension.memberDescriptors.add(
+          ExtensionMemberDescriptor(
+            name: extensionMemberInfo.descriptor.name,
+            kind: ExtensionMemberKind.Setter,
+            isStatic: extensionMemberInfo.descriptor.isStatic,
+            memberReference: setter.reference,
+            tearOffReference: null,
+          ),
+        );
+        field.enclosingLibrary.addProcedure(getter);
+        field.enclosingLibrary.addProcedure(setter);
+      } else if (extensionTypeMemberInfo != null) {
+        extensionTypeMemberInfo.descriptor.isInternalImplementation = true;
+        extensionTypeMemberInfo.extensionTypeDeclaration.memberDescriptors.add(
+          ExtensionTypeMemberDescriptor(
+            name: extensionTypeMemberInfo.descriptor.name,
+            kind: ExtensionTypeMemberKind.Getter,
+            isStatic: extensionTypeMemberInfo.descriptor.isStatic,
+            memberReference: getter.reference,
+            tearOffReference: null,
+          ),
+        );
+        extensionTypeMemberInfo.extensionTypeDeclaration.memberDescriptors.add(
+          ExtensionTypeMemberDescriptor(
+            name: extensionTypeMemberInfo.descriptor.name,
+            kind: ExtensionTypeMemberKind.Setter,
+            isStatic: extensionTypeMemberInfo.descriptor.isStatic,
+            memberReference: setter.reference,
+            tearOffReference: null,
+          ),
+        );
+        field.enclosingLibrary.addProcedure(getter);
+        field.enclosingLibrary.addProcedure(setter);
+      } else {
+        switch (field.enclosingTypeDeclaration) {
+          case null:
+            field.enclosingLibrary.addProcedure(getter);
+            field.enclosingLibrary.addProcedure(setter);
+          case Class cls:
+            cls.addProcedure(getter);
+            cls.addProcedure(setter);
+          case ExtensionTypeDeclaration extensionTypeDeclaration:
+            extensionTypeDeclaration.addProcedure(getter);
+            extensionTypeDeclaration.addProcedure(setter);
+        }
       }
-
       return fieldCell;
     });
   }

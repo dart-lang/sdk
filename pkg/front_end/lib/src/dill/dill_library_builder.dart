@@ -183,7 +183,6 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
       }
     }
     nonTearOffs.forEach(_addMember);
-    library.procedures.forEach(_addMember);
     for (Typedef typedef in library.typedefs) {
       addTypedef(typedef, tearOffs[typedef.name]);
     }

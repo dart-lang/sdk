@@ -145,6 +145,7 @@ enum BuiltMemberKind {
   ExtensionTypeFactory,
   ExtensionTypeRedirectingFactory,
   ExtensionTypeRepresentationField,
+  LateBackingField,
   LateIsSetField,
   LateGetter,
   LateSetter,

@@ -28,6 +28,8 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
   DillExtensionBuilder(this.extension, this.libraryBuilder)
       : _nameSpace = new DeclarationNameSpaceImpl() {
     for (ExtensionMemberDescriptor descriptor in extension.memberDescriptors) {
+      if (descriptor.isInternalImplementation) continue;
+
       Name name = descriptor.name;
       switch (descriptor.kind) {
         case ExtensionMemberKind.Method:

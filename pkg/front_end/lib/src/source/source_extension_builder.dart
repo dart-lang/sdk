@@ -209,6 +209,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
       Reference? tearOffReference) {
     String name = memberBuilder.name;
     ExtensionMemberKind kind;
+    bool isInternalImplementation = false;
     switch (memberKind) {
       case BuiltMemberKind.Constructor:
       case BuiltMemberKind.RedirectingFactory:
@@ -230,7 +231,11 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
             memberBuilder.fileOffset,
             memberBuilder.fileUri);
       case BuiltMemberKind.ExtensionField:
+        kind = ExtensionMemberKind.Field;
+        break;
+      case BuiltMemberKind.LateBackingField:
       case BuiltMemberKind.LateIsSetField:
+        isInternalImplementation = true;
         kind = ExtensionMemberKind.Field;
         break;
       case BuiltMemberKind.ExtensionMethod:
@@ -253,6 +258,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
         memberReference: memberReference,
         tearOffReference: tearOffReference,
         isStatic: memberBuilder.isStatic,
+        isInternalImplementation: isInternalImplementation,
         kind: kind));
   }
 }

@@ -7,19 +7,19 @@ library from "org-dartlang-test:///main.dart" as main {
       ;
   }
   extension /* unnamed */ _extension#0 on main::C {
-    static field field5 = main::_#_extension#0|field5;
-    static field field5 = main::_#_extension#0|field5#isSet;
+    static impl field field5 = main::_#_extension#0|field5;
+    static impl field field5 = main::_#_extension#0|field5#isSet;
     static get field5 = get main::_extension#0|field5;
     static set field5 = set main::_extension#0|field5;
-    static field field6 = main::_#_extension#0|field6;
-    static field field6 = main::_#_extension#0|field6#isSet;
+    static impl field field6 = main::_#_extension#0|field6;
+    static impl field field6 = main::_#_extension#0|field6#isSet;
     static get field6 = get main::_extension#0|field6;
     static set field6 = set main::_extension#0|field6;
-    static field field7 = main::_#_extension#0|field7;
-    static field field7 = main::_#_extension#0|field7#isSet;
+    static impl field field7 = main::_#_extension#0|field7;
+    static impl field field7 = main::_#_extension#0|field7#isSet;
     static get field7 = get main::_extension#0|field7;
-    static field field8 = main::_#_extension#0|field8;
-    static field field8 = main::_#_extension#0|field8#isSet;
+    static impl field field8 = main::_#_extension#0|field8;
+    static impl field field8 = main::_#_extension#0|field8#isSet;
     static get field8 = get main::_extension#0|field8;
     static set field8 = set main::_extension#0|field8;
   }

@@ -1,0 +1,21 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "main_lib.dart" as mai;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+static method main() → dynamic {
+  self::throws(() → void => core::print(mai::E|field));
+  self::throws(() → void => core::print(mai::ET|field));
+}
+static method throws(() → void f) → dynamic {
+  try {
+    f(){() → void};
+  }
+  on core::Object catch(final core::Object e) {
+    core::print(e);
+    return;
+  }
+  throw "Missing exception";
+}

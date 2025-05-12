@@ -45,18 +45,18 @@ class _Class extends core::Object { // from org-dartlang-testcase:///private_mem
   }
 }
 extension _Extension on core::int { // from org-dartlang-testcase:///private_members_part.dart
-  static field _privateField1 = self::_#_Extension|_privateField1;
+  static impl field _privateField1 = self::_#_Extension|_privateField1;
   static get _privateField1 = get self::_Extension|_privateField1;
   static set _privateField1 = set self::_Extension|_privateField1;
-  static field _privateField2 = self::_#_Extension|_privateField2;
-  static field _privateField2 = self::_#_Extension|_privateField2#isSet;
+  static impl field _privateField2 = self::_#_Extension|_privateField2;
+  static impl field _privateField2 = self::_#_Extension|_privateField2#isSet;
   static get _privateField2 = get self::_Extension|_privateField2;
   static set _privateField2 = set self::_Extension|_privateField2;
-  static field _privateFinalField1 = self::_#_Extension|_privateFinalField1;
+  static impl field _privateFinalField1 = self::_#_Extension|_privateFinalField1;
   static get _privateFinalField1 = get self::_Extension|_privateFinalField1;
   static set _privateFinalField1 = set self::_Extension|_privateFinalField1;
-  static field _privateFinalField2 = self::_#_Extension|_privateFinalField2;
-  static field _privateFinalField2 = self::_#_Extension|_privateFinalField2#isSet;
+  static impl field _privateFinalField2 = self::_#_Extension|_privateFinalField2;
+  static impl field _privateFinalField2 = self::_#_Extension|_privateFinalField2#isSet;
   static get _privateFinalField2 = get self::_Extension|_privateFinalField2;
   static set _privateFinalField2 = set self::_Extension|_privateFinalField2;
 }

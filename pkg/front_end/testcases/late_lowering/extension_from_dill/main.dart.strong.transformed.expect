@@ -1,0 +1,80 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "main_lib.dart" as mai;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+static method main() → dynamic {
+  self::throws(() → void => core::print(mai::E|field));
+  self::throws(() → void => core::print(mai::ET|field));
+}
+static method throws(() → void f) → dynamic {
+  try {
+    f(){() → void};
+  }
+  on core::Object catch(final core::Object e) {
+    core::print(e);
+    return;
+  }
+  throw "Missing exception";
+}
+
+library;
+import self as mai;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+extension E on core::int {
+  static impl field field = mai::_#E|field;
+  static get field = get mai::E|field;
+  static set field = set mai::E|field;
+  static impl field nullableField = mai::_#E|nullableField;
+  static impl field nullableField = mai::_#E|nullableField#isSet;
+  static get nullableField = get mai::E|nullableField;
+  static set nullableField = set mai::E|nullableField;
+}
+extension type ET(core::int i) {
+  abstract extension-type-member representation-field get i() → core::int;
+  static impl field field = mai::_#ET|field;
+  static get field = get mai::ET|field;
+  static set field = set mai::ET|field;
+  static impl field nullableField = mai::_#ET|nullableField;
+  static impl field nullableField = mai::_#ET|nullableField#isSet;
+  static get nullableField = get mai::ET|nullableField;
+  static set nullableField = set mai::ET|nullableField;
+  constructor • = mai::ET|constructor#;
+  constructor tearoff • = mai::ET|constructor#_#new#tearOff;
+}
+static field core::int? _#E|field = null;
+static field core::int? _#E|nullableField = null;
+static field core::bool _#E|nullableField#isSet = false;
+static field core::int? _#ET|field = null;
+static field core::int? _#ET|nullableField = null;
+static field core::bool _#ET|nullableField#isSet = false;
+static extension-member get E|field() → core::int
+  return let final core::int? #t1 = mai::_#E|field in #t1 == null ?{core::int} throw{for-error-handling} new _in::LateError::fieldNI("field") : #t1{core::int};
+static extension-member set E|field(core::int field#param) → void
+  mai::_#E|field = field#param;
+static extension-member get E|nullableField() → core::int?
+  return mai::_#E|nullableField#isSet ?{core::int?} mai::_#E|nullableField : throw{for-error-handling} new _in::LateError::fieldNI("nullableField");
+static extension-member set E|nullableField(core::int? nullableField#param) → void {
+  mai::_#E|nullableField#isSet = true;
+  mai::_#E|nullableField = nullableField#param;
+}
+static extension-type-member method ET|constructor#(core::int i) → mai::ET% /* erasure=core::int, declared=! */ {
+  lowered final mai::ET% /* erasure=core::int, declared=! */ #this = i;
+  return #this;
+}
+static extension-type-member synthetic method ET|constructor#_#new#tearOff(core::int i) → mai::ET% /* erasure=core::int, declared=! */
+  return mai::ET|constructor#(i);
+static extension-type-member get ET|field() → core::int
+  return let final core::int? #t2 = mai::_#ET|field in #t2 == null ?{core::int} throw{for-error-handling} new _in::LateError::fieldNI("field") : #t2{core::int};
+static extension-type-member set ET|field(core::int field#param) → void
+  mai::_#ET|field = field#param;
+static extension-type-member get ET|nullableField() → core::int?
+  return mai::_#ET|nullableField#isSet ?{core::int?} mai::_#ET|nullableField : throw{for-error-handling} new _in::LateError::fieldNI("nullableField");
+static extension-type-member set ET|nullableField(core::int? nullableField#param) → void {
+  mai::_#ET|nullableField#isSet = true;
+  mai::_#ET|nullableField = nullableField#param;
+}

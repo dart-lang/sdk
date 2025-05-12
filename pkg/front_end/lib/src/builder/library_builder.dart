@@ -571,7 +571,6 @@ abstract class LibraryBuilderImpl extends BuilderImpl
         exportNameSpace.addLocalMember(name, member, setter: isSetter);
         return true;
       } else if (existing != null) {
-        exportNameSpace.lookupLocalMember(name);
         Builder result = _computeAmbiguousDeclarationForExport(
             name, existing, member,
             uriOffset: uriOffset);
