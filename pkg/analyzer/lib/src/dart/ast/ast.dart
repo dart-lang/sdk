@@ -4259,7 +4259,7 @@ final class ConstantPatternImpl extends DartPatternImpl
   @override
   ChildEntities get _childEntities =>
       super._childEntities
-        ..addToken('const', constKeyword)
+        ..addToken('constKeyword', constKeyword)
         ..addNode('expression', expression);
 
   @override
