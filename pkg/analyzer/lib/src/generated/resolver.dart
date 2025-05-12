@@ -134,7 +134,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           InterfaceElementImpl2
         >,
         // TODO(paulberry): not yet used.
-        NullShortingMixin<Null, ExpressionImpl, SharedTypeView> {
+        NullShortingMixin<
+          Null,
+          ExpressionImpl,
+          PromotableElementImpl2,
+          SharedTypeView
+        > {
   /// Debug-only: if `true`, manipulations of [_rewriteStack] performed by
   /// [popRewrite], [pushRewrite], and [replaceExpression] will be printed.
   static const bool _debugRewriteStack = false;

@@ -279,7 +279,12 @@ mixin TypeAnalyzer<
   TypeDeclarationType extends Object,
   TypeDeclaration extends Object
 >
-    implements TypeAnalysisNullShortingInterface<Expression, SharedTypeView> {
+    implements
+        TypeAnalysisNullShortingInterface<
+          Expression,
+          Variable,
+          SharedTypeView
+        > {
   /// Cached context types and their respective dot shorthand nodes.
   ///
   /// The [SharedTypeSchemaView] is used to resolve dot shorthand heads. We
