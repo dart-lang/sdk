@@ -38,7 +38,7 @@ void nullableValue(int? x) {
 
 void nonNullableValue(int x) {
   if (x == null) /*unreachable*/ {
-    // Reachable since the value of x might come from legacy code
+    // Unreachable since Dart 3.9.
     /*stmt: unreachable*/
     1;
   } else {
@@ -72,7 +72,7 @@ void potentiallyNullableTypeVar_nullableBound<T extends Object?>(T x) {
 
 void nonNullableTypeVar<T extends Object>(T x) {
   if (x == null) /*unreachable*/ {
-    // Reachable since the value of x might come from legacy code
+    // Unreachable since Dart 3.9.
     /*stmt: unreachable*/
     1;
   } else {
