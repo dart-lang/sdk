@@ -1002,6 +1002,19 @@ void Heap::PrintMemoryUsageJSON(JSONObject* jsobj) const {
 }
 #endif  // PRODUCT
 
+static void RecordRSS() {
+#if defined(SUPPORT_TIMELINE)
+  TimelineEvent* event = Timeline::GetGCStream()->StartEvent();
+  if (event != nullptr) {
+    event->Counter("RSS");
+    event->SetNumArguments(1);
+    event->FormatArgument(0, "value", "%" Pd, OS::CurrentRSS());
+    event->ClearIsolateGroupId();  // This value is per-process.
+    event->Complete();
+  }
+#endif
+}
+
 void Heap::RecordBeforeGC(GCType type, GCReason reason) {
   stats_.num_++;
   stats_.type_ = type;
@@ -1010,6 +1023,7 @@ void Heap::RecordBeforeGC(GCType type, GCReason reason) {
   stats_.before_.new_ = new_space_.GetCurrentUsage();
   stats_.before_.old_ = old_space_.GetCurrentUsage();
   stats_.before_.store_buffer_ = isolate_group_->store_buffer()->Size();
+  RecordRSS();
 }
 
 void Heap::RecordAfterGC(GCType type) {
@@ -1025,6 +1039,7 @@ void Heap::RecordAfterGC(GCType type) {
   stats_.after_.new_ = new_space_.GetCurrentUsage();
   stats_.after_.old_ = old_space_.GetCurrentUsage();
   stats_.after_.store_buffer_ = isolate_group_->store_buffer()->Size();
+  RecordRSS();
 #ifndef PRODUCT
   // For now we'll emit the same GC events on all isolates.
   if (Service::gc_stream.enabled()) {
