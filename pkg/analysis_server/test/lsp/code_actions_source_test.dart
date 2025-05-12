@@ -25,7 +25,7 @@ void main() {
 
 abstract class AbstractSourceCodeActionsTest
     extends AbstractLspAnalysisServerTest
-    with CodeActionsTestMixin {
+    with LspSharedTestMixin, CodeActionsTestMixin {
   /// For convenience since source code actions do not rely on a position (but
   /// one must be provided), uses [startOfDocPos] to avoid every test needing
   /// to include a '^' marker.
@@ -175,7 +175,7 @@ void f() {
     var command = codeAction.command!;
 
     // Files must be open to apply edits.
-    await openFile(mainFileUri, content);
+    await openFile(testFileUri, content);
 
     // Execute the command with a modification and capture the edit that is
     // sent back to us.
@@ -191,7 +191,7 @@ void f() {
         // Apply the command and immediately modify a file afterwards.
         var commandFuture = executeCommand(command);
         await commandFuture;
-        await replaceFile(12345, mainFileUri, 'client-modified-content');
+        await replaceFile(12345, testFileUri, 'client-modified-content');
         return commandFuture;
       },
       handler: (edit) {
@@ -422,7 +422,7 @@ int minified(int x, int y) => min(x, y);
     setSupportedCodeActionKinds(null); // no codeActionLiteralSupport
     await initialize();
 
-    var actions = await getCodeActions(mainFileUri);
+    var actions = await getCodeActions(testFileUri);
     var action = findCommand(actions, Commands.organizeImports)!;
     action.map(
       (codeActionLiteral) => throw 'Expected command, got codeActionLiteral',
@@ -468,7 +468,7 @@ int minified(int x, int y) => min(x, y);
     newFile(mainFilePath, '');
     await initialize();
 
-    ofKind(CodeActionKind kind) => getCodeActions(mainFileUri, kinds: [kind]);
+    ofKind(CodeActionKind kind) => getCodeActions(testFileUri, kinds: [kind]);
 
     expect(await ofKind(CodeActionKind.Source), hasLength(3));
     expect(await ofKind(CodeActionKind.SourceOrganizeImports), hasLength(1));
@@ -563,7 +563,7 @@ String? b;
     setSupportedCodeActionKinds(null); // no codeActionLiteralSupport
     await initialize();
 
-    var actions = await getCodeActions(mainFileUri);
+    var actions = await getCodeActions(testFileUri);
     var action = findCommand(actions, Commands.sortMembers)!;
     action.map(
       (codeActionLiteral) => throw 'Expected command, got codeActionLiteral',

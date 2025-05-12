@@ -40,7 +40,6 @@ import '../shared/mixins/analytics_test_mixin.dart';
 import '../shared/shared_test_interface.dart';
 import '../support/configuration_files.dart';
 import '../utils/message_scheduler_test_view.dart';
-import 'change_verifier.dart';
 import 'request_helpers_mixin.dart';
 
 const dartLanguageId = 'dart';
@@ -319,21 +318,6 @@ $experiments
   Future<void> tearDown() async {
     channel.close();
     await server.shutdown();
-  }
-
-  LspChangeVerifier verifyEdit(
-    WorkspaceEdit edit,
-    String expected, {
-    Map<Uri, int>? expectedVersions,
-  }) {
-    var expectDocumentChanges =
-        workspaceCapabilities.workspaceEdit?.documentChanges ?? false;
-    expect(edit.documentChanges, expectDocumentChanges ? isNotNull : isNull);
-    expect(edit.changes, expectDocumentChanges ? isNull : isNotNull);
-
-    var verifier = LspChangeVerifier(this, edit);
-    verifier.verifyFiles(expected, expectedVersions: expectedVersions);
-    return verifier;
   }
 
   /// Encodes any drive letter colon in the URI.

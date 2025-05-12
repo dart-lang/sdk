@@ -151,7 +151,7 @@ void f() {
 }
 ''';
     const expectedContent = '''
->>>>>>>>>> lib/main.dart
+>>>>>>>>>> lib/test.dart
 void f() {
   print('Test!');
   newMethod();
@@ -223,7 +223,7 @@ void f() {
     try {
       // Send an edit request immediately after the refactor request.
       var req1 = executeCommand(codeAction.command!);
-      var req2 = replaceFile(100, mainFileUri, '// new test content');
+      var req2 = replaceFile(100, testFileUri, '// new test content');
       completer.complete();
 
       // Expect the first to fail because of the modified content.
@@ -249,11 +249,11 @@ void f() {
 }
 ''';
     var code = TestCode.parse(content);
-    newFile(mainFilePath, code.code);
+    newFile(testFilePath, code.code);
     await initialize();
 
     ofKind(CodeActionKind kind) =>
-        getCodeActions(mainFileUri, range: code.range.range, kinds: [kind]);
+        getCodeActions(testFileUri, range: code.range.range, kinds: [kind]);
 
     // The code above will return a 'refactor.extract' (as well as some other
     // refactors, but not rewrite).
@@ -979,7 +979,7 @@ void foo2() {
 }
 
 abstract class RefactorCodeActionsTest extends AbstractLspAnalysisServerTest
-    with CodeActionsTestMixin {
+    with LspSharedTestMixin, CodeActionsTestMixin {
   @override
   void setUp() {
     super.setUp();

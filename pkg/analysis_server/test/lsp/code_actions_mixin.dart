@@ -9,12 +9,18 @@ import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 
+import '../shared/shared_test_interface.dart';
 import '../utils/lsp_protocol_extensions.dart';
 import '../utils/test_code_extensions.dart';
 import 'change_verifier.dart';
-import 'server_abstract.dart';
+import 'request_helpers_mixin.dart';
 
-mixin CodeActionsTestMixin on AbstractLspAnalysisServerTest {
+mixin CodeActionsTestMixin
+    on
+        SharedTestInterface,
+        LspRequestHelpersMixin,
+        LspEditHelpersMixin,
+        LspVerifyEditHelpersMixin {
   /// Initializes the server with some basic configuration and expects to find
   /// a [CodeAction] with [kind]/[command]/[title].
   Future<CodeAction> expectCodeAction(
@@ -27,10 +33,10 @@ mixin CodeActionsTestMixin on AbstractLspAnalysisServerTest {
     String? filePath,
     bool openTargetFile = false,
   }) async {
-    filePath ??= mainFilePath;
-    newFile(filePath, code.code);
+    filePath ??= testFilePath;
+    createFile(filePath, code.code);
 
-    await initialize();
+    await initializeServer();
 
     var fileUri = uriConverter.toClientUri(filePath);
     if (openTargetFile) {
@@ -92,14 +98,14 @@ mixin CodeActionsTestMixin on AbstractLspAnalysisServerTest {
     String? title,
     ProgressToken? workDoneToken,
   }) async {
-    filePath ??= mainFilePath;
+    filePath ??= testFilePath;
     var code = TestCode.parse(content);
-    newFile(filePath, code.code);
+    createFile(filePath, code.code);
 
     if (workDoneToken != null) {
       setWorkDoneProgressSupport();
     }
-    await initialize();
+    await initializeServer();
 
     var codeActions = await getCodeActions(
       uriConverter.toClientUri(filePath),
@@ -265,7 +271,7 @@ mixin CodeActionsTestMixin on AbstractLspAnalysisServerTest {
     ProgressToken? commandWorkDoneToken,
     bool openTargetFile = false,
   }) async {
-    filePath ??= mainFilePath;
+    filePath ??= testFilePath;
 
     // For convenience, if a test doesn't provide an full set of edits
     // we assume only a single edit of the file that was being modified.

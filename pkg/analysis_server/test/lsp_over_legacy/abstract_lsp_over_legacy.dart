@@ -21,7 +21,6 @@ import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 import '../analysis_server_base.dart';
-import '../lsp/change_verifier.dart';
 import '../lsp/request_helpers_mixin.dart';
 import '../lsp/server_abstract.dart';
 import '../services/completion/dart/text_expectations.dart';
@@ -150,8 +149,8 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
     with
         LspRequestHelpersMixin,
         LspEditHelpersMixin,
-        LspVerifyEditHelpersMixin,
         ClientCapabilitiesHelperMixin,
+        LspVerifyEditHelpersMixin,
         AnalyticsTestMixin {
   /// The last ID that was used for a legacy request.
   late String lastSentLegacyRequestId;
@@ -159,6 +158,28 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
   /// A controller for [notificationsFromServer].
   final StreamController<NotificationMessage> _notificationsFromServer =
       StreamController<NotificationMessage>.broadcast();
+
+  LspOverLegacyTest() {
+    // Ensure the base fields for the tests are populated with the same default
+    // client caapbilities that the server uses. This ensures if a test does not
+    // explicitly set capabilities, they match on the client+server (so we can -
+    // for example - make assumptions about what kind of edits the server will
+    // return).
+    if (fixedBasicLspClientCapabilities.raw.textDocument
+        case var textDocument?) {
+      textDocumentCapabilities = textDocument;
+    }
+    if (fixedBasicLspClientCapabilities.raw.workspace case var workspace?) {
+      workspaceCapabilities = workspace;
+    }
+    if (fixedBasicLspClientCapabilities.raw.window case var window?) {
+      windowCapabilities = window;
+    }
+    if (fixedBasicLspClientCapabilities.raw.experimental
+        case Map<String, Object?>? experimental?) {
+      experimentalCapabilities = experimental;
+    }
+  }
 
   @override
   AnalyticsManager get analyticsManager => server.analyticsManager;
@@ -384,15 +405,6 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
         clientUriConverter: server.uriConverter,
       ),
     );
-  }
-
-  void verifyEdit(WorkspaceEdit edit, String expected) {
-    var verifier = LspChangeVerifier(this, edit);
-    // For LSP-over-Legacy we set documentChanges in the standard client
-    // capabilities and assume all new users of this will support it.
-    expect(edit.documentChanges, isNotNull);
-    expect(edit.changes, isNull);
-    verifier.verifyFiles(expected);
   }
 }
 

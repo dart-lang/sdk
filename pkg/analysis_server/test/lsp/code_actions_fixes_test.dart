@@ -49,7 +49,7 @@ class DeprecatedCamelCaseTypes extends LintRule {
 
 @reflectiveTest
 class FixesCodeActionsTest extends AbstractLspAnalysisServerTest
-    with CodeActionsTestMixin {
+    with LspSharedTestMixin, CodeActionsTestMixin {
   /// Helper to check plugin fixes for [filePath].
   ///
   /// Used to ensure that both Dart and non-Dart files fixes are returned.
@@ -129,11 +129,11 @@ bar
 MyCla^ss? a;
 ''');
 
-    newFile(mainFilePath, code.code);
+    newFile(testFilePath, code.code);
     await initialize();
 
     var codeActions = await getCodeActions(
-      mainFileUri,
+      testFileUri,
       position: code.position.position,
     );
     var codeActionTitles = codeActions.map((action) => action.title);
@@ -157,11 +157,11 @@ MyCla^ss? a;
 MyCla^ss? a;
 ''');
 
-    newFile(mainFilePath, code.code);
+    newFile(testFilePath, code.code);
     await initialize();
 
     var codeActions = await getCodeActions(
-      mainFileUri,
+      testFileUri,
       position: code.position.position,
     );
     var codeActionTitles = codeActions.map((action) => action.title);
@@ -181,11 +181,11 @@ MyCla^ss? a;
 MyCla^ss? a;
 ''');
 
-    newFile(mainFilePath, code.code);
+    newFile(testFilePath, code.code);
     await initialize();
 
     var codeActions = await getCodeActions(
-      mainFileUri,
+      testFileUri,
       position: code.position.position,
     );
     var codeActionTitles = codeActions.map((action) => action.title);
@@ -317,11 +317,11 @@ import 'dart:async';
 
 Future foo;
 ''');
-    newFile(mainFilePath, code.code);
+    newFile(testFilePath, code.code);
     await initialize();
 
     ofKind(CodeActionKind kind) =>
-        getCodeActions(mainFileUri, range: code.range.range, kinds: [kind]);
+        getCodeActions(testFileUri, range: code.range.range, kinds: [kind]);
 
     // The code above will return a 'quickfix.remove.unusedImport'.
     expect(await ofKind(CodeActionKind.QuickFix), isNotEmpty);
@@ -358,10 +358,10 @@ var a = [!foo!]();
 var b = bar();
 ''');
 
-    newFile(mainFilePath, code.code);
+    newFile(testFilePath, code.code);
     await initialize();
 
-    var allFixes = await getCodeActions(mainFileUri, range: code.range.range);
+    var allFixes = await getCodeActions(testFileUri, range: code.range.range);
 
     // Expect only the single-fix, there should be no apply-all.
     expect(allFixes, hasLength(1));
@@ -446,12 +446,12 @@ void main() {
 }
 ''');
 
-    newFile(mainFilePath, code.code);
+    newFile(testFilePath, code.code);
     await initialize();
 
     var position = code.position.position;
     var range = Range(start: position, end: position);
-    var codeActions = await getCodeActions(mainFileUri, range: range);
+    var codeActions = await getCodeActions(testFileUri, range: range);
     var codeActionKinds = codeActions.map(
       (item) =>
           item.map((literal) => literal.kind?.toString(), (command) => null),
@@ -536,11 +536,11 @@ Future foo;
     var code = TestCode.parse('''
 [!import!] 'dart:convert';
 ''');
-    newFile(mainFilePath, code.code);
+    newFile(testFilePath, code.code);
     await initialize();
 
     var codeActions = await getCodeActions(
-      mainFileUri,
+      testFileUri,
       range: code.range.range,
     );
     var fixAction =
@@ -572,11 +572,11 @@ int foo() {
 }
     ''');
 
-    newFile(mainFilePath, code.code);
+    newFile(testFilePath, code.code);
     await initialize();
 
     var codeActions = await getCodeActions(
-      mainFileUri,
+      testFileUri,
       range: code.range.range,
     );
     var fixAction = findCodeActionLiteral(
@@ -600,11 +600,11 @@ void f() {
 }
 ''');
 
-    newFile(mainFilePath, code.code);
+    newFile(testFilePath, code.code);
     await initialize();
 
     var codeActions = await getCodeActions(
-      mainFileUri,
+      testFileUri,
       position: code.position.position,
     );
     var removeNnaAction =
@@ -628,11 +628,11 @@ void f() {
 var a = [Test, Test, Te[!!]st];
 ''');
 
-    newFile(mainFilePath, code.code);
+    newFile(testFilePath, code.code);
     await initialize();
 
     var codeActions = await getCodeActions(
-      mainFileUri,
+      testFileUri,
       range: code.range.range,
     );
     var createClassAction =
@@ -654,11 +654,11 @@ var a = [Test, Test, Te[!!]st];
 var a = [Test, Test, Te[!!]st];
 ''');
 
-    newFile(mainFilePath, code.code);
+    newFile(testFilePath, code.code);
     await initialize();
 
     var codeActions = await getCodeActions(
-      mainFileUri,
+      testFileUri,
       range: code.range.range,
     );
     var createClassActions =
@@ -719,7 +719,7 @@ ProcessInfo b;
 
   Future<void> test_plugin_dart() async {
     if (!AnalysisServer.supportsPlugins) return;
-    return await checkPluginResults(mainFilePath);
+    return await checkPluginResults(testFilePath);
   }
 
   Future<void> test_plugin_nonDart() async {
@@ -741,7 +741,7 @@ ProcessInfo b;
         plugin.AnalysisError(
           plugin.AnalysisErrorSeverity.ERROR,
           plugin.AnalysisErrorType.HINT,
-          plugin.Location(mainFilePath, 0, 3, 0, 0),
+          plugin.Location(testFilePath, 0, 3, 0, 0),
           'Dummy error',
           'dummy',
         ),
@@ -757,11 +757,11 @@ ProcessInfo b;
               request is plugin.EditGetFixesParams ? pluginResult : null,
     );
 
-    newFile(mainFilePath, code.code);
+    newFile(testFilePath, code.code);
     await initialize();
 
     var codeActions = await getCodeActions(
-      mainFileUri,
+      testFileUri,
       range: code.range.range,
     );
     var codeActionTitles = codeActions.map((action) => action.title);

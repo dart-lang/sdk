@@ -20,6 +20,7 @@ import 'package:test/test.dart';
 
 import '../utils/lsp_protocol_extensions.dart';
 import 'change_verifier.dart';
+import 'server_abstract.dart';
 
 /// A mixin with helpers for applying LSP edits to strings.
 mixin LspEditHelpersMixin {
@@ -1260,7 +1261,8 @@ mixin LspRequestHelpersMixin {
 ///
 /// Extends [LspEditHelpersMixin] with methods for accessing file state and
 /// information about the project to build paths.
-mixin LspVerifyEditHelpersMixin on LspEditHelpersMixin {
+mixin LspVerifyEditHelpersMixin
+    on LspEditHelpersMixin, ClientCapabilitiesHelperMixin {
   LspClientCapabilities get editorClientCapabilities;
 
   path.Context get pathContext;
@@ -1364,6 +1366,21 @@ mixin LspVerifyEditHelpersMixin on LspEditHelpersMixin {
     );
 
     verifier.verifyFiles(expectedContent);
+    return verifier;
+  }
+
+  LspChangeVerifier verifyEdit(
+    WorkspaceEdit edit,
+    String expected, {
+    Map<Uri, int>? expectedVersions,
+  }) {
+    var expectDocumentChanges =
+        workspaceCapabilities.workspaceEdit?.documentChanges ?? false;
+    expect(edit.documentChanges, expectDocumentChanges ? isNotNull : isNull);
+    expect(edit.changes, expectDocumentChanges ? isNull : isNotNull);
+
+    var verifier = LspChangeVerifier(this, edit);
+    verifier.verifyFiles(expected, expectedVersions: expectedVersions);
     return verifier;
   }
 }

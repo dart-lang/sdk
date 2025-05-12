@@ -28,7 +28,7 @@ void main() {
 
 @reflectiveTest
 class AssistsCodeActionsTest extends AbstractLspAnalysisServerTest
-    with CodeActionsTestMixin {
+    with LspSharedTestMixin, CodeActionsTestMixin {
   @override
   void setUp() {
     super.setUp();
@@ -107,7 +107,7 @@ Widget build() {
     expect(action.isCodeActionLiteral, true);
 
     await verifyCodeActionEdits(action, r'''
->>>>>>>>>> lib/main.dart
+>>>>>>>>>> lib/test.dart
 import 'package:flutter/widgets.dart';
 Widget build() {
   return Center($0child: Text(''));
@@ -133,7 +133,7 @@ Widget build() {
       command: Commands.applyCodeAction,
       commandArgs: [
         {
-          'textDocument': {'uri': mainFileUri.toString(), 'version': 1},
+          'textDocument': {'uri': testFileUri.toString(), 'version': 1},
           'range': code.range.range.toJson(),
           'kind': 'refactor.flutter.wrap.center',
           'loggedAction': 'dart.assist.flutter.wrap.center',
@@ -148,7 +148,7 @@ Widget build() {
     // Verify that executing the command produces the correct edits (which will
     // come back via `workspace/applyEdit`).
     await verifyCommandEdits(command, r'''
->>>>>>>>>> lib/main.dart
+>>>>>>>>>> lib/test.dart
 import 'package:flutter/widgets.dart';
 Widget build() {
   return Center($0child: Text(''));
@@ -169,7 +169,7 @@ Widget build() {
     // indicating this is not a valid (Dart) int.
     // https://github.com/dart-lang/sdk/issues/42786
 
-    newFile(mainFilePath, '');
+    newFile(testFilePath, '');
     await initialize();
 
     var request = makeRequest(
@@ -177,7 +177,7 @@ Widget build() {
       _RawParams('''
       {
         "textDocument": {
-          "uri": "$mainFileUri"
+          "uri": "$testFileUri"
         },
         "context": {
           "diagnostics": []
@@ -283,7 +283,7 @@ bar
           "Change 'foo' to 'bar'",
           edits: [
             plugin.SourceFileEdit(
-              mainFilePath,
+              testFilePath,
               0,
               edits: [plugin.SourceEdit(0, 3, 'bar')],
             ),
@@ -329,11 +329,11 @@ bar
               request is plugin.EditGetAssistsParams ? pluginResult : null,
     );
 
-    newFile(mainFilePath, code.code);
+    newFile(testFilePath, code.code);
     await initialize();
 
     var codeActions = await getCodeActions(
-      mainFileUri,
+      testFileUri,
       range: code.range.range,
     );
     var codeActionTitles = codeActions.map((action) => action.title);
@@ -512,11 +512,11 @@ import 'package:flutter/widgets.dart';
 build() => Contai^ner(child: Container());
 ''');
 
-    newFile(mainFilePath, code.code);
+    newFile(testFilePath, code.code);
     await initialize();
 
     var codeActions = await getCodeActions(
-      mainFileUri,
+      testFileUri,
       position: code.position.position,
     );
     var codeActionTitles = codeActions.map((action) => action.title);
