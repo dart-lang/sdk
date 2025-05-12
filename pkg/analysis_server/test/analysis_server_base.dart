@@ -209,6 +209,10 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
     '$testPackageLibPath/test.dart',
   );
 
+  late String pubspecFilePath = resourceProvider.convertPath(
+    '$testPackageLibPath/pubspec.yaml',
+  );
+
   late TestCode parsedTestCode;
 
   /// Return a list of the experiments that are to be enabled for tests in this

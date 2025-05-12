@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/extensions/code_action.dart';
@@ -16,9 +18,9 @@ import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../lsp/code_actions_mixin.dart';
+import '../lsp/server_abstract.dart';
 import '../utils/test_code_extensions.dart';
-import 'code_actions_mixin.dart';
-import 'server_abstract.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -123,14 +125,17 @@ bar
   }
 
   Future<void> test_addImport_noPreference() async {
-    newFile(join(projectFolderPath, 'lib', 'class.dart'), 'class MyClass {}');
+    createFile(
+      pathContext.join(projectFolderPath, 'lib', 'class.dart'),
+      'class MyClass {}',
+    );
 
     var code = TestCode.parse('''
 MyCla^ss? a;
 ''');
 
-    newFile(testFilePath, code.code);
-    await initialize();
+    createFile(testFilePath, code.code);
+    await initializeServer();
 
     var codeActions = await getCodeActions(
       testFileUri,
@@ -151,14 +156,17 @@ MyCla^ss? a;
   Future<void> test_addImport_preferAbsolute() async {
     _enableLints(['always_use_package_imports']);
 
-    newFile(join(projectFolderPath, 'lib', 'class.dart'), 'class MyClass {}');
+    createFile(
+      pathContext.join(projectFolderPath, 'lib', 'class.dart'),
+      'class MyClass {}',
+    );
 
     var code = TestCode.parse('''
 MyCla^ss? a;
 ''');
 
-    newFile(testFilePath, code.code);
-    await initialize();
+    createFile(testFilePath, code.code);
+    await initializeServer();
 
     var codeActions = await getCodeActions(
       testFileUri,
@@ -175,14 +183,17 @@ MyCla^ss? a;
   Future<void> test_addImport_preferRelative() async {
     _enableLints(['prefer_relative_imports']);
 
-    newFile(join(projectFolderPath, 'lib', 'class.dart'), 'class MyClass {}');
+    createFile(
+      pathContext.join(projectFolderPath, 'lib', 'class.dart'),
+      'class MyClass {}',
+    );
 
     var code = TestCode.parse('''
 MyCla^ss? a;
 ''');
 
-    newFile(testFilePath, code.code);
-    await initialize();
+    createFile(testFilePath, code.code);
+    await initializeServer();
 
     var codeActions = await getCodeActions(
       testFileUri,
@@ -288,11 +299,11 @@ Future foo;
 
   Future<void> test_createFile() async {
     const content = '''
-import '[!newfile.dart!]';
+import '[!createFile.dart!]';
 ''';
 
     const expectedContent = '''
->>>>>>>>>> lib/newfile.dart created
+>>>>>>>>>> lib/createFile.dart created
 // TODO Implement this library.<<<<<<<<<<
 ''';
 
@@ -301,7 +312,7 @@ import '[!newfile.dart!]';
       content,
       expectedContent,
       kind: CodeActionKind('quickfix.create.file'),
-      title: "Create file 'newfile.dart'",
+      title: "Create file 'createFile.dart'",
     );
   }
 
@@ -317,8 +328,8 @@ import 'dart:async';
 
 Future foo;
 ''');
-    newFile(testFilePath, code.code);
-    await initialize();
+    createFile(testFilePath, code.code);
+    await initializeServer();
 
     ofKind(CodeActionKind kind) =>
         getCodeActions(testFileUri, range: code.range.range, kinds: [kind]);
@@ -358,8 +369,8 @@ var a = [!foo!]();
 var b = bar();
 ''');
 
-    newFile(testFilePath, code.code);
-    await initialize();
+    createFile(testFilePath, code.code);
+    await initializeServer();
 
     var allFixes = await getCodeActions(testFileUri, range: code.range.range);
 
@@ -390,7 +401,7 @@ void f(String a) {
   /// https://github.com/dart-lang/sdk/issues/53021
   Future<void> test_fixAll_unfixable() async {
     registerLintRules();
-    newFile(analysisOptionsPath, '''
+    createFile(analysisOptionsPath, '''
 linter:
   rules:
     - non_constant_identifier_names
@@ -446,8 +457,8 @@ void main() {
 }
 ''');
 
-    newFile(testFilePath, code.code);
-    await initialize();
+    createFile(testFilePath, code.code);
+    await initializeServer();
 
     var position = code.position.position;
     var range = Range(start: position, end: position);
@@ -536,8 +547,8 @@ Future foo;
     var code = TestCode.parse('''
 [!import!] 'dart:convert';
 ''');
-    newFile(testFilePath, code.code);
-    await initialize();
+    createFile(testFilePath, code.code);
+    await initializeServer();
 
     var codeActions = await getCodeActions(
       testFileUri,
@@ -560,7 +571,7 @@ Future foo;
   /// is the opening brace) and not the whole range of the error.
   Future<void> test_multilineError() async {
     registerLintRules();
-    newFile(analysisOptionsPath, '''
+    createFile(analysisOptionsPath, '''
 linter:
   rules:
     - prefer_expression_function_bodies
@@ -572,8 +583,8 @@ int foo() {
 }
     ''');
 
-    newFile(testFilePath, code.code);
-    await initialize();
+    createFile(testFilePath, code.code);
+    await initializeServer();
 
     var codeActions = await getCodeActions(
       testFileUri,
@@ -600,8 +611,8 @@ void f() {
 }
 ''');
 
-    newFile(testFilePath, code.code);
-    await initialize();
+    createFile(testFilePath, code.code);
+    await initializeServer();
 
     var codeActions = await getCodeActions(
       testFileUri,
@@ -628,8 +639,8 @@ void f() {
 var a = [Test, Test, Te[!!]st];
 ''');
 
-    newFile(testFilePath, code.code);
-    await initialize();
+    createFile(testFilePath, code.code);
+    await initializeServer();
 
     var codeActions = await getCodeActions(
       testFileUri,
@@ -654,8 +665,8 @@ var a = [Test, Test, Te[!!]st];
 var a = [Test, Test, Te[!!]st];
 ''');
 
-    newFile(testFilePath, code.code);
-    await initialize();
+    createFile(testFilePath, code.code);
+    await initializeServer();
 
     var codeActions = await getCodeActions(
       testFileUri,
@@ -673,7 +684,7 @@ var a = [Test, Test, Te[!!]st];
 
   Future<void> test_organizeImportsFix_namedOrganizeImports() async {
     registerLintRules();
-    newFile(analysisOptionsPath, '''
+    createFile(analysisOptionsPath, '''
 linter:
   rules:
     - directives_ordering
@@ -705,10 +716,12 @@ ProcessInfo b;
   }
 
   Future<void> test_outsideRoot() async {
-    var otherFilePath = convertPath('/home/otherProject/foo.dart');
+    var otherFilePath = pathContext.normalize(
+      pathContext.join(projectFolderPath, '..', 'otherProject', 'foo.dart'),
+    );
     var otherFileUri = pathContext.toUri(otherFilePath);
-    newFile(otherFilePath, 'bad code to create error');
-    await initialize();
+    createFile(otherFilePath, 'bad code to create error');
+    await initializeServer();
 
     var codeActions = await getCodeActions(
       otherFileUri,
@@ -878,7 +891,7 @@ useFunction(int g(a, b)) {}
   void _enableLints(List<String> lintNames) {
     registerLintRules();
     var lintsYaml = lintNames.map((name) => '    - $name\n').join();
-    newFile(analysisOptionsPath, '''
+    createFile(analysisOptionsPath, '''
 linter:
   rules:
 $lintsYaml

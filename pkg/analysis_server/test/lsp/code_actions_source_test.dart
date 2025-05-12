@@ -418,9 +418,9 @@ int minified(int x, int y) => min(x, y);
   }
 
   Future<void> test_availableAsCommand() async {
-    newFile(mainFilePath, '');
+    createFile(testFilePath, '');
     setSupportedCodeActionKinds(null); // no codeActionLiteralSupport
-    await initialize();
+    await initializeServer();
 
     var actions = await getCodeActions(testFileUri);
     var action = findCommand(actions, Commands.organizeImports)!;
@@ -465,8 +465,8 @@ int minified(int x, int y) => min(x, y);
   }
 
   Future<void> test_filtersCorrectly() async {
-    newFile(mainFilePath, '');
-    await initialize();
+    createFile(testFilePath, '');
+    await initializeServer();
 
     ofKind(CodeActionKind kind) => getCodeActions(testFileUri, kinds: [kind]);
 
@@ -559,9 +559,9 @@ String? b;
   }
 
   Future<void> test_availableAsCommand() async {
-    newFile(mainFilePath, '');
+    createFile(testFilePath, '');
     setSupportedCodeActionKinds(null); // no codeActionLiteralSupport
-    await initialize();
+    await initializeServer();
 
     var actions = await getCodeActions(testFileUri);
     var action = findCommand(actions, Commands.sortMembers)!;

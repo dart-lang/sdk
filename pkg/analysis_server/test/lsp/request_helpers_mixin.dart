@@ -139,6 +139,10 @@ mixin LspRequestHelpersMixin {
   /// Whether to include 'clientRequestTime' fields in outgoing messages.
   bool includeClientRequestTime = false;
 
+  /// A progress token used in tests where the client-provides the token, which
+  /// should not be validated as being created by the server first.
+  final clientProvidedTestWorkDoneToken = ProgressToken.t2('client-test');
+
   /// A stream of [DartTextDocumentContentDidChangeParams] for any
   /// `dart/textDocumentContentDidChange` notifications.
   Stream<DartTextDocumentContentDidChangeParams>
@@ -1021,6 +1025,8 @@ mixin LspRequestHelpersMixin {
       ),
     );
   }
+
+  Future<ResponseMessage> sendRequestToServer(RequestMessage request);
 
   /// Sends a ResponseMessage to the server, completing a reverse
   /// (server-to-client) request.

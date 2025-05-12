@@ -21,6 +21,8 @@ mixin CodeActionsTestMixin
         LspRequestHelpersMixin,
         LspEditHelpersMixin,
         LspVerifyEditHelpersMixin {
+  final String simplePubspecContent = 'name: my_project';
+
   /// Initializes the server with some basic configuration and expects to find
   /// a [CodeAction] with [kind]/[command]/[title].
   Future<CodeAction> expectCodeAction(
@@ -88,6 +90,13 @@ mixin CodeActionsTestMixin
     return action.asCodeActionLiteral;
   }
 
+  /// Verifies a command execution was logged to analytics.
+  ///
+  /// Implementations are provided by the in-process test base classes. This
+  /// method will be a no-op for out-of-process tests because the analytics
+  /// manager will not be accessible.
+  void expectCommandLogged(String command);
+
   /// Initializes the server with some basic configuration and expects not to
   /// find a [CodeAction] with [kind]/[command]/[title].
   Future<void> expectNoAction(
@@ -119,6 +128,22 @@ mixin CodeActionsTestMixin
       isNull,
     );
   }
+
+  List<TextDocumentEdit> extractTextDocumentEdits(
+    DocumentChanges documentChanges,
+  ) =>
+      // Extract TextDocumentEdits from union of resource changes
+      documentChanges
+          .map(
+            (change) => change.map(
+              (create) => null,
+              (delete) => null,
+              (rename) => null,
+              (textDocEdit) => textDocEdit,
+            ),
+          )
+          .nonNulls
+          .toList();
 
   /// Finds the single [CodeAction] matching [title], [kind] and [command].
   ///

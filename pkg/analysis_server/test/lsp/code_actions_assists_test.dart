@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
@@ -15,10 +16,10 @@ import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../lsp/code_actions_mixin.dart';
+import '../lsp/server_abstract.dart';
 import '../utils/lsp_protocol_extensions.dart';
 import '../utils/test_code_extensions.dart';
-import 'code_actions_mixin.dart';
-import 'server_abstract.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -55,6 +56,7 @@ import 'dart:async' show Future;
 
 Future? f;
 ''';
+
     await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
@@ -169,8 +171,8 @@ Widget build() {
     // indicating this is not a valid (Dart) int.
     // https://github.com/dart-lang/sdk/issues/42786
 
-    newFile(testFilePath, '');
-    await initialize();
+    createFile(testFilePath, '');
+    await initializeServer();
 
     var request = makeRequest(
       Method.textDocument_codeAction,
@@ -254,8 +256,8 @@ Future? f;
   Future<void> test_nonDartFile() async {
     setSupportedCodeActionKinds([CodeActionKind.Refactor]);
 
-    newFile(pubspecFilePath, simplePubspecContent);
-    await initialize();
+    createFile(pubspecFilePath, simplePubspecContent);
+    await initializeServer();
 
     var codeActions = await getCodeActions(
       pubspecFileUri,
@@ -329,8 +331,8 @@ bar
               request is plugin.EditGetAssistsParams ? pluginResult : null,
     );
 
-    newFile(testFilePath, code.code);
-    await initialize();
+    createFile(testFilePath, code.code);
+    await initializeServer();
 
     var codeActions = await getCodeActions(
       testFileUri,
@@ -512,8 +514,8 @@ import 'package:flutter/widgets.dart';
 build() => Contai^ner(child: Container());
 ''');
 
-    newFile(testFilePath, code.code);
-    await initialize();
+    createFile(testFilePath, code.code);
+    await initializeServer();
 
     var codeActions = await getCodeActions(
       testFileUri,

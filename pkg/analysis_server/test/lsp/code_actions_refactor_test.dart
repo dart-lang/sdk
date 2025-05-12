@@ -249,8 +249,8 @@ void f() {
 }
 ''';
     var code = TestCode.parse(content);
-    newFile(testFilePath, code.code);
-    await initialize();
+    createFile(testFilePath, code.code);
+    await initializeServer();
 
     ofKind(CodeActionKind kind) =>
         getCodeActions(testFileUri, range: code.range.range, kinds: [kind]);
@@ -793,8 +793,6 @@ const NewWidget({
   void setUp() {
     super.setUp();
     writeTestPackageConfig(flutter: true);
-
-    setDocumentChangesSupport();
   }
 
   Future<void> test_appliesCorrectEdits() async {

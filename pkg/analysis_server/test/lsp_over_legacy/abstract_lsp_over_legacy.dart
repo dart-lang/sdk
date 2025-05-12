@@ -199,6 +199,8 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
   @override
   String get projectFolderPath => convertPath(testPackageRootPath);
 
+  Uri get pubspecFileUri => toUri(convertPath(pubspecFilePath));
+
   /// A stream of [RequestMessage]s from the server.
   ///
   /// Only LSP message requests (`lsp.handle`) from the server are included
@@ -275,19 +277,7 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
     RequestMessage message,
     T Function(R) fromJson,
   ) async {
-    var messageJson = message.toJson();
-
-    var legacyRequest = createLegacyRequest(LspHandleParams(messageJson));
-    var legacyResponse = await handleSuccessfulRequest(legacyRequest);
-    var legacyResult = LspHandleResult.fromResponse(
-      legacyResponse,
-      clientUriConverter: server.uriConverter,
-    );
-
-    var lspResponseJson = legacyResult.lspResponse as Map<String, Object?>;
-
-    // Unwrap the LSP response.
-    var lspResponse = ResponseMessage.fromJson(lspResponseJson);
+    var lspResponse = await sendRequestToServer(message);
     var error = lspResponse.error;
     if (error != null) {
       throw error;
@@ -372,6 +362,23 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
 
   Future<ResponseMessage> sendLspRequest(Method method, Object params) {
     return server.sendLspRequest(method, params);
+  }
+
+  @override
+  Future<ResponseMessage> sendRequestToServer(RequestMessage message) async {
+    var messageJson = message.toJson();
+
+    var legacyRequest = createLegacyRequest(LspHandleParams(messageJson));
+    var legacyResponse = await handleSuccessfulRequest(legacyRequest);
+    var legacyResult = LspHandleResult.fromResponse(
+      legacyResponse,
+      clientUriConverter: server.uriConverter,
+    );
+
+    var lspResponseJson = legacyResult.lspResponse as Map<String, Object?>;
+
+    // Unwrap the LSP response.
+    return ResponseMessage.fromJson(lspResponseJson);
   }
 
   @override
