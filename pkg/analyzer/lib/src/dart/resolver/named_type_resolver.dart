@@ -375,7 +375,7 @@ class NamedTypeResolver with ScopeHelpers {
 
       constructorName.type = namedType;
       constructorName.period = importPrefix.period;
-      constructorName.name = SimpleIdentifierImpl(nameToken);
+      constructorName.name = SimpleIdentifierImpl(token: nameToken);
 
       rewriteResult = constructorName;
       return;

@@ -51,13 +51,13 @@ class AstRewriter {
       if (element is ExecutableElement) {
         return _toMethodInvocationOfFunctionReference(
           node: node,
-          function: SimpleIdentifierImpl(typeNode.name),
+          function: SimpleIdentifierImpl(token: typeNode.name),
         );
       } else if (element is TypeAliasElementImpl2 &&
           element.aliasedElement2 is GenericFunctionTypeElement) {
         return _toMethodInvocationOfAliasedTypeLiteral(
           node: node,
-          function: SimpleIdentifierImpl(typeNode.name),
+          function: SimpleIdentifierImpl(token: typeNode.name),
           element: element,
         );
       }
@@ -71,9 +71,9 @@ class AstRewriter {
           return _toMethodInvocationOfFunctionReference(
             node: node,
             function: PrefixedIdentifierImpl(
-              prefix: SimpleIdentifierImpl(importPrefix.name),
+              prefix: SimpleIdentifierImpl(token: importPrefix.name),
               period: importPrefix.period,
-              identifier: SimpleIdentifierImpl(typeNode.name),
+              identifier: SimpleIdentifierImpl(token: typeNode.name),
             ),
           );
         } else if (element is TypeAliasElementImpl2 &&
@@ -81,9 +81,9 @@ class AstRewriter {
           return _toMethodInvocationOfAliasedTypeLiteral(
             node: node,
             function: PrefixedIdentifierImpl(
-              prefix: SimpleIdentifierImpl(importPrefix.name),
+              prefix: SimpleIdentifierImpl(token: importPrefix.name),
               period: importPrefix.period,
-              identifier: SimpleIdentifierImpl(typeNode.name),
+              identifier: SimpleIdentifierImpl(token: typeNode.name),
             ),
             element: element,
           );
@@ -107,9 +107,9 @@ class AstRewriter {
         return _toMethodInvocationOfFunctionReference(
           node: node,
           function: PrefixedIdentifierImpl(
-            prefix: SimpleIdentifierImpl(importPrefix.name),
+            prefix: SimpleIdentifierImpl(token: importPrefix.name),
             period: importPrefix.period,
-            identifier: SimpleIdentifierImpl(typeNode.name),
+            identifier: SimpleIdentifierImpl(token: typeNode.name),
           ),
         );
       }

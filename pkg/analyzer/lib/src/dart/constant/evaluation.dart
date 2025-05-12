@@ -2986,7 +2986,7 @@ class _InstanceCreationEvaluator {
       if (parameter is SuperFormalParameterElementOrMember) {
         var value =
             SimpleIdentifierImpl(
-                StringToken(
+                token: StringToken(
                   TokenType.STRING,
                   parameter.name,
                   parameter.nameOffset,
@@ -3001,7 +3001,7 @@ class _InstanceCreationEvaluator {
             NamedExpressionImpl(
               name: LabelImpl(
                 label: SimpleIdentifierImpl(
-                  StringToken(
+                  token: StringToken(
                     TokenType.STRING,
                     parameter.name,
                     parameter.nameOffset,

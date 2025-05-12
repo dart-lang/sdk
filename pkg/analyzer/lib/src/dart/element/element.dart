@@ -655,7 +655,11 @@ class ClassFragmentImpl extends ClassOrMixinFragmentImpl
               implicitParameters.add(implicitParameter);
               argumentsForSuperInvocation.add(
                 SimpleIdentifierImpl(
-                    StringToken(TokenType.STRING, implicitParameter.name, -1),
+                    token: StringToken(
+                      TokenType.STRING,
+                      implicitParameter.name,
+                      -1,
+                    ),
                   )
                   ..element = implicitParameter.asElement2
                   ..setPseudoExpressionStaticType(implicitParameter.type),
@@ -677,7 +681,7 @@ class ClassFragmentImpl extends ClassOrMixinFragmentImpl
             constructorName:
                 isNamed
                     ? (SimpleIdentifierImpl(
-                      StringToken(
+                      token: StringToken(
                         TokenType.STRING,
                         superclassConstructor.name,
                         -1,

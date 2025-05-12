@@ -17477,7 +17477,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   ScopeLookupResult? scopeLookupResult;
 
   /// Initializes a newly created identifier.
-  SimpleIdentifierImpl(this.token);
+  SimpleIdentifierImpl({required this.token});
 
   /// The cascade that contains this [SimpleIdentifier].
   CascadeExpressionImpl? get ancestorCascade {

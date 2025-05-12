@@ -382,7 +382,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
           name:
               constructorName != null
                   ? SimpleIdentifierImpl(
-                    StringToken(TokenType.STRING, constructorName, -1),
+                    token: StringToken(TokenType.STRING, constructorName, -1),
                   )
                   : null,
         ),
@@ -417,7 +417,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       holder.addNonSyntheticField(refName, field);
 
       valuesElements.add(
-        SimpleIdentifierImpl(StringToken(TokenType.STRING, name, -1)),
+        SimpleIdentifierImpl(token: StringToken(TokenType.STRING, name, -1)),
       );
       valuesNames.add(name);
     }

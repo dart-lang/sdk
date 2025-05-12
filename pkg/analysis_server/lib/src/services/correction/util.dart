@@ -448,7 +448,7 @@ class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
   @override
   void visitImportPrefixReference(ImportPrefixReference node) {
     if (node.element2 == element) {
-      references.add(SimpleIdentifierImpl(node.name));
+      references.add(SimpleIdentifierImpl(token: node.name));
     }
   }
 

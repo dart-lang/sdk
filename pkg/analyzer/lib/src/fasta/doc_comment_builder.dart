@@ -723,12 +723,12 @@ final class DocCommentBuilder {
       token = token.next!;
     } while (!token.isEof);
 
-    var identifier = SimpleIdentifierImpl(identifierOrOperator);
+    var identifier = SimpleIdentifierImpl(token: identifierOrOperator);
     if (firstToken != null) {
       var target = PrefixedIdentifierImpl(
-        prefix: SimpleIdentifierImpl(firstToken),
+        prefix: SimpleIdentifierImpl(token: firstToken),
         period: firstPeriod!,
-        identifier: SimpleIdentifierImpl(secondToken!),
+        identifier: SimpleIdentifierImpl(token: secondToken!),
       );
       var expression = PropertyAccessImpl(
         target: target,
@@ -742,7 +742,7 @@ final class DocCommentBuilder {
       );
     } else if (secondToken != null) {
       var expression = PrefixedIdentifierImpl(
-        prefix: SimpleIdentifierImpl(secondToken),
+        prefix: SimpleIdentifierImpl(token: secondToken),
         period: secondPeriod!,
         identifier: identifier,
       );
