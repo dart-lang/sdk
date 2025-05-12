@@ -153,7 +153,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         _errorReporter.atNode(
           superclass,
           FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS,
-          arguments: [node.name.lexeme, superclass.name2.lexeme],
+          arguments: [node.name.lexeme, superclass.name.lexeme],
         );
       }
     }
@@ -169,7 +169,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         _errorReporter.atNode(
           typename,
           subtypeOfStructCode,
-          arguments: [node.name.lexeme, typename.name2.lexeme],
+          arguments: [node.name.lexeme, typename.name.lexeme],
         );
       }
     }
@@ -1229,7 +1229,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         FfiCode.MISSING_ANNOTATION_ON_STRUCT_FIELD,
         arguments: [
           errorNode.type!,
-          compound!.extendsClause!.superclass.name2.lexeme,
+          compound!.extendsClause!.superclass.name.lexeme,
         ],
       );
     }

@@ -183,7 +183,7 @@ class ReplacedBy extends Change<_Data> {
         }
       }
     } else if (node is NamedType) {
-      var identifier = node.name2;
+      var identifier = node.name;
       var components = fix.element.components;
       if (components.length > 1 &&
           components[0].isEmpty &&
@@ -194,7 +194,7 @@ class ReplacedBy extends Change<_Data> {
       }
       var parent = node.parent;
       if (parent is ConstructorName) {
-        var classNameToken = parent.type.name2;
+        var classNameToken = parent.type.name;
         var constructorNameNode = parent.name;
         var constructorName = constructorNameNode?.name ?? '';
         var components = fix.element.components;
@@ -208,7 +208,7 @@ class ReplacedBy extends Change<_Data> {
         }
       }
     } else if (node is ConstructorName) {
-      var classNameToken = node.type.name2;
+      var classNameToken = node.type.name;
       var constructorNameNode = node.name;
       var constructorName = constructorNameNode?.name ?? '';
       var components = fix.element.components;

@@ -38,7 +38,7 @@ class _CountVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    if (node.name2.lexeme == type) count++;
+    if (node.name.lexeme == type) count++;
     super.visitNamedType(node);
   }
 }

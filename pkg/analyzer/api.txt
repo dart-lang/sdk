@@ -1133,7 +1133,8 @@ package:analyzer/dart/ast/ast.dart:
     element2 (getter: Element?, experimental)
     importPrefix (getter: ImportPrefixReference?)
     isDeferred (getter: bool)
-    name2 (getter: Token)
+    name (getter: Token)
+    name2 (getter: Token, deprecated)
     type (getter: DartType?)
     typeArguments (getter: TypeArgumentList?)
   NamespaceDirective (class extends Object implements UriBasedDirective, sealed (immediate subtypes: ExportDirective, ImportDirective, NamespaceDirectiveImpl)):

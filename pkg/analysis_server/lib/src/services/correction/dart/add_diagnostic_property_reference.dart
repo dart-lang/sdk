@@ -197,7 +197,7 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
         var identifier = parameter.name;
         if (type is NamedType &&
             identifier != null &&
-            type.name2.lexeme == 'DiagnosticPropertiesBuilder') {
+            type.name.lexeme == 'DiagnosticPropertiesBuilder') {
           return identifier.lexeme;
         }
       }

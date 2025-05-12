@@ -1144,11 +1144,11 @@ extension on AstNode {
   /// otherwise.
   String? get nameOfType {
     switch (this) {
-      case NamedType(:var importPrefix, :var name2):
+      case NamedType(:var importPrefix, :var name):
         if (parent is ConstructorName && importPrefix != null) {
           return importPrefix.name.lexeme;
         }
-        return name2.lexeme;
+        return name.lexeme;
       case PrefixedIdentifier(:var prefix):
         return prefix.name;
       case SimpleIdentifier(:var name):

@@ -280,7 +280,7 @@ class CompletionTarget {
     }
     if (node is NamedType) {
       var importPrefix = node.importPrefix;
-      if (importPrefix != null && identical(node.name2, entity)) {
+      if (importPrefix != null && identical(node.name, entity)) {
         return SimpleIdentifierImpl(importPrefix.name)
           ..element = importPrefix.element2;
       }

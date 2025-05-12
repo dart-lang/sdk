@@ -190,7 +190,7 @@ class DartUnitHoverComputer {
       ExtensionDeclaration() => node.name,
       FormalParameter() => node.name,
       MethodDeclaration() => node.name,
-      NamedType() => node.name2,
+      NamedType() => node.name,
       ConstructorDeclaration() => node.name ?? node.returnType,
       DeclaredIdentifier() => node.name,
       VariableDeclaration() => node.name,

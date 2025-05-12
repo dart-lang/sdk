@@ -695,7 +695,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   void recordSuperType(NamedType namedType, IndexRelationKind kind) {
     var isQualified = namedType.importPrefix != null;
     var element = namedType.element2;
-    recordRelation(element, kind, namedType.name2, isQualified);
+    recordRelation(element, kind, namedType.name, isQualified);
   }
 
   void recordUriReference(Element? element, StringLiteral uri) {
@@ -1050,7 +1050,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   visitNamedType(NamedType node) {
     _recordImportPrefixedElement(
       importPrefix: node.importPrefix,
-      name: node.name2,
+      name: node.name,
       element: node.element2,
     );
 

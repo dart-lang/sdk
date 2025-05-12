@@ -216,7 +216,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     expect(asExpression.expression, isSimpleIdentifier);
     expect(asExpression.type, isNamedType);
     var namedType = asExpression.type as NamedType;
-    expect(namedType.name2.lexeme, "int");
+    expect(namedType.name.lexeme, "int");
     expect(namedType.question, isNotNull);
 
     expect(interpolation.elements[2], isInterpolationString);
@@ -244,7 +244,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     expect(isExpression.expression, isSimpleIdentifier);
     expect(isExpression.type, isNamedType);
     var namedType = isExpression.type as NamedType;
-    expect(namedType.name2.lexeme, "int");
+    expect(namedType.name.lexeme, "int");
     expect(namedType.question, isNotNull);
 
     expect(interpolation.elements[2], isInterpolationString);
@@ -970,8 +970,8 @@ class ExpressionParserTest extends FastaParserTestCase {
 
     List<TypeAnnotation> typeArguments = expression.typeArguments!.arguments;
     expect(typeArguments, hasLength(2));
-    expect((typeArguments[0] as NamedType).name2.lexeme, 'num');
-    expect((typeArguments[1] as NamedType).name2.lexeme, 'int');
+    expect((typeArguments[0] as NamedType).name.lexeme, 'num');
+    expect((typeArguments[1] as NamedType).name.lexeme, 'int');
 
     expect(expression.argumentList.arguments, hasLength(0));
   }
@@ -996,8 +996,8 @@ class ExpressionParserTest extends FastaParserTestCase {
 
     List<TypeAnnotation> typeArguments = expression.typeArguments!.arguments;
     expect(typeArguments, hasLength(2));
-    expect((typeArguments[0] as NamedType).name2.lexeme, 'num');
-    expect((typeArguments[1] as NamedType).name2.lexeme, 'int');
+    expect((typeArguments[0] as NamedType).name.lexeme, 'num');
+    expect((typeArguments[1] as NamedType).name.lexeme, 'int');
 
     expect(expression.argumentList.arguments, hasLength(0));
   }
@@ -1147,7 +1147,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     expect(name, isNotNull);
     NamedType type = name.type;
     expect(type.importPrefix!.name.lexeme, 'A');
-    expect(type.name2.lexeme, 'B');
+    expect(type.name.lexeme, 'B');
     expect(type.typeArguments, isNull);
     expect(name.period, isNull);
     expect(name.name, isNull);
@@ -1912,7 +1912,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     expect(identifier.name, 'x');
     expect(asExpression.asOperator, isNotNull);
     var namedType = asExpression.type as NamedType;
-    expect(namedType.name2.lexeme, 'Y');
+    expect(namedType.name.lexeme, 'Y');
   }
 
   void test_parseRelationalExpression_as_functionType_noReturnType() {
@@ -1990,7 +1990,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     expect(identifier.name, 'x');
     expect(isExpression.isOperator, isNotNull);
     var namedType = isExpression.type as NamedType;
-    expect(namedType.name2.lexeme, 'Y');
+    expect(namedType.name.lexeme, 'Y');
   }
 
   void test_parseRelationalExpression_isNot() {
@@ -2667,7 +2667,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     expect(set.constKeyword, isNotNull);
     expect(set.typeArguments!.arguments, hasLength(1));
     var typeArg = set.typeArguments!.arguments[0] as NamedType;
-    expect(typeArg.name2.lexeme, 'int');
+    expect(typeArg.name.lexeme, 'int');
     expect(set.elements.length, 1);
     var value = set.elements[0] as IntegerLiteral;
     expect(value.value, 3);
@@ -2678,10 +2678,10 @@ class ExpressionParserTest extends FastaParserTestCase {
     expect(set.constKeyword, isNull);
     expect(set.typeArguments!.arguments, hasLength(1));
     var typeArg1 = set.typeArguments!.arguments[0] as NamedType;
-    expect(typeArg1.name2.lexeme, 'Set');
+    expect(typeArg1.name.lexeme, 'Set');
     expect(typeArg1.typeArguments!.arguments, hasLength(1));
     var typeArg2 = typeArg1.typeArguments!.arguments[0] as NamedType;
-    expect(typeArg2.name2.lexeme, 'int');
+    expect(typeArg2.name.lexeme, 'int');
     expect(set.elements.length, 1);
     var intSet = set.elements[0] as SetOrMapLiteral;
     expect(intSet.elements, hasLength(1));
@@ -2694,7 +2694,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     expect(set.constKeyword, isNull);
     expect(set.typeArguments!.arguments, hasLength(1));
     var typeArg = set.typeArguments!.arguments[0] as NamedType;
-    expect(typeArg.name2.lexeme, 'int');
+    expect(typeArg.name.lexeme, 'int');
     expect(set.elements.length, 1);
     var value = set.elements[0] as IntegerLiteral;
     expect(value.value, 3);

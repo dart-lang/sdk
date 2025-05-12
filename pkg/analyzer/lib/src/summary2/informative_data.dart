@@ -2303,7 +2303,7 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitNamedType(NamedType node) {
     node.importPrefix?.accept(this);
-    _tokenOrNull(node.name2);
+    _tokenOrNull(node.name);
     node.typeArguments?.accept(this);
     _tokenOrNull(node.question);
   }

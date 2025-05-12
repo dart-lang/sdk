@@ -52,7 +52,7 @@ class C {
     var constructorName = instanceCreationExpression.constructorName;
     var type = constructorName.type;
     expect(type.importPrefix!.name.lexeme, 'C');
-    expect(type.name2.lexeme, 'new');
+    expect(type.name.lexeme, 'new');
     expect(constructorName.type.typeArguments, isNull);
     expect(constructorName.name, isNull);
     expect(instanceCreationExpression.argumentList, isNotNull);
@@ -63,7 +63,7 @@ class C {
         parseExpression('const C<int>.new()') as InstanceCreationExpression;
     var constructorName = instanceCreationExpression.constructorName;
     var type = constructorName.type;
-    expect(type.name2.lexeme, 'C');
+    expect(type.name.lexeme, 'C');
     expect(constructorName.type.typeArguments!.arguments, hasLength(1));
     expect(constructorName.name!.name, 'new');
     expect(instanceCreationExpression.argumentList, isNotNull);
@@ -75,7 +75,7 @@ class C {
     var constructorName = instanceCreationExpression.constructorName;
     var type = constructorName.type;
     expect(type.importPrefix!.name.lexeme, 'prefix');
-    expect(type.name2.lexeme, 'C');
+    expect(type.name.lexeme, 'C');
     expect(constructorName.type.typeArguments, isNull);
     expect(constructorName.name!.name, 'new');
     expect(instanceCreationExpression.argumentList, isNotNull);
@@ -88,7 +88,7 @@ class C {
     var constructorName = instanceCreationExpression.constructorName;
     var type = constructorName.type;
     expect(type.importPrefix!.name.lexeme, 'prefix');
-    expect(type.name2.lexeme, 'C');
+    expect(type.name.lexeme, 'C');
     expect(constructorName.type.typeArguments!.arguments, hasLength(1));
     expect(constructorName.name!.name, 'new');
     expect(instanceCreationExpression.argumentList, isNotNull);
@@ -103,7 +103,7 @@ class C {
     var constructorName = instanceCreationExpression.constructorName;
     var type = constructorName.type;
     expect(type.importPrefix!.name.lexeme, 'C');
-    expect(type.name2.lexeme, 'new');
+    expect(type.name.lexeme, 'new');
     expect(constructorName.type.typeArguments, isNull);
     expect(constructorName.name, isNull);
     expect(instanceCreationExpression.argumentList, isNotNull);
@@ -114,7 +114,7 @@ class C {
         parseExpression('new C<int>.new()') as InstanceCreationExpression;
     var constructorName = instanceCreationExpression.constructorName;
     var type = constructorName.type;
-    expect(type.name2.lexeme, 'C');
+    expect(type.name.lexeme, 'C');
     expect(constructorName.type.typeArguments!.arguments, hasLength(1));
     expect(constructorName.name!.name, 'new');
     expect(instanceCreationExpression.argumentList, isNotNull);
@@ -126,7 +126,7 @@ class C {
     var constructorName = instanceCreationExpression.constructorName;
     var type = constructorName.type;
     expect(type.importPrefix!.name.lexeme, 'prefix');
-    expect(type.name2.lexeme, 'C');
+    expect(type.name.lexeme, 'C');
     expect(constructorName.type.typeArguments, isNull);
     expect(constructorName.name!.name, 'new');
     expect(instanceCreationExpression.argumentList, isNotNull);
@@ -139,7 +139,7 @@ class C {
     var constructorName = instanceCreationExpression.constructorName;
     var type = constructorName.type;
     expect(type.importPrefix!.name.lexeme, 'prefix');
-    expect(type.name2.lexeme, 'C');
+    expect(type.name.lexeme, 'C');
     expect(constructorName.type.typeArguments!.arguments, hasLength(1));
     expect(constructorName.name!.name, 'new');
     expect(instanceCreationExpression.argumentList, isNotNull);
@@ -159,7 +159,7 @@ class C {
         parseExpression('C<int>.new()') as InstanceCreationExpression;
     var constructorName = instanceCreationExpression.constructorName;
     var type = constructorName.type;
-    expect(type.name2.lexeme, 'C');
+    expect(type.name.lexeme, 'C');
     expect(constructorName.type.typeArguments!.arguments, hasLength(1));
     expect(constructorName.name!.name, 'new');
     expect(instanceCreationExpression.argumentList, isNotNull);
@@ -182,7 +182,7 @@ class C {
     var constructorName = instanceCreationExpression.constructorName;
     var type = constructorName.type;
     expect(type.importPrefix!.name.lexeme, 'prefix');
-    expect(type.name2.lexeme, 'C');
+    expect(type.name.lexeme, 'C');
     expect(constructorName.type.typeArguments!.arguments, hasLength(1));
     expect(constructorName.name!.name, 'new');
     expect(instanceCreationExpression.argumentList, isNotNull);
@@ -339,7 +339,7 @@ class C {
     var redirectedConstructor = constructorDeclaration.redirectedConstructor!;
     var type = redirectedConstructor.type;
     expect(type.importPrefix!.name.lexeme, 'D');
-    expect(type.name2.lexeme, 'new');
+    expect(type.name.lexeme, 'new');
     expect(redirectedConstructor.type.typeArguments, isNull);
     expect(redirectedConstructor.name, isNull);
   }
@@ -356,7 +356,7 @@ class C {
     expect(constructorDeclaration.initializers, isEmpty);
     var redirectedConstructor = constructorDeclaration.redirectedConstructor!;
     var type = redirectedConstructor.type;
-    expect(type.name2.lexeme, 'D');
+    expect(type.name.lexeme, 'D');
     expect(redirectedConstructor.type.typeArguments!.arguments, hasLength(1));
     expect(redirectedConstructor.name!.name, 'new');
   }
@@ -374,7 +374,7 @@ class C {
     var redirectedConstructor = constructorDeclaration.redirectedConstructor!;
     var type = redirectedConstructor.type;
     expect(type.importPrefix!.name.lexeme, 'prefix');
-    expect(type.name2.lexeme, 'D');
+    expect(type.name.lexeme, 'D');
     expect(redirectedConstructor.type.typeArguments, isNull);
     expect(redirectedConstructor.name!.name, 'new');
   }
@@ -392,7 +392,7 @@ class C {
     var redirectedConstructor = constructorDeclaration.redirectedConstructor!;
     var type = redirectedConstructor.type;
     expect(type.importPrefix!.name.lexeme, 'prefix');
-    expect(type.name2.lexeme, 'D');
+    expect(type.name.lexeme, 'D');
     expect(redirectedConstructor.type.typeArguments!.arguments, hasLength(1));
     expect(redirectedConstructor.name!.name, 'new');
   }

@@ -89,7 +89,7 @@ class Rename extends Change<_Data> {
           parent is ConstructorName) {
         return _Data(parent, parent.name?.token);
       }
-      return _Data(node, node.name2);
+      return _Data(node, node.name);
     } else if (node is SimpleIdentifier) {
       var parent = node.parent;
       var grandParent = parent?.parent;

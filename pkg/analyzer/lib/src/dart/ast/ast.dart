@@ -13713,17 +13713,17 @@ final class NamedExpressionImpl extends ExpressionImpl
 ///        [ImportPrefixReference]? name typeArguments?
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class NamedType implements TypeAnnotation {
-  /// The element of [name2] considering [importPrefix].
+  /// The element of [name] considering [importPrefix].
   ///
   /// This could be a [ClassElement], [TypeAliasElement], or other type defining
   /// element.
   ///
-  /// Returns `null` if [name2] can't be resolved, or there's no element for the
+  /// Returns `null` if [name] can't be resolved, or there's no element for the
   /// type name, such as for `void`.
   @experimental
   Element? get element2;
 
-  /// The optional import prefix before [name2].
+  /// The optional import prefix before [name].
   ImportPrefixReference? get importPrefix;
 
   /// Whether this type is a deferred type.
@@ -13735,6 +13735,10 @@ abstract final class NamedType implements TypeAnnotation {
   bool get isDeferred;
 
   /// The name of the type.
+  Token get name;
+
+  /// The name of the type.
+  @Deprecated('Use name instead')
   Token get name2;
 
   /// The type being named, or `null` if the AST structure hasn't been resolved,
@@ -13751,7 +13755,7 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   ImportPrefixReferenceImpl? _importPrefix;
 
   @override
-  final Token name2;
+  final Token name;
 
   @experimental
   @override
@@ -13771,7 +13775,7 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   /// The [typeArguments] can be `null` if there are no type arguments.
   NamedTypeImpl({
     required ImportPrefixReferenceImpl? importPrefix,
-    required this.name2,
+    required this.name,
     required this.typeArguments,
     required this.question,
   }) {
@@ -13780,10 +13784,10 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   }
 
   @override
-  Token get beginToken => importPrefix?.beginToken ?? name2;
+  Token get beginToken => importPrefix?.beginToken ?? name;
 
   @override
-  Token get endToken => question ?? typeArguments?.endToken ?? name2;
+  Token get endToken => question ?? typeArguments?.endToken ?? name;
 
   @override
   ImportPrefixReferenceImpl? get importPrefix {
@@ -13807,13 +13811,17 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   }
 
   @override
-  bool get isSynthetic => name2.isSynthetic && typeArguments == null;
+  bool get isSynthetic => name.isSynthetic && typeArguments == null;
+
+  @Deprecated('Use name instead')
+  @override
+  Token get name2 => name;
 
   @override
   ChildEntities get _childEntities =>
       ChildEntities()
         ..addNode('importPrefix', importPrefix)
-        ..addToken('name', name2)
+        ..addToken('name', name)
         ..addNode('typeArguments', typeArguments)
         ..addToken('question', question);
 

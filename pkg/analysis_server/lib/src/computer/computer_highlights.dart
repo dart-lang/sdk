@@ -1441,11 +1441,11 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
     var type = node.type;
     if (type != null) {
-      var isDynamic = type is DynamicType && node.name2.lexeme == 'dynamic';
+      var isDynamic = type is DynamicType && node.name.lexeme == 'dynamic';
       var isNever = type is NeverType;
       if (isDynamic || isNever) {
         computer._addRegion_token(
-          node.name2,
+          node.name,
           isDynamic
               ? HighlightRegionType.TYPE_NAME_DYNAMIC
               : HighlightRegionType.CLASS,
@@ -1457,7 +1457,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
     computer._addIdentifierRegion(
       parent: node,
-      nameToken: node.name2,
+      nameToken: node.name,
       element: node.element2,
     );
 

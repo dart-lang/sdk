@@ -6553,7 +6553,7 @@ class LibraryFragmentImpl extends _ExistingElementImpl
   bool shouldIgnoreUndefinedNamedType(NamedType node) {
     return shouldIgnoreUndefined(
       prefix: node.importPrefix?.name.lexeme,
-      name: node.name2.lexeme,
+      name: node.name.lexeme,
     );
   }
 

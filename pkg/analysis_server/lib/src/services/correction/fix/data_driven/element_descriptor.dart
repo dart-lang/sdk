@@ -94,7 +94,7 @@ class ElementDescriptor {
       }
     } else if (node is InstanceCreationExpression) {
       var name = node.constructorName;
-      var className = name.type.name2.lexeme;
+      var className = name.type.name.lexeme;
       var constructorName = name.name?.name ?? '';
       if (components[0] == constructorName && components[1] == className) {
         return true;

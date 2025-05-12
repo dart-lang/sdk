@@ -178,7 +178,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
               target = target.leftHandSide;
             }
             if (target is ConstructorName) {
-              errorEntity = target.name?.token ?? target.type.name2;
+              errorEntity = target.name?.token ?? target.type.name;
             } else if (target is ExtensionOverride) {
               errorEntity = target.name;
             } else if (target is FunctionExpressionInvocation) {
@@ -188,7 +188,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
             } else if (target is MethodInvocation) {
               errorEntity = target.methodName;
             } else if (target is NamedType) {
-              errorEntity = target.name2;
+              errorEntity = target.name;
             } else if (target is PrefixedIdentifier) {
               errorEntity = target.identifier;
             } else if (target is PropertyAccess) {

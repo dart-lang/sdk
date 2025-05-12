@@ -57,7 +57,7 @@ mixin EditableArgumentsMixin {
 
     String? widgetName, widgetDocumentation;
     if (invocation is InstanceCreationExpression) {
-      widgetName = invocation.constructorName.type.name2.lexeme;
+      widgetName = invocation.constructorName.type.name.lexeme;
 
       if (invocation.constructorName.element case var element?) {
         widgetDocumentation = getDocumentation(result, element);

@@ -422,7 +422,7 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
   void visitNamedType(NamedType node) {
     if (node.element2 == element) {
       references.add(
-        MatchInfo(node.name2.offset, node.name2.length, MatchKind.REFERENCE),
+        MatchInfo(node.name.offset, node.name.length, MatchKind.REFERENCE),
       );
     }
 

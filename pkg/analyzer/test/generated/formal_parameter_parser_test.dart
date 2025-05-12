@@ -899,7 +899,7 @@ class C {
     var required = parameters[0] as SimpleFormalParameter;
     expect(required.name, isNull);
     expect(required.type, isNamedType);
-    expect((required.type as NamedType).name2.lexeme, 'A');
+    expect((required.type as NamedType).name.lexeme, 'A');
 
     expect(parameters[1], isDefaultFormalParameter);
     var named = parameters[1] as DefaultFormalParameter;
@@ -907,7 +907,7 @@ class C {
     expect(named.parameter, isSimpleFormalParameter);
     var simple = named.parameter as SimpleFormalParameter;
     expect(simple.type, isNamedType);
-    expect((simple.type as NamedType).name2.lexeme, 'B');
+    expect((simple.type as NamedType).name.lexeme, 'B');
   }
 
   void test_parseFormalParameterList_normal_positional() {
@@ -1016,7 +1016,7 @@ class C {
     expect(parameter.name!.isSynthetic, isTrue);
     var type = parameter.type as NamedType;
     expect(type.importPrefix!.name.isSynthetic, isFalse);
-    expect(type.name2.isSynthetic, isFalse);
+    expect(type.name.isSynthetic, isFalse);
     expect(list.rightDelimiter, isNull);
     expect(list.rightParenthesis, isNotNull);
   }
@@ -1039,7 +1039,7 @@ class C {
     expect(parameter.name!.isSynthetic, isTrue);
     var type = parameter.type as NamedType;
     expect(type.importPrefix!.name.isSynthetic, isFalse);
-    expect(type.name2.isSynthetic, isTrue);
+    expect(type.name.isSynthetic, isTrue);
     expect(list.rightDelimiter, isNull);
     expect(list.rightParenthesis, isNotNull);
   }

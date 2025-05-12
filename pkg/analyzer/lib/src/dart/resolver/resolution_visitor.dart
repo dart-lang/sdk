@@ -1750,9 +1750,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       return;
     }
 
-    var firstToken = namedType.importPrefix?.name ?? namedType.name2;
+    var firstToken = namedType.importPrefix?.name ?? namedType.name;
     var offset = firstToken.offset;
-    var length = namedType.name2.end - offset;
+    var length = namedType.name.end - offset;
     _errorReporter.atOffset(
       offset: offset,
       length: length,

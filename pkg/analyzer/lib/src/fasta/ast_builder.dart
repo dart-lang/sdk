@@ -1900,7 +1900,7 @@ class AstBuilder extends StackListener {
           fieldMetadata: [],
           fieldType: NamedTypeImpl(
             importPrefix: null,
-            name2: typeName,
+            name: typeName,
             question: null,
             typeArguments: null,
           ),
@@ -2898,7 +2898,7 @@ class AstBuilder extends StackListener {
       );
       superclass = NamedTypeImpl(
         importPrefix: null,
-        name2: nameToken,
+        name: nameToken,
         typeArguments: null,
         question: null,
       );
@@ -3112,7 +3112,7 @@ class AstBuilder extends StackListener {
           );
           fieldType = NamedTypeImpl(
             importPrefix: null,
-            name2: typeNameToken,
+            name: typeNameToken,
             typeArguments: null,
             question: null,
           );
@@ -3152,7 +3152,7 @@ class AstBuilder extends StackListener {
       );
       fieldType = NamedTypeImpl(
         importPrefix: null,
-        name2: typeNameToken,
+        name: typeNameToken,
         typeArguments: null,
         question: null,
       );
@@ -3250,7 +3250,7 @@ class AstBuilder extends StackListener {
       push(
         NamedTypeImpl(
           importPrefix: null,
-          name2: parser.rewriter.insertSyntheticIdentifier(leftBracket),
+          name: parser.rewriter.insertSyntheticIdentifier(leftBracket),
           typeArguments: null,
           question: questionMark,
         ),
@@ -3880,7 +3880,7 @@ class AstBuilder extends StackListener {
             // x.^
             // await y.foo();
             {
-              var awaitToken = type.name2;
+              var awaitToken = type.name;
               if (awaitToken.type == Keyword.AWAIT) {
                 push(
                   ExpressionStatementImpl(
@@ -3910,9 +3910,9 @@ class AstBuilder extends StackListener {
                 // We see `x.foo await;`, where `;` is synthetic.
                 // It is followed by `y.bar()`.
                 // Insert a new `;`, and (unfortunately) drop `await;`.
-                type.name2.setNext(semicolon.next!);
+                type.name.setNext(semicolon.next!);
                 var semicolon2 = parser.rewriter.insertSyntheticToken(
-                  type.name2,
+                  type.name,
                   TokenType.SEMICOLON,
                 );
                 push(
@@ -3920,7 +3920,7 @@ class AstBuilder extends StackListener {
                     expression: PrefixedIdentifierImpl(
                       prefix: SimpleIdentifierImpl(importPrefix.name),
                       period: importPrefix.period,
-                      identifier: SimpleIdentifierImpl(type.name2),
+                      identifier: SimpleIdentifierImpl(type.name),
                     ),
                     semicolon: semicolon2,
                   ),
@@ -5478,14 +5478,14 @@ class AstBuilder extends StackListener {
           name: firstIdentifierToken,
           period: dot,
         ),
-        name2: secondIdentifierToken,
+        name: secondIdentifierToken,
         typeArguments: typeArguments,
         question: null,
       );
     } else {
       namedType = NamedTypeImpl(
         importPrefix: null,
-        name2: firstIdentifierToken,
+        name: firstIdentifierToken,
         typeArguments: typeArguments,
         question: null,
       );

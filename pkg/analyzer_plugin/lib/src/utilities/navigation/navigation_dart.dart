@@ -349,7 +349,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
       // For a named constructor, the class name points at the class.
       var classNameTargetElement =
           node.name != null ? namedType.element2 : element;
-      computer._addRegionForElement(namedType.name2, classNameTargetElement);
+      computer._addRegionForElement(namedType.name, classNameTargetElement);
     }
     // <TypeA, TypeB>
     namedType.typeArguments?.accept(this);
@@ -469,7 +469,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitNamedType(NamedType node) {
     node.importPrefix?.accept(this);
-    computer._addRegionForElement(node.name2, node.element2);
+    computer._addRegionForElement(node.name, node.element2);
     node.typeArguments?.accept(this);
   }
 

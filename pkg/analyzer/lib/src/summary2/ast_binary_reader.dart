@@ -969,7 +969,7 @@ class AstBinaryReader {
 
     var node = NamedTypeImpl(
       importPrefix: importPrefix,
-      name2: StringToken(TokenType.STRING, name, -1),
+      name: StringToken(TokenType.STRING, name, -1),
       typeArguments: typeArguments,
       question: AstBinaryFlags.hasQuestion(flags) ? Tokens.question() : null,
     );

@@ -31,7 +31,7 @@ class ExtensionMethodsParserTest extends FastaParserTestCase {
     var extension = unit.declarations[0] as ExtensionDeclaration;
     expect(extension.name!.lexeme, 'E');
     expect(extension.onClause!.onKeyword.lexeme, 'extends');
-    expect((extension.onClause!.extendedType as NamedType).name2.lexeme, 'A');
+    expect((extension.onClause!.extendedType as NamedType).name.lexeme, 'A');
     expect(extension.members, hasLength(0));
   }
 
@@ -47,7 +47,7 @@ class ExtensionMethodsParserTest extends FastaParserTestCase {
     var extension = unit.declarations[0] as ExtensionDeclaration;
     expect(extension.name!.lexeme, 'E');
     expect(extension.onClause!.onKeyword.lexeme, 'implements');
-    expect((extension.onClause!.extendedType as NamedType).name2.lexeme, 'C');
+    expect((extension.onClause!.extendedType as NamedType).name.lexeme, 'C');
     expect(extension.members, hasLength(0));
   }
 
@@ -58,7 +58,7 @@ class ExtensionMethodsParserTest extends FastaParserTestCase {
     expect(extension.name!.lexeme, 'E');
     expect(extension.onClause!.onKeyword.lexeme, 'on');
     var namedType = extension.onClause!.extendedType as NamedType;
-    expect(namedType.name2.lexeme, 'C');
+    expect(namedType.name.lexeme, 'C');
     expect(namedType.typeArguments!.arguments, hasLength(1));
     expect(extension.members, hasLength(0));
   }
@@ -70,7 +70,7 @@ class ExtensionMethodsParserTest extends FastaParserTestCase {
     expect(extension.name!.lexeme, 'E');
     expect(extension.onClause!.onKeyword.lexeme, 'on');
     var namedType = extension.onClause!.extendedType as NamedType;
-    expect(namedType.name2.lexeme, 'C');
+    expect(namedType.name.lexeme, 'C');
     expect(namedType.typeArguments!.arguments, hasLength(1));
     expect(extension.members, hasLength(0));
   }
@@ -82,7 +82,7 @@ class ExtensionMethodsParserTest extends FastaParserTestCase {
     expect(extension.name, isNull);
     expect(extension.onClause!.onKeyword.lexeme, 'on');
     var namedType = extension.onClause!.extendedType as NamedType;
-    expect(namedType.name2.lexeme, 'C');
+    expect(namedType.name.lexeme, 'C');
     expect(namedType.typeArguments!.arguments, hasLength(1));
     expect(extension.members, hasLength(0));
   }
@@ -134,7 +134,7 @@ class C {}
     var extension = unit.declarations[0] as ExtensionDeclaration;
     expect(extension.name!.lexeme, 'E');
     expect(extension.onClause!.onKeyword.lexeme, 'on');
-    expect((extension.onClause!.extendedType as NamedType).name2.lexeme, '');
+    expect((extension.onClause!.extendedType as NamedType).name.lexeme, '');
     expect(extension.members, hasLength(0));
   }
 
@@ -150,7 +150,7 @@ class C {}
     var extension = unit.declarations[0] as ExtensionDeclaration;
     expect(extension.name!.lexeme, 'E');
     expect(extension.onClause!.onKeyword.lexeme, 'on');
-    expect((extension.onClause!.extendedType as NamedType).name2.lexeme, '');
+    expect((extension.onClause!.extendedType as NamedType).name.lexeme, '');
     expect(extension.members, hasLength(0));
   }
 
@@ -163,7 +163,7 @@ class C {}
     var extension = unit.declarations[0] as ExtensionDeclaration;
     expect(extension.name!.lexeme, 'E');
     expect(extension.onClause!.onKeyword.lexeme, 'on');
-    expect((extension.onClause!.extendedType as NamedType).name2.lexeme, 'C');
+    expect((extension.onClause!.extendedType as NamedType).name.lexeme, 'C');
     expect(extension.members, hasLength(0));
   }
 
@@ -191,9 +191,9 @@ class C {}
     var extension = unit.declarations[0] as ExtensionDeclaration;
     expect(extension.name!.lexeme, 'E');
     expect(extension.onClause!.onKeyword.lexeme, 'on');
-    expect((extension.onClause!.extendedType as NamedType).name2.lexeme, 'C');
+    expect((extension.onClause!.extendedType as NamedType).name.lexeme, 'C');
     var namedType = extension.onClause!.extendedType as NamedType;
-    expect(namedType.name2.lexeme, 'C');
+    expect(namedType.name.lexeme, 'C');
     expect(namedType.typeArguments, isNull);
     expect(extension.members, hasLength(0));
   }
@@ -207,7 +207,7 @@ class C {}
     var extension = unit.declarations[0] as ExtensionDeclaration;
     expect(extension.name!.lexeme, 'E');
     expect(extension.onClause!.onKeyword.lexeme, 'extends');
-    expect((extension.onClause!.extendedType as NamedType).name2.lexeme, 'C');
+    expect((extension.onClause!.extendedType as NamedType).name.lexeme, 'C');
     expect(extension.members, hasLength(0));
   }
 
@@ -220,7 +220,7 @@ class C {}
     var extension = unit.declarations[0] as ExtensionDeclaration;
     expect(extension.name!.lexeme, 'E');
     expect(extension.onClause!.onKeyword.lexeme, 'implements');
-    expect((extension.onClause!.extendedType as NamedType).name2.lexeme, 'C');
+    expect((extension.onClause!.extendedType as NamedType).name.lexeme, 'C');
     expect(extension.members, hasLength(0));
   }
 
@@ -230,9 +230,9 @@ class C {}
     var extension = unit.declarations[0] as ExtensionDeclaration;
     expect(extension.name, isNull);
     expect(extension.onClause!.onKeyword.lexeme, 'on');
-    expect((extension.onClause!.extendedType as NamedType).name2.lexeme, 'C');
+    expect((extension.onClause!.extendedType as NamedType).name.lexeme, 'C');
     var namedType = extension.onClause!.extendedType as NamedType;
-    expect(namedType.name2.lexeme, 'C');
+    expect(namedType.name.lexeme, 'C');
     expect(namedType.typeArguments, isNull);
     expect(extension.members, hasLength(0));
   }
@@ -246,7 +246,7 @@ class C {}
     var extension = unit.declarations[0] as ExtensionDeclaration;
     expect(extension.name!.lexeme, 'E');
     expect(extension.onClause!.onKeyword.lexeme, 'with');
-    expect((extension.onClause!.extendedType as NamedType).name2.lexeme, 'C');
+    expect((extension.onClause!.extendedType as NamedType).name.lexeme, 'C');
     expect(extension.members, hasLength(0));
   }
 
@@ -256,10 +256,7 @@ class C {}
     var extension = unit.declarations[0] as ExtensionDeclaration;
     expect(extension.name!.lexeme, 'E');
     expect(extension.onClause!.onKeyword.lexeme, 'on');
-    expect(
-      (extension.onClause!.extendedType as NamedType).name2.lexeme,
-      'void',
-    );
+    expect((extension.onClause!.extendedType as NamedType).name.lexeme, 'void');
     expect(extension.members, hasLength(0));
   }
 }

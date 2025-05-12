@@ -60,7 +60,7 @@ class ClassMemberParserTest extends FastaParserTestCase
         namedType = asExpression.type as NamedType;
       }
       expect(expression, isSimpleIdentifier);
-      expect(namedType.name2.lexeme, "int");
+      expect(namedType.name.lexeme, "int");
       expect(namedType.question, xIsNullable ? isNotNull : isNull);
     }
 
@@ -79,7 +79,7 @@ class ClassMemberParserTest extends FastaParserTestCase
         namedType = asExpression.type as NamedType;
       }
       expect(expression, isSimpleIdentifier);
-      expect(namedType.name2.lexeme, "int");
+      expect(namedType.name.lexeme, "int");
       expect(namedType.question, yIsNullable ? isNotNull : isNull);
     }
   }
@@ -440,15 +440,15 @@ class ClassMemberParserTest extends FastaParserTestCase
     expect(list.isLate, isFalse);
     expect(list.lateKeyword, isNull);
     var type = list.type as NamedType;
-    expect(type.name2.lexeme, 'List');
+    expect(type.name.lexeme, 'List');
     List typeArguments = type.typeArguments!.arguments;
     expect(typeArguments, hasLength(1));
     var type2 = typeArguments[0] as NamedType;
-    expect(type2.name2.lexeme, 'List');
+    expect(type2.name.lexeme, 'List');
     NodeList typeArguments2 = type2.typeArguments!.arguments;
     expect(typeArguments2, hasLength(1));
     var type3 = typeArguments2[0] as NamedType;
-    expect(type3.name2.lexeme, 'N');
+    expect(type3.name.lexeme, 'N');
     NodeList<VariableDeclaration> variables = list.variables;
     expect(variables, hasLength(1));
     VariableDeclaration variable = variables[0];
@@ -787,7 +787,7 @@ Function(int, String) v;
     expect(parameters.parameters, hasLength(1));
     var parameter = parameters.parameters[0] as SimpleFormalParameter;
     var parameterType = parameter.type as NamedType;
-    expect(parameterType.name2.lexeme, 'T');
+    expect(parameterType.name.lexeme, 'T');
 
     expect(method.body, isNotNull);
   }
@@ -822,14 +822,14 @@ Function(int, String) v;
     expect(method.externalKeyword, isNull);
     expect(method.modifierKeyword, isNull);
     expect(method.propertyKeyword, isNull);
-    expect((method.returnType as NamedType).name2.lexeme, 'T');
+    expect((method.returnType as NamedType).name.lexeme, 'T');
     expect(method.name, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNotNull);
     TypeParameter tp = method.typeParameters!.typeParameters[0];
     expect(tp.name.lexeme, 'T');
     expect(tp.extendsKeyword, isNotNull);
-    expect((tp.bound as NamedType).name2.lexeme, 'num');
+    expect((tp.bound as NamedType).name.lexeme, 'num');
     expect(method.parameters, isNotNull);
     expect(method.body, isNotNull);
   }
@@ -849,12 +849,12 @@ Function(int, String) v;
     {
       var returnType = method.returnType as NamedType;
       expect(returnType, isNotNull);
-      expect(returnType.name2.lexeme, 'Map');
+      expect(returnType.name.lexeme, 'Map');
 
       List<TypeAnnotation> typeArguments = returnType.typeArguments!.arguments;
       expect(typeArguments, hasLength(2));
-      expect((typeArguments[0] as NamedType).name2.lexeme, 'int');
-      expect((typeArguments[1] as NamedType).name2.lexeme, 'T');
+      expect((typeArguments[0] as NamedType).name.lexeme, 'int');
+      expect((typeArguments[1] as NamedType).name.lexeme, 'T');
     }
 
     expect(method.name, isNotNull);
@@ -876,7 +876,7 @@ Function(int, String) v;
     expect(method.modifierKeyword, isNotNull);
     expect(method.propertyKeyword, isNull);
     expect(method.returnType, isNotNull);
-    expect((method.returnType as NamedType).name2.lexeme, 'T');
+    expect((method.returnType as NamedType).name.lexeme, 'T');
     expect(method.name, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNotNull);
@@ -1418,7 +1418,7 @@ void Function<A>(core.List<core.int> x) m() => null;
       constructor.redirectedConstructor!.type.importPrefix!.name.lexeme,
       'prefix',
     );
-    expect(constructor.redirectedConstructor!.type.name2.lexeme, 'B');
+    expect(constructor.redirectedConstructor!.type.name.lexeme, 'B');
     expect(constructor.redirectedConstructor!.period!.type, TokenType.PERIOD);
     expect(constructor.redirectedConstructor!.name!.name, 'foo');
     expect(constructor.body, isEmptyFunctionBody);
@@ -1467,7 +1467,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(constructor.separator!.type, TokenType.EQ);
     expect(constructor.initializers, isEmpty);
     expect(constructor.redirectedConstructor, isNotNull);
-    expect(constructor.redirectedConstructor!.type.name2.lexeme, 'B');
+    expect(constructor.redirectedConstructor!.type.name.lexeme, 'B');
     expect(constructor.redirectedConstructor!.period, isNull);
     expect(constructor.redirectedConstructor!.name, isNull);
     expect(constructor.body, isEmptyFunctionBody);
@@ -2059,7 +2059,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(method.operatorKeyword, isNull);
     expect(method.parameters, isNull);
     expect(method.propertyKeyword, isNotNull);
-    expect((method.returnType as NamedType).name2.lexeme, 'T');
+    expect((method.returnType as NamedType).name.lexeme, 'T');
   }
 
   void test_parseGetter_static() {
@@ -2076,7 +2076,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNull);
     expect(method.propertyKeyword, isNotNull);
-    expect((method.returnType as NamedType).name2.lexeme, 'T');
+    expect((method.returnType as NamedType).name.lexeme, 'T');
   }
 
   void test_parseInitializedIdentifierList_type() {
@@ -2088,7 +2088,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     VariableDeclarationList fields = declaration.fields;
     expect(fields, isNotNull);
     expect(fields.keyword, isNull);
-    expect((fields.type as NamedType).name2.lexeme, 'T');
+    expect((fields.type as NamedType).name.lexeme, 'T');
     expect(fields.variables, hasLength(3));
     expect(declaration.staticKeyword!.lexeme, 'static');
     expect(declaration.semicolon, isNotNull);
@@ -2123,7 +2123,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
     expect(method.propertyKeyword, isNull);
-    expect((method.returnType as NamedType).name2.lexeme, 'T');
+    expect((method.returnType as NamedType).name.lexeme, 'T');
   }
 
   void test_parseSetter_nonStatic() {
@@ -2140,7 +2140,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
     expect(method.propertyKeyword, isNotNull);
-    expect((method.returnType as NamedType).name2.lexeme, 'T');
+    expect((method.returnType as NamedType).name.lexeme, 'T');
   }
 
   void test_parseSetter_static() {
@@ -2157,7 +2157,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
     expect(method.propertyKeyword, isNotNull);
-    expect((method.returnType as NamedType).name2.lexeme, 'T');
+    expect((method.returnType as NamedType).name.lexeme, 'T');
   }
 
   void test_simpleFormalParameter_withDocComment() {

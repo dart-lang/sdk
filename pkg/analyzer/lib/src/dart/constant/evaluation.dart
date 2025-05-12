@@ -1160,7 +1160,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
         diagnosticCode: CompileTimeErrorCode.CONST_TYPE_PARAMETER,
       );
     } else if (node.isDeferred) {
-      return _getDeferredLibraryError(node, node.name2);
+      return _getDeferredLibraryError(node, node.name);
     }
 
     if (_substitution != null) {

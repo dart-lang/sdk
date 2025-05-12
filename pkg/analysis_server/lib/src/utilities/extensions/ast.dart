@@ -28,7 +28,7 @@ class _ReferencedUnprefixedNamesCollector extends RecursiveAstVisitor<void> {
   @override
   void visitNamedType(NamedType node) {
     if (node.importPrefix == null) {
-      names.add(node.name2.lexeme);
+      names.add(node.name.lexeme);
     }
 
     super.visitNamedType(node);
@@ -374,9 +374,9 @@ extension NamedTypeExtension on NamedType {
   String get qualifiedName {
     var importPrefix = this.importPrefix;
     if (importPrefix != null) {
-      return '${importPrefix.name.lexeme}.${name2.lexeme}';
+      return '${importPrefix.name.lexeme}.${name.lexeme}';
     } else {
-      return name2.lexeme;
+      return name.lexeme;
     }
   }
 }
