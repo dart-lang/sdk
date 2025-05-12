@@ -593,7 +593,11 @@ class Thread : public ThreadState {
   bool HasDartMutatorStack() const {
     // The thread with dart mutator task might be temporarily
     // occupied by a gc task.
-    return IsDartMutatorThread() || scheduled_dart_mutator_isolate_ != nullptr;
+    return IsDartMutatorThread()
+           // mutator thread with isolate
+           || scheduled_dart_mutator_isolate_ != nullptr
+           // mutator thread without isolate
+           || top_exit_frame_info_ != 0;
   }
 
   // Returns the dart mutator [Isolate] this thread belongs to or nullptr.
