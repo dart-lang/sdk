@@ -160,7 +160,7 @@ class DefaultTypesBuilder {
           var bound = current.bound;
           if (bound is NamedType) {
             if (bound.importPrefix == null) {
-              current = typeParametersByName[bound.name2.lexeme];
+              current = typeParametersByName[bound.name.lexeme];
               continue;
             }
           }

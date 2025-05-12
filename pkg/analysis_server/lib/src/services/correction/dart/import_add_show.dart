@@ -98,7 +98,7 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    _addName(node.name2, node.element2);
+    _addName(node.name, node.element2);
     super.visitNamedType(node);
   }
 

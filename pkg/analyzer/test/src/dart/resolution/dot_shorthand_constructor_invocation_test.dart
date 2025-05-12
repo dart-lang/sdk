@@ -18,6 +18,52 @@ main() {
 @reflectiveTest
 class DotShorthandConstructorInvocationResolutionTest
     extends PubPackageResolutionTest {
+  test_abstract_instantiation() async {
+    await assertErrorsInCode(
+      r'''
+Function getFunction() {
+  return .new();
+}
+''',
+      [error(CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS, 34, 6)],
+    );
+  }
+
+  test_abstract_instantiation_factory() async {
+    await assertNoErrorsInCode(r'''
+void main() async {
+  var iter = [1, 2];
+  await for (var x in .fromIterable(iter)) {
+    print(x);
+  }
+}
+''');
+
+    var node = findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandConstructorInvocation
+  period: .
+  constructorName: SimpleIdentifier
+    token: fromIterable
+    element: ConstructorMember
+      baseElement: dart:async::@fragment::dart:async/stream.dart::@class::Stream::@constructor::fromIterable#element
+      substitution: {T: int}
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: iter
+        correspondingParameter: ParameterMember
+          baseElement: dart:async::@fragment::dart:async/stream.dart::@class::Stream::@constructor::fromIterable::@parameter::data#element
+          substitution: {T: int}
+        element: iter@26
+        staticType: List<int>
+    rightParenthesis: )
+  staticType: Stream<int>
+''');
+  }
+
   test_chain_method() async {
     await assertNoErrorsInCode(r'''
 class C {

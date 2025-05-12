@@ -199,11 +199,11 @@ String? _getBaseNameFromUnwrappedExpression(Expression expression) {
     var importPrefix = namedType.importPrefix;
     // new ClassName()
     if (importPrefix == null) {
-      return namedType.name2.lexeme;
+      return namedType.name.lexeme;
     }
     // new prefix.ClassName()
     if (importPrefix.element2 is PrefixElement) {
-      return namedType.name2.lexeme;
+      return namedType.name.lexeme;
     }
     // new ClassName.constructorName()
     return importPrefix.name.lexeme;

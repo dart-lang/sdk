@@ -203,7 +203,7 @@ void f(x) {
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
@@ -248,7 +248,7 @@ void f(x) {
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: ListLiteral
       leftBracket: [
       elements
@@ -273,7 +273,7 @@ void f(x) {
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: ListLiteral
       leftBracket: [
       elements
@@ -354,7 +354,7 @@ void f(x) {
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: SetOrMapLiteral
       leftBracket: {
       elements
@@ -385,7 +385,7 @@ void f(x) {
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: SetOrMapLiteral
       leftBracket: {
       elements
@@ -435,7 +435,7 @@ void f(x) {
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: SetOrMapLiteral
       leftBracket: {
       elements
@@ -484,7 +484,7 @@ void f(x) {
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: SetOrMapLiteral
       leftBracket: {
       elements
@@ -510,7 +510,7 @@ void f(x) {
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
-    const: const
+    constKeyword: const
     expression: SetOrMapLiteral
       leftBracket: {
       elements

@@ -1160,7 +1160,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
         diagnosticCode: CompileTimeErrorCode.CONST_TYPE_PARAMETER,
       );
     } else if (node.isDeferred) {
-      return _getDeferredLibraryError(node, node.name2);
+      return _getDeferredLibraryError(node, node.name);
     }
 
     if (_substitution != null) {
@@ -2986,7 +2986,7 @@ class _InstanceCreationEvaluator {
       if (parameter is SuperFormalParameterElementOrMember) {
         var value =
             SimpleIdentifierImpl(
-                StringToken(
+                token: StringToken(
                   TokenType.STRING,
                   parameter.name,
                   parameter.nameOffset,
@@ -3001,7 +3001,7 @@ class _InstanceCreationEvaluator {
             NamedExpressionImpl(
               name: LabelImpl(
                 label: SimpleIdentifierImpl(
-                  StringToken(
+                  token: StringToken(
                     TokenType.STRING,
                     parameter.name,
                     parameter.nameOffset,

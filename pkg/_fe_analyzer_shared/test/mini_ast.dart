@@ -6520,7 +6520,11 @@ class _MiniAstTypeAnalyzer
     Expression node,
     Expression expression,
   ) {
-    var type = analyzeExpression(expression, operations.unknownType);
+    var type = analyzeExpression(
+      expression,
+      operations.unknownType,
+      continueNullShorting: true,
+    );
     flow.nonNullAssert_end(expression);
     return new ExpressionTypeAnalysisResult(
       type: flow.operations.promoteToNonNull(type),

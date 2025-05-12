@@ -20,6 +20,7 @@ import 'package:test/test.dart';
 
 import '../utils/lsp_protocol_extensions.dart';
 import 'change_verifier.dart';
+import 'server_abstract.dart';
 
 /// A mixin with helpers for applying LSP edits to strings.
 mixin LspEditHelpersMixin {
@@ -137,6 +138,10 @@ mixin LspRequestHelpersMixin {
 
   /// Whether to include 'clientRequestTime' fields in outgoing messages.
   bool includeClientRequestTime = false;
+
+  /// A progress token used in tests where the client-provides the token, which
+  /// should not be validated as being created by the server first.
+  final clientProvidedTestWorkDoneToken = ProgressToken.t2('client-test');
 
   /// A stream of [DartTextDocumentContentDidChangeParams] for any
   /// `dart/textDocumentContentDidChange` notifications.
@@ -1021,6 +1026,8 @@ mixin LspRequestHelpersMixin {
     );
   }
 
+  Future<ResponseMessage> sendRequestToServer(RequestMessage request);
+
   /// Sends a ResponseMessage to the server, completing a reverse
   /// (server-to-client) request.
   void sendResponseToServer(ResponseMessage response);
@@ -1260,7 +1267,8 @@ mixin LspRequestHelpersMixin {
 ///
 /// Extends [LspEditHelpersMixin] with methods for accessing file state and
 /// information about the project to build paths.
-mixin LspVerifyEditHelpersMixin on LspEditHelpersMixin {
+mixin LspVerifyEditHelpersMixin
+    on LspEditHelpersMixin, ClientCapabilitiesHelperMixin {
   LspClientCapabilities get editorClientCapabilities;
 
   path.Context get pathContext;
@@ -1364,6 +1372,21 @@ mixin LspVerifyEditHelpersMixin on LspEditHelpersMixin {
     );
 
     verifier.verifyFiles(expectedContent);
+    return verifier;
+  }
+
+  LspChangeVerifier verifyEdit(
+    WorkspaceEdit edit,
+    String expected, {
+    Map<Uri, int>? expectedVersions,
+  }) {
+    var expectDocumentChanges =
+        workspaceCapabilities.workspaceEdit?.documentChanges ?? false;
+    expect(edit.documentChanges, expectDocumentChanges ? isNotNull : isNull);
+    expect(edit.changes, expectDocumentChanges ? isNull : isNotNull);
+
+    var verifier = LspChangeVerifier(this, edit);
+    verifier.verifyFiles(expected, expectedVersions: expectedVersions);
     return verifier;
   }
 }

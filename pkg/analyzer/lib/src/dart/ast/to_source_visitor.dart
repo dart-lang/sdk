@@ -965,7 +965,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitNamedType(NamedType node) {
     _visitNode(node.importPrefix);
-    _visitToken(node.name2);
+    _visitToken(node.name);
     _visitNode(node.typeArguments);
     if (node.question != null) {
       sink.write('?');

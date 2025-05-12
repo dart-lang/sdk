@@ -68,6 +68,10 @@ class OS {
   // Returns number of available processor cores.
   static int NumberOfAvailableProcessors();
 
+  // Returns the current resident set size in bytes, or 0 if it could not be
+  // determined.
+  static uintptr_t CurrentRSS();
+
   // Sleep the currently executing thread for millis ms.
   static void Sleep(int64_t millis);
 

@@ -117,6 +117,12 @@ config("compiler") {
     if (is_asan) {
       cflags += [ "-fsanitize=address" ]
       ldflags += [ "-fsanitize=address" ]
+      if (is_mac) {
+        ldflags += [
+          "-rpath",
+          "buildtools/mac-$host_cpu/clang/lib/clang/21/lib/darwin",
+        ]
+      }
     }
     if (is_hwasan && is_android && current_cpu == "arm64") {
       cflags += [ "-fsanitize=hwaddress" ]

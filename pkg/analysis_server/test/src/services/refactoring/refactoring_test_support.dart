@@ -12,7 +12,7 @@ import '../../../lsp/server_abstract.dart';
 import '../../../utils/test_code_extensions.dart';
 
 abstract class RefactoringTest extends AbstractLspAnalysisServerTest
-    with CodeActionsTestMixin {
+    with LspSharedTestMixin, CodeActionsTestMixin {
   /// Position of the marker where the refactor will be invoked.
   Position? _position;
 
@@ -94,10 +94,11 @@ abstract class RefactoringTest extends AbstractLspAnalysisServerTest
   ///
   /// Enables all required client capabilities for new refactors unless the
   /// corresponding flags are set to `false`.
+  @override
   Future<void> initializeServer({bool experimentalOptInFlag = true}) async {
     var config = {if (experimentalOptInFlag) 'experimentalRefactors': true};
 
-    await provideConfig(super.initialize, config);
+    await provideConfig(super.initializeServer, config);
   }
 
   @override

@@ -1220,6 +1220,10 @@ bool TimelineEvent::HasIsolateGroupId() const {
   return isolate_group_id_ != ILLEGAL_ISOLATE_GROUP_ID;
 }
 
+void TimelineEvent::ClearIsolateGroupId() {
+  isolate_group_id_ = ILLEGAL_ISOLATE_GROUP_ID;
+}
+
 TimelineTrackMetadata::TimelineTrackMetadata(intptr_t pid,
                                              intptr_t tid,
                                              CStringUniquePtr&& track_name)

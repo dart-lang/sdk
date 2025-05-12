@@ -567,7 +567,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     );
 
     _writeOptionalNode(node.importPrefix);
-    _writeStringReference(node.name2.lexeme);
+    _writeStringReference(node.name.lexeme);
     _writeOptionalNode(node.typeArguments);
 
     _sink.writeElement2(node.element2);

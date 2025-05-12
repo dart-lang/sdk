@@ -952,7 +952,9 @@ class AstBinaryReader {
   NamedExpression _readNamedExpression() {
     var name = _readStringReference();
     var nameNode = LabelImpl(
-      label: SimpleIdentifierImpl(StringToken(TokenType.STRING, name, -1)),
+      label: SimpleIdentifierImpl(
+        token: StringToken(TokenType.STRING, name, -1),
+      ),
       colon: Tokens.colon(),
     );
     var expression = readNode() as ExpressionImpl;
@@ -969,7 +971,7 @@ class AstBinaryReader {
 
     var node = NamedTypeImpl(
       importPrefix: importPrefix,
-      name2: StringToken(TokenType.STRING, name, -1),
+      name: StringToken(TokenType.STRING, name, -1),
       typeArguments: typeArguments,
       question: AstBinaryFlags.hasQuestion(flags) ? Tokens.question() : null,
     );
@@ -1251,7 +1253,9 @@ class AstBinaryReader {
 
   SimpleIdentifier _readSimpleIdentifier() {
     var name = _readStringReference();
-    var node = SimpleIdentifierImpl(StringToken(TokenType.STRING, name, -1));
+    var node = SimpleIdentifierImpl(
+      token: StringToken(TokenType.STRING, name, -1),
+    );
     node.element = _reader.readElement2();
     node.tearOffTypeArgumentTypes = _reader.readOptionalTypeList();
     _readExpressionResolution(node);

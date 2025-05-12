@@ -114,7 +114,7 @@ class ChangeTo extends ResolvedCorrectionProducer {
     Token? nameToken;
     if (node is NamedType) {
       prefixName = node.importPrefix?.name.lexeme;
-      nameToken = node.name2;
+      nameToken = node.name;
     } else if (node is PrefixedIdentifier &&
         node.parent is NamedType &&
         node.prefix.element is PrefixElement) {

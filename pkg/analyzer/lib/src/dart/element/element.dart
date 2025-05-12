@@ -655,7 +655,11 @@ class ClassFragmentImpl extends ClassOrMixinFragmentImpl
               implicitParameters.add(implicitParameter);
               argumentsForSuperInvocation.add(
                 SimpleIdentifierImpl(
-                    StringToken(TokenType.STRING, implicitParameter.name, -1),
+                    token: StringToken(
+                      TokenType.STRING,
+                      implicitParameter.name,
+                      -1,
+                    ),
                   )
                   ..element = implicitParameter.asElement2
                   ..setPseudoExpressionStaticType(implicitParameter.type),
@@ -677,7 +681,7 @@ class ClassFragmentImpl extends ClassOrMixinFragmentImpl
             constructorName:
                 isNamed
                     ? (SimpleIdentifierImpl(
-                      StringToken(
+                      token: StringToken(
                         TokenType.STRING,
                         superclassConstructor.name,
                         -1,
@@ -6553,7 +6557,7 @@ class LibraryFragmentImpl extends _ExistingElementImpl
   bool shouldIgnoreUndefinedNamedType(NamedType node) {
     return shouldIgnoreUndefined(
       prefix: node.importPrefix?.name.lexeme,
-      name: node.name2.lexeme,
+      name: node.name.lexeme,
     );
   }
 

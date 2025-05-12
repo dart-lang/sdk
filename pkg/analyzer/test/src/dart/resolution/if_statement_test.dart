@@ -1188,7 +1188,7 @@ IfStatement
     caseKeyword: case
     guardedPattern: GuardedPattern
       pattern: ConstantPattern
-        const: const
+        constKeyword: const
         expression: InstanceCreationExpression
           constructorName: ConstructorName
             type: NamedType

@@ -705,7 +705,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       // Only report non-aliased, non-user-defined `Null?` and `dynamic?`. Do
       // not report synthetic `dynamic` in place of an unresolved type.
       if ((type is InterfaceType && type.element3 == _nullType.element3 ||
-              (type is DynamicType && node.name2.lexeme == 'dynamic')) &&
+              (type is DynamicType && node.name.lexeme == 'dynamic')) &&
           type.alias == null) {
         _errorReporter.atToken(
           question,
@@ -1773,7 +1773,7 @@ class _InvalidAccessVerifier {
 
     _checkForInvalidInternalAccess(
       parent: node,
-      nameToken: node.name2,
+      nameToken: node.name,
       element: element,
     );
 
@@ -2163,7 +2163,7 @@ class _InvalidAccessVerifier {
         name = parent.toSource();
         errorEntity = parent;
       } else {
-        name = node.name2.lexeme;
+        name = node.name.lexeme;
       }
     } else if (node is PatternFieldImpl) {
       name = element.displayName;

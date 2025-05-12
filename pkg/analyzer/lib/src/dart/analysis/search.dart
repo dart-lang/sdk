@@ -1709,7 +1709,7 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
   void visitNamedType(NamedType node) {
     var element = node.element2;
     if (elements.contains(element)) {
-      _addResult(node.name2, SearchResultKind.REFERENCE);
+      _addResult(node.name, SearchResultKind.REFERENCE);
     }
 
     node.importPrefix?.accept(this);

@@ -904,7 +904,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
   void visitNamedType(NamedType node) {
     _visitChildren(node, {
       'importPrefix': node.importPrefix,
-      'name': node.name2,
+      'name': node.name,
       'typeArguments': node.typeArguments,
       'question': node.question,
     });

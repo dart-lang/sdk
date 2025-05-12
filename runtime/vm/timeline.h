@@ -457,6 +457,7 @@ class TimelineEvent {
 
   bool HasIsolateId() const;
   bool HasIsolateGroupId() const;
+  void ClearIsolateGroupId();
 
   // The lowest time value stored in this event.
   int64_t LowTime() const;

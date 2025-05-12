@@ -103,6 +103,10 @@ void allEventsHaveIsolateNumber(List events) {
       // Skip API category events which sometimes don't have an isolate.
       continue;
     }
+    if (event['name'] == 'RSS' && event['ph'] == 'C') {
+      // Skip RSS events, which don't have an isolate or isolate group.
+      continue;
+    }
     if (event['cat'] == 'Embedder' &&
         (event['name'] == 'DFE::ReadScript' ||
             event['name'] == 'CreateIsolateGroupAndSetupHelper')) {

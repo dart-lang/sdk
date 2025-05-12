@@ -11885,6 +11885,109 @@ main() {
         ]);
       });
     });
+
+    group('Null aware field access:', () {
+      group('Non-cascaded:', () {
+        test('When disabled, does not see previous promotions', () {
+          h.disableSoundFlowAnalysis();
+          h.addMember('A', '_i', 'int?', promotable: true);
+          var a = Var('a');
+          h.run([
+            declare(a, initializer: expr('A')),
+            a.property('_i').nonNullAssert,
+            // `a._i` is promoted now.
+            a.property('_i').checkType('int'),
+            // But `a?._i` is not.
+            a.property('_i', isNullAware: true).checkType('int?'),
+          ]);
+        });
+
+        test('When enabled, sees previous promotions', () {
+          h.addMember('A', '_i', 'int?', promotable: true);
+          var a = Var('a');
+          h.run([
+            declare(a, initializer: expr('A')),
+            a.property('_i').nonNullAssert,
+            // `a._i` is promoted now.
+            a.property('_i').checkType('int'),
+            // And so is `a?._i`.
+            a.property('_i', isNullAware: true).checkType('int'),
+          ]);
+        });
+
+        test('When disabled, cannot promote', () {
+          h.disableSoundFlowAnalysis();
+          h.addMember('A', '_i', 'int?', promotable: true);
+          var a = Var('a');
+          h.run([
+            declare(a, initializer: expr('A')),
+            a.property('_i', isNullAware: true).nonNullAssert,
+            // `a._i` is not promoted.
+            a.property('_i').checkType('int?'),
+            // But had the field access not been null aware, it would have been
+            // promoted.
+            a.property('_i').nonNullAssert,
+            a.property('_i').checkType('int'),
+          ]);
+        });
+
+        test('When enabled, can promote', () {
+          h.addMember('A', '_i', 'int?', promotable: true);
+          var a = Var('a');
+          h.run([
+            declare(a, initializer: expr('A')),
+            a.property('_i').checkType('int?'),
+            a.property('_i', isNullAware: true).nonNullAssert,
+            // `a._i` is promoted.
+            a.property('_i').checkType('int'),
+          ]);
+        });
+
+        test('In conditional expression', () {
+          h.addMember('A', '_i', 'int?', promotable: true);
+          var a = Var('a');
+          h.run([
+            declare(a, initializer: expr('A')),
+            expr(
+              'bool',
+            ).conditional(nullLiteral, a.property('_i', isNullAware: true)),
+          ]);
+        });
+      });
+
+      group('Cascaded:', () {
+        test('When disabled, sees previous promotions', () {
+          h.disableSoundFlowAnalysis();
+          h.addMember('A', '_i', 'int?', promotable: true);
+          var a = Var('a');
+          h.run([
+            declare(a, initializer: expr('A')),
+            a.property('_i').nonNullAssert,
+            // `a._i` is promoted now.
+            a.property('_i').checkType('int'),
+            // And `a?.._i` is promoted.
+            a.cascade(isNullAware: true, [
+              (placeholder) => placeholder.property('_i').checkType('int'),
+            ]),
+          ]);
+        });
+
+        test('When enabled, sees previous promotions', () {
+          h.addMember('A', '_i', 'int?', promotable: true);
+          var a = Var('a');
+          h.run([
+            declare(a, initializer: expr('A')),
+            a.property('_i').nonNullAssert,
+            // `a._i` is promoted now.
+            a.property('_i').checkType('int'),
+            // And `a?.._i` is promoted.
+            a.cascade(isNullAware: true, [
+              (placeholder) => placeholder.property('_i').checkType('int'),
+            ]),
+          ]);
+        });
+      });
+    });
   });
 }
 

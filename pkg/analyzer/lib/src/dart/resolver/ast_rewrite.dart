@@ -47,17 +47,17 @@ class AstRewriter {
     var typeNode = node.constructorName.type;
     var importPrefix = typeNode.importPrefix;
     if (importPrefix == null) {
-      var element = nameScope.lookup(typeNode.name2.lexeme).getter2;
+      var element = nameScope.lookup(typeNode.name.lexeme).getter2;
       if (element is ExecutableElement) {
         return _toMethodInvocationOfFunctionReference(
           node: node,
-          function: SimpleIdentifierImpl(typeNode.name2),
+          function: SimpleIdentifierImpl(token: typeNode.name),
         );
       } else if (element is TypeAliasElementImpl2 &&
           element.aliasedElement2 is GenericFunctionTypeElement) {
         return _toMethodInvocationOfAliasedTypeLiteral(
           node: node,
-          function: SimpleIdentifierImpl(typeNode.name2),
+          function: SimpleIdentifierImpl(token: typeNode.name),
           element: element,
         );
       }
@@ -65,15 +65,15 @@ class AstRewriter {
       var prefixName = importPrefix.name.lexeme;
       var prefixElement = nameScope.lookup(prefixName).getter2;
       if (prefixElement is PrefixElement) {
-        var prefixedName = typeNode.name2.lexeme;
+        var prefixedName = typeNode.name.lexeme;
         var element = prefixElement.scope.lookup(prefixedName).getter2;
         if (element is TopLevelFunctionElement) {
           return _toMethodInvocationOfFunctionReference(
             node: node,
             function: PrefixedIdentifierImpl(
-              prefix: SimpleIdentifierImpl(importPrefix.name),
+              prefix: SimpleIdentifierImpl(token: importPrefix.name),
               period: importPrefix.period,
-              identifier: SimpleIdentifierImpl(typeNode.name2),
+              identifier: SimpleIdentifierImpl(token: typeNode.name),
             ),
           );
         } else if (element is TypeAliasElementImpl2 &&
@@ -81,9 +81,9 @@ class AstRewriter {
           return _toMethodInvocationOfAliasedTypeLiteral(
             node: node,
             function: PrefixedIdentifierImpl(
-              prefix: SimpleIdentifierImpl(importPrefix.name),
+              prefix: SimpleIdentifierImpl(token: importPrefix.name),
               period: importPrefix.period,
-              identifier: SimpleIdentifierImpl(typeNode.name2),
+              identifier: SimpleIdentifierImpl(token: typeNode.name),
             ),
             element: element,
           );
@@ -107,9 +107,9 @@ class AstRewriter {
         return _toMethodInvocationOfFunctionReference(
           node: node,
           function: PrefixedIdentifierImpl(
-            prefix: SimpleIdentifierImpl(importPrefix.name),
+            prefix: SimpleIdentifierImpl(token: importPrefix.name),
             period: importPrefix.period,
-            identifier: SimpleIdentifierImpl(typeNode.name2),
+            identifier: SimpleIdentifierImpl(token: typeNode.name),
           ),
         );
       }
@@ -445,7 +445,7 @@ class AstRewriter {
         name: typeNameIdentifier.prefix.token,
         period: typeNameIdentifier.period,
       ),
-      name2: typeNameIdentifier.identifier.token,
+      name: typeNameIdentifier.identifier.token,
       typeArguments: typeArguments,
       question: null,
     );
@@ -479,7 +479,7 @@ class AstRewriter {
 
     var typeName = NamedTypeImpl(
       importPrefix: null,
-      name2: node.prefix.token,
+      name: node.prefix.token,
       typeArguments: null,
       question: null,
     );
@@ -542,7 +542,7 @@ class AstRewriter {
         name: prefixIdentifier.token,
         period: node.operator!,
       ),
-      name2: typeIdentifier.token,
+      name: typeIdentifier.token,
       typeArguments: node.typeArguments,
       question: null,
     );
@@ -567,7 +567,7 @@ class AstRewriter {
   }) {
     var typeName = NamedTypeImpl(
       importPrefix: null,
-      name2: typeIdentifier.token,
+      name: typeIdentifier.token,
       typeArguments: node.typeArguments,
       question: null,
     );
@@ -608,7 +608,7 @@ class AstRewriter {
     }
     var typeName = NamedTypeImpl(
       importPrefix: null,
-      name2: typeIdentifier.token,
+      name: typeIdentifier.token,
       typeArguments: null,
       question: null,
     );
@@ -635,7 +635,7 @@ class AstRewriter {
   }) {
     var typeName = NamedTypeImpl(
       importPrefix: node.constructorName.type.importPrefix,
-      name2: node.constructorName.type.name2,
+      name: node.constructorName.type.name,
       typeArguments: node.constructorName.type.typeArguments,
       question: null,
     );

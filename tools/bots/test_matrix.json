@@ -146,10 +146,12 @@
       "buildtools/mac-arm64/clang/bin/llvm-nm",
       "buildtools/mac-arm64/clang/bin/llvm-strip",
       "buildtools/mac-arm64/clang/bin/llvm-symbolizer",
+      "buildtools/mac-arm64/clang/lib/clang/21/lib/darwin/",
       "buildtools/mac-x64/clang/bin/llvm",
       "buildtools/mac-x64/clang/bin/llvm-nm",
       "buildtools/mac-x64/clang/bin/llvm-strip",
       "buildtools/mac-x64/clang/bin/llvm-symbolizer",
+      "buildtools/mac-x64/clang/lib/clang/21/lib/darwin/",
       "buildtools/win-x64/clang/bin/llvm-symbolizer.exe",
       "third_party/android_tools/sdk/platform-tools/adb",
       "third_party/android_tools/ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/../lib/x86_64-unknown-linux-gnu/libc++.so",
@@ -331,11 +333,31 @@
     "vm-msan-linux-(debug|product|release)-(x64|arm64|simarm64|simriscv64)": {},
     "vm-tsan-(linux|mac)-(debug|product|release)-(x64|arm64|simarm64|simriscv64)": {},
     "vm-ubsan-(linux|mac|win)-(debug|product|release)-(ia32|x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {},
-    "vm-aot-asan-(linux|mac|win)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {},
-    "vm-aot-lsan-(linux|mac)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {},
-    "vm-aot-msan-linux-(debug|product|release)-(x64|arm64|simarm64|simriscv64)": {},
-    "vm-aot-tsan-(linux|mac)-(debug|product|release)-(x64|arm64|simarm64|simriscv64)": {},
-    "vm-aot-ubsan-(linux|mac|win)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {},
+    "vm-aot-asan-(linux|mac|win)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {
+      "options": {
+        "use-elf": true
+      }
+    },
+    "vm-aot-lsan-(linux|mac)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {
+      "options": {
+        "use-elf": true
+      }
+    },
+    "vm-aot-msan-linux-(debug|product|release)-(x64|arm64|simarm64|simriscv64)": {
+      "options": {
+        "use-elf": true
+      }
+    },
+    "vm-aot-tsan-(linux|mac)-(debug|product|release)-(x64|arm64|simarm64|simriscv64)": {
+      "options": {
+        "use-elf": true
+      }
+    },
+    "vm-aot-ubsan-(linux|mac|win)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {
+      "options": {
+        "use-elf": true
+      }
+    },
     "dart2js-(linux|win)-chrome": {
       "options": {
         "use-sdk": true

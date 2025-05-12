@@ -1253,9 +1253,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitNamedType(covariant NamedTypeImpl node) {
-    _checkForAmbiguousImport(name: node.name2, element: node.element2);
+    _checkForAmbiguousImport(name: node.name, element: node.element2);
     _checkForTypeParameterReferencedByStatic(
-      name: node.name2,
+      name: node.name,
       element: node.element2,
     );
     _typeArgumentsVerifier.checkNamedType(node);
@@ -4282,7 +4282,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         // This error can only occur if [mixinName] resolved to an actual mixin,
         // so we can safely rely on `mixinName.type` being non-`null`.
         errorReporter.atToken(
-          mixinName.name2,
+          mixinName.name,
           CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
           arguments: [mixinName.type!, superType, constraint],
         );
@@ -4395,11 +4395,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           errorReporter.atNode(
             namedType,
             CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
-            arguments: [name, namedType.name2.lexeme, conflictingName],
+            arguments: [name, namedType.name.lexeme, conflictingName],
           );
           return true;
         }
-        names[name] = namedType.name2.lexeme;
+        names[name] = namedType.name.lexeme;
         var inheritedMember = _inheritanceManager.getMember4(
           declaredSupertype.element3,
           Name(library.uri, name),
@@ -4417,7 +4417,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
             arguments: [
               name,
-              namedType.name2.lexeme,
+              namedType.name.lexeme,
               inheritedMember.enclosingElement2!.name3!,
             ],
           );

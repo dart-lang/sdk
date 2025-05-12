@@ -54,7 +54,7 @@ class CreateClass extends ResolvedCorrectionProducer {
           return;
         }
       }
-      className = targetNode.name2.lexeme;
+      className = targetNode.name.lexeme;
       requiresConstConstructor |= _requiresConstConstructor(targetNode);
     } else if (targetNode case SimpleIdentifier(
       :var parent,

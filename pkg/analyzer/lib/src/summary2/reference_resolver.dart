@@ -444,11 +444,11 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
       importPrefix.element2 = prefixElement;
 
       if (prefixElement is PrefixElement) {
-        var name = node.name2.lexeme;
+        var name = node.name.lexeme;
         element = prefixElement.scope.lookup(name).getter2;
       }
     } else {
-      var name = node.name2.lexeme;
+      var name = node.name.lexeme;
 
       if (name == 'void') {
         node.type = VoidTypeImpl.instance;

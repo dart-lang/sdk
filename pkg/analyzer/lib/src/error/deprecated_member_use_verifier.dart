@@ -189,7 +189,7 @@ abstract class BaseDeprecatedMemberUseVerifier {
     } else if (node is ExtensionOverride) {
       errorEntity = node.name;
     } else if (node is NamedType) {
-      errorEntity = node.name2;
+      errorEntity = node.name;
     } else if (node is NamedExpression) {
       errorEntity = node.name.label;
     } else if (node is PatternFieldImpl) {

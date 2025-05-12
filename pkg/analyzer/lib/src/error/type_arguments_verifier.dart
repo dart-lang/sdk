@@ -565,7 +565,7 @@ class TypeArgumentsVerifier {
           _errorReporter.atNode(
             typeAnnotation,
             errorCode,
-            arguments: [typeAnnotation.name2.lexeme],
+            arguments: [typeAnnotation.name.lexeme],
           );
         } else if (typeArguments != null) {
           for (var argument in typeArguments.arguments) {

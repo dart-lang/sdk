@@ -82,7 +82,7 @@ class TypeDefinitionHandler
         SyntacticEntity? originEntity;
         DartType? type;
         if (node is NamedType) {
-          originEntity = node.name2;
+          originEntity = node.name;
           var element = node.element2;
           if (element case analyzer.InterfaceElement element) {
             type = element.thisType;

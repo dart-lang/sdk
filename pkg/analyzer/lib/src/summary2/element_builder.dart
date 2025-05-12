@@ -374,7 +374,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         constructorName: ConstructorNameImpl(
           type: NamedTypeImpl(
             importPrefix: null,
-            name2: StringToken(TokenType.STRING, fragment.name, -1),
+            name: StringToken(TokenType.STRING, fragment.name, -1),
             typeArguments: constant.arguments?.typeArguments,
             question: null,
           ),
@@ -382,7 +382,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
           name:
               constructorName != null
                   ? SimpleIdentifierImpl(
-                    StringToken(TokenType.STRING, constructorName, -1),
+                    token: StringToken(TokenType.STRING, constructorName, -1),
                   )
                   : null,
         ),
@@ -417,7 +417,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       holder.addNonSyntheticField(refName, field);
 
       valuesElements.add(
-        SimpleIdentifierImpl(StringToken(TokenType.STRING, name, -1)),
+        SimpleIdentifierImpl(token: StringToken(TokenType.STRING, name, -1)),
       );
       valuesNames.add(name);
     }
@@ -446,13 +446,13 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     );
     var valuesTypeNode = NamedTypeImpl(
       importPrefix: null,
-      name2: StringToken(TokenType.STRING, 'List', -1),
+      name: StringToken(TokenType.STRING, 'List', -1),
       typeArguments: TypeArgumentListImpl(
         leftBracket: Tokens.lt(),
         arguments: [
           NamedTypeImpl(
             importPrefix: null,
-            name2: StringToken(TokenType.STRING, fragment.name, -1),
+            name: StringToken(TokenType.STRING, fragment.name, -1),
             typeArguments: null,
             question: null,
           )..element2 = fragment.asElement2,

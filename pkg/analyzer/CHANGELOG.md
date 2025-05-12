@@ -16,6 +16,7 @@
 * Change `ElementDirective` from `sealed` to `abstract`.
   This allows the analyzer to have an internal implementation
   class corresponding to `ElementDirective`.
+* Deprecate `NamedType.name2`, use `name` instead.
 
 ## 7.4.1
 * Restore `InstanceElement.augmented` getter.

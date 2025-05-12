@@ -27,12 +27,19 @@ abstract interface class SharedTestInterface {
   /// Gets the full normalized path of the test project folder.
   String get projectFolderPath;
 
+  /// Gets the full normalized file path of the `pubspec.yaml` in the test
+  /// project.
+  String get pubspecFilePath;
+
+  /// Gets a file:/// URI for [pubspecFilePath].
+  Uri get pubspecFileUri;
+
   /// Gets the full normalized file path of a file named "test.dart" in the test
   /// project.
   String get testFilePath;
 
   /// Gets a file:/// URI for [testFilePath];
-  Uri get testFileUri => Uri.file(testFilePath);
+  Uri get testFileUri;
 
   /// Tells the server that file with [uri] has been closed and any overlay
   /// should be removed.

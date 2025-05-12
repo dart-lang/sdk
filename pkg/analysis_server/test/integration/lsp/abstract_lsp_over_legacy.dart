@@ -53,11 +53,7 @@ abstract class AbstractLspOverLegacyTest
     RequestMessage message,
     T Function(R) fromJson,
   ) async {
-    var legacyResult = await sendLspHandle(message.toJson());
-    var lspResponseJson = legacyResult.lspResponse as Map<String, Object?>;
-
-    // Unwrap the LSP response.
-    var lspResponse = ResponseMessage.fromJson(lspResponseJson);
+    var lspResponse = await sendRequestToServer(message);
     var error = lspResponse.error;
     if (error != null) {
       throw error;
@@ -68,6 +64,15 @@ abstract class AbstractLspOverLegacyTest
     } else {
       return fromJson(lspResponse.result as R);
     }
+  }
+
+  @override
+  Future<ResponseMessage> sendRequestToServer(RequestMessage message) async {
+    var legacyResult = await sendLspHandle(message.toJson());
+    var lspResponseJson = legacyResult.lspResponse as Map<String, Object?>;
+
+    // Unwrap the LSP response.
+    return ResponseMessage.fromJson(lspResponseJson);
   }
 
   @override

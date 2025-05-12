@@ -666,16 +666,11 @@ class OperationsCfe
   }
 
   @override
-  SharedTypeView variableType(VariableDeclaration variable) {
-    if (variable is VariableDeclarationImpl) {
-      // When late variables get lowered, their type is changed, but the
-      // original type is stored in `VariableDeclarationImpl.lateType`, so we
-      // use that if it exists.
-      return new SharedTypeView(variable.lateType ?? variable.type);
-    }
-    // TODO(paulberry): see if this code path can be eliminated.
-    // Coverage-ignore(suite): Not run.
-    return new SharedTypeView(variable.type);
+  SharedTypeView variableType(covariant VariableDeclarationImpl variable) {
+    // When late variables get lowered, their type is changed, but the
+    // original type is stored in `VariableDeclarationImpl.lateType`, so we
+    // use that if it exists.
+    return new SharedTypeView(variable.lateType ?? variable.type);
   }
 
   @override

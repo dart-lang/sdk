@@ -40,7 +40,6 @@ import '../shared/mixins/analytics_test_mixin.dart';
 import '../shared/shared_test_interface.dart';
 import '../support/configuration_files.dart';
 import '../utils/message_scheduler_test_view.dart';
-import 'change_verifier.dart';
 import 'request_helpers_mixin.dart';
 
 const dartLanguageId = 'dart';
@@ -167,22 +166,6 @@ abstract class AbstractLspAnalysisServerTest
       return resp.result == null ? null as T : fromJson(resp.result as R);
     }
   }
-
-  List<TextDocumentEdit> extractTextDocumentEdits(
-    DocumentChanges documentChanges,
-  ) =>
-      // Extract TextDocumentEdits from union of resource changes
-      documentChanges
-          .map(
-            (change) => change.map(
-              (create) => null,
-              (delete) => null,
-              (rename) => null,
-              (textDocEdit) => textDocEdit,
-            ),
-          )
-          .nonNulls
-          .toList();
 
   @override
   String? getCurrentFileContent(Uri uri) {
@@ -319,21 +302,6 @@ $experiments
   Future<void> tearDown() async {
     channel.close();
     await server.shutdown();
-  }
-
-  LspChangeVerifier verifyEdit(
-    WorkspaceEdit edit,
-    String expected, {
-    Map<Uri, int>? expectedVersions,
-  }) {
-    var expectDocumentChanges =
-        workspaceCapabilities.workspaceEdit?.documentChanges ?? false;
-    expect(edit.documentChanges, expectDocumentChanges ? isNotNull : isNull);
-    expect(edit.changes, expectDocumentChanges ? isNull : isNotNull);
-
-    var verifier = LspChangeVerifier(this, edit);
-    verifier.verifyFiles(expected, expectedVersions: expectedVersions);
-    return verifier;
   }
 
   /// Encodes any drive letter colon in the URI.
@@ -818,10 +786,6 @@ mixin ClientCapabilitiesHelperMixin {
 
 mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin, LspEditHelpersMixin
     implements ClientCapabilitiesHelperMixin {
-  /// A progress token used in tests where the client-provides the token, which
-  /// should not be validated as being created by the server first.
-  final clientProvidedTestWorkDoneToken = ProgressToken.t2('client-test');
-
   late String projectFolderPath,
       mainFilePath,
       nonExistentFilePath,
@@ -1420,8 +1384,6 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin, LspEditHelpersMixin
   }
 
   FutureOr<void> sendNotificationToServer(NotificationMessage notification);
-
-  Future<ResponseMessage> sendRequestToServer(RequestMessage request);
 
   // This is the signature expected for LSP.
   // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#:~:text=Response%3A-,result%3A%20null,-error%3A%20code%20and

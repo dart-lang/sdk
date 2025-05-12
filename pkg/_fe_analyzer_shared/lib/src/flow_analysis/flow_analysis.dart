@@ -5926,6 +5926,11 @@ class _FlowAnalysisImpl<
     _NullAwareAccessContext<Type> context =
         _stack.removeLast() as _NullAwareAccessContext<Type>;
     _current = _join(_current, context._previous).unsplit();
+    // If any expression info or expression reference was stored for the
+    // null-aware expression, it was only valid in the case where the target
+    // expression was not null. So it needs to be cleared now.
+    _expressionInfo = null;
+    _expressionReference = null;
   }
 
   @override
@@ -5955,6 +5960,15 @@ class _FlowAnalysisImpl<
         break;
     }
     _stack.add(new _NullAwareAccessContext<Type>(shortcutControlPath));
+    SsaNode<Type>? targetSsaNode;
+    if (typeAnalyzerOptions.soundFlowAnalysisEnabled) {
+      // Store back the target reference so that it can be used for field
+      // promotion.
+      if (target != null && targetReference != null) {
+        _storeExpressionReference(target, targetReference);
+        targetSsaNode = targetReference.ssaNode;
+      }
+    }
     if (guardVariable != null) {
       // Promote the guard variable as well.
       int promotionKey = promotionKeyStore.keyForVariable(guardVariable);
@@ -5967,7 +5981,7 @@ class _FlowAnalysisImpl<
           tested: const [],
           assigned: true,
           unassigned: false,
-          ssaNode: new SsaNode(null),
+          ssaNode: targetSsaNode ?? new SsaNode(null),
         ),
       );
     }

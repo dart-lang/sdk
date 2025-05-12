@@ -58,7 +58,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
-  const: const
+  constKeyword: const
   expression: InstanceCreationExpression
     constructorName: ConstructorName
       type: NamedType
@@ -118,7 +118,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
-  const: const
+  constKeyword: const
   expression: ListLiteral
     leftBracket: [
     elements
@@ -140,7 +140,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
-  const: const
+  constKeyword: const
   expression: SetOrMapLiteral
     leftBracket: {
     elements
@@ -241,7 +241,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
-  const: const
+  constKeyword: const
   expression: SetOrMapLiteral
     leftBracket: {
     elements

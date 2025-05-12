@@ -4755,7 +4755,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       var constructorName = nameNode.constructorName;
       name =
           constructorName.name?.name ??
-          '${constructorName.type.name2.lexeme}.new';
+          '${constructorName.type.name.lexeme}.new';
     } else if (nameNode is RedirectingConstructorInvocation) {
       name = nameNode.constructorName?.name;
       if (name == null) {

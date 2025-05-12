@@ -238,6 +238,22 @@ int OS::NumberOfAvailableProcessors() {
   return info.dwNumberOfProcessors;
 }
 
+uintptr_t OS::CurrentRSS() {
+// Although the documentation at
+// https://docs.microsoft.com/en-us/windows/win32/api/psapi/nf-psapi-getprocessmemoryinfo
+// claims that GetProcessMemoryInfo is UWP compatible, it is actually not
+// hence this function cannot work when compiled in UWP mode.
+#ifdef DART_TARGET_OS_WINDOWS_UWP
+  return 0;
+#else
+  PROCESS_MEMORY_COUNTERS pmc;
+  if (!GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc))) {
+    return 0;
+  }
+  return pmc.WorkingSetSize;
+#endif
+}
+
 void OS::Sleep(int64_t millis) {
   ::Sleep(millis);
 }
