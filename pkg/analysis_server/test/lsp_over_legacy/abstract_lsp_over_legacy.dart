@@ -422,12 +422,22 @@ abstract class SharedLspOverLegacyTest extends LspOverLegacyTest
   // TODO(dantup): Support this for LSP-over-Legacy shared tests.
   var failTestOnErrorDiagnostic = false;
 
+  /// The current set of priority files. This is the same as the set of
+  /// currently-open files (see [openFile]/[closeFile]).
+  final Set<String> _priorityFiles = {};
+
   @override
   Future<void> get currentAnalysis => waitForTasksFinished();
 
   @override
   Future<void> closeFile(Uri uri) async {
-    await removeOverlay(fromUri(uri));
+    // closeFile should both remove the overlay and remove from priority files,
+    // since that's equivalent of what the LSP document handlers do and shared
+    // tests need to have the same behaviour.
+    var filePath = fromUri(uri);
+    await removeOverlay(filePath);
+    _priorityFiles.remove(filePath);
+    _updatePriorityFiles();
   }
 
   @override
@@ -442,7 +452,13 @@ abstract class SharedLspOverLegacyTest extends LspOverLegacyTest
 
   @override
   Future<void> openFile(Uri uri, String content, {int version = 1}) async {
-    await addOverlay(fromUri(uri), content, version);
+    // closeFile should both add an overlay and add to priority files,
+    // since that's equivalent of what the LSP document handlers do and shared
+    // tests need to have the same behaviour.
+    var filePath = fromUri(uri);
+    await addOverlay(filePath, content, version);
+    _priorityFiles.add(filePath);
+    _updatePriorityFiles();
   }
 
   /// Opens a file content without providing a version number.
@@ -468,5 +484,9 @@ abstract class SharedLspOverLegacyTest extends LspOverLegacyTest
   Future<void> replaceFileUnversioned(Uri uri, String content) async {
     // For legacy, we can use addOverlay to replace the whole file.
     await addOverlay(fromUri(uri), content);
+  }
+
+  void _updatePriorityFiles() {
+    setPriorityFiles(_priorityFiles.map(getFile).toList());
   }
 }

@@ -91,7 +91,6 @@ class InitializedLspStateMessageHandler extends InitializedStateMessageHandler {
         DefinitionHandler.new,
         DocumentLinkHandler.new,
         ReferencesHandler.new,
-        CodeActionHandler.new,
         ChangeWorkspaceFoldersHandler.new,
         PrepareRenameHandler.new,
         RenameHandler.new,
@@ -123,6 +122,7 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
       <_RequestHandlerGenerator<AnalysisServer>>[
         AugmentationHandler.new,
         AugmentedHandler.new,
+        CodeActionHandler.new,
         CodeLensHandler.new,
         ConnectToDtdHandler.new,
         DartTextDocumentContentProviderHandler.new,
