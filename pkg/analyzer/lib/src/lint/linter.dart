@@ -26,9 +26,7 @@ export 'package:analyzer/src/lint/state.dart'
 
 /// Describes an [AbstractAnalysisRule] which reports diagnostics using exactly
 /// one [DiagnosticCode].
-typedef AnalysisRule = LintRule;
-
-//typedef MultiAnalysisRule = MultiLintRule;
+typedef LintRule = AnalysisRule;
 
 /// Describes a static analysis rule, either a lint rule (which must be enabled
 /// via analysis options) or a warning rule (which is enabled by default).
@@ -155,8 +153,73 @@ sealed class AbstractAnalysisRule {
   }
 }
 
-/// Provides access to information needed by lint rules that is not available
-/// from AST nodes or the element model.
+/// Describes an [AbstractAnalysisRule] which reports exactly one type of
+/// diagnostic (one [DiagnosticCode]).
+abstract class AnalysisRule extends AbstractAnalysisRule {
+  AnalysisRule({required super.name, required super.description, super.state});
+
+  LintCode get lintCode;
+
+  @override
+  List<LintCode> get lintCodes => [lintCode];
+
+  /// Reports a diagnostic at [node] with message [arguments] and
+  /// [contextMessages].
+  void reportAtNode(
+    AstNode? node, {
+    List<Object> arguments = const [],
+    List<DiagnosticMessage>? contextMessages,
+  }) => _reportAtNode(
+    node,
+    diagnosticCode: lintCode,
+    arguments: arguments,
+    contextMessages: contextMessages,
+  );
+
+  /// Reports a diagnostic at [offset], with [length], with message [arguments]
+  /// and [contextMessages].
+  void reportAtOffset(
+    int offset,
+    int length, {
+    List<Object> arguments = const [],
+    List<DiagnosticMessage>? contextMessages,
+  }) => _reportAtOffset(
+    offset,
+    length,
+    diagnosticCode: lintCode,
+    arguments: arguments,
+    contextMessages: contextMessages,
+  );
+
+  /// Reports a diagnostic at Pubspec [node], with message [arguments] and
+  /// [contextMessages].
+  void reportAtPubNode(
+    PSNode node, {
+    List<Object> arguments = const [],
+    List<DiagnosticMessage> contextMessages = const [],
+  }) => _reportAtPubNode(
+    node,
+    errorCode: lintCode,
+    arguments: arguments,
+    contextMessages: contextMessages,
+  );
+
+  /// Reports a diagnostic at [token], with message [arguments] and
+  /// [contextMessages].
+  void reportAtToken(
+    Token token, {
+    List<Object> arguments = const [],
+    List<DiagnosticMessage>? contextMessages,
+  }) => _reportAtToken(
+    token,
+    diagnosticCode: lintCode,
+    arguments: arguments,
+    contextMessages: contextMessages,
+  );
+}
+
+/// Provides access to information needed by analysis rules that is not
+/// available from AST nodes or the element model.
 abstract class LinterContext {
   /// The list of all compilation units that make up the library under analysis,
   /// including the defining compilation unit, all parts, and all augmentations.
@@ -301,71 +364,6 @@ final class LinterContextWithResolvedResults implements LinterContext {
   @override
   LibraryElement get libraryElement2 =>
       definingUnit.unit.declaredFragment!.element;
-}
-
-/// Describes an [AbstractAnalysisRule] which reports exactly one type of
-/// diagnostic (one [DiagnosticCode]).
-abstract class LintRule extends AbstractAnalysisRule {
-  LintRule({required super.name, required super.description, super.state});
-
-  LintCode get lintCode;
-
-  @override
-  List<LintCode> get lintCodes => [lintCode];
-
-  /// Reports a diagnostic at [node] with message [arguments] and
-  /// [contextMessages].
-  void reportAtNode(
-    AstNode? node, {
-    List<Object> arguments = const [],
-    List<DiagnosticMessage>? contextMessages,
-  }) => _reportAtNode(
-    node,
-    diagnosticCode: lintCode,
-    arguments: arguments,
-    contextMessages: contextMessages,
-  );
-
-  /// Reports a diagnostic at [offset], with [length], with message [arguments]
-  /// and [contextMessages].
-  void reportAtOffset(
-    int offset,
-    int length, {
-    List<Object> arguments = const [],
-    List<DiagnosticMessage>? contextMessages,
-  }) => _reportAtOffset(
-    offset,
-    length,
-    diagnosticCode: lintCode,
-    arguments: arguments,
-    contextMessages: contextMessages,
-  );
-
-  /// Reports a diagnostic at Pubspec [node], with message [arguments] and
-  /// [contextMessages].
-  void reportAtPubNode(
-    PSNode node, {
-    List<Object> arguments = const [],
-    List<DiagnosticMessage> contextMessages = const [],
-  }) => _reportAtPubNode(
-    node,
-    errorCode: lintCode,
-    arguments: arguments,
-    contextMessages: contextMessages,
-  );
-
-  /// Reports a diagnostic at [token], with message [arguments] and
-  /// [contextMessages].
-  void reportAtToken(
-    Token token, {
-    List<Object> arguments = const [],
-    List<DiagnosticMessage>? contextMessages,
-  }) => _reportAtToken(
-    token,
-    diagnosticCode: lintCode,
-    arguments: arguments,
-    contextMessages: contextMessages,
-  );
 }
 
 /// Provides access to information needed by lint rules that is not available
