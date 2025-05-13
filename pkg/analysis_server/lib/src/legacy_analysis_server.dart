@@ -142,6 +142,12 @@ class AnalysisServerOptions {
   /// Base path where to cache data.
   String? cacheFolder;
 
+  /// If [true] don't create a (Evicting)FileByteStore.
+  ///
+  /// Intended for benchmarking as it makes "instructions:u" in `perf stat` more
+  /// stable, although it then doesn't benchmark that code.
+  bool? disableFileByteStore;
+
   /// The path to the package config file override.
   /// If `null`, then the default discovery mechanism is used.
   String? packagesFile;
