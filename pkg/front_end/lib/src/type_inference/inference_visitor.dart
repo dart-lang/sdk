@@ -12172,6 +12172,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                   node.name.text.length));
         }
 
+        TypeDeclaration typeDeclaration = cachedContext.typeDeclaration;
+        if (typeDeclaration is Class && typeDeclaration.isAbstract) {
+          return new ExpressionInferenceResult(
+              const DynamicType(),
+              helper.buildProblem(
+                  templateAbstractClassInstantiation
+                      .withArguments(typeDeclaration.name),
+                  node.nameOffset,
+                  node.name.text.length));
+        }
+
         // The shorthand expression is inferred in the empty context and then
         // type inference infers the type arguments.
         FunctionType functionType = constructor.function
@@ -12310,6 +12321,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                     node.name.text.length));
           }
           if (constructor is Constructor) {
+            TypeDeclaration typeDeclaration = cachedContext.typeDeclaration;
+            if (typeDeclaration is Class && typeDeclaration.isAbstract) {
+              return new ExpressionInferenceResult(
+                  const DynamicType(),
+                  helper.buildProblem(messageAbstractClassConstructorTearOff,
+                      node.nameOffset, node.name.text.length));
+            }
+
             DartType type = constructor.function
                 .computeFunctionType(Nullability.nonNullable);
             Expression tearOff = new ConstructorTearOff(constructor)

@@ -591,6 +591,24 @@ DotShorthandPropertyAccess
 ''');
   }
 
+  test_tearOff_constructor_abstract() async {
+    await assertErrorsInCode(
+      r'''
+Function fn() {
+  return .new;
+}
+''',
+      [
+        error(
+          CompileTimeErrorCode
+              .TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS,
+          25,
+          4,
+        ),
+      ],
+    );
+  }
+
   test_tearOff_constructor_new() async {
     await assertNoErrorsInCode('''
 void main() {
