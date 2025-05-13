@@ -103,9 +103,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     if (node.variables.length == 1) {
       var variable = node.variables.single;
-      var overriddenMember = context.inheritanceManager.overriddenMember(
-        variable.declaredFragment?.element,
-      );
+      var overriddenMember =
+          variable.declaredFragment?.element.overriddenMember;
       if (overriddenMember == null) {
         _report(variable.name, keyword: node.keyword);
       }
@@ -113,9 +112,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       // Handle the multiple-variable case separately so that we can instead
       // report `LinterLintCode.strict_top_level_inference_split_to_types`.
       for (var variable in variablesMissingAnInitializer) {
-        var overriddenMember = context.inheritanceManager.overriddenMember(
-          variable.declaredFragment?.element,
-        );
+        var overriddenMember =
+            variable.declaredFragment?.element.overriddenMember;
         if (overriddenMember == null) {
           rule.reportAtToken(
             variable.name,
@@ -208,9 +206,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         _checkFormalParameters(parameters.parameters);
       }
     } else {
-      var overriddenMember = context.inheritanceManager.overriddenMember(
-        node.declaredFragment?.element,
-      );
+      var overriddenMember = node.declaredFragment?.element.overriddenMember;
       if (overriddenMember == null &&
           node.returnType == null &&
           (!container.isReflectiveTest ||
@@ -246,9 +242,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.isStatic) return false;
     if (container is ExtensionElement) return false;
     if (container is ExtensionTypeElement) return false;
-    var overriddenMember = context.inheritanceManager.overriddenMember(
-      node.declaredFragment?.element,
-    );
+    var overriddenMember = node.declaredFragment?.element.overriddenMember;
     return overriddenMember != null;
   }
 

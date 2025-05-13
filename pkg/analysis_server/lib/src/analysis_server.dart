@@ -570,6 +570,10 @@ abstract class AnalysisServer {
       return providedByteStore;
     }
 
+    if (options.disableFileByteStore ?? false) {
+      return MemoryCachingByteStore(NullByteStore(), memoryCacheSize);
+    }
+
     if (resourceProvider is OverlayResourceProvider) {
       resourceProvider = resourceProvider.baseProvider;
     }
