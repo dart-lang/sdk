@@ -20,7 +20,7 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_FIELD_FORMAL_PARAMETERS;
+  FixKind get fixKind => DartFixKind.ADD_INITIALIZING_FORMAL_PARAMETERS;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

@@ -23,8 +23,8 @@ class DartDocumentationComputer {
       _ => elementBeingDocumented,
     };
     if (element == null) {
-      // This can happen when the code is invalid, such as having a field formal
-      // parameter for a field that does not exist.
+      // This can happen when the code is invalid, such as having an
+      // initializing formal parameter for a field that does not exist.
       return null;
     }
 

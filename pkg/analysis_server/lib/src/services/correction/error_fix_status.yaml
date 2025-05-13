@@ -730,18 +730,18 @@ CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER:
 CompileTimeErrorCode.FIELD_INITIALIZER_FACTORY_CONSTRUCTOR:
   status: needsFix
   notes: |-
-    Replace the field formal parameter with a normal parameter.
+    Replace the initializing formal parameter with a normal parameter.
 CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE:
   status: noFix
 CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR:
   status: needsFix
   notes: |-
-    Replace the field formal parameter with a normal parameter and add an
-    assignment to the field in the method.
+    Replace the initializing formal parameter with a normal parameter and
+    add an assignment to the field in the method.
 CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR:
   status: needsFix
   notes: |-
-    Replace the field formal parameter with a normal parameter.
+    Replace the initializing formal parameter with a normal parameter.
 CompileTimeErrorCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE:
   status: noFix
 CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY:
