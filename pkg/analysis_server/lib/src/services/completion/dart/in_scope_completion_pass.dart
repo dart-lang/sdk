@@ -678,7 +678,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitComment(Comment node) {
-    node.visitChildren(this);
+    // This should never call its children. They should, instead, be called
+    // directly by the containing node. Making sure all annotated nodes have
+    // the comments on the children call is the right way to handle this case.
   }
 
   @override
