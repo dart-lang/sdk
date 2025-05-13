@@ -16,7 +16,7 @@ class SecurePubspecUrls extends LintRule {
   LintCode get lintCode => LinterLintCode.secure_pubspec_urls;
 
   @override
-  PubspecVisitor<void> getPubspecVisitor() => Visitor(this);
+  PubspecVisitor<void> get pubspecVisitor => Visitor(this);
 }
 
 class Visitor extends PubspecVisitor<void> {

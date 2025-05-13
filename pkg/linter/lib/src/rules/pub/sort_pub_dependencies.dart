@@ -17,7 +17,7 @@ class SortPubDependencies extends LintRule {
   LintCode get lintCode => LinterLintCode.sort_pub_dependencies;
 
   @override
-  PubspecVisitor<void> getPubspecVisitor() => Visitor(this);
+  PubspecVisitor<void> get pubspecVisitor => Visitor(this);
 }
 
 class Visitor extends PubspecVisitor<void> {
