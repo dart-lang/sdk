@@ -16019,31 +16019,6 @@ FunctionPtr Library::GetFunction(const Library& lib,
   return func.ptr();
 }
 
-ObjectPtr Library::GetFunctionClosure(const String& name) const {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  Function& func = Function::Handle(zone, LookupFunctionAllowPrivate(name));
-  if (func.IsNull()) {
-    // Check whether the function is reexported into the library.
-    const Object& obj = Object::Handle(zone, LookupReExport(name));
-    if (obj.IsFunction()) {
-      func ^= obj.ptr();
-    } else {
-      // Check if there is a getter of 'name', in which case invoke it
-      // and return the result.
-      const String& getter_name = String::Handle(zone, Field::GetterName(name));
-      func = LookupFunctionAllowPrivate(getter_name);
-      if (func.IsNull()) {
-        return Closure::null();
-      }
-      // Invoke the getter and return the result.
-      return DartEntry::InvokeFunction(func, Object::empty_array());
-    }
-  }
-  func = func.ImplicitClosureFunction();
-  return func.ImplicitStaticClosure();
-}
-
 #if defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME)
 void Library::CheckFunctionFingerprints() {
   Library& lib = Library::Handle();
