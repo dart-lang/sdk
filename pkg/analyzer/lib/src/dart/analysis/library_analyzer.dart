@@ -513,7 +513,6 @@ class LibraryAnalyzer {
         _libraryElement,
         unit,
         typeSystem: _typeSystem,
-        inheritanceManager: _inheritance,
         analysisOptions: _analysisOptions,
         workspacePackage: _library.file.workspacePackage,
       ),
