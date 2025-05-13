@@ -41,7 +41,6 @@ import '../builder/formal_parameter_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
-import '../builder/name_iterator.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/never_type_declaration_builder.dart';
 import '../builder/nullability_builder.dart';
@@ -382,13 +381,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   @override
   // Coverage-ignore(suite): Not run.
-  Iterator<T> fullMemberIterator<T extends Builder>() =>
+  Iterator<T> fullMemberIterator<T extends NamedBuilder>() =>
       libraryNameSpace.filteredIterator<T>(includeDuplicates: false);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  NameIterator<T> fullMemberNameIterator<T extends Builder>() =>
-      libraryNameSpace.filteredNameIterator<T>(includeDuplicates: false);
 
   @override
   bool get isSynthetic => compilationUnit.isSynthetic;
@@ -473,11 +467,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void buildInitialScopes() {
     assert(checkState(required: [SourceLibraryBuilderState.scopesBuilt]));
 
-    NameIterator iterator =
-        libraryNameSpace.filteredNameIterator(includeDuplicates: false);
+    Iterator<NamedBuilder> iterator =
+        libraryNameSpace.filteredIterator(includeDuplicates: false);
     UriOffset uriOffset = new UriOffset(fileUri, TreeNode.noOffset);
     while (iterator.moveNext()) {
-      addToExportScope(iterator.name, iterator.current, uriOffset: uriOffset);
+      NamedBuilder builder = iterator.current;
+      addToExportScope(builder.name, builder, uriOffset: uriOffset);
     }
 
     state = SourceLibraryBuilderState.initialExportScopesBuilt;
@@ -492,11 +487,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       part.addImportsToScope();
     }
 
-    NameIterator<Builder> iterator =
-        exportNameSpace.filteredNameIterator(includeDuplicates: false);
+    Iterator<NamedBuilder> iterator =
+        exportNameSpace.filteredIterator(includeDuplicates: false);
     while (iterator.moveNext()) {
-      String name = iterator.name;
-      Builder builder = iterator.current;
+      NamedBuilder builder = iterator.current;
+      String name = builder.name;
       if (builder.parent != this) {
         if (builder is TypeDeclarationBuilder) {
           switch (builder) {
@@ -686,10 +681,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         localMembersIteratorOfType();
     while (extensionIterator.moveNext()) {
       SourceExtensionBuilder extension_ = extensionIterator.current;
-      for (Builder member in extension_.nameSpace.localMembers) {
-        if (member is SourcePropertyBuilder &&
-            !member.isStatic &&
-            member.hasExplicitGetter) {
+      Iterator<SourcePropertyBuilder> iterator =
+          extension_.nameSpace.filteredIterator(includeDuplicates: false);
+      while (iterator.moveNext()) {
+        SourcePropertyBuilder member = iterator.current;
+        if (!member.isStatic && member.hasExplicitGetter) {
           individualPropertyReasons[member.readTarget!] =
               member.memberName.isPrivate
                   ? PropertyNonPromotabilityReason.isNotField
@@ -709,10 +705,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         individualPropertyReasons[representationGetter] =
             PropertyNonPromotabilityReason.isNotPrivate;
       }
-      for (Builder member in extensionType.nameSpace.localMembers) {
-        if (member is SourcePropertyBuilder &&
-            !member.isStatic &&
-            member.hasExplicitGetter) {
+      Iterator<SourcePropertyBuilder> iterator =
+          extensionType.nameSpace.filteredIterator(includeDuplicates: false);
+      while (iterator.moveNext()) {
+        SourcePropertyBuilder member = iterator.current;
+        if (!member.isStatic && member.hasExplicitGetter) {
           individualPropertyReasons[member.readTarget!] =
               member.memberName.isPrivate
                   ? PropertyNonPromotabilityReason.isNotField

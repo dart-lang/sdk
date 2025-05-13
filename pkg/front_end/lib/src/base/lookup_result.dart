@@ -7,16 +7,17 @@ import '../builder/member_builder.dart';
 import 'scope.dart';
 
 abstract class LookupResult {
-  /// The [Builder] used for reading this entity, if any.
-  Builder? get getable;
+  /// The [NamedBuilder] used for reading this entity, if any.
+  NamedBuilder? get getable;
 
-  /// The [Builder] used for writing to this entity, if any.
-  Builder? get setable;
+  /// The [NamedBuilder] used for writing to this entity, if any.
+  NamedBuilder? get setable;
 
   /// Creates a [LookupResult] for [getable] and [setable] which filters
   /// instance members if [staticOnly] is `true`, and creates an
   /// [AmbiguousBuilder] for duplicates using [fileUri] and [fileOffset].
-  static LookupResult? createProcessedResult(Builder? getable, Builder? setable,
+  static LookupResult? createProcessedResult(
+      NamedBuilder? getable, NamedBuilder? setable,
       {required String name,
       required Uri fileUri,
       required int fileOffset,
@@ -50,11 +51,13 @@ abstract class LookupResult {
     return _fromBuilders(getable, setable, assertNoGetterSetterConflict: true);
   }
 
-  static LookupResult? createResult(Builder? getable, Builder? setable) {
+  static LookupResult? createResult(
+      NamedBuilder? getable, NamedBuilder? setable) {
     return _fromBuilders(getable, setable, assertNoGetterSetterConflict: false);
   }
 
-  static LookupResult? _fromBuilders(Builder? getable, Builder? setable,
+  static LookupResult? _fromBuilders(
+      NamedBuilder? getable, NamedBuilder? setable,
       {required bool assertNoGetterSetterConflict}) {
     if (getable is LookupResult) {
       LookupResult lookupResult = getable as LookupResult;
@@ -98,30 +101,30 @@ abstract class LookupResult {
 
 class GetableResult implements LookupResult {
   @override
-  final Builder getable;
+  final NamedBuilder getable;
 
   GetableResult(this.getable);
 
   @override
-  Builder? get setable => null;
+  NamedBuilder? get setable => null;
 }
 
 class SetableResult implements LookupResult {
   @override
-  final Builder setable;
+  final NamedBuilder setable;
 
   SetableResult(this.setable);
 
   @override
-  Builder? get getable => null;
+  NamedBuilder? get getable => null;
 }
 
 class GetableSetableResult implements LookupResult {
   @override
-  final Builder getable;
+  final NamedBuilder getable;
 
   @override
-  final Builder setable;
+  final NamedBuilder setable;
 
   GetableSetableResult(this.getable, this.setable);
 }

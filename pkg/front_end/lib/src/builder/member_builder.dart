@@ -11,7 +11,8 @@ import 'builder.dart';
 import 'declaration_builders.dart';
 import 'library_builder.dart';
 
-abstract class MemberBuilder implements Builder, LookupResult {
+abstract class MemberBuilder implements Builder, LookupResult, NamedBuilder {
+  @override
   String get name;
 
   LibraryBuilder get libraryBuilder;
@@ -118,7 +119,8 @@ abstract class MemberBuilder implements Builder, LookupResult {
   bool get isProperty;
 }
 
-abstract class MemberBuilderImpl extends BuilderImpl implements MemberBuilder {
+abstract class MemberBuilderImpl extends NamedBuilderImpl
+    implements MemberBuilder {
   @override
   Uri get fileUri;
 

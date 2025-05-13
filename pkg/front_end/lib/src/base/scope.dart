@@ -11,7 +11,6 @@ import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
-import '../builder/name_iterator.dart';
 import '../builder/prefix_builder.dart';
 import '../kernel/hierarchy/class_member.dart' show ClassMember;
 import '../kernel/kernel_helper.dart';
@@ -134,9 +133,7 @@ abstract class BaseNameSpaceLookupScope implements LookupScope {
   @override
   final ScopeKind kind;
 
-  final String classNameOrDebugName;
-
-  BaseNameSpaceLookupScope(this.kind, this.classNameOrDebugName);
+  BaseNameSpaceLookupScope(this.kind);
 
   NameSpace get _nameSpace;
 
@@ -156,7 +153,7 @@ abstract class BaseNameSpaceLookupScope implements LookupScope {
   }
 
   @override
-  String toString() => "$runtimeType(${kind},$classNameOrDebugName)";
+  String toString() => "$runtimeType(${kind})";
 }
 
 class NameSpaceLookupScope extends BaseNameSpaceLookupScope {
@@ -166,8 +163,7 @@ class NameSpaceLookupScope extends BaseNameSpaceLookupScope {
   @override
   final LookupScope? _parent;
 
-  NameSpaceLookupScope(this._nameSpace, super.kind, super.classNameOrDebugName,
-      {LookupScope? parent})
+  NameSpaceLookupScope(this._nameSpace, super.kind, {LookupScope? parent})
       : _parent = parent;
 }
 
@@ -230,7 +226,7 @@ class CompilationUnitImportScope extends BaseNameSpaceLookupScope {
   final NameSpace _importNameSpace;
 
   CompilationUnitImportScope(this._compilationUnit, this._importNameSpace)
-      : super(ScopeKind.import, 'import');
+      : super(ScopeKind.import);
 
   @override
   NameSpace get _nameSpace => _importNameSpace;
@@ -255,9 +251,7 @@ class CompilationUnitScope extends BaseNameSpaceLookupScope {
   @override
   final LookupScope? _parent;
 
-  CompilationUnitScope(
-      this._compilationUnit, super.kind, super.classNameOrDebugName,
-      {LookupScope? parent})
+  CompilationUnitScope(this._compilationUnit, super.kind, {LookupScope? parent})
       : _parent = parent;
 
   @override
@@ -286,8 +280,7 @@ class CompilationUnitPrefixScope extends BaseNameSpaceLookupScope {
   @override
   final LookupScope? _parent;
 
-  CompilationUnitPrefixScope(
-      this._nameSpace, super.kind, super.classNameOrDebugName,
+  CompilationUnitPrefixScope(this._nameSpace, super.kind,
       {required LookupScope? parent})
       : _parent = parent;
 
@@ -318,8 +311,7 @@ class DeclarationBuilderScope extends BaseNameSpaceLookupScope {
   @override
   final LookupScope? _parent;
 
-  DeclarationBuilderScope(this._parent)
-      : super(ScopeKind.declaration, 'declaration');
+  DeclarationBuilderScope(this._parent) : super(ScopeKind.declaration);
 
   @override
   NameSpace get _nameSpace {
@@ -336,8 +328,11 @@ class DeclarationBuilderScope extends BaseNameSpaceLookupScope {
 
 /// Computes a builder for the import collision between [declaration] and
 /// [other].
-Builder computeAmbiguousDeclarationForImport(ProblemReporting problemReporting,
-    String name, Builder declaration, Builder other,
+NamedBuilder computeAmbiguousDeclarationForImport(
+    ProblemReporting problemReporting,
+    String name,
+    NamedBuilder declaration,
+    NamedBuilder other,
     {required UriOffset uriOffset}) {
   // Prefix fragments are merged to singular prefix builders when computing the
   // import scope.
@@ -348,7 +343,7 @@ Builder computeAmbiguousDeclarationForImport(ProblemReporting problemReporting,
   if (declaration == other) return declaration;
   if (declaration is InvalidTypeDeclarationBuilder) return declaration;
   if (other is InvalidTypeDeclarationBuilder) return other;
-  Builder? preferred;
+  NamedBuilder? preferred;
   Uri uri = computeLibraryUri(declaration);
   Uri otherUri = computeLibraryUri(other);
   if (declaration is LoadLibraryBuilder) {
@@ -384,10 +379,11 @@ Builder computeAmbiguousDeclarationForImport(ProblemReporting problemReporting,
       suppressMessage: false);
 }
 
-abstract class ProblemBuilder extends BuilderImpl {
+abstract class ProblemBuilder extends NamedBuilderImpl {
+  @override
   final String name;
 
-  final Builder builder;
+  final NamedBuilder builder;
 
   @override
   final int fileOffset;
@@ -404,7 +400,8 @@ abstract class ProblemBuilder extends BuilderImpl {
 }
 
 class AmbiguousBuilder extends ProblemBuilder {
-  AmbiguousBuilder(String name, Builder builder, int charOffset, Uri fileUri)
+  AmbiguousBuilder(
+      String name, NamedBuilder builder, int charOffset, Uri fileUri)
       : super(name, builder, charOffset, fileUri);
 
   @override
@@ -416,8 +413,8 @@ class AmbiguousBuilder extends ProblemBuilder {
 
   // TODO(ahe): Also provide context.
 
-  Builder getFirstDeclaration() {
-    Builder declaration = builder;
+  NamedBuilder getFirstDeclaration() {
+    NamedBuilder declaration = builder;
     while (declaration.next != null) {
       declaration = declaration.next!;
     }
@@ -549,32 +546,32 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
 class AmbiguousMemberBuilder extends AmbiguousBuilder
     with ErroneousMemberBuilderMixin {
   AmbiguousMemberBuilder(
-      String name, Builder builder, int charOffset, Uri fileUri)
+      String name, NamedBuilder builder, int charOffset, Uri fileUri)
       : super(name, builder, charOffset, fileUri);
 
   @override
   // Coverage-ignore(suite): Not run.
-  Builder get getable => this;
+  NamedBuilder get getable => this;
 
   @override
   // Coverage-ignore(suite): Not run.
-  Builder get setable => this;
+  NamedBuilder get setable => this;
 }
 
 /// Iterator over builders mapped in a [Scope], including duplicates for each
 /// directly mapped builder.
-class ScopeIterator implements Iterator<Builder> {
-  Iterator<Builder>? local;
-  Iterator<Builder>? setters;
-  Iterator<Builder>? extensions;
+class ScopeIterator implements Iterator<NamedBuilder> {
+  Iterator<NamedBuilder>? local;
+  Iterator<NamedBuilder>? setters;
+  Iterator<NamedBuilder>? extensions;
 
-  Builder? _current;
+  NamedBuilder? _current;
 
   ScopeIterator(this.local, this.setters, this.extensions);
 
   @override
   bool moveNext() {
-    Builder? next = _current?.next;
+    NamedBuilder? next = _current?.next;
     if (next != null) {
       _current = next;
       return true;
@@ -611,78 +608,8 @@ class ScopeIterator implements Iterator<Builder> {
   }
 
   @override
-  Builder get current {
+  NamedBuilder get current {
     return _current ?? // Coverage-ignore(suite): Not run.
-        (throw new StateError('No element'));
-  }
-}
-
-/// Iterator over builders mapped in a [Scope], including duplicates for each
-/// directly mapped builder.
-///
-/// Compared to [ScopeIterator] this iterator also gives
-/// access to the name that the builders are mapped to.
-class ScopeNameIterator extends ScopeIterator implements NameIterator<Builder> {
-  Iterator<String>? localNames;
-  Iterator<String>? setterNames;
-
-  String? _name;
-
-  ScopeNameIterator(Map<String, Builder>? getables,
-      Map<String, Builder>? setables, Iterator<Builder>? extensions)
-      : localNames = getables?.keys.iterator,
-        setterNames = setables?.keys.iterator,
-        super(getables?.values.iterator, setables?.values.iterator, extensions);
-
-  @override
-  bool moveNext() {
-    Builder? next = _current?.next;
-    if (next != null) {
-      _current = next;
-      return true;
-    }
-    if (local != null) {
-      if (local!.moveNext()) {
-        localNames!.moveNext();
-        _current = local!.current;
-        _name = localNames!.current;
-        return true;
-      }
-      local = null;
-      localNames = null;
-    }
-    if (setters != null) {
-      if (setters!.moveNext()) {
-        setterNames!.moveNext();
-        _current = setters!.current;
-        _name = setterNames!.current;
-        return true;
-      }
-      setters = null;
-      setterNames = null;
-    }
-    if (extensions != null) {
-      while (extensions!.moveNext()) {
-        Builder extension = extensions!.current;
-        // Named extensions have already been included throw [local] so we skip
-        // them here.
-        if (extension is SourceExtensionBuilder &&
-            extension.isUnnamedExtension) {
-          _current = extension;
-          _name = extension.name;
-          return true;
-        }
-      }
-      extensions = null;
-    }
-    _current = null;
-    _name = null;
-    return false;
-  }
-
-  @override
-  String get name {
-    return _name ?? // Coverage-ignore(suite): Not run.
         (throw new StateError('No element'));
   }
 }
@@ -720,58 +647,15 @@ class ConstructorNameSpaceIterator implements Iterator<MemberBuilder> {
   }
 }
 
-/// Iterator over builders mapped in a [ConstructorNameSpace], including
-/// duplicates for each directly mapped builder.
-///
-/// Compared to [ConstructorNameSpaceIterator] this iterator also gives
-/// access to the name that the builders are mapped to.
-class ConstructorNameSpaceNameIterator extends ConstructorNameSpaceIterator
-    implements NameIterator<MemberBuilder> {
-  Iterator<String>? _localNames;
-
-  String? _name;
-
-  ConstructorNameSpaceNameIterator(this._localNames, super.local);
-
-  @override
-  bool moveNext() {
-    MemberBuilder? next = _current?.next as MemberBuilder?;
-    if (next != null) {
-      _current = next;
-      return true;
-    }
-    if (_local != null) {
-      if (_local!.moveNext()) {
-        _localNames!.moveNext();
-        _current = _local!.current;
-        _name = _localNames!.current;
-        return true;
-      }
-      _local = null;
-      _localNames = null;
-    }
-    _current = null;
-    _name = null;
-    return false;
-  }
-
-  @override
-  String get name {
-    return _name ?? // Coverage-ignore(suite): Not run.
-        (throw new StateError('No element'));
-  }
-}
-
 /// Filtered builder [Iterator].
-class FilteredIterator<T extends Builder> implements Iterator<T> {
-  final Iterator<Builder> _iterator;
+class FilteredIterator<T extends NamedBuilder> implements Iterator<T> {
+  final Iterator<NamedBuilder> _iterator;
   final bool includeDuplicates;
 
   FilteredIterator(this._iterator, {required this.includeDuplicates});
 
-  bool _include(Builder element) {
-    if (!includeDuplicates &&
-        (element.isDuplicate)) {
+  bool _include(NamedBuilder element) {
+    if (!includeDuplicates && (element.isDuplicate)) {
       return false;
     }
     return element is T;
@@ -783,7 +667,7 @@ class FilteredIterator<T extends Builder> implements Iterator<T> {
   @override
   bool moveNext() {
     while (_iterator.moveNext()) {
-      Builder candidate = _iterator.current;
+      NamedBuilder candidate = _iterator.current;
       if (_include(candidate)) {
         return true;
       }
@@ -792,43 +676,7 @@ class FilteredIterator<T extends Builder> implements Iterator<T> {
   }
 }
 
-/// Filtered [NameIterator].
-///
-/// Compared to [FilteredIterator] this iterator also gives
-/// access to the name that the builders are mapped to.
-class FilteredNameIterator<T extends Builder> implements NameIterator<T> {
-  final NameIterator<Builder> _iterator;
-  final bool includeDuplicates;
-
-  FilteredNameIterator(this._iterator, {required this.includeDuplicates});
-
-  bool _include(Builder element) {
-    if (!includeDuplicates &&
-        (element.isDuplicate)) {
-      return false;
-    }
-    return element is T;
-  }
-
-  @override
-  T get current => _iterator.current as T;
-
-  @override
-  String get name => _iterator.name;
-
-  @override
-  bool moveNext() {
-    while (_iterator.moveNext()) {
-      Builder candidate = _iterator.current;
-      if (_include(candidate)) {
-        return true;
-      }
-    }
-    return false;
-  }
-}
-
-extension IteratorExtension<T extends Builder> on Iterator<T> {
+extension IteratorExtension<T extends NamedBuilder> on Iterator<T> {
   void forEach(void Function(T) f) {
     while (moveNext()) {
       f(current);
@@ -845,14 +693,6 @@ extension IteratorExtension<T extends Builder> on Iterator<T> {
 
   Iterator<T> join(Iterator<T> other) {
     return new IteratorSequence<T>([this, other]);
-  }
-}
-
-extension NameIteratorExtension<T extends Builder> on NameIterator<T> {
-  void forEach(void Function(String, T) f) {
-    while (moveNext()) {
-      f(name, current);
-    }
   }
 }
 

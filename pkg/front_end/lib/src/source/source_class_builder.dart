@@ -33,7 +33,6 @@ import '../builder/formal_parameter_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/method_builder.dart';
-import '../builder/name_iterator.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/never_type_declaration_builder.dart';
 import '../builder/nullability_builder.dart';
@@ -527,21 +526,12 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   @override
-  Iterator<T> fullMemberIterator<T extends Builder>() =>
+  Iterator<T> fullMemberIterator<T extends NamedBuilder>() =>
       nameSpace.filteredIterator<T>(includeDuplicates: false);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  NameIterator<T> fullMemberNameIterator<T extends Builder>() =>
-      nameSpace.filteredNameIterator<T>(includeDuplicates: false);
 
   @override
   Iterator<T> fullConstructorIterator<T extends MemberBuilder>() =>
       nameSpace.filteredConstructorIterator<T>(includeDuplicates: false);
-
-  @override
-  NameIterator<T> fullConstructorNameIterator<T extends MemberBuilder>() =>
-      nameSpace.filteredConstructorNameIterator<T>(includeDuplicates: false);
 
   /// Looks up the constructor by [name] on the class built by this class
   /// builder.
@@ -759,7 +749,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       if (hasEnumSuperinterface && cls != underscoreEnumClass) {
         // Instance members named `values` are restricted.
         LookupResult? result = nameSpace.lookupLocalMember("values");
-        Builder? customValuesDeclaration = result?.getable;
+        NamedBuilder? customValuesDeclaration = result?.getable;
         if (customValuesDeclaration != null &&
             !customValuesDeclaration.isStatic) {
           // Retrieve the earliest declaration for error reporting.

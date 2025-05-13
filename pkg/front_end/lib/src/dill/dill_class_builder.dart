@@ -11,7 +11,6 @@ import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
-import '../builder/name_iterator.dart';
 import '../builder/type_builder.dart';
 import 'dill_library_builder.dart' show DillLibraryBuilder;
 import 'dill_member_builder.dart';
@@ -21,22 +20,12 @@ mixin DillClassMemberAccessMixin implements ClassMemberAccess {
   DeclarationNameSpace get nameSpace;
 
   @override
-  // Coverage-ignore(suite): Not run.
   Iterator<T> fullConstructorIterator<T extends MemberBuilder>() =>
       nameSpace.filteredConstructorIterator<T>(includeDuplicates: false);
 
   @override
-  NameIterator<T> fullConstructorNameIterator<T extends MemberBuilder>() =>
-      nameSpace.filteredConstructorNameIterator<T>(includeDuplicates: false);
-
-  @override
-  Iterator<T> fullMemberIterator<T extends Builder>() =>
+  Iterator<T> fullMemberIterator<T extends NamedBuilder>() =>
       nameSpace.filteredIterator<T>(includeDuplicates: false);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  NameIterator<T> fullMemberNameIterator<T extends Builder>() =>
-      nameSpace.filteredNameIterator<T>(includeDuplicates: false);
 }
 
 class DillClassBuilder extends ClassBuilderImpl

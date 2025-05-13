@@ -581,7 +581,6 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
         ..isExtensionMember = isExtensionMember;
       isInstanceMember = false;
     } else if (isExtensionTypeMember) {
-      // Coverage-ignore-block(suite): Not run.
       _field!
         ..isStatic = _fragment.builder.isStatic
         ..isExtensionTypeMember = true;

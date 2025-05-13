@@ -17,7 +17,6 @@ import '../builder/declaration_builders.dart';
 import '../builder/dynamic_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
-import '../builder/name_iterator.dart';
 import '../builder/never_type_declaration_builder.dart';
 import '../builder/property_builder.dart';
 import '../codes/cfe_codes.dart'
@@ -318,7 +317,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  Builder? _addBuilder(String? name, Builder declaration) {
+  void _addBuilder(String? name, NamedBuilder declaration) {
     if (name == null || name.isEmpty) return null;
 
     bool isSetter = isMappedAsSetter(declaration);
@@ -339,7 +338,6 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
         exportNameSpace.addLocalMember(name, declaration, setter: false);
       }
     }
-    return declaration;
   }
 
   void addTypedef(Typedef typedef, Map<Name, Procedure>? tearOffs) {
@@ -364,7 +362,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
 
   void finalizeExports() {
     unserializableExports?.forEach((String name, String messageText) {
-      Builder declaration;
+      NamedBuilder declaration;
       if (messageText == exportDynamicSentinel) {
         assert(
             name == 'dynamic', "Unexpected export name for 'dynamic': '$name'");
@@ -387,11 +385,11 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
       exportNameSpace.addLocalMember(name, declaration, setter: false);
     });
 
-    Map<Reference, Builder>? sourceBuildersMap =
+    Map<Reference, NamedBuilder>? sourceBuildersMap =
         loader.currentSourceLoader?.buildersCreatedWithReferences;
     for (Reference reference in library.additionalExports) {
       NamedNode node = reference.node as NamedNode;
-      Builder? declaration = sourceBuildersMap?[reference];
+      NamedBuilder? declaration = sourceBuildersMap?[reference];
       String name;
       if (declaration != null) {
         // Coverage-ignore-block(suite): Not run.
@@ -475,14 +473,8 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
 
   @override
   // Coverage-ignore(suite): Not run.
-  Iterator<T> fullMemberIterator<T extends Builder>() {
+  Iterator<T> fullMemberIterator<T extends NamedBuilder>() {
     return libraryNameSpace.filteredIterator<T>(includeDuplicates: false);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  NameIterator<T> fullMemberNameIterator<T extends Builder>() {
-    return libraryNameSpace.filteredNameIterator(includeDuplicates: false);
   }
 
   @override
@@ -492,8 +484,8 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   /// builders in the export scope. The replacement maps from old LibraryBuilder
   /// to map, mapping from name to new (replacement) builder.
   void patchUpExportScope(
-      Map<LibraryBuilder, Map<String, Builder>> replacementMap,
-      Map<LibraryBuilder, Map<String, Builder>> replacementMapSetters) {
+      Map<LibraryBuilder, Map<String, NamedBuilder>> replacementMap,
+      Map<LibraryBuilder, Map<String, NamedBuilder>> replacementMapSetters) {
     _exportScope.patchUpScope(replacementMap, replacementMapSetters);
   }
 }

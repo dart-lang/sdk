@@ -50,7 +50,6 @@ import '../builder/constructor_builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
-import '../builder/name_iterator.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../codes/cfe_codes.dart';
@@ -113,7 +112,7 @@ class SourceLoader extends Loader {
   /// For builders created with a reference, this maps from that reference to
   /// that builder. This is used for looking up source builders when finalizing
   /// exports in dill builders.
-  Map<Reference, Builder> buildersCreatedWithReferences = {};
+  Map<Reference, NamedBuilder> buildersCreatedWithReferences = {};
 
   /// Used when checking whether a return type of an async function is valid.
   ///
@@ -420,7 +419,7 @@ class SourceLoader extends Loader {
         packageLanguageVersion: packageLanguageVersion,
         loader: this,
         augmentationRoot: origin,
-        nameOrigin: null,
+        resolveInLibrary: null,
         indexedLibrary: referencesFromIndex,
         referenceIsPartOwner: referenceIsPartOwner,
         isUnsupported: origin?.isUnsupported ??
@@ -1277,9 +1276,7 @@ severity: $severity
             // TODO(johnniwinther): This should be the body scope of the
             //  fragment in which we are compiling the expression.
             memberScope = new NameSpaceLookupScope(
-                builder.nameSpace,
-                ScopeKind.declaration,
-                "debugExpression in class $enclosingClassOrExtension",
+                builder.nameSpace, ScopeKind.declaration,
                 parent: TypeParameterScope.fromList(
                     memberScope, builder.typeParameters));
           case ExtensionBuilder():
@@ -1287,9 +1284,7 @@ severity: $severity
             // TODO(johnniwinther): This should be the body scope of the
             //  fragment in which we are compiling the expression.
             memberScope = new NameSpaceLookupScope(
-                builder.nameSpace,
-                ScopeKind.declaration,
-                "debugExpression in extension $enclosingClassOrExtension",
+                builder.nameSpace, ScopeKind.declaration,
                 // TODO(johnniwinther): Shouldn't type parameters be in scope?
                 parent: memberScope);
           case ExtensionTypeDeclarationBuilder():
@@ -1438,9 +1433,12 @@ severity: $severity
         both.add(exported as SourceLibraryBuilder);
       }
       for (Export export in exported.exporters) {
-        exported.exportNameSpace
-            .filteredNameIterator(includeDuplicates: false)
-            .forEach(export.addToExportScope);
+        Iterator<NamedBuilder> iterator =
+            exported.exportNameSpace.filteredIterator(includeDuplicates: false);
+        while (iterator.moveNext()) {
+          NamedBuilder builder = iterator.current;
+          export.addToExportScope(builder.name, builder);
+        }
       }
     }
     bool wasChanged = false;
@@ -1448,10 +1446,11 @@ severity: $severity
       wasChanged = false;
       for (SourceLibraryBuilder exported in both) {
         for (Export export in exported.exporters) {
-          NameIterator<Builder> iterator = exported.exportNameSpace
-              .filteredNameIterator(includeDuplicates: false);
+          Iterator<NamedBuilder> iterator = exported.exportNameSpace
+              .filteredIterator(includeDuplicates: false);
           while (iterator.moveNext()) {
-            if (export.addToExportScope(iterator.name, iterator.current)) {
+            NamedBuilder builder = iterator.current;
+            if (export.addToExportScope(builder.name, builder)) {
               wasChanged = true;
             }
           }

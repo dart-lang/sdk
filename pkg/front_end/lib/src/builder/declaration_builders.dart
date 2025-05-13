@@ -22,7 +22,6 @@ import 'builder_mixins.dart';
 import 'formal_parameter_builder.dart';
 import 'library_builder.dart';
 import 'member_builder.dart';
-import 'name_iterator.dart';
 import 'named_type_builder.dart';
 import 'nullability_builder.dart';
 import 'record_type_builder.dart';

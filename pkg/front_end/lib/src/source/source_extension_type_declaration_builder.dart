@@ -21,7 +21,6 @@ import '../builder/formal_parameter_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
-import '../builder/name_iterator.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../fragment/fragment.dart';
@@ -856,21 +855,12 @@ class SourceExtensionTypeDeclarationBuilder
       _extensionTypeDeclaration.declaredRepresentationType;
 
   @override
-  Iterator<T> fullMemberIterator<T extends Builder>() =>
+  Iterator<T> fullMemberIterator<T extends NamedBuilder>() =>
       nameSpace.filteredIterator<T>(includeDuplicates: false);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  NameIterator<T> fullMemberNameIterator<T extends Builder>() =>
-      nameSpace.filteredNameIterator<T>(includeDuplicates: false);
 
   @override
   Iterator<T> fullConstructorIterator<T extends MemberBuilder>() =>
       nameSpace.filteredConstructorIterator<T>(includeDuplicates: false);
-
-  @override
-  NameIterator<T> fullConstructorNameIterator<T extends MemberBuilder>() =>
-      nameSpace.filteredConstructorNameIterator<T>(includeDuplicates: false);
 
   BodyBuilderContext createBodyBuilderContext() {
     return new ExtensionTypeBodyBuilderContext(this);

@@ -305,7 +305,7 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
 
   @override
   // Coverage-ignore(suite): Not run.
-  Builder get getable => this;
+  NamedBuilder get getable => this;
 
   bool get hasParameters => _introductory.hasParameters;
 
@@ -402,7 +402,7 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
 
   @override
   // Coverage-ignore(suite): Not run.
-  Builder? get setable => null;
+  NamedBuilder? get setable => null;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -770,7 +770,7 @@ class SyntheticSourceConstructorBuilder extends MemberBuilderImpl
 
   @override
   // Coverage-ignore(suite): Not run.
-  Builder get getable => this;
+  NamedBuilder get getable => this;
 
   @override
   Constructor get invokeTarget => _constructor;
@@ -843,7 +843,7 @@ class SyntheticSourceConstructorBuilder extends MemberBuilderImpl
 
   @override
   // Coverage-ignore(suite): Not run.
-  Builder? get setable => null;
+  NamedBuilder? get setable => null;
 
   @override
   // Coverage-ignore(suite): Not run.

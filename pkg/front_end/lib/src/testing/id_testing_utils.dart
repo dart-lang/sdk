@@ -198,11 +198,12 @@ ExtensionTypeDeclarationBuilder? lookupExtensionTypeDeclarationBuilder(
       compilerResult, extensionTypeDeclaration.enclosingLibrary,
       required: required)!;
   ExtensionTypeDeclarationBuilder? extensionTypeDeclarationBuilder;
-  for (Builder builder in libraryBuilder.libraryNameSpace.localMembers) {
-    if (builder is ExtensionTypeDeclarationBuilder &&
-        builder.extensionTypeDeclaration == extensionTypeDeclaration) {
-      extensionTypeDeclarationBuilder = builder;
-    }
+  Builder? builder = libraryBuilder.libraryNameSpace
+      .lookupLocalMember(extensionTypeDeclaration.name)
+      ?.getable;
+  if (builder is ExtensionTypeDeclarationBuilder &&
+      builder.extensionTypeDeclaration == extensionTypeDeclaration) {
+    extensionTypeDeclarationBuilder = builder;
   }
   if (extensionTypeDeclarationBuilder == null && required) {
     throw new ArgumentError(

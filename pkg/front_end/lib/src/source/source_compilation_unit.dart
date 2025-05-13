@@ -131,7 +131,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       LookupScope? parentScope,
       required bool forAugmentationLibrary,
       required SourceCompilationUnit? augmentationRoot,
-      required LibraryBuilder? nameOrigin,
+      required LibraryBuilder? resolveInLibrary,
       required bool? referenceIsPartOwner,
       required bool forPatchLibrary,
       required bool isAugmenting,
@@ -154,7 +154,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         prefixNameSpace: prefixNameSpace,
         forAugmentationLibrary: forAugmentationLibrary,
         augmentationRoot: augmentationRoot,
-        nameOrigin: nameOrigin,
+        resolveInLibrary: resolveInLibrary,
         referenceIsPartOwner: referenceIsPartOwner,
         forPatchLibrary: forPatchLibrary,
         isAugmenting: isAugmenting,
@@ -175,7 +175,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       required NameSpace prefixNameSpace,
       required this.forAugmentationLibrary,
       required SourceCompilationUnit? augmentationRoot,
-      required LibraryBuilder? nameOrigin,
+      required LibraryBuilder? resolveInLibrary,
       required bool? referenceIsPartOwner,
       required this.forPatchLibrary,
       required this.isAugmenting,
@@ -187,18 +187,25 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         _libraryNameSpaceBuilder = libraryNameSpaceBuilder,
         _importNameSpace = importNameSpace,
         _prefixNameSpace = prefixNameSpace,
-        _nameOrigin = nameOrigin,
+        _nameOrigin = resolveInLibrary,
         _parentScope = parentScope,
         _referenceIsPartOwner = referenceIsPartOwner,
         _problemReporting = new LibraryProblemReporting(loader, fileUri) {
     LookupScope scope =
         _importScope = new CompilationUnitImportScope(this, _importNameSpace);
     _prefixScope = new CompilationUnitPrefixScope(
-        prefixNameSpace, ScopeKind.prefix, 'prefix',
+        prefixNameSpace, ScopeKind.prefix,
         parent: scope);
+    LookupScope libraryScope = _prefixScope;
+    if (resolveInLibrary != null) {
+      // Coverage-ignore-block(suite): Not run.
+      libraryScope = new NameSpaceLookupScope(
+          resolveInLibrary.libraryNameSpace, ScopeKind.library,
+          parent: libraryScope);
+    }
     _compilationUnitScope = new CompilationUnitScope(
-        this, ScopeKind.compilationUnit, 'compilation-unit',
-        parent: _prefixScope);
+        this, ScopeKind.compilationUnit,
+        parent: libraryScope);
 
     // TODO(johnniwinther): Create these in [createOutlineBuilder].
     _builderFactoryResult = _builderFactory = new BuilderFactoryImpl(
@@ -951,11 +958,12 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 
       // TODO(johnniwinther): Can we create the core import as a parent scope
       //  instead of copying it everywhere?
-      NameIterator<Builder> iterator = loader.coreLibrary.exportNameSpace
-          .filteredNameIterator(includeDuplicates: false);
+      Iterator<NamedBuilder> iterator = loader.coreLibrary.exportNameSpace
+          .filteredIterator(includeDuplicates: false);
       while (iterator.moveNext()) {
+        NamedBuilder builder = iterator.current;
         addImportedBuilderToScope(
-            name: iterator.name, builder: iterator.current, charOffset: -1);
+            name: builder.name, builder: builder, charOffset: -1);
       }
     }
 
@@ -965,12 +973,12 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   @override
   void addImportedBuilderToScope(
       {required String name,
-      required Builder builder,
+      required NamedBuilder builder,
       required int charOffset}) {
     bool isSetter = isMappedAsSetter(builder);
     LookupResult? result = _importNameSpace.lookupLocalMember(name);
 
-    Builder? existing = isSetter ? result?.setable : result?.getable;
+    NamedBuilder? existing = isSetter ? result?.setable : result?.getable;
     if (existing != null) {
       if (existing != builder) {
         _importNameSpace.addLocalMember(
@@ -1064,9 +1072,9 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   int computeVariances() {
     int count = 0;
 
-    Iterator<Builder> iterator = libraryBuilder.localMembersIterator;
+    Iterator<NamedBuilder> iterator = libraryBuilder.localMembersIterator;
     while (iterator.moveNext()) {
-      Builder? declaration = iterator.current;
+      NamedBuilder? declaration = iterator.current;
       while (declaration != null) {
         if (declaration is TypeAliasBuilder &&
             declaration.typeParametersCount > 0) {

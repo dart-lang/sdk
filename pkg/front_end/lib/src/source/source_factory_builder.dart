@@ -110,11 +110,11 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
 
   @override
   // Coverage-ignore(suite): Not run.
-  Builder get getable => this;
+  NamedBuilder get getable => this;
 
   @override
   // Coverage-ignore(suite): Not run.
-  Builder? get setable => null;
+  NamedBuilder? get setable => null;
 
   @override
   Builder get parent => declarationBuilder;

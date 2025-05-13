@@ -1592,9 +1592,9 @@ class LibraryNameSpaceBuilder {
     required List<NominalParameterBuilder> unboundNominalParameters,
     required Map<SourceClassBuilder, TypeBuilder> mixinApplications,
   }) {
-    Map<String, Builder> getables = {};
+    Map<String, NamedBuilder> getables = {};
 
-    Map<String, MemberBuilder> setables = {};
+    Map<String, NamedBuilder> setables = {};
 
     Set<ExtensionBuilder> extensions = {};
 
@@ -1603,7 +1603,7 @@ class LibraryNameSpaceBuilder {
 
     void _addBuilder(_AddBuilder addBuilder) {
       String name = addBuilder.name;
-      Builder declaration = addBuilder.declaration;
+      NamedBuilder declaration = addBuilder.declaration;
       Uri fileUri = addBuilder.fileUri;
       int charOffset = addBuilder.charOffset;
       if (declaration is SourceExtensionBuilder &&
@@ -1633,9 +1633,9 @@ class LibraryNameSpaceBuilder {
 
       bool isSetter = isMappedAsSetter(declaration);
 
-      Map<String, Builder> members = isSetter ? setables : getables;
+      Map<String, NamedBuilder> members = isSetter ? setables : getables;
 
-      Builder? existing = members[name];
+      NamedBuilder? existing = members[name];
 
       if (existing == declaration) return;
 
@@ -1817,7 +1817,7 @@ abstract class DeclarationFragmentImpl implements DeclarationFragment {
 
 class _AddBuilder {
   final String name;
-  final Builder declaration;
+  final NamedBuilder declaration;
   final Uri fileUri;
   final int charOffset;
   final bool inPatch;
@@ -1887,8 +1887,8 @@ class DeclarationNameSpaceBuilder {
       required ContainerName containerName,
       bool includeConstructors = true}) {
     List<NominalParameterBuilder> unboundNominalParameters = [];
-    Map<String, Builder> getables = {};
-    Map<String, MemberBuilder> setables = {};
+    Map<String, NamedBuilder> getables = {};
+    Map<String, NamedBuilder> setables = {};
     Map<String, MemberBuilder> constructors = {};
 
     Map<String, List<Fragment>> fragmentsByName = {};
@@ -1898,7 +1898,7 @@ class DeclarationNameSpaceBuilder {
 
     void _addBuilder(_AddBuilder addBuilder) {
       String name = addBuilder.name;
-      Builder declaration = addBuilder.declaration;
+      NamedBuilder declaration = addBuilder.declaration;
       Uri fileUri = addBuilder.fileUri;
       int charOffset = addBuilder.charOffset;
 
@@ -1911,10 +1911,10 @@ class DeclarationNameSpaceBuilder {
 
       bool isSetter = isMappedAsSetter(declaration);
 
-      Map<String, Builder> members =
+      Map<String, NamedBuilder> members =
           isConstructor ? constructors : (isSetter ? setables : getables);
 
-      Builder? existing = members[name];
+      NamedBuilder? existing = members[name];
 
       if (existing == declaration) return;
 

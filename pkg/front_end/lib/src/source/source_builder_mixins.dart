@@ -13,7 +13,6 @@ import '../builder/builder.dart';
 import '../builder/builder_mixins.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
-import '../builder/member_builder.dart';
 import '../builder/type_builder.dart';
 import '../kernel/type_algorithms.dart';
 import 'source_library_builder.dart';
@@ -51,7 +50,8 @@ mixin SourceDeclarationBuilderMixin
     ClassBuilder objectClassBuilder =
         coreLibrary.lookupLocalMember('Object', required: true) as ClassBuilder;
 
-    void buildBuilders(String name, Builder declaration) {
+    void buildBuilders(NamedBuilder declaration) {
+      String name = declaration.name;
       Builder? objectGetter = objectClassBuilder.lookupLocalMember(name);
       Builder? objectSetter =
           objectClassBuilder.lookupLocalMember(name, setter: true);
@@ -90,8 +90,8 @@ mixin SourceDeclarationBuilderMixin
       }
     }
 
-    nameSpace.unfilteredNameIterator.forEach(buildBuilders);
-    nameSpace.unfilteredConstructorNameIterator.forEach(buildBuilders);
+    nameSpace.unfilteredIterator.forEach(buildBuilders);
+    nameSpace.unfilteredConstructorIterator.forEach(buildBuilders);
   }
 
   int buildBodyNodes({required bool addMembersToLibrary}) {
@@ -121,39 +121,37 @@ mixin SourceDeclarationBuilderMixin
     int count = context.computeDefaultTypesForVariables(typeParameters,
         inErrorRecovery: hasErrors);
 
-    Iterator<SourceMemberBuilder> iterator =
+    Iterator<SourceMemberBuilder> constructorIterator =
         nameSpace.filteredConstructorIterator<SourceMemberBuilder>(
             includeDuplicates: false);
-    while (iterator.moveNext()) {
-      count += iterator.current
+    while (constructorIterator.moveNext()) {
+      count += constructorIterator.current
           .computeDefaultTypes(context, inErrorRecovery: hasErrors);
     }
 
-    forEach((String name, Builder member) {
-      if (member is SourceMemberBuilder) {
-        count +=
-            member.computeDefaultTypes(context, inErrorRecovery: hasErrors);
-      } else {
-        // Coverage-ignore-block(suite): Not run.
-        assert(
-            false,
-            "Unexpected extension type member "
-            "$member (${member.runtimeType}).");
-      }
-    });
+    Iterator<SourceMemberBuilder> memberIterator =
+        nameSpace.filteredIterator(includeDuplicates: false);
+    while (memberIterator.moveNext()) {
+      count += memberIterator.current
+          .computeDefaultTypes(context, inErrorRecovery: hasErrors);
+    }
     return count;
   }
 
   void checkTypesInOutline(TypeEnvironment typeEnvironment) {
-    forEach((String name, Builder builder) {
-      (builder as SourceMemberBuilder)
+    Iterator<SourceMemberBuilder> memberIterator =
+        nameSpace.filteredIterator(includeDuplicates: false);
+    while (memberIterator.moveNext()) {
+      memberIterator.current
           .checkTypes(libraryBuilder, nameSpace, typeEnvironment);
-    });
+    }
 
-    nameSpace.forEachConstructor((String name, MemberBuilder builder) {
-      (builder as SourceMemberBuilder)
+    Iterator<SourceMemberBuilder> constructorIterator =
+        nameSpace.filteredConstructorIterator(includeDuplicates: false);
+    while (constructorIterator.moveNext()) {
+      constructorIterator.current
           .checkTypes(libraryBuilder, nameSpace, typeEnvironment);
-    });
+    }
   }
 
   void _buildMember(SourceMemberBuilder memberBuilder, Member member,
