@@ -431,6 +431,9 @@ char* RingServiceIdZone::GetServiceId(const Object& obj) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   ASSERT(zone != nullptr);
+  if (obj.IsSmi()) {
+    return zone->PrintToString("objects/int-%" Pd, Smi::Cast(obj).Value());
+  }
   const intptr_t object_part_of_service_id = GetIdForObject(obj.ptr());
   return zone->PrintToString("objects/%" Pd "/%" Pd, object_part_of_service_id,
                              id());
