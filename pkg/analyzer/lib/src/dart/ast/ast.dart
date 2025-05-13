@@ -11095,22 +11095,9 @@ final class IndexExpressionImpl extends ExpressionImpl
   @override
   MethodElement? element;
 
-  /// Initializes a newly created index expression that is a child of a cascade
-  /// expression.
-  IndexExpressionImpl.forCascade({
-    required this.period,
-    required this.question,
-    required this.leftBracket,
-    required ExpressionImpl index,
-    required this.rightBracket,
-  }) : _index = index {
-    _becomeParentOf(_index);
-  }
-
-  /// Initializes a newly created index expression that isn't a child of a
-  /// cascade expression.
-  IndexExpressionImpl.forTarget({
+  IndexExpressionImpl({
     required ExpressionImpl? target,
+    required this.period,
     required this.question,
     required this.leftBracket,
     required ExpressionImpl index,

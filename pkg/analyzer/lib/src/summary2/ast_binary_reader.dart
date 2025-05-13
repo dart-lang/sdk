@@ -761,28 +761,14 @@ class AstBinaryReader {
     var flags = _readByte();
     var target = _readOptionalNode() as ExpressionImpl?;
     var index = readNode() as ExpressionImpl;
-    // TODO(scheglov): Is this clumsy?
-    IndexExpressionImpl node;
-    if (target != null) {
-      node = (IndexExpressionImpl.forTarget(
-          target: target,
-          question:
-              AstBinaryFlags.hasQuestion(flags) ? Tokens.question() : null,
-          leftBracket: Tokens.openSquareBracket(),
-          index: index,
-          rightBracket: Tokens.closeSquareBracket(),
-        ))
-        ..period =
-            AstBinaryFlags.hasPeriod(flags) ? Tokens.periodPeriod() : null;
-    } else {
-      node = IndexExpressionImpl.forCascade(
-        period: Tokens.periodPeriod(),
-        question: AstBinaryFlags.hasQuestion(flags) ? Tokens.question() : null,
-        leftBracket: Tokens.openSquareBracket(),
-        index: index,
-        rightBracket: Tokens.closeSquareBracket(),
-      );
-    }
+    var node = IndexExpressionImpl(
+      target: target,
+      period: AstBinaryFlags.hasPeriod(flags) ? Tokens.periodPeriod() : null,
+      question: AstBinaryFlags.hasQuestion(flags) ? Tokens.question() : null,
+      leftBracket: Tokens.openSquareBracket(),
+      index: index,
+      rightBracket: Tokens.closeSquareBracket(),
+    );
     node.element = _reader.readElement2() as MethodElement?;
     _readExpressionResolution(node);
     return node;
