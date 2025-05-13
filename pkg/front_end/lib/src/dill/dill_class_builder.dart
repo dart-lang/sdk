@@ -36,7 +36,7 @@ class DillClassBuilder extends ClassBuilderImpl
   @override
   final Class cls;
 
-  final DeclarationNameSpace _nameSpace;
+  final MutableDeclarationNameSpace _nameSpace;
 
   List<NominalParameterBuilder>? _typeParameters;
 
@@ -45,7 +45,7 @@ class DillClassBuilder extends ClassBuilderImpl
   List<TypeBuilder>? _interfaceBuilders;
 
   DillClassBuilder(this.cls, this.parent)
-      : _nameSpace = new DeclarationNameSpaceImpl();
+      : _nameSpace = new DillDeclarationNameSpace();
 
   @override
   int get fileOffset => cls.fileOffset;

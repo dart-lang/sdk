@@ -22,7 +22,7 @@ class PrefixBuilder extends NamedBuilderImpl implements LookupResult {
   @override
   final String name;
 
-  final NameSpace _prefixNameSpace = new NameSpaceImpl();
+  final MutableNameSpace _prefixNameSpace = new MutableNameSpace();
 
   late final LookupScope _prefixScope =
       new NameSpaceLookupScope(_prefixNameSpace, ScopeKind.library);

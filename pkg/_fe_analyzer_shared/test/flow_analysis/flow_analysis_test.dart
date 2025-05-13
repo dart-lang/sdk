@@ -11989,6 +11989,166 @@ main() {
       });
     });
   });
+
+  group('Demotion and type of interest promotion:', () {
+    test('Partial demotion', () {
+      // Promote `Object` to `num`, and then `int`, then assigning a `double`
+      // demotes to `num`.
+      var x = Var('x');
+      h.run([
+        declare(x, initializer: expr('Object')),
+        x.as_('num'),
+        x.as_('int'),
+        checkPromoted(x, 'int'),
+        x.write(expr('double')),
+        checkPromoted(x, 'num'),
+      ]);
+    });
+
+    test('Full demotion', () {
+      // Promote `Object` to `num` and then `int`, then assigning a `String`
+      // demotes to `Object`
+      var x = Var('x');
+      h.run([
+        declare(x, initializer: expr('Object')),
+        x.as_('num'),
+        x.as_('int'),
+        checkPromoted(x, 'int'),
+        x.write(expr('String')),
+        checkNotPromoted(x),
+      ]);
+    });
+
+    group('Types of interest:', () {
+      test('NonNull(declared) is a type of interest', () {
+        // Declared type is `num?`; assigning a `num` promotes to `num`.
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('num?')),
+          checkNotPromoted(x),
+          x.write(expr('num')),
+          checkPromoted(x, 'num'),
+        ]);
+      });
+
+      test('Untested type is not a type of interest', () {
+        // Declared type is `Object`; assigning an `int` does not promote.
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('Object')),
+          checkNotPromoted(x),
+          x.write(expr('int')),
+          checkNotPromoted(x),
+        ]);
+      });
+
+      test('Tested type is a type of interest', () {
+        // Declared type is `Object`; assigning an `int` after testing `int`
+        // promotes.
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('Object')),
+          if_(x.is_('int'), [], []),
+          checkNotPromoted(x),
+          x.write(expr('int')),
+          checkPromoted(x, 'int'),
+        ]);
+      });
+
+      test('NonNull of tested type is a type of interest', () {
+        // Declared type is `Object`; assigning an `int` after testing `int?`
+        // promotes to `int`.
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('Object')),
+          if_(x.is_('int?'), [], []),
+          checkNotPromoted(x),
+          x.write(expr('int')),
+          checkPromoted(x, 'int'),
+        ]);
+      });
+    });
+
+    group('Choosing among types of interest:', () {
+      test('If one type is a subtype of all the others, it is chosen', () {
+        // Types of interest are `List<num>` and `List<Object>`; writing
+        // `List<int>` causes promotion to `List<num>`, because `List<num>` is a
+        // subtype of `List<Object>`.
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('Object')),
+          if_(x.is_('List<num>'), [], []),
+          if_(x.is_('List<Object>'), [], []),
+          checkNotPromoted(x),
+          x.write(expr('List<int>')),
+          checkPromoted(x, 'List<num>'),
+        ]);
+      });
+
+      test('If no type is a subtype of all the others, no promotion', () {
+        // Types of interest are `List<Object?>` and `List<dynamic>`. Since
+        // these are mutual subytpes, neither is preferred over the other. So
+        // assignment of `List<int>` does not promote, even though both
+        // `List<Object?>` and `List<dynamic>` are promotion candidates.
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('Object')),
+          if_(x.is_('List<Object?>'), [], []),
+          if_(x.is_('List<dynamic>'), [], []),
+          checkNotPromoted(x),
+          x.write(expr('List<int>')),
+          checkNotPromoted(x),
+        ]);
+      });
+
+      test('If a type of interest matches exactly, it is chosen', () {
+        // Types of interest are `List<Object?>` and `List<dynamic>`. Since
+        // these are mutual subytpes, neither is preferred over the other. But
+        // assignment of `List<Object?>` promotes, because it matches one of the
+        // types of interest exactly.
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('Object')),
+          if_(x.is_('List<Object?>'), [], []),
+          if_(x.is_('List<dynamic>'), [], []),
+          checkNotPromoted(x),
+          x.write(expr('List<Object?>')),
+          checkPromoted(x, 'List<Object?>'),
+        ]);
+      });
+
+      test('Only supertypes of written type are considered', () {
+        // Types of interest are `num` and `String`; writing `int` causes
+        // promotion to `num`, because `int` is not a subtype of `String`.
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('Object')),
+          if_(x.is_('num'), [], []),
+          if_(x.is_('String'), [], []),
+          checkNotPromoted(x),
+          x.write(expr('int')),
+          checkPromoted(x, 'num'),
+        ]);
+      });
+
+      test('Only subtypes of declared type are considered', () {
+        // Declared type is `List<Object>`. Types of interest are `List<num>`
+        // and `List<int?>`, but `List<int?>` is not a subtype of
+        // `List<Object>`. Writing `List<int>` (which is a subtype of both types
+        // of interest) causes promotion to `List<num>`, because `List<int?>` is
+        // not a subtype of the declared type.
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('List<Object>')),
+          if_(x.is_('List<num>'), [], []),
+          if_(x.is_('List<int?>'), [], []),
+          checkNotPromoted(x),
+          x.write(expr('List<int>')),
+          checkPromoted(x, 'List<num>'),
+        ]);
+      });
+    });
+  });
 }
 
 /// Returns the appropriate matcher for expecting an assertion error to be

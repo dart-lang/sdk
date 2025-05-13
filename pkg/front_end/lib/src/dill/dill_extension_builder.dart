@@ -20,13 +20,13 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
   @override
   final Extension extension;
 
-  final DeclarationNameSpace _nameSpace;
+  final MutableDeclarationNameSpace _nameSpace;
 
   List<NominalParameterBuilder>? _typeParameters;
   TypeBuilder? _onType;
 
   DillExtensionBuilder(this.extension, this.libraryBuilder)
-      : _nameSpace = new DeclarationNameSpaceImpl() {
+      : _nameSpace = new DillDeclarationNameSpace() {
     for (ExtensionMemberDescriptor descriptor in extension.memberDescriptors) {
       if (descriptor.isInternalImplementation) continue;
 

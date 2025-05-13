@@ -10,8 +10,8 @@ import 'combinator.dart' show CombinatorBuilder;
 import 'uri_offset.dart';
 
 class Export {
-  /// The compilation unit that is exporting [exported];
-  final CompilationUnit exporter;
+  /// The compilation unit that is exporting [exported].
+  final SourceCompilationUnit exporter;
 
   /// The library being exported.
   CompilationUnit exportedCompilationUnit;

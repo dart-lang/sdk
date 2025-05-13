@@ -1585,7 +1585,7 @@ class LibraryNameSpaceBuilder {
         enclosingLibraryBuilder.importUri.path.startsWith("_");
   }
 
-  NameSpace toNameSpace({
+  MutableNameSpace toNameSpace({
     required SourceLibraryBuilder enclosingLibraryBuilder,
     required IndexedLibrary? indexedLibrary,
     required ProblemReporting problemReporting,
@@ -1598,7 +1598,7 @@ class LibraryNameSpaceBuilder {
 
     Set<ExtensionBuilder> extensions = {};
 
-    NameSpace nameSpace = new NameSpaceImpl(
+    MutableNameSpace nameSpace = new SourceLibraryNameSpace(
         getables: getables, setables: setables, extensions: extensions);
 
     void _addBuilder(_AddBuilder addBuilder) {
@@ -1876,7 +1876,7 @@ class DeclarationNameSpaceBuilder {
     }
   }
 
-  DeclarationNameSpace buildNameSpace(
+  MutableDeclarationNameSpace buildNameSpace(
       {required SourceLoader loader,
       required ProblemReporting problemReporting,
       required SourceLibraryBuilder enclosingLibraryBuilder,
@@ -1976,14 +1976,14 @@ class DeclarationNameSpaceBuilder {
     enclosingLibraryBuilder
         .registerUnboundNominalParameters(unboundNominalParameters);
 
-    return new DeclarationNameSpaceImpl(
+    return new SourceDeclarationNameSpace(
         getables: getables,
         setables: setables,
         // TODO(johnniwinther): Handle constructors in extensions consistently.
         // Currently they are not part of the name space but still processed
         // for instance when inferring redirecting factories.
         // They are part of the name space for extension types though.
-        // Note that we have to remove [RedirectingFactoryBuilder]s in
+        // Note that we have to remove [SourceFactoryBuilder]s in
         // [SourceLoader.inferRedirectingFactories] as we don't build them
         // because we don't add them here.
         constructors: includeConstructors ? constructors : null);
