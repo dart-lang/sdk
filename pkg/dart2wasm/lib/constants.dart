@@ -1129,6 +1129,13 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
       void makeVtable() {
         declareAndAddRefFunc(dynamicCallEntry);
         assert(!instantiationOfTearOffRepresentation.isGeneric);
+
+        if (translator.dynamicModuleSupportEnabled) {
+          // Dynamic modules only use the dynamic call entry.
+          b.struct_new(instantiationOfTearOffRepresentation.vtableStruct);
+          return;
+        }
+
         for (int posArgCount = 0;
             posArgCount <= positionalCount;
             posArgCount++) {
