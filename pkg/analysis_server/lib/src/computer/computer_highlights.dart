@@ -132,7 +132,7 @@ class DartUnitHighlightsComputer {
     if (_addIdentifierRegion_importPrefix(nameToken, element)) {
       return;
     }
-    if (_addIdentifierRegion_label(nameToken, element)) {
+    if (_addIdentifierRegion_label(parent, nameToken, element)) {
       return;
     }
     if (_addIdentifierRegion_localVariable(nameToken, element)) {
@@ -395,11 +395,22 @@ class DartUnitHighlightsComputer {
     return false;
   }
 
-  bool _addIdentifierRegion_label(Token nameToken, Element? element) {
+  bool _addIdentifierRegion_label(
+    AstNode parent,
+    Token nameToken,
+    Element? element,
+  ) {
     if (element is! LabelElement) {
       return false;
     }
-    return _addRegion_token(nameToken, HighlightRegionType.LABEL);
+    return _addRegion_token(
+      nameToken,
+      HighlightRegionType.LABEL,
+      semanticTokenModifiers:
+          parent is! BreakStatement
+              ? {SemanticTokenModifiers.declaration}
+              : null,
+    );
   }
 
   bool _addIdentifierRegion_localVariable(Token nameToken, Element? element) {

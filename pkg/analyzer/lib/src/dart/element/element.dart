@@ -5483,8 +5483,8 @@ class LabelElementImpl2 extends ElementImpl2
     return [firstFragment];
   }
 
-  /// Return `true` if this label is associated with a `switch` member (`case
-  /// ` or`default`).
+  /// Return `true` if this label is associated with a `switch` member (`case`
+  /// or `default`).
   bool get isOnSwitchMember => _wrappedElement.isOnSwitchMember;
 
   @override
@@ -5531,8 +5531,8 @@ class LabelFragmentImpl extends FragmentImpl implements LabelFragment {
   ExecutableFragment get enclosingFragment =>
       enclosingElement3 as ExecutableFragment;
 
-  /// Return `true` if this label is associated with a `switch` member (`case
-  /// ` or`default`).
+  /// Return `true` if this label is associated with a `switch` member (`case`
+  /// or `default`).
   bool get isOnSwitchMember => _onSwitchMember;
 
   @override
