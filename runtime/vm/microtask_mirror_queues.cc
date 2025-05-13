@@ -79,6 +79,22 @@ void MicrotaskMirrorQueue::OnAsyncCallbackComplete(int64_t start_time,
   }
 }
 
+void MicrotaskMirrorQueue::PrintJSON(JSONStream& js) const {
+  ASSERT(!is_disabled_);
+
+  JSONObject jsobj_topLevel(&js);
+  jsobj_topLevel.AddProperty("type", "QueuedMicrotasks");
+  jsobj_topLevel.AddProperty64("timestamp", OS::GetCurrentTimeMicros());
+
+  JSONArray jsarr(&jsobj_topLevel, "microtasks");
+  queue_.ForEach([&jsarr](const MicrotaskMirrorQueueEntry& entry) {
+    JSONObject jsobj_entry(&jsarr);
+    jsobj_entry.AddProperty("type", "Microtask");
+    jsobj_entry.AddProperty("id", entry.id());
+    jsobj_entry.AddProperty("stackTrace", entry.stack_trace().get());
+  });
+}
+
 Mutex MicrotaskMirrorQueues::isolate_id_to_queue_lock_;
 
 SimpleHashMap MicrotaskMirrorQueues::isolate_id_to_queue_(

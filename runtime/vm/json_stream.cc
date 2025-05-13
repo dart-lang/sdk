@@ -136,6 +136,8 @@ static const char* GetJSONRpcErrorMessage(intptr_t code) {
     case kInvalidTimelineRequest:
       return "The timeline related request could not be completed due to the "
              "current configuration";
+    case kCannotGetQueuedMicrotasks:
+      return "Cannot get queued microtasks";
     default:
       return "Extension error";
   }

@@ -58,6 +58,7 @@ const kServiceAlreadyRegistered = 111;
 const kServiceDisappeared = 112;
 const kExpressionCompilationError = 113;
 const kInvalidTimelineRequest = 114;
+const kCannotGetQueuedMicrotasks = 115;
 
 // Experimental (used in private rpcs).
 const kFileSystemAlreadyExists = 1001;

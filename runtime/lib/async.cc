@@ -15,7 +15,7 @@
 
 namespace dart {
 
-// This flag is defined in "vm/microtask_mirror_queues.cc".
+// This flag is defined in "runtime/vm/microtask_mirror_queues.cc".
 DECLARE_FLAG(bool, profile_microtasks);
 
 DEFINE_NATIVE_ENTRY(AsyncStarMoveNext_debuggerStepCheck, 0, 1) {

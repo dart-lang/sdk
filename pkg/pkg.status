@@ -145,6 +145,7 @@ vm_service/test/get_allocation_traces_test: SkipByDesign # Debugger is disabled 
 vm_service/test/get_instances_as_*: SkipByDesign # Debugger is disabled in AOT mode
 vm_service/test/get_instances_rpc_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/get_object_rpc_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/get_queued_microtasks_rpc_test: SkipByDesign # In AOT mode, the debugger is disabled, and there's no other way to pause the testee at a point when the microtask queue is non-empty.
 vm_service/test/get_source_report_const_coverage_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/get_source_report_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/get_source_report_with_mixin_test: SkipByDesign # Debugger is disabled in AOT mode.
