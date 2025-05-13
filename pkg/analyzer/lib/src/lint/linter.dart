@@ -284,14 +284,14 @@ final class LinterContextWithResolvedResults implements LinterContext {
 
   @override
   bool get isInLibDir => LinterContext._isInLibDir(
-    definingUnit.libraryFragment.source.fullName,
+    definingUnit.unit.declaredFragment?.source.fullName,
     package,
   );
 
   @override
   bool get isInTestDirectory {
     if (package case var package?) {
-      var file = definingUnit.file;
+      var file = definingUnit._file;
       return package.isInTestDirectory(file);
     }
     return false;
@@ -299,7 +299,8 @@ final class LinterContextWithResolvedResults implements LinterContext {
 
   @experimental
   @override
-  LibraryElement get libraryElement2 => definingUnit.libraryFragment.element;
+  LibraryElement get libraryElement2 =>
+      definingUnit.unit.declaredFragment!.element;
 }
 
 /// Describes an [AbstractAnalysisRule] which reports exactly one type of
@@ -370,21 +371,17 @@ abstract class LintRule extends AbstractAnalysisRule {
 /// Provides access to information needed by lint rules that is not available
 /// from AST nodes or the element model.
 class LintRuleUnitContext {
-  final File file;
+  final File _file;
   final String content;
   final ErrorReporter errorReporter;
   final CompilationUnit unit;
 
   LintRuleUnitContext({
-    required this.file,
+    required File file,
     required this.content,
     required this.errorReporter,
     required this.unit,
-  });
-
-  /// The library fragment representing the compilation unit.
-  @experimental
-  LibraryFragment get libraryFragment => unit.declaredFragment!;
+  }) : _file = file;
 }
 
 /// Describes an [AbstractAnalysisRule] which reports diagnostics using multiple
