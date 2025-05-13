@@ -4,7 +4,6 @@
 
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/lint/constants.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/string_source.dart';
@@ -52,7 +51,6 @@ abstract class AbstractLinterContextTest extends PubPackageResolutionTest {
       contextUnit,
       result.typeProvider,
       result.typeSystem,
-      InheritanceManager3(),
       // TODO(pq): Use a test package or consider passing in `null`.
       workspacePackage,
     );

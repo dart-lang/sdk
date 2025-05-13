@@ -12,7 +12,6 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/lint/state.dart';
@@ -234,8 +233,6 @@ abstract class LinterContext {
   /// The defining compilation unit of the library under analysis.
   LintRuleUnitContext get definingUnit;
 
-  InheritanceManager3 get inheritanceManager;
-
   /// Whether the [definingUnit]'s location is in a package's top-level 'lib'
   /// directory, including locations deeply nested, and locations in the
   /// package-implementation directory, 'lib/src'.
@@ -275,9 +272,6 @@ final class LinterContextWithParsedResults implements LinterContext {
 
   @override
   LintRuleUnitContext? currentUnit;
-
-  @override
-  final InheritanceManager3 inheritanceManager = InheritanceManager3();
 
   LinterContextWithParsedResults(this.allUnits, this.definingUnit);
 
@@ -333,15 +327,11 @@ final class LinterContextWithResolvedResults implements LinterContext {
   @override
   final TypeSystem typeSystem;
 
-  @override
-  final InheritanceManager3 inheritanceManager;
-
   LinterContextWithResolvedResults(
     this.allUnits,
     this.definingUnit,
     this.typeProvider,
     this.typeSystem,
-    this.inheritanceManager,
     this.package,
   );
 
