@@ -169,6 +169,12 @@ disallowed.
 
 Removed the `--experiment-new-rti` and `--use-old-rti` flags.
 
+#### Dart Native Compiler
+
+Added
+[cross-compilation](https://dart.dev/tools/dart-compile#cross-compilation-exe)
+for the Linux x64 and Linux ARM64 target platforms.
+
 #### Dart format
 
 In 3.7.0, we released a largely rewritten formatter supporting a new
