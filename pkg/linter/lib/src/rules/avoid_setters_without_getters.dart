@@ -22,7 +22,7 @@ class AvoidSettersWithoutGetters extends LintRule {
     NodeLintRegistry registry,
     LinterContext context,
   ) {
-    var visitor = _Visitor(this, context.inheritanceManager);
+    var visitor = _Visitor(this);
     registry.addClassDeclaration(this, visitor);
     registry.addEnumDeclaration(this, visitor);
     registry.addExtensionTypeDeclaration(this, visitor);
@@ -32,9 +32,8 @@ class AvoidSettersWithoutGetters extends LintRule {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  final InheritanceManager3 inheritanceManager;
 
-  _Visitor(this.rule, this.inheritanceManager);
+  _Visitor(this.rule);
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
@@ -63,20 +62,17 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (name == null) continue;
 
       // If we're overriding a setter, don't report here.
-      var overridden = inheritanceManager.getOverridden4(interface, name);
+      var overridden = interface.getOverridden(name);
       if (overridden != null && overridden.isNotEmpty) continue;
 
       var getterName = element.name3;
       if (getterName == null) continue;
 
-      // Check for a declared (static) getter.
-      ExecutableElement? getter = interface.getGetter2(getterName);
-      // Then look up for an inherited one.
-      getter ??= inheritanceManager.getMember4(
-        interface,
-        name.forGetter,
-        concrete: true,
-      );
+      var getter =
+          // Check for a declared (static) getter.
+          interface.getGetter2(getterName) ??
+          // Then look for an inherited one.
+          interface.getInheritedConcreteMember(name.forGetter);
 
       if (getter == null) {
         rule.reportAtToken(member.name);

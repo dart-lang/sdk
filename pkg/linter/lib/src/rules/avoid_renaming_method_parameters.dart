@@ -40,13 +40,10 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// Whether the `wildcard_variables` feature is enabled.
   final bool _wildCardVariablesEnabled;
 
-  final InheritanceManager3 inheritanceManager;
-
   final LintRule rule;
 
   _Visitor(this.rule, LinterContext context)
-    : _wildCardVariablesEnabled = context.isEnabled(Feature.wildcard_variables),
-      inheritanceManager = context.inheritanceManager;
+    : _wildCardVariablesEnabled = context.isEnabled(Feature.wildcard_variables);
 
   bool isWildcardIdentifier(String lexeme) =>
       _wildCardVariablesEnabled && lexeme == '_';
@@ -73,10 +70,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (parentElement is! InterfaceElement) return;
       if (parentElement.isPrivate) return;
 
-      var parentMethod = inheritanceManager.getMember4(
-        parentElement,
+      var parentMethod = parentElement.getInheritedConcreteMember(
         Name(parentElement.library2.uri, node.name.lexeme),
-        forSuper: true,
       );
       if (parentMethod == null) return;
 

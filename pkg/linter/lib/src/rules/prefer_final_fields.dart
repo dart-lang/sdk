@@ -31,14 +31,12 @@ class PreferFinalFields extends LintRule {
 
 class _DeclarationsCollector extends RecursiveAstVisitor<void> {
   final fields = <FieldElement, VariableDeclaration>{};
-  final InheritanceManager3 inheritanceManager;
 
-  _DeclarationsCollector(this.inheritanceManager);
   bool overridesField(FieldElement field) {
     var enclosingElement = field.enclosingElement2;
     if (enclosingElement is! InterfaceElement) return false;
-    return inheritanceManager.getOverridden4(
-          enclosingElement,
+
+    return enclosingElement.getOverridden(
           Name.forLibrary(field.library2, '${field.name3!}='),
         ) !=
         null;
@@ -112,9 +110,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    var declarationsCollector = _DeclarationsCollector(
-      context.inheritanceManager,
-    );
+    var declarationsCollector = _DeclarationsCollector();
     node.accept(declarationsCollector);
     var fields = declarationsCollector.fields;
 

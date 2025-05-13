@@ -591,6 +591,8 @@ extension LinterContextExtension on LinterContext {
 }
 
 extension MethodDeclarationExtension on MethodDeclaration {
+  bool get hasInheritedMethod => lookUpInheritedMethod() != null;
+
   /// Returns whether this method is an override of a method in any supertype.
   bool get isOverride {
     var element = declaredFragment?.element;
@@ -621,17 +623,14 @@ extension MethodDeclarationExtension on MethodDeclaration {
     }
   }
 
-  bool hasInheritedMethod(InheritanceManager3 inheritanceManager) =>
-      lookUpInheritedMethod(inheritanceManager) != null;
-
-  MethodElement? lookUpInheritedMethod(InheritanceManager3 inheritanceManager) {
+  MethodElement? lookUpInheritedMethod() {
     var declaredElement = declaredFragment?.element;
     if (declaredElement != null) {
       var parent = declaredElement.enclosingElement2;
       if (parent is InterfaceElement) {
         var methodName = Name.forElement(declaredElement);
         if (methodName == null) return null;
-        var inherited = inheritanceManager.getInherited4(parent, methodName);
+        var inherited = parent.getInheritedMember(methodName);
         if (inherited is MethodElement2OrMember) return inherited;
       }
     }

@@ -86,7 +86,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         !node.isSetter &&
         !declaredElement.isPrivate &&
         !node.isOperator &&
-        !node.hasInheritedMethod(context.inheritanceManager) &&
+        !node.hasInheritedMethod &&
         !_isOverridingMember(declaredElement)) {
       checkParams(node.parameters?.parameters);
     }
@@ -100,11 +100,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (name == null) return false;
 
     var libraryUri = classElement.library2.uri;
-    return context.inheritanceManager.getInherited3(
-          classElement.thisType,
-          Name(libraryUri, name),
-        ) !=
-        null;
+    return classElement.getInheritedMember(Name(libraryUri, name)) != null;
   }
 
   static bool _isBoolean(FormalParameter node) {

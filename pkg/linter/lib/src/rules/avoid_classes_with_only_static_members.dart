@@ -44,9 +44,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var element = fragment.element;
     if (element.isSealed) return;
 
-    var interface = context.inheritanceManager.getInterface2(element);
-    var map = interface.map2;
-    for (var member in map.values) {
+    for (var member in element.interfaceMembers.values) {
       var enclosingElement = member.enclosingElement2;
       if (enclosingElement is ClassElement &&
           !enclosingElement.isDartCoreObject) {

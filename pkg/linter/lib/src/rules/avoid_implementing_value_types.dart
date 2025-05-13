@@ -23,7 +23,7 @@ class AvoidImplementingValueTypes extends LintRule {
     NodeLintRegistry registry,
     LinterContext context,
   ) {
-    var visitor = _Visitor(this, context.inheritanceManager);
+    var visitor = _Visitor(this);
     registry.addClassDeclaration(this, visitor);
   }
 }
@@ -32,9 +32,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   static var equalsName = Name(null, '==');
 
   final LintRule rule;
-  final InheritanceManager3 inheritanceManager;
 
-  _Visitor(this.rule, this.inheritanceManager);
+  _Visitor(this.rule);
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
@@ -53,11 +52,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   bool _overridesEquals(InterfaceElement element) {
-    var member = inheritanceManager.getMember4(
-      element,
-      equalsName,
-      concrete: true,
-    );
+    var member = element.getInterfaceMember(equalsName);
     var definingLibrary = member?.enclosingElement2?.library2;
     return definingLibrary != null && !definingLibrary.isDartCore;
   }
