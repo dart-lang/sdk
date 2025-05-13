@@ -3347,39 +3347,6 @@
           ]
         },
         {
-          "name": "remove out directory to do a clean linux-ia32 build",
-          "script": "tools/bots/try_benchmarks.sh",
-          "arguments": [
-            "clean"
-          ]
-        },
-        {
-          "name": "build linux-ia32 for benchmarking",
-          "script": "tools/build.py",
-          "arguments": [
-            "--mode=release",
-            "--arch=ia32",
-            "create_sdk",
-            "runtime",
-            "dart2js_platform.dill",
-            "kernel-service.dart.snapshot"
-          ]
-        },
-        {
-          "name": "archive linux-ia32 for benchmarking",
-          "script": "tools/bots/try_benchmarks.sh",
-          "arguments": [
-            "linux-ia32-archive"
-          ]
-        },
-        {
-          "name": "try linux-ia32 benchmarking",
-          "script": "tools/bots/try_benchmarks.sh",
-          "arguments": [
-            "linux-ia32-benchmark"
-          ]
-        },
-        {
           "name": "remove out directory to do a clean linux-x64 build",
           "script": "tools/bots/try_benchmarks.sh",
           "arguments": [

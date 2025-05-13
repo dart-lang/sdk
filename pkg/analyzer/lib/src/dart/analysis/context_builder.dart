@@ -81,10 +81,9 @@ class ContextBuilderImpl {
     String? sdkSummaryPath,
     void Function({
       required AnalysisOptionsImpl analysisOptions,
-      required ContextRoot contextRoot,
       required DartSdk sdk,
     })?
-    updateAnalysisOptions2,
+    updateAnalysisOptions3,
     FileContentCache? fileContentCache,
     UnlinkedUnitStore? unlinkedUnitStore,
     InfoDeclarationStore? infoDeclarationStore,
@@ -137,7 +136,7 @@ class ContextBuilderImpl {
           optionsFile,
           sourceFactory,
           sdk,
-          updateAnalysisOptions2,
+          updateAnalysisOptions3,
         ),
       );
     } else {
@@ -146,7 +145,7 @@ class ContextBuilderImpl {
       analysisOptionsMap = _createOptionsMap(
         contextRoot,
         sourceFactory,
-        updateAnalysisOptions2,
+        updateAnalysisOptions3,
         sdk,
       );
     }
@@ -192,7 +191,6 @@ class ContextBuilderImpl {
     SourceFactory sourceFactory,
     void Function({
       required AnalysisOptionsImpl analysisOptions,
-      required ContextRoot contextRoot,
       required DartSdk sdk,
     })?
     updateAnalysisOptions,
@@ -202,11 +200,7 @@ class ContextBuilderImpl {
 
     void updateOptions(AnalysisOptionsImpl options) {
       if (updateAnalysisOptions != null) {
-        updateAnalysisOptions(
-          analysisOptions: options,
-          contextRoot: contextRoot,
-          sdk: sdk,
-        );
+        updateAnalysisOptions(analysisOptions: options, sdk: sdk);
       }
     }
 
@@ -291,7 +285,6 @@ class ContextBuilderImpl {
     DartSdk sdk,
     void Function({
       required AnalysisOptionsImpl analysisOptions,
-      required ContextRoot contextRoot,
       required DartSdk sdk,
     })?
     updateAnalysisOptions,
@@ -313,11 +306,7 @@ class ContextBuilderImpl {
     options ??= AnalysisOptionsImpl(file: optionsFile);
 
     if (updateAnalysisOptions != null) {
-      updateAnalysisOptions(
-        analysisOptions: options,
-        contextRoot: contextRoot,
-        sdk: sdk,
-      );
+      updateAnalysisOptions(analysisOptions: options, sdk: sdk);
     }
 
     return options;

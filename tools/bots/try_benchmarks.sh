@@ -20,9 +20,6 @@ Where COMMAND is one of:"
 
     noop - Just print description.
     clean - Remove out/ directory.
-    linux-ia32-build - Build linux-ia32 for benchmarking.
-    linux-ia32-archive - Archive linux-ia32.
-    linux-ia32-benchmark - Try linux-ia32 benchmarking.
     linux-x64-build - Build linux-x64 for benchmarking.
     linux-x64-archive - Archive linux-x64.
     linux-x64-benchmark - Try linux-x64 benchmarking.
@@ -69,115 +66,8 @@ for command; do
   elif [ "$command" = clean ]; then
     rm -rf out
     rm -rf tmp
-    rm -f linux-ia32.tar.gz
-    rm -f linux-ia32_profile.tar.gz
     rm -f linux-x64.tar.gz
     rm -f linux-x64_profile.tar.gz
-  elif [ "$command" = linux-ia32-build ]; then
-    # NOTE: These are duplicated in tools/bots/test_matrix.json, keep in sync.
-    ./tools/build.py --mode=release --arch=ia32 create_sdk runtime dart2js_platform.dill kernel-service.dart.snapshot
-  elif [ "$command" = linux-ia32-archive ]; then
-    export GZIP=-1
-    strip -w \
-      -K 'kDartVmSnapshotData' \
-      -K 'kDartVmSnapshotInstructions' \
-      -K 'kDartCoreIsolateSnapshotData' \
-      -K 'kDartCoreIsolateSnapshotInstructions' \
-      -K '_ZN4dart3bin26observatory_assets_archiveE' \
-      -K '_ZN4dart3bin30observatory_assets_archive_lenE' \
-      -K '_ZN4dart3bin7Builtin22_builtin_source_paths_E' \
-      -K '_ZN4dart3bin7Builtin*_paths_E' \
-      -K '_ZN4dart3binL17vm_snapshot_data_E' \
-      -K '_ZN4dart3binL24isolate_snapshot_buffer_E' \
-      -K '_ZN4dart3binL27core_isolate_snapshot_data_E' \
-      -K '_ZN4dart3binL27observatory_assets_archive_E' \
-      -K '_ZN4dart3binL27vm_isolate_snapshot_buffer_E' \
-      -K '_ZN4dart3binL29core_isolate_snapshot_buffer_E' \
-      -K '_ZN4dart7Version14snapshot_hash_E' \
-      -K '_ZN4dart7Version4str_E' \
-      -K '_ZN4dart7Version7commit_E' \
-      -K '_ZN4dart9Bootstrap*_paths_E' out/ReleaseIA32/dart
-    strip -w \
-      -K 'kDartVmSnapshotData' \
-      -K 'kDartVmSnapshotInstructions' \
-      -K 'kDartCoreIsolateSnapshotData' \
-      -K 'kDartCoreIsolateSnapshotInstructions' \
-      -K '_ZN4dart3bin26observatory_assets_archiveE' \
-      -K '_ZN4dart3bin30observatory_assets_archive_lenE' \
-      -K '_ZN4dart3bin7Builtin22_builtin_source_paths_E' \
-      -K '_ZN4dart3bin7Builtin*_paths_E' \
-      -K '_ZN4dart3binL17vm_snapshot_data_E' \
-      -K '_ZN4dart3binL24isolate_snapshot_buffer_E' \
-      -K '_ZN4dart3binL27core_isolate_snapshot_data_E' \
-      -K '_ZN4dart3binL27observatory_assets_archive_E' \
-      -K '_ZN4dart3binL27vm_isolate_snapshot_buffer_E' \
-      -K '_ZN4dart3binL29core_isolate_snapshot_buffer_E' \
-      -K '_ZN4dart7Version14snapshot_hash_E' \
-      -K '_ZN4dart7Version4str_E' \
-      -K '_ZN4dart7Version7commit_E' \
-      -K '_ZN4dart9Bootstrap*_paths_E' out/ReleaseIA32/gen_snapshot
-    strip -w \
-      -K 'kDartVmSnapshotData' \
-      -K 'kDartVmSnapshotInstructions' \
-      -K 'kDartCoreIsolateSnapshotData' \
-      -K 'kDartCoreIsolateSnapshotInstructions' \
-      -K '_ZN4dart3bin26observatory_assets_archiveE' \
-      -K '_ZN4dart3bin30observatory_assets_archive_lenE' \
-      -K '_ZN4dart3bin7Builtin22_builtin_source_paths_E' \
-      -K '_ZN4dart3bin7Builtin*_paths_E' \
-      -K '_ZN4dart3binL17vm_snapshot_data_E' \
-      -K '_ZN4dart3binL24isolate_snapshot_buffer_E' \
-      -K '_ZN4dart3binL27core_isolate_snapshot_data_E' \
-      -K '_ZN4dart3binL27observatory_assets_archive_E' \
-      -K '_ZN4dart3binL27vm_isolate_snapshot_buffer_E' \
-      -K '_ZN4dart3binL29core_isolate_snapshot_buffer_E' \
-      -K '_ZN4dart7Version14snapshot_hash_E' \
-      -K '_ZN4dart7Version4str_E' \
-      -K '_ZN4dart7Version7commit_E' \
-      -K '_ZN4dart9Bootstrap*_paths_E' out/ReleaseIA32/run_vm_tests
-    tar -czf linux-ia32.tar.gz \
-      --exclude .git \
-      --exclude .gitignore \
-      --exclude pkg/front_end/testcases \
-      -- \
-      out/ReleaseIA32/dart2js_platform.dill \
-      out/ReleaseIA32/vm_outline_strong.dill \
-      out/ReleaseIA32/vm_platform_strong.dill \
-      out/ReleaseIA32/gen/kernel_service.dill \
-      out/ReleaseIA32/dart-sdk \
-      out/ReleaseIA32/dart \
-      out/ReleaseIA32/gen_snapshot \
-      out/ReleaseIA32/kernel-service.dart.snapshot \
-      out/ReleaseIA32/run_vm_tests \
-      sdk \
-      pkg/compiler/test/codesize/swarm \
-      third_party/pkg \
-      .dart_tool/package_config.json \
-      pkg \
-      benchmarks \
-      || (rm -f linux-ia32.tar.gz; exit 1)
-  elif [ "$command" = linux-ia32-benchmark ]; then
-    rm -rf tmp
-    mkdir tmp
-    cd tmp
-    tar -xf ../linux-ia32.tar.gz
-    cat > hello.dart << EOF
-main() {
-  print("Hello, World");
-}
-EOF
-    out/ReleaseIA32/dart --profile-period=10000 hello.dart
-    out/ReleaseIA32/dart pkg/front_end/tool/perf.dart parse hello.dart
-    out/ReleaseIA32/dart pkg/front_end/tool/perf.dart scan hello.dart
-    out/ReleaseIA32/dart pkg/front_end/tool/cfe_perf.dart kernel_gen_e2e hello.dart
-    out/ReleaseIA32/dart pkg/front_end/tool/cfe_perf.dart scan hello.dart
-    out/ReleaseIA32/run_vm_tests --dfe=out/ReleaseIA32/kernel-service.dart.snapshot InitialRSS
-    out/ReleaseIA32/run_vm_tests --dfe=out/ReleaseIA32/kernel-service.dart.snapshot KernelServiceCompileAll
-    out/ReleaseIA32/run_vm_tests --dfe=out/ReleaseIA32/kernel-service.dart.snapshot UseDartApi
-    out/ReleaseIA32/dart --profile-period=10000 benchmarks/Example/dart/Example.dart
-    out/ReleaseIA32/dart benchmarks/FfiAsTypedList/dart/FfiAsTypedList.dart
-    cd ..
-    rm -rf tmp
   elif [ "$command" = linux-x64-build ]; then
     # NOTE: These are duplicated in tools/bots/test_matrix.json, keep in sync.
     ./tools/build.py --mode=release --arch=x64 create_sdk runtime gen_snapshot dartaotruntime dart2js_platform.dill kernel-service.dart.snapshot ddc_stable_test ddc_canary_test dart2wasm_benchmark

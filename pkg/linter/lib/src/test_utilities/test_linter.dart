@@ -11,9 +11,9 @@ import 'package:analyzer/file_system/physical_file_system.dart' as file_system;
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
 // ignore: implementation_imports
-import 'package:analyzer/src/lint/io.dart';
-// ignore: implementation_imports
 import 'package:analyzer/src/lint/pub.dart';
+// ignore: implementation_imports
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
@@ -39,10 +39,11 @@ class TestLinter implements AnalysisErrorListener {
           resourceProvider ?? file_system.PhysicalResourceProvider.INSTANCE;
 
   Future<List<DiagnosticInfo>> lintFiles(List<File> files) async {
-    var errors = <DiagnosticInfo>[];
     var lintDriver = LintDriver(options, _resourceProvider);
-    errors.addAll(await lintDriver.analyze(files.where(isDartFile)));
-    for (var file in files.where(isPubspecFile)) {
+    var errors = await lintDriver.analyze(
+      files.where((f) => f.path.endsWith('.dart')),
+    );
+    for (var file in files.where(_isPubspecFile)) {
       lintPubspecSource(
         contents: file.readAsStringSync(),
         sourcePath: _resourceProvider.pathContext.normalize(file.absolute.path),
@@ -77,4 +78,8 @@ class TestLinter implements AnalysisErrorListener {
 
   @override
   void onError(Diagnostic error) => errors.add(error);
+
+  /// Returns whether this [entry] is a pubspec file.
+  bool _isPubspecFile(FileSystemEntity entry) =>
+      path.basename(entry.path) == file_paths.pubspecYaml;
 }

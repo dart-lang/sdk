@@ -446,7 +446,7 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
         try {
           var astSink = StringBuffer();
 
-          StringSpelunker(
+          Spelunker(
             result.unit.toSource(),
             sink: astSink,
             featureSet: result.unit.featureSet,
