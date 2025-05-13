@@ -560,10 +560,9 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   Future<List<Diagnostic>> _resolvePubspecFile(String content) async {
     var path = convertPath(testPackagePubspecPath);
     var pubspecRules = <AbstractAnalysisRule, PubspecVisitor<Object?>>{};
-    for (var rule in Registry.ruleRegistry.where(
-      (rule) => _lintRules.contains(rule.name),
-    )) {
-      var visitor = rule.getPubspecVisitor();
+    var rules = Registry.ruleRegistry.where((r) => _lintRules.contains(r.name));
+    for (var rule in rules) {
+      var visitor = rule.pubspecVisitor;
       if (visitor != null) {
         pubspecRules[rule] = visitor;
       }

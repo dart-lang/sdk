@@ -58,7 +58,7 @@ class TestLinter implements AnalysisErrorListener {
     var spec = Pubspec.parse(contents, sourceUrl: sourceUrl);
 
     for (var rule in options.enabledRules) {
-      var visitor = rule.getPubspecVisitor();
+      var visitor = rule.pubspecVisitor;
       if (visitor != null) {
         // Analyzer sets reporters; if this file is not being analyzed,
         // we need to set one ourselves.  (Needless to say, when pubspec

@@ -14,7 +14,7 @@ class PackageNames extends LintRule {
   LintCode get lintCode => LinterLintCode.package_names;
 
   @override
-  PubspecVisitor<void> getPubspecVisitor() => Visitor(this);
+  PubspecVisitor<void> get pubspecVisitor => Visitor(this);
 }
 
 class Visitor extends PubspecVisitor<void> {

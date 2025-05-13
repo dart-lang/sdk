@@ -59,7 +59,7 @@ List<Diagnostic> validatePubspec({
   if (analysisOptions != null && analysisOptions.lint) {
     var visitors = <AbstractAnalysisRule, PubspecVisitor>{};
     for (var linter in analysisOptions.lintRules) {
-      var visitor = linter.getPubspecVisitor();
+      var visitor = linter.pubspecVisitor;
       if (visitor != null) {
         visitors[linter] = visitor;
       }

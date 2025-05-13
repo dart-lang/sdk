@@ -63,6 +63,11 @@ sealed class AbstractAnalysisRule {
   /// The lint codes associated with this lint rule.
   List<LintCode> get lintCodes;
 
+  /// Returns a visitor that visits a [Pubspec] to perform analysis.
+  ///
+  /// Diagnostics are reported via this [LintRule]'s error [reporter].
+  PubspecVisitor? get pubspecVisitor => null;
+
   @protected
   // Protected so that lint rule visitors do not access this directly.
   // TODO(srawlins): With the new availability of an ErrorReporter on
@@ -73,12 +78,6 @@ sealed class AbstractAnalysisRule {
   ErrorReporter get reporter => _reporter;
 
   set reporter(ErrorReporter value) => _reporter = value;
-
-  /// Returns a visitor to be passed to pubspecs to perform lint
-  /// analysis.
-  ///
-  /// Lint errors are reported via this [LintRule]'s error [reporter].
-  PubspecVisitor? getPubspecVisitor() => null;
 
   /// Registers node processors in the given [registry].
   ///
