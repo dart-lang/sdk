@@ -130,7 +130,21 @@ abstract class LintRuleTest extends PubPackageResolutionTest {
   );
 }
 
-class PubPackageResolutionTest extends _ContextResolutionTest {
+class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
+  static bool _lintRulesAreRegistered = false;
+
+  /// The byte store that is reused between tests. This allows reusing all
+  /// unlinked and linked summaries for SDK, so that tests run much faster.
+  /// However nothing is preserved between Dart VM runs, so changes to the
+  /// implementation are still fully verified.
+  static final MemoryByteStore _sharedByteStore = MemoryByteStore();
+
+  final MemoryByteStore _byteStore = _sharedByteStore;
+
+  AnalysisContextCollectionImpl? _analysisContextCollection;
+
+  late ResolvedUnitResult result;
+
   final List<String> _lintRules = const [];
 
   /// Adds the 'fixnum' package as a dependency to the package-under-test.
@@ -170,10 +184,17 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
   /// The list of language experiments to be enabled for these tests.
   List<String> get experiments => experimentsForTests;
 
-  String get testFileName => 'test.dart';
+  /// Error codes that by default should be ignored in test expectations.
+  List<DiagnosticCode> get ignoredErrorCodes => [
+    WarningCode.UNUSED_LOCAL_VARIABLE,
+  ];
 
+  /// The path to the root of the external packages.
   @override
-  String get testFilePath => '$testPackageLibPath/$testFileName';
+  String get packagesRootPath => '/packages';
+
+  /// The name of the test file.
+  String get testFileName => 'test.dart';
 
   /// The language version for the package-under-test.
   ///
@@ -189,8 +210,17 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
 
   String get workspaceRootPath => '/home';
 
-  @override
   List<String> get _collectionIncludedPaths => [workspaceRootPath];
+
+  /// The diagnostics that were computed during analysis.
+  List<Diagnostic> get _diagnostics =>
+      result.errors
+          .whereNot((e) => ignoredErrorCodes.any((c) => e.errorCode == c))
+          .toList();
+
+  Folder get _sdkRoot => newFolder('/sdk');
+
+  String get _testFilePath => '$testPackageLibPath/$testFileName';
 
   /// Asserts that the number of diagnostics reported in [content] matches the
   /// number of [expectedDiagnostics] and that they have the expected error
@@ -201,9 +231,9 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
     String content,
     List<ExpectedDiagnostic> expectedDiagnostics,
   ) async {
-    addTestFile(content);
-    await resolveTestFile();
-    await _assertDiagnosticsIn(_diagnostics, expectedDiagnostics);
+    _addTestFile(content);
+    await _resolveTestFile();
+    _assertDiagnosticsIn(_diagnostics, expectedDiagnostics);
   }
 
   /// Asserts that the number of diagnostics that have been gathered at [path]
@@ -216,7 +246,7 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
     List<ExpectedDiagnostic> expectedDiagnostics,
   ) async {
     await _resolveFile(path);
-    await _assertDiagnosticsIn(_diagnostics, expectedDiagnostics);
+    _assertDiagnosticsIn(_diagnostics, expectedDiagnostics);
   }
 
   /// Asserts that the diagnostics for each `path` match those in the paired
@@ -230,7 +260,7 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
   ) async {
     for (var (path, expectedDiagnostics) in unitsAndDiagnostics) {
       result = await resolveFile(convertPath(path));
-      await _assertDiagnosticsIn(result.errors, expectedDiagnostics);
+      _assertDiagnosticsIn(result.errors, expectedDiagnostics);
     }
   }
 
@@ -246,7 +276,7 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
   Future<void> assertNoPubspecDiagnostics(String content) async {
     newFile(testPackagePubspecPath, content);
     var errors = await _resolvePubspecFile(content);
-    await _assertDiagnosticsIn(errors, []);
+    _assertDiagnosticsIn(errors, []);
   }
 
   /// Asserts that [expectedDiagnostics] are reported when resolving [content].
@@ -256,13 +286,36 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
   ) async {
     newFile(testPackagePubspecPath, content);
     var errors = await _resolvePubspecFile(content);
-    await _assertDiagnosticsIn(errors, expectedDiagnostics);
+    _assertDiagnosticsIn(errors, expectedDiagnostics);
   }
 
   @override
+  File newFile(String path, String content) {
+    if (_analysisContextCollection != null && !path.endsWith('.dart')) {
+      throw StateError('Only dart files can be changed after analysis.');
+    }
+
+    return super.newFile(path, content);
+  }
+
+  /// Resolves a Dart source file at [path].
+  ///
+  /// [path] must be converted for this file system.
+  Future<ResolvedUnitResult> resolveFile(String path) async {
+    var analysisContext = _contextFor(path);
+    var session = analysisContext.currentSession;
+    return await session.getResolvedUnit(path) as ResolvedUnitResult;
+  }
+
   @mustCallSuper
   void setUp() {
-    super.setUp();
+    if (!_lintRulesAreRegistered) {
+      registerLintRules();
+      _lintRulesAreRegistered = true;
+    }
+
+    createMockSdk(resourceProvider: resourceProvider, root: _sdkRoot);
+
     // Check for any needlessly enabled experiments.
     for (var experiment in experiments) {
       var feature = ExperimentStatus.knownFeatures[experiment];
@@ -280,6 +333,12 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
     );
     writeTestPackageConfig(PackageConfigFileBuilder());
     _writeTestPackagePubspecYamlFile(pubspecYamlContent(name: 'test'));
+  }
+
+  @mustCallSuper
+  Future<void> tearDown() async {
+    await _analysisContextCollection?.dispose();
+    _analysisContextCollection = null;
   }
 
   void writePackageConfig(String path, PackageConfigFileBuilder config) {
@@ -335,11 +394,15 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
     writePackageConfig(path, configCopy);
   }
 
+  void _addTestFile(String content) {
+    newFile(_testFilePath, content);
+  }
+
   /// Asserts that the diagnostics in [diagnostics] match [expectedDiagnostics].
-  Future<void> _assertDiagnosticsIn(
+  void _assertDiagnosticsIn(
     List<Diagnostic> diagnostics,
     List<ExpectedDiagnostic> expectedDiagnostics,
-  ) async {
+  ) {
     //
     // Match actual diagnostics to expected diagnostics.
     //
@@ -464,6 +527,36 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
     }
   }
 
+  DriverBasedAnalysisContext _contextFor(String path) {
+    _createAnalysisContexts();
+
+    var convertedPath = convertPath(path);
+    return _analysisContextCollection!.contextFor(convertedPath);
+  }
+
+  /// Creates all analysis contexts in [_collectionIncludedPaths].
+  void _createAnalysisContexts() {
+    if (_analysisContextCollection != null) {
+      return;
+    }
+
+    _analysisContextCollection = AnalysisContextCollectionImpl(
+      byteStore: _byteStore,
+      declaredVariables: {},
+      enableIndex: true,
+      includedPaths: _collectionIncludedPaths.map(convertPath).toList(),
+      resourceProvider: resourceProvider,
+      sdkPath: _sdkRoot.path,
+    );
+  }
+
+  /// Resolves the file with the [path] into [result].
+  Future<void> _resolveFile(String path) async {
+    var convertedPath = convertPath(path);
+
+    result = await resolveFile(convertedPath);
+  }
+
   Future<List<Diagnostic>> _resolvePubspecFile(String content) async {
     var path = convertPath(testPackagePubspecPath);
     var pubspecRules = <AbstractAnalysisRule, PubspecVisitor<Object?>>{};
@@ -499,116 +592,10 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
     return [...listener.errors];
   }
 
+  Future<void> _resolveTestFile() => _resolveFile(_testFilePath);
+
   void _writeTestPackagePubspecYamlFile(String content) {
     newPubspecYamlFile(testPackageRootPath, content);
-  }
-}
-
-abstract class _ContextResolutionTest
-    with MockPackagesMixin, ResourceProviderMixin {
-  static bool _lintRulesAreRegistered = false;
-
-  /// The byte store that is reused between tests. This allows reusing all
-  /// unlinked and linked summaries for SDK, so that tests run much faster.
-  /// However nothing is preserved between Dart VM runs, so changes to the
-  /// implementation are still fully verified.
-  static final MemoryByteStore _sharedByteStore = MemoryByteStore();
-
-  final MemoryByteStore _byteStore = _sharedByteStore;
-
-  AnalysisContextCollectionImpl? _analysisContextCollection;
-
-  late ResolvedUnitResult result;
-
-  /// Error codes that by default should be ignored in test expectations.
-  List<DiagnosticCode> get ignoredErrorCodes => [
-    WarningCode.UNUSED_LOCAL_VARIABLE,
-  ];
-
-  /// The path to the root of the external packages.
-  @override
-  String get packagesRootPath => '/packages';
-
-  String get testFilePath;
-
-  List<String> get _collectionIncludedPaths;
-
-  /// The diagnostics that were computed during analysis.
-  List<Diagnostic> get _diagnostics =>
-      result.errors
-          .whereNot((e) => ignoredErrorCodes.any((c) => e.errorCode == c))
-          .toList();
-
-  Folder get _sdkRoot => newFolder('/sdk');
-
-  void addTestFile(String content) {
-    newFile(testFilePath, content);
-  }
-
-  @override
-  File newFile(String path, String content) {
-    if (_analysisContextCollection != null && !path.endsWith('.dart')) {
-      throw StateError('Only dart files can be changed after analysis.');
-    }
-
-    return super.newFile(path, content);
-  }
-
-  /// Resolves a Dart source file at [path].
-  ///
-  /// [path] must be converted for this file system.
-  Future<ResolvedUnitResult> resolveFile(String path) async {
-    var analysisContext = _contextFor(path);
-    var session = analysisContext.currentSession;
-    return await session.getResolvedUnit(path) as ResolvedUnitResult;
-  }
-
-  Future<void> resolveTestFile() => _resolveFile(testFilePath);
-
-  @mustCallSuper
-  void setUp() {
-    if (!_lintRulesAreRegistered) {
-      registerLintRules();
-      _lintRulesAreRegistered = true;
-    }
-
-    createMockSdk(resourceProvider: resourceProvider, root: _sdkRoot);
-  }
-
-  @mustCallSuper
-  Future<void> tearDown() async {
-    await _analysisContextCollection?.dispose();
-    _analysisContextCollection = null;
-  }
-
-  DriverBasedAnalysisContext _contextFor(String path) {
-    _createAnalysisContexts();
-
-    var convertedPath = convertPath(path);
-    return _analysisContextCollection!.contextFor(convertedPath);
-  }
-
-  /// Creates all analysis contexts in [_collectionIncludedPaths].
-  void _createAnalysisContexts() {
-    if (_analysisContextCollection != null) {
-      return;
-    }
-
-    _analysisContextCollection = AnalysisContextCollectionImpl(
-      byteStore: _byteStore,
-      declaredVariables: {},
-      enableIndex: true,
-      includedPaths: _collectionIncludedPaths.map(convertPath).toList(),
-      resourceProvider: resourceProvider,
-      sdkPath: _sdkRoot.path,
-    );
-  }
-
-  /// Resolves the file with the [path] into [result].
-  Future<void> _resolveFile(String path) async {
-    var convertedPath = convertPath(path);
-
-    result = await resolveFile(convertedPath);
   }
 }
 

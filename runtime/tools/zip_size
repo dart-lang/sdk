@@ -1,5 +1,5 @@
 #!/usr/bin/env dart
-// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -53,22 +53,6 @@ class Symbol {
 
 const filteredPathComponents = <String>[
   "",
-  ".",
-  "..",
-  "out",
-  "xcodebuild",
-  "src",
-  "source",
-  "third_party",
-  "DebugX64",
-  "ReleaseX64",
-  "ProductX64",
-  "DebugARM64",
-  "ReleaseARM64",
-  "ProductARM64",
-  "DebugXARM64",
-  "ReleaseXARM64",
-  "ProductXARM64",
 ];
 
 var cwd = Directory.current.path;
@@ -83,29 +67,27 @@ String prettyPath(String path) {
 }
 
 main(List<String> args) {
-  if (args.length != 2) {
-    print("Usage: binary_size <stripped> <unstripped>");
+  if (args.length != 1) {
+    print("Usage: zip_size <archive>");
     exit(1);
   }
 
-  var strippedPath = args[0];
-  var unstrippedPath = args[1];
+  var path = args[0];
 
-  var bloatyExec = "bloaty";
-  var bloatyArgs = ["-d", "symbols,compileunits", "--domain=file", "-n", "0",
-                    "--tsv", "--debug-file", unstrippedPath, strippedPath];
-  var bloatyResult = Process.runSync(bloatyExec, bloatyArgs);
-  if (bloatyResult.exitCode != 0) {
-    print("+ ${bloatyExec} ${bloatyArgs.join(' ')}");
-    print(bloatyResult.exitCode);
-    print(bloatyResult.stdout);
-    print(bloatyResult.stderr);
+  var unzipExec = "unzip";
+  var unzipArgs = ["-l", path];
+  var unzipResult = Process.runSync(unzipExec, unzipArgs);
+  if (unzipResult.exitCode != 0) {
+    print("+ ${unzipExec} ${unzipArgs.join(' ')}");
+    print(unzipResult.exitCode);
+    print(unzipResult.stdout);
+    print(unzipResult.stderr);
     exit(1);
   }
 
   var root = new Symbol();
-  root.name = strippedPath;
-  root.type = "binary";
+  root.name = path;
+  root.type = "archive";
   root.shallowSize = 0;
   var paths = new Map<String, Symbol>();
   paths[""] = root;
@@ -129,40 +111,27 @@ main(List<String> args) {
     p.children.add(s);
   }
 
-  var lines = bloatyResult.stdout.split("\n");
-  var header = true;
+  var lines = unzipResult.stdout.split("\n");
+  var regexp = new RegExp(r"\s*(\d+)\s+\d+-\d+-\d+\s+\d+:\d+\s+(.*)");
   for (var line in lines) {
-    if (header) {
-      header = false;
-      continue;
-    }
-    if (line.isEmpty) {
+    var match = regexp.firstMatch(line);
+    if (match == null) {
       continue;
     }
 
-    var columns = line.split("\t");
-    var name = columns[0];
-    var path = columns[1];
-    var vmSize = int.parse(columns[2]);
-    var fileSize = int.parse(columns[3]);
-
-    if (path.startsWith("[")) {
-      if (path == name) {
-        path = "";
-      } else if (name.contains("::")) {
-        path = "(no path)/" + name.substring(0, name.lastIndexOf("::")).replaceAll("::", "/");
-        name = name.substring(name.lastIndexOf("::") + 2);
-      } else {
-        path = "(no path)";
-      }
+    var name = match[2]!;
+    var size = int.parse(match[1]!);
+    var path = "";
+    if (name.contains("/")) {
+      path = name.substring(0, name.lastIndexOf("/"));
+      name = name.substring(name.lastIndexOf("/") + 1);
     }
-
     path = prettyPath(path);
 
     var s = new Symbol();
     s.name = name;
-    s.type = "symbol";
-    s.shallowSize = fileSize;
+    s.type = "file";
+    s.shallowSize = size;
     addToPath(s, path);
   }
 
@@ -173,11 +142,11 @@ main(List<String> args) {
   root.writeJson(json);
 
   var html = viewer.replaceAll("__DATA__", json.toString());
-  new File("${strippedPath}.html").writeAsStringSync(html);
+  new File("${path}.html").writeAsStringSync(html);
 
   // This written as a URL instead of path because some terminals will
   // automatically recognize it and make it a link.
-  var url = Directory.current.uri.resolve("${strippedPath}.html");
+  var url = Directory.current.uri.resolve("${path}.html");
   print("Wrote $url");
 }
 

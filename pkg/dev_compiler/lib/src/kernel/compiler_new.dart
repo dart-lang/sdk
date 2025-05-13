@@ -1163,6 +1163,12 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       library.classes.forEach(_emitClass);
       _emitLibraryMembers(library);
     }
+    // Creating a function and setting the library object as the prototype
+    // serves as a signal to V8 that the members of the library should get
+    // optimized for fast lookup.
+    // Do not remove without testing for performance regressions.
+    _moduleItems.add(js.statement(
+        '(function() {}).prototype = #', [_libraries[_currentLibrary!]]));
     _staticTypeContext.leaveLibrary(_currentLibrary!);
   }
 
