@@ -566,6 +566,23 @@ DotShorthandConstructorInvocation
 ''');
   }
 
+  test_requiredParameters_missing() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  int x;
+  C({required this.x});
+}
+
+void main() {
+  C c = .new();
+  print(c);
+}
+''',
+      [error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 69, 3)],
+    );
+  }
+
   test_typeParameters() async {
     await assertErrorsInCode(
       r'''

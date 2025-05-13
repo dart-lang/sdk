@@ -657,7 +657,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         node.constKeyword,
       );
     }
+    _requiredParametersVerifier.visitDotShorthandConstructorInvocation(node);
     super.visitDotShorthandConstructorInvocation(node);
+  }
+
+  @override
+  void visitDotShorthandInvocation(DotShorthandInvocation node) {
+    _requiredParametersVerifier.visitDotShorthandInvocation(node);
+    super.visitDotShorthandInvocation(node);
   }
 
   @override
