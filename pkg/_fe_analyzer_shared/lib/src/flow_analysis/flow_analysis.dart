@@ -3868,7 +3868,7 @@ class PromotionModel<Type extends Object> {
     // Figure out if we have any promotion candidates (types that are a
     // supertype of writtenType and a proper subtype of the currently-promoted
     // type).  If at any point we find an exact match, we take it immediately.
-    Type? currentlyPromotedType = promotedTypes?.last;
+    Type currentlyPromotedType = promotedTypes?.last ?? declaredType;
 
     List<Type>? result;
     List<Type>? candidates = null;
@@ -3880,13 +3880,11 @@ class PromotionModel<Type extends Object> {
       }
 
       // Must be more specific that the currently promoted type.
-      if (currentlyPromotedType != null) {
-        if (type == currentlyPromotedType) {
-          return;
-        }
-        if (!typeOperations.isSubtypeOf(type, currentlyPromotedType)) {
-          return;
-        }
+      if (type == currentlyPromotedType) {
+        return;
+      }
+      if (!typeOperations.isSubtypeOf(type, currentlyPromotedType)) {
+        return;
       }
 
       // This is precisely the type we want to promote to; take it.
