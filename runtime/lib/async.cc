@@ -15,6 +15,9 @@
 
 namespace dart {
 
+// This flag is defined in "vm/microtask_mirror_queues.cc".
+DECLARE_FLAG(bool, profile_microtasks);
+
 DEFINE_NATIVE_ENTRY(AsyncStarMoveNext_debuggerStepCheck, 0, 1) {
 #if !defined(PRODUCT)
   GET_NON_NULL_NATIVE_ARGUMENT(Closure, generator, arguments->NativeArgAt(0));
@@ -65,6 +68,7 @@ DEFINE_NATIVE_ENTRY(MicrotaskMirrorQueue_onScheduleAsyncCallback, 0, 0) {
   // this function can only ever be called when the `--profile-microtasks` CLI
   // flag is set in non-PRODUCT modes.
 #if !defined(PRODUCT)
+  ASSERT(FLAG_profile_microtasks);
   const StackTrace& stack_trace = GetCurrentStackTrace(
       // We pass a `skip_frames` argument of 1 to skip the
       // `_MicrotaskMirrorQueue._onScheduleAsyncCallback` frame.
@@ -84,6 +88,7 @@ DEFINE_NATIVE_ENTRY(MicrotaskMirrorQueue_onSchedulePriorityAsyncCallback,
   // this function can only ever be called when the `--profile-microtasks` CLI
   // flag is set in non-PRODUCT modes.
 #if !defined(PRODUCT)
+  ASSERT(FLAG_profile_microtasks);
   MicrotaskMirrorQueues::GetQueue(static_cast<int64_t>(isolate->main_port()))
       ->OnSchedulePriorityAsyncCallback();
   return Object::null();
@@ -97,6 +102,7 @@ DEFINE_NATIVE_ENTRY(MicrotaskMirrorQueue_onAsyncCallbackComplete, 0, 2) {
   // this function can only ever be called when the `--profile-microtasks` CLI
   // flag is set in non-PRODUCT modes.
 #if !defined(PRODUCT)
+  ASSERT(FLAG_profile_microtasks);
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, start_time, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, end_time, arguments->NativeArgAt(1));
   MicrotaskMirrorQueues::GetQueue(static_cast<int64_t>(isolate->main_port()))

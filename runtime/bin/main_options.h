@@ -85,6 +85,7 @@ namespace bin {
   V(ProcessEnvironmentOption)                                                  \
   V(ProcessEnableVmServiceOption)                                              \
   V(ProcessObserveOption)                                                      \
+  V(ProcessProfileMicrotasksOption)                                            \
   V(ProcessVMDebuggingOptions)
 
 // This enum must match the strings in kSnapshotKindNames in main_options.cc.

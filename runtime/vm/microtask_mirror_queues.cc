@@ -15,6 +15,13 @@
 
 namespace dart {
 
+DEFINE_FLAG(
+    bool,
+    profile_microtasks,
+    false,
+    "Record information about each microtask. Information about completed "
+    "microtasks will be written to the \"Microtask\" timeline stream.");
+
 MicrotaskMirrorQueue* MicrotaskMirrorQueues::GetQueue(int64_t isolate_id) {
   void* key = reinterpret_cast<void*>(isolate_id);
   const intptr_t hash = Utils::WordHash(isolate_id);

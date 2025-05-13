@@ -178,6 +178,14 @@ class RunCommand extends DartdevCommand {
               'Defaults to ring.',
           valueHelp: 'recorder',
           hide: !verbose,
+        )
+        ..addFlag(
+          'profile-microtasks',
+          hide: !verbose,
+          negatable: false,
+          help: 'Record information about each microtask. Information about '
+              'completed microtasks will be written to the "Microtask" '
+              'timeline stream.',
         );
     } else {
       argParser.addOption('timeline-recorder',
