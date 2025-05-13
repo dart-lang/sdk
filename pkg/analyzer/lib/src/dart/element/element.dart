@@ -4436,6 +4436,7 @@ class HideElementCombinatorImpl implements HideElementCombinator {
   }
 }
 
+@elementClass
 abstract class InstanceElementImpl2 extends ElementImpl2
     implements
         InstanceElement,
@@ -4540,11 +4541,18 @@ abstract class InstanceElementImpl2 extends ElementImpl2
   );
 
   @override
+  @trackedDirectly
   FieldElementImpl2? getField2(String name) {
+    globalResultRequirements?.record_instanceElement_getField(
+      element: this,
+      name: name,
+    );
+
     return fields2.firstWhereOrNull((e) => e.name3 == name);
   }
 
   @override
+  @trackedDirectly
   GetterElementImpl? getGetter2(String name) {
     globalResultRequirements?.record_instanceElement_getGetter(
       element: this,
@@ -4555,6 +4563,7 @@ abstract class InstanceElementImpl2 extends ElementImpl2
   }
 
   @override
+  @trackedDirectly
   MethodElementImpl2? getMethod2(String name) {
     globalResultRequirements?.record_instanceElement_getMethod(
       element: this,
@@ -4565,6 +4574,7 @@ abstract class InstanceElementImpl2 extends ElementImpl2
   }
 
   @override
+  @trackedDirectly
   SetterElementImpl? getSetter2(String name) {
     globalResultRequirements?.record_instanceElement_getSetter(
       element: this,
@@ -8469,7 +8479,13 @@ abstract class PropertyAccessorElementImpl2 extends ExecutableElementImpl2
   String? get name3 => firstFragment.name2;
 
   @override
+  @trackedDirectly
   PropertyInducingElementImpl2? get variable3 {
+    globalResultRequirements?.record_propertyAccessorElement_variable(
+      element: this,
+      name: name3,
+    );
+
     return firstFragment.variable2?.element;
   }
 }

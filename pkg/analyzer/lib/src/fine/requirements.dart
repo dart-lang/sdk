@@ -190,20 +190,29 @@ final class ExportRequirementShowCombinator
 /// If [InterfaceElementImpl2], there are additional requirements in form
 /// of [InterfaceItemRequirements].
 class InstanceItemRequirements {
+  final Map<LookupName, ManifestItemId?> requestedFields;
+
   /// These are "methods" in wide meaning: methods, getters, setters.
   final Map<LookupName, ManifestItemId?> requestedMethods;
 
-  InstanceItemRequirements({required this.requestedMethods});
+  InstanceItemRequirements({
+    required this.requestedFields,
+    required this.requestedMethods,
+  });
 
   factory InstanceItemRequirements.empty() {
-    return InstanceItemRequirements(requestedMethods: {});
+    return InstanceItemRequirements(requestedFields: {}, requestedMethods: {});
   }
 
   factory InstanceItemRequirements.read(SummaryDataReader reader) {
-    return InstanceItemRequirements(requestedMethods: reader.readNameToIdMap());
+    return InstanceItemRequirements(
+      requestedFields: reader.readNameToIdMap(),
+      requestedMethods: reader.readNameToIdMap(),
+    );
   }
 
   void write(BufferedSink sink) {
+    sink.writeNameToIdMap(requestedFields);
     sink.writeNameToIdMap(requestedMethods);
   }
 }
@@ -349,6 +358,8 @@ class RequirementsManifest {
 
       for (var instanceEntry in libraryEntry.value.entries) {
         var instanceName = instanceEntry.key;
+        var requirements = instanceEntry.value;
+
         var instanceItem = libraryManifest.items[instanceName];
         if (instanceItem is! InstanceItem) {
           return TopLevelNotInterface(
@@ -357,18 +368,32 @@ class RequirementsManifest {
           );
         }
 
-        var methods = instanceEntry.value.requestedMethods;
-        for (var methodEntry in methods.entries) {
-          var methodName = methodEntry.key;
-          var methodId = instanceItem.getDeclaredMemberId(methodName);
+        for (var fieldEntry in requirements.requestedFields.entries) {
+          var name = fieldEntry.key;
+          var expectedId = fieldEntry.value;
+          var currentId = instanceItem.getDeclaredFieldId(name);
+          if (expectedId != currentId) {
+            return InstanceFieldIdMismatch(
+              libraryUri: libraryUri,
+              interfaceName: instanceName,
+              fieldName: name,
+              expectedId: expectedId,
+              actualId: currentId,
+            );
+          }
+        }
+
+        for (var methodEntry in requirements.requestedMethods.entries) {
+          var name = methodEntry.key;
           var expectedId = methodEntry.value;
-          if (expectedId != methodId) {
+          var currentId = instanceItem.getDeclaredMemberId(name);
+          if (expectedId != currentId) {
             return InstanceMethodIdMismatch(
               libraryUri: libraryUri,
               interfaceName: instanceName,
-              methodName: methodName,
+              methodName: name,
               expectedId: expectedId,
-              actualId: methodId,
+              actualId: currentId,
             );
           }
         }
@@ -529,6 +554,23 @@ class RequirementsManifest {
     // TODO(scheglov): implement.
   }
 
+  void record_instanceElement_getField({
+    required InstanceElementImpl2 element,
+    required String name,
+  }) {
+    var itemRequirements = _getInstanceItem(element);
+    if (itemRequirements == null) {
+      return;
+    }
+
+    var item = itemRequirements.item;
+    var requirements = itemRequirements.requirements;
+
+    var fieldName = name.asLookupName;
+    var fieldId = item.getDeclaredFieldId(fieldName);
+    requirements.requestedFields[fieldName] = fieldId;
+  }
+
   void record_instanceElement_getGetter({
     required InstanceElementImpl2 element,
     required String name,
@@ -558,6 +600,22 @@ class RequirementsManifest {
     required String name,
   }) {
     record_instanceElement_getMethod(element: element, name: '$name=');
+  }
+
+  void record_propertyAccessorElement_variable({
+    required PropertyAccessorElementImpl2 element,
+    required String? name,
+  }) {
+    if (name == null) {
+      return;
+    }
+
+    switch (element.enclosingElement2) {
+      case InstanceElementImpl2 instanceElement:
+        record_instanceElement_getField(element: instanceElement, name: name);
+      default:
+      // TODO(scheglov): support for top-level variables
+    }
   }
 
   /// This method is invoked after linking of a library cycle, to exclude

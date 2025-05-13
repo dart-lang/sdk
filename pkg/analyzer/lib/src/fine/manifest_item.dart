@@ -104,6 +104,10 @@ sealed class InstanceItem<E extends InstanceElementImpl2>
     return baseNameMembers.constructorId;
   }
 
+  ManifestItemId? getDeclaredFieldId(LookupName name) {
+    return declaredFields[name]?.id;
+  }
+
   ManifestItemId? getDeclaredMemberId(LookupName name) {
     var baseNameMembers = declaredMembers[name.asBaseName];
     if (baseNameMembers == null) {
