@@ -13,11 +13,6 @@ import 'scope.dart';
 import 'uris.dart';
 
 abstract class NameSpace {
-  void addLocalMember(String name, NamedBuilder member, {required bool setter});
-
-  /// Adds [builder] to the extensions in this name space.
-  void addExtension(ExtensionBuilder builder);
-
   /// Returns the [LookupResult] for the [Builder]s of the given [name] in the
   /// name space.
   ///
@@ -54,10 +49,17 @@ abstract class NameSpace {
       {required bool includeDuplicates});
 }
 
+abstract class MutableNameSpace implements NameSpace {
+  factory MutableNameSpace() = NameSpaceImpl._;
+
+  void addLocalMember(String name, NamedBuilder member, {required bool setter});
+
+  /// Adds [builder] to the extensions in this name space.
+  void addExtension(ExtensionBuilder builder);
+}
+
 abstract class DeclarationNameSpace implements NameSpace {
   MemberBuilder? lookupConstructor(String name);
-
-  void addConstructor(String name, MemberBuilder builder);
 
   /// Returns an iterator of all constructors mapped in this scope,
   /// including duplicate constructors mapped to the same name.
@@ -73,12 +75,17 @@ abstract class DeclarationNameSpace implements NameSpace {
       {required bool includeDuplicates});
 }
 
-class NameSpaceImpl implements NameSpace {
+abstract class MutableDeclarationNameSpace
+    implements DeclarationNameSpace, MutableNameSpace {
+  void addConstructor(String name, MemberBuilder builder);
+}
+
+base class NameSpaceImpl implements NameSpace, MutableNameSpace {
   Map<String, NamedBuilder>? _getables;
   Map<String, NamedBuilder>? _setables;
   Set<ExtensionBuilder>? _extensions;
 
-  NameSpaceImpl(
+  NameSpaceImpl._(
       {Map<String, NamedBuilder>? getables,
       Map<String, NamedBuilder>? setables,
       Set<ExtensionBuilder>? extensions})
@@ -137,6 +144,14 @@ class NameSpaceImpl implements NameSpace {
       _getables?.values.iterator,
       _setables?.values.iterator,
       _extensions?.iterator);
+}
+
+final class SourceLibraryNameSpace extends NameSpaceImpl {
+  SourceLibraryNameSpace(
+      {required Map<String, NamedBuilder> super.getables,
+      required Map<String, NamedBuilder> super.setables,
+      required Set<ExtensionBuilder> super.extensions})
+      : super._();
 }
 
 // Coverage-ignore(suite): Not run.
@@ -218,16 +233,17 @@ String? areNameSpacesEquivalent(
   return sb.toString();
 }
 
-class DeclarationNameSpaceImpl extends NameSpaceImpl
-    implements DeclarationNameSpace {
+abstract base class DeclarationNameSpaceBase extends NameSpaceImpl
+    implements DeclarationNameSpace, MutableDeclarationNameSpace {
   Map<String, MemberBuilder>? _constructors;
 
-  DeclarationNameSpaceImpl(
+  DeclarationNameSpaceBase._(
       {super.getables,
       super.setables,
       super.extensions,
       Map<String, MemberBuilder>? constructors})
-      : _constructors = constructors;
+      : _constructors = constructors,
+        super._();
 
   @override
   void addConstructor(String name, MemberBuilder builder) {
@@ -251,7 +267,21 @@ class DeclarationNameSpaceImpl extends NameSpaceImpl
   }
 }
 
-abstract class LazyNameSpace extends NameSpaceImpl {
+final class SourceDeclarationNameSpace extends DeclarationNameSpaceBase {
+  SourceDeclarationNameSpace(
+      {required Map<String, NamedBuilder> super.getables,
+      required Map<String, NamedBuilder> super.setables,
+      required Map<String, MemberBuilder>? super.constructors})
+      : super._();
+}
+
+final class DillDeclarationNameSpace extends DeclarationNameSpaceBase {
+  DillDeclarationNameSpace() : super._();
+}
+
+abstract base class LazyNameSpace extends NameSpaceImpl {
+  LazyNameSpace() : super._();
+
   /// Override this method to lazily populate the scope before access.
   void ensureNameSpace();
 
@@ -274,7 +304,7 @@ abstract class LazyNameSpace extends NameSpaceImpl {
   }
 }
 
-class DillLibraryNameSpace extends LazyNameSpace {
+final class DillLibraryNameSpace extends LazyNameSpace {
   final DillLibraryBuilder _libraryBuilder;
 
   DillLibraryNameSpace(this._libraryBuilder);
@@ -285,7 +315,7 @@ class DillLibraryNameSpace extends LazyNameSpace {
   }
 }
 
-class DillExportNameSpace extends LazyNameSpace {
+final class DillExportNameSpace extends LazyNameSpace {
   final DillLibraryBuilder _libraryBuilder;
 
   DillExportNameSpace(this._libraryBuilder);

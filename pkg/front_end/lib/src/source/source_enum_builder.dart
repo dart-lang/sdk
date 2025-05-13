@@ -273,7 +273,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       nameSpaceBuilder.checkTypeParameterConflict(libraryBuilder,
           valuesBuilder.name, valuesBuilder, valuesBuilder.fileUri);
     } else {
-      nameSpace.addLocalMember("values", valuesBuilder, setter: false);
+      nameSpaceInternal.addLocalMember("values", valuesBuilder, setter: false);
       nameSpaceBuilder.checkTypeParameterConflict(libraryBuilder,
           valuesBuilder.name, valuesBuilder, valuesBuilder.fileUri);
     }
@@ -339,7 +339,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
           introductory: constructorDeclaration);
       synthesizedDefaultConstructorBuilder!
           .registerInitializedField(valuesBuilder);
-      nameSpace.addConstructor("", synthesizedDefaultConstructorBuilder!);
+      nameSpaceInternal.addConstructor(
+          "", synthesizedDefaultConstructorBuilder!);
       nameSpaceBuilder.checkTypeParameterConflict(
           libraryBuilder,
           synthesizedDefaultConstructorBuilder!.name,
@@ -366,7 +367,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         modifiers: Modifiers.empty,
         reference: toStringReference,
         tearOffReference: null);
-    nameSpace.addLocalMember(toStringBuilder.name, toStringBuilder,
+    nameSpaceInternal.addLocalMember(toStringBuilder.name, toStringBuilder,
         setter: false);
     nameSpaceBuilder.checkTypeParameterConflict(libraryBuilder,
         toStringBuilder.name, toStringBuilder, toStringBuilder.fileUri);

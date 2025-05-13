@@ -113,7 +113,7 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   final DeclarationNameSpaceBuilder nameSpaceBuilder;
 
-  late final DeclarationNameSpace _nameSpace;
+  late final MutableDeclarationNameSpace _nameSpace;
 
   @override
   List<SourceNominalParameterBuilder>? typeParameters;
@@ -160,6 +160,8 @@ class SourceClassBuilder extends ClassBuilderImpl
             isAugmentation: modifiers.isAugment) {
     cls.hasConstConstructor = declaresConstConstructor;
   }
+
+  MutableDeclarationNameSpace get nameSpaceInternal => _nameSpace;
 
   @override
   int resolveConstructors(SourceLibraryBuilder libraryBuilder) {
@@ -1225,7 +1227,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       SyntheticSourceConstructorBuilder constructorBuilder) {
     String name = constructorBuilder.name;
     constructorBuilder.next = nameSpace.lookupConstructor(name);
-    nameSpace.addConstructor(name, constructorBuilder);
+    _nameSpace.addConstructor(name, constructorBuilder);
     // Synthetic constructors are created after the component has been built
     // so we need to add the constructor to the class.
     cls.addConstructor(constructorBuilder.invokeTarget);

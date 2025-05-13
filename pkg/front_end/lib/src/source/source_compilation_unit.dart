@@ -93,11 +93,11 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 
   final LibraryNameSpaceBuilder _libraryNameSpaceBuilder;
 
-  final NameSpace _importNameSpace;
+  final MutableNameSpace _importNameSpace;
 
   late final LookupScope _importScope;
 
-  final NameSpace _prefixNameSpace;
+  final MutableNameSpace _prefixNameSpace;
 
   late final LookupScope _prefixScope;
 
@@ -140,8 +140,8 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       required bool mayImplementRestrictedTypes}) {
     LibraryNameSpaceBuilder libraryNameSpaceBuilder =
         new LibraryNameSpaceBuilder();
-    NameSpace importNameSpace = new NameSpaceImpl();
-    NameSpace prefixNameSpace = new NameSpaceImpl();
+    MutableNameSpace importNameSpace = new MutableNameSpace();
+    MutableNameSpace prefixNameSpace = new MutableNameSpace();
     return new SourceCompilationUnitImpl._(libraryNameSpaceBuilder,
         importUri: importUri,
         fileUri: fileUri,
@@ -171,8 +171,8 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       required this.originImportUri,
       required this.indexedLibrary,
       LookupScope? parentScope,
-      required NameSpace importNameSpace,
-      required NameSpace prefixNameSpace,
+      required MutableNameSpace importNameSpace,
+      required MutableNameSpace prefixNameSpace,
       required this.forAugmentationLibrary,
       required SourceCompilationUnit? augmentationRoot,
       required LibraryBuilder? resolveInLibrary,
@@ -296,7 +296,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   SourceCompilationUnit? get parentCompilationUnit => _parentCompilationUnit;
 
   @override
-  void addExporter(CompilationUnit exporter,
+  void addExporter(SourceCompilationUnit exporter,
       List<CombinatorBuilder>? combinators, int charOffset) {
     exporters.add(new Export(exporter, this, combinators, charOffset));
   }
@@ -1185,7 +1185,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
                     existing.fileUri!, existing.fileOffset, fullName.length)
           ]);
     }
-    prefixNameSpace.addLocalMember(name, prefixFragment.createPrefixBuilder(),
+    _prefixNameSpace.addLocalMember(name, prefixFragment.createPrefixBuilder(),
         setter: false);
     return true;
   }

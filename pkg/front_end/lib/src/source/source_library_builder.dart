@@ -50,6 +50,7 @@ import '../builder/type_builder.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
+import '../kernel/load_library_builder.dart';
 import '../kernel/type_algorithms.dart' show ComputeDefaultTypeContext;
 import '../kernel/utils.dart'
     show
@@ -132,9 +133,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   final LibraryNameSpaceBuilder _libraryNameSpaceBuilder;
 
-  NameSpace? _libraryNameSpace;
+  MutableNameSpace? _libraryNameSpace;
 
-  final NameSpace _exportNameSpace;
+  final MutableNameSpace _exportNameSpace;
 
   final LookupScope? _parentScope;
 
@@ -235,7 +236,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                 : indexedLibrary?.library.reference)
       ..setLanguageVersion(packageLanguageVersion.version);
     LibraryName libraryName = new LibraryName(library.reference);
-    NameSpace exportNameSpace = new NameSpaceImpl();
+    MutableNameSpace exportNameSpace = new MutableNameSpace();
     return new SourceLibraryBuilder._(
         compilationUnit: compilationUnit,
         loader: loader,
@@ -265,7 +266,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       required Uri originImportUri,
       required LanguageVersion packageLanguageVersion,
       required LibraryNameSpaceBuilder libraryNameSpaceBuilder,
-      required NameSpace exportNameSpace,
+      required MutableNameSpace exportNameSpace,
       required LookupScope? parentScope,
       required this.library,
       required this.libraryName,
@@ -369,6 +370,92 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   @override
   NameSpace get exportNameSpace => _exportNameSpace;
+
+  /// Returns true if the export scope was modified.
+  bool addToExportScope(String name, NamedBuilder member,
+      {required UriOffset uriOffset}) {
+    if (name.startsWith("_")) return false;
+    if (member is PrefixBuilder) return false;
+    bool isSetter = isMappedAsSetter(member);
+    LookupResult? result = exportNameSpace.lookupLocalMember(name);
+    NamedBuilder? existing = isSetter ? result?.setable : result?.getable;
+    if (existing == member) {
+      return false;
+    } else {
+      if (member is MemberBuilder && member.isConflictingSetter) {
+        // TODO(johnniwinther): Remove this case when getables and setables are
+        //  contained in the same map in the name space.
+        _exportNameSpace.addLocalMember(name, member, setter: isSetter);
+        return true;
+      } else if (existing != null) {
+        NamedBuilder result = _computeAmbiguousDeclarationForExport(
+            name, existing, member,
+            uriOffset: uriOffset);
+        _exportNameSpace.addLocalMember(name, result, setter: isSetter);
+        return result != existing;
+      } else {
+        _exportNameSpace.addLocalMember(name, member, setter: isSetter);
+        return true;
+      }
+    }
+  }
+
+  /// Computes a builder for the export collision between [declaration] and
+  /// [other]. If [declaration] is declared in [libraryNameSpace] then this is
+  /// returned instead of reporting a collision.
+  NamedBuilder _computeAmbiguousDeclarationForExport(
+      String name, NamedBuilder declaration, NamedBuilder other,
+      {required UriOffset uriOffset}) {
+    // Prefix builders and load library builders are not part of an export
+    // scope.
+    assert(declaration is! PrefixBuilder,
+        "Unexpected prefix builder $declaration.");
+    assert(other is! PrefixBuilder, "Unexpected prefix builder $other.");
+    assert(declaration is! LoadLibraryBuilder,
+        "Unexpected load library builder $declaration.");
+    assert(other is! LoadLibraryBuilder,
+        "Unexpected load library builder $other.");
+
+    if (declaration == other) return declaration;
+    if (declaration is InvalidTypeDeclarationBuilder) return declaration;
+    if (other is InvalidTypeDeclarationBuilder) return other;
+    NamedBuilder? preferred;
+    Uri? uri;
+    Uri? otherUri;
+    if (libraryNameSpace.lookupLocalMember(name)?.getable == declaration) {
+      return declaration;
+    } else {
+      uri = computeLibraryUri(declaration);
+      otherUri = computeLibraryUri(other);
+      if (otherUri.isScheme("dart") && !uri.isScheme("dart")) {
+        preferred = declaration;
+      } else if (uri.isScheme("dart") && !otherUri.isScheme("dart")) {
+        preferred = other;
+      }
+    }
+    if (preferred != null) {
+      return preferred;
+    }
+
+    Uri firstUri = uri;
+    Uri secondUri = otherUri;
+    if (firstUri.toString().compareTo(secondUri.toString()) > 0) {
+      firstUri = secondUri;
+      secondUri = uri;
+    }
+
+    // TODO(ahe): We should probably use a context object here
+    // instead of including URIs in this message.
+    Message message =
+        templateDuplicatedExport.withArguments(name, firstUri, secondUri);
+    addProblem(message, uriOffset.fileOffset, noLength, uriOffset.uri);
+    // We report the error lazily (setting suppressMessage to false) because the
+    // spec 18.1 states that 'It is not an error if N is introduced by two or
+    // more imports but never referred to.'
+    return new InvalidTypeDeclarationBuilder(name,
+        message.withLocation(uriOffset.uri, uriOffset.fileOffset, name.length),
+        suppressMessage: false);
+  }
 
   Iterable<SourceCompilationUnit> get parts => _parts;
 
@@ -744,12 +831,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     assert(checkState(required: [SourceLibraryBuilderState.nameSpaceBuilt]));
 
     if (libraryNameSpace.lookupLocalMember("dynamic")?.getable == null) {
-      libraryNameSpace.addLocalMember("dynamic",
+      _libraryNameSpace!.addLocalMember("dynamic",
           new DynamicTypeDeclarationBuilder(const DynamicType(), this, -1),
           setter: false);
     }
     if (libraryNameSpace.lookupLocalMember("Never")?.getable == null) {
-      libraryNameSpace.addLocalMember(
+      _libraryNameSpace!.addLocalMember(
           "Never",
           new NeverTypeDeclarationBuilder(
               const NeverType.nonNullable(), this, -1),

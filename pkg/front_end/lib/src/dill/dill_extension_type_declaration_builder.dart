@@ -21,7 +21,7 @@ class DillExtensionTypeDeclarationBuilder
 
   final ExtensionTypeDeclaration _extensionTypeDeclaration;
 
-  final DeclarationNameSpace _nameSpace;
+  final MutableDeclarationNameSpace _nameSpace;
 
   List<NominalParameterBuilder>? _typeParameters;
 
@@ -31,7 +31,7 @@ class DillExtensionTypeDeclarationBuilder
 
   DillExtensionTypeDeclarationBuilder(
       this._extensionTypeDeclaration, this.libraryBuilder)
-      : _nameSpace = new DeclarationNameSpaceImpl() {
+      : _nameSpace = new DillDeclarationNameSpace() {
     for (Procedure procedure in _extensionTypeDeclaration.procedures) {
       String name = procedure.name.text;
       switch (procedure.kind) {

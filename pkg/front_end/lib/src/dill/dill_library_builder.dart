@@ -39,7 +39,7 @@ class DillCompilationUnitImpl extends DillCompilationUnit {
   DillCompilationUnitImpl(this._dillLibraryBuilder);
 
   @override
-  void addExporter(CompilationUnit exporter,
+  void addExporter(SourceCompilationUnit exporter,
       List<CombinatorBuilder>? combinators, int charOffset) {
     exporters.add(new Export(exporter, this, combinators, charOffset));
   }
@@ -98,7 +98,7 @@ class DillCompilationUnitImpl extends DillCompilationUnit {
 class DillLibraryBuilder extends LibraryBuilderImpl {
   late final DillLibraryNameSpace _nameSpace;
 
-  late final DillExportNameSpace _exportScope;
+  late final DillExportNameSpace _exportNameSpace;
 
   @override
   final Library library;
@@ -128,14 +128,14 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
 
   DillLibraryBuilder(this.library, this.loader) : super(library.fileUri) {
     _nameSpace = new DillLibraryNameSpace(this);
-    _exportScope = new DillExportNameSpace(this);
+    _exportNameSpace = new DillExportNameSpace(this);
   }
 
   @override
   NameSpace get libraryNameSpace => _nameSpace;
 
   @override
-  NameSpace get exportNameSpace => _exportScope;
+  NameSpace get exportNameSpace => _exportNameSpace;
 
   @override
   List<Export> get exporters => mainCompilationUnit.exporters;
@@ -322,20 +322,20 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
 
     bool isSetter = isMappedAsSetter(declaration);
     if (isSetter) {
-      libraryNameSpace.addLocalMember(name, declaration as MemberBuilder,
+      _nameSpace.addLocalMember(name, declaration as MemberBuilder,
           setter: true);
     } else {
-      libraryNameSpace.addLocalMember(name, declaration, setter: false);
+      _nameSpace.addLocalMember(name, declaration, setter: false);
     }
     if (declaration is ExtensionBuilder) {
-      libraryNameSpace.addExtension(declaration);
+      _nameSpace.addExtension(declaration);
     }
     if (!name.startsWith("_") && !name.contains('#')) {
       if (isSetter) {
-        exportNameSpace.addLocalMember(name, declaration as MemberBuilder,
+        _exportNameSpace.addLocalMember(name, declaration as MemberBuilder,
             setter: true);
       } else {
-        exportNameSpace.addLocalMember(name, declaration, setter: false);
+        _exportNameSpace.addLocalMember(name, declaration, setter: false);
       }
     }
   }
@@ -382,7 +382,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
         declaration =
             new InvalidTypeDeclarationBuilder(name, message.withoutLocation());
       }
-      exportNameSpace.addLocalMember(name, declaration, setter: false);
+      _exportNameSpace.addLocalMember(name, declaration, setter: false);
     });
 
     Map<Reference, NamedBuilder>? sourceBuildersMap =
@@ -403,9 +403,9 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
         }
 
         if (isMappedAsSetter(declaration)) {
-          exportNameSpace.addLocalMember(name, declaration, setter: true);
+          _exportNameSpace.addLocalMember(name, declaration, setter: true);
         } else {
-          exportNameSpace.addLocalMember(name, declaration, setter: false);
+          _exportNameSpace.addLocalMember(name, declaration, setter: false);
         }
       } else {
         Uri libraryUri;
@@ -445,12 +445,12 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
         if (isSetter) {
           declaration =
               library.exportNameSpace.lookupLocalMember(name)!.setable!;
-          exportNameSpace.addLocalMember(name, declaration as MemberBuilder,
+          _exportNameSpace.addLocalMember(name, declaration as MemberBuilder,
               setter: true);
         } else {
           declaration =
               library.exportNameSpace.lookupLocalMember(name)!.getable!;
-          exportNameSpace.addLocalMember(name, declaration, setter: false);
+          _exportNameSpace.addLocalMember(name, declaration, setter: false);
         }
       }
 
@@ -486,6 +486,6 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   void patchUpExportScope(
       Map<LibraryBuilder, Map<String, NamedBuilder>> replacementMap,
       Map<LibraryBuilder, Map<String, NamedBuilder>> replacementMapSetters) {
-    _exportScope.patchUpScope(replacementMap, replacementMapSetters);
+    _exportNameSpace.patchUpScope(replacementMap, replacementMapSetters);
   }
 }
