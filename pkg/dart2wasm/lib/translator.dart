@@ -1633,6 +1633,11 @@ class Translator with KernelNodes {
 
   bool shouldInline(Reference target, w.FunctionType signature) {
     if (!options.inlining) return false;
+    if (isDynamicSubmodule && moduleForReference(target) == mainModule) {
+      // We avoid inlining code from the main module into dynamic submodules
+      // so that we can avoid needing to export more code.
+      return false;
+    }
 
     // Unchecked entry point functions perform very little, mainly optional
     // parameter handling and then call the real body function.
