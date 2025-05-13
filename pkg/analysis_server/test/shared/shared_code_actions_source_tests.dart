@@ -18,6 +18,7 @@ import 'shared_test_interface.dart';
 mixin SharedOrganizeImportsSourceCodeActionsTests
     on
         SharedTestInterface,
+        SharedSourceCodeActionsTestMixin,
         CodeActionsTestMixin,
         LspRequestHelpersMixin,
         LspEditHelpersMixin,
@@ -180,6 +181,7 @@ int minified(int x, int y) => min(x, y);
 mixin SharedSortMembersSourceCodeActionsTests
     on
         SharedTestInterface,
+        SharedSourceCodeActionsTestMixin,
         CodeActionsTestMixin,
         LspRequestHelpersMixin,
         LspEditHelpersMixin,
@@ -331,5 +333,41 @@ String? a;
 
     setApplyEditSupport(false);
     await expectNoAction(content, command: Commands.sortMembers);
+  }
+}
+
+mixin SharedSourceCodeActionsTestMixin
+    on
+        SharedTestInterface,
+        LspRequestHelpersMixin,
+        ClientCapabilitiesHelperMixin {
+  /// For convenience since source code actions do not rely on a position (but
+  /// one must be provided), uses [startOfDocPos] to avoid every test needing
+  /// to include a '^' marker.
+  @override
+  Future<List<CodeAction>> getCodeActions(
+    Uri fileUri, {
+    Range? range,
+    Position? position,
+    List<CodeActionKind>? kinds,
+    CodeActionTriggerKind? triggerKind,
+    ProgressToken? workDoneToken,
+  }) {
+    return super.getCodeActions(
+      fileUri,
+      position: startOfDocPos,
+      kinds: kinds,
+      triggerKind: triggerKind,
+      workDoneToken: workDoneToken,
+    );
+  }
+
+  @override
+  Future<void> setUp() async {
+    await super.setUp();
+
+    setApplyEditSupport();
+    setDocumentChangesSupport();
+    setSupportedCodeActionKinds([CodeActionKind.Source]);
   }
 }

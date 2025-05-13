@@ -25,43 +25,16 @@ void main() {
 
 abstract class AbstractSourceCodeActionsTest
     extends AbstractLspAnalysisServerTest
-    with LspSharedTestMixin, CodeActionsTestMixin {
-  /// For convenience since source code actions do not rely on a position (but
-  /// one must be provided), uses [startOfDocPos] to avoid every test needing
-  /// to include a '^' marker.
-  @override
-  Future<List<CodeAction>> getCodeActions(
-    Uri fileUri, {
-    Range? range,
-    Position? position,
-    List<CodeActionKind>? kinds,
-    CodeActionTriggerKind? triggerKind,
-    ProgressToken? workDoneToken,
-  }) {
-    return super.getCodeActions(
-      fileUri,
-      position: startOfDocPos,
-      kinds: kinds,
-      triggerKind: triggerKind,
-      workDoneToken: workDoneToken,
-    );
-  }
-
-  @override
-  void setUp() {
-    super.setUp();
-
-    setApplyEditSupport();
-    setDocumentChangesSupport();
-    setSupportedCodeActionKinds([CodeActionKind.Source]);
-  }
-}
+    with
+        LspSharedTestMixin,
+        SharedSourceCodeActionsTestMixin,
+        CodeActionsTestMixin {}
 
 @reflectiveTest
 class FixAllSourceCodeActionsTest extends AbstractSourceCodeActionsTest {
   @override
-  void setUp() {
-    super.setUp();
+  Future<void> setUp() async {
+    await super.setUp();
 
     // Fix tests are likely to have diagnostics that need fixing.
     failTestOnErrorDiagnostic = false;
@@ -362,11 +335,13 @@ int? a;
 @reflectiveTest
 class OrganizeImportsSourceCodeActionsTest extends AbstractSourceCodeActionsTest
     with
-        // Most tests are defined in a shared mixin.
+        SharedSourceCodeActionsTestMixin,
+        // Tests are defined in a shared mixin.
         SharedOrganizeImportsSourceCodeActionsTests {}
 
 @reflectiveTest
 class SortMembersSourceCodeActionsTest extends AbstractSourceCodeActionsTest
     with
-        // Most tests are defined in a shared mixin.
+        SharedSourceCodeActionsTestMixin,
+        // Tests are defined in a shared mixin.
         SharedSortMembersSourceCodeActionsTests {}

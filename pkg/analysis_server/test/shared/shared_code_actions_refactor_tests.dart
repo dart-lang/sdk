@@ -344,99 +344,6 @@ void f() {
     expectCommandLogged('dart.refactor.extract_method');
   }
 
-  Future<void> test_progress_clientProvided() async {
-    const content = '''
-void f() {
-  print('Test!');
-  [!print('Test!');!]
-}
-''';
-    const expectedContent = '''
-void f() {
-  print('Test!');
-  newMethod();
-}
-
-void newMethod() {
-  print('Test!');
-}
-''';
-
-    // Expect begin/end progress updates without a create, since the
-    // token was supplied by us (the client).
-    expect(progressUpdates, emitsInOrder(['BEGIN', 'END']));
-
-    await verifyCodeActionLiteralEdits(
-      content,
-      expectedContent,
-      command: Commands.performRefactor,
-      title: extractMethodTitle,
-      commandWorkDoneToken: clientProvidedTestWorkDoneToken,
-    );
-  }
-
-  Future<void> test_progress_notSupported() async {
-    const content = '''
-void f() {
-  print('Test!');
-  [!print('Test!');!]
-}
-''';
-    const expectedContent = '''
-void f() {
-  print('Test!');
-  newMethod();
-}
-
-void newMethod() {
-  print('Test!');
-}
-''';
-
-    var didGetProgressNotifications = false;
-    progressUpdates.listen((_) => didGetProgressNotifications = true);
-
-    await verifyCodeActionLiteralEdits(
-      content,
-      expectedContent,
-      command: Commands.performRefactor,
-      title: extractMethodTitle,
-    );
-
-    expect(didGetProgressNotifications, isFalse);
-  }
-
-  Future<void> test_progress_serverGenerated() async {
-    const content = '''
-void f() {
-  print('Test!');
-  [!print('Test!');!]
-}
-''';
-    const expectedContent = '''
-void f() {
-  print('Test!');
-  newMethod();
-}
-
-void newMethod() {
-  print('Test!');
-}
-''';
-
-    // Expect create/begin/end progress updates, because in this case the server
-    // generates the token.
-    expect(progressUpdates, emitsInOrder(['CREATE', 'BEGIN', 'END']));
-
-    setWorkDoneProgressSupport();
-    await verifyCodeActionLiteralEdits(
-      content,
-      expectedContent,
-      command: Commands.performRefactor,
-      title: extractMethodTitle,
-    );
-  }
-
   Future<void> test_validLocation_failsInitialValidation() async {
     const content = '''
 f() {
@@ -768,6 +675,12 @@ const NewWidget({
     super.key,
   });
 ''';
+
+  @override
+  Future<void> setUp() async {
+    await super.setUp();
+    writeTestPackageConfig(flutter: true);
+  }
 
   Future<void> test_appliesCorrectEdits() async {
     const content = '''

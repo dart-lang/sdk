@@ -33,8 +33,8 @@ mixin SharedFixesCodeActionsTests
       pathContext.join(projectFolderPath, 'analysis_options.yaml');
 
   @override
-  void setUp() {
-    super.setUp();
+  Future<void> setUp() async {
+    await super.setUp();
 
     // Fix tests are likely to have diagnostics that need fixing.
     failTestOnErrorDiagnostic = false;
@@ -579,10 +579,6 @@ var a = [Test, Test, Te[!!]st];
   }
 
   Future<void> test_noDuplicates_withDocumentChangesSupport() async {
-    setApplyEditSupport();
-    setDocumentChangesSupport();
-    setSupportedCodeActionKinds([CodeActionKind.QuickFix]);
-
     var code = TestCode.parse('''
 var a = [Test, Test, Te[!!]st];
 ''');
@@ -655,8 +651,8 @@ ProcessInfo b;
   Future<void> test_pubspec() async {
     const content = '^';
 
-    const expectedContent = r'''
-name: my_project
+    var expectedContent = '''
+name: $testPackageName
 ''';
 
     await verifyCodeActionLiteralEdits(

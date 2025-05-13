@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/extensions/code_action.dart';
-import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
@@ -30,20 +29,8 @@ class AssistsCodeActionsTest extends AbstractLspAnalysisServerTest
     with
         LspSharedTestMixin,
         CodeActionsTestMixin,
+        // Most tests are defined in a shared mixin.
         SharedAssistsCodeActionsTests {
-  @override
-  void setUp() {
-    super.setUp();
-
-    setApplyEditSupport();
-    setDocumentChangesSupport();
-    setSupportedCodeActionKinds([CodeActionKind.Refactor]);
-
-    registerBuiltInAssistGenerators();
-
-    writeTestPackageConfig(flutter: true);
-  }
-
   Future<void> test_plugin() async {
     failTestOnErrorDiagnostic = false;
 

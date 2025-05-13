@@ -400,7 +400,7 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
   @override
   Future<void> setUp() async {
     super.setUp();
-    await setRoots(included: [workspaceRootPath], excluded: []);
+    await setRoots(included: [testPackageRootPath], excluded: []);
   }
 
   Future<void> updateOverlay(String filePath, SourceEdit edit) {

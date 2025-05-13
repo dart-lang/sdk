@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/extensions/code_action.dart';
+import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 
@@ -27,6 +28,19 @@ mixin SharedAssistsCodeActionsTests
         LspEditHelpersMixin,
         LspVerifyEditHelpersMixin,
         ClientCapabilitiesHelperMixin {
+  @override
+  Future<void> setUp() async {
+    await super.setUp();
+
+    setApplyEditSupport();
+    setDocumentChangesSupport();
+    setSupportedCodeActionKinds([CodeActionKind.Refactor]);
+
+    registerBuiltInAssistGenerators();
+
+    writeTestPackageConfig(flutter: true);
+  }
+
   Future<void> test_appliesCorrectEdits_withDocumentChangesSupport() async {
     // This code should get an assist to add a show combinator.
     const content = '''
