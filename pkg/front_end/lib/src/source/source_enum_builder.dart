@@ -205,7 +205,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         "values", staticFieldNameScheme, indexedClass,
         fieldIsLateWithLowering: false);
 
-    Builder? customValuesDeclaration =
+    NamedBuilder? customValuesDeclaration =
         nameSpace.lookupLocalMember("values")?.getable;
     if (customValuesDeclaration != null) {
       // Retrieve the earliest declaration for error reporting.
@@ -224,9 +224,9 @@ class SourceEnumBuilder extends SourceClassBuilder {
       "hashCode",
       "=="
     ]) {
-      Builder? customIndexDeclaration =
+      NamedBuilder? customIndexDeclaration =
           nameSpace.lookupLocalMember(restrictedInstanceMemberName)?.getable;
-      Builder? invalidDeclaration;
+      NamedBuilder? invalidDeclaration;
       if (customIndexDeclaration is PropertyBuilder &&
           !customIndexDeclaration.hasAbstractGetter &&
           !customIndexDeclaration.isEnumElement) {

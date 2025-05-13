@@ -31,7 +31,6 @@ import 'package:front_end/src/base/compiler_context.dart';
 import 'package:front_end/src/base/hybrid_file_system.dart';
 import 'package:front_end/src/base/incremental_compiler.dart';
 import 'package:front_end/src/base/processed_options.dart';
-import 'package:front_end/src/base/scope.dart';
 import 'package:front_end/src/base/uri_translator.dart';
 import 'package:front_end/src/builder/library_builder.dart';
 import 'package:front_end/src/codes/cfe_codes.dart';
@@ -972,9 +971,7 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
       packageLanguageVersion:
           new ImplicitLanguageVersion(libraryBuilder.languageVersion),
       loader: loader,
-      parentScope: new NameSpaceLookupScope(
-          libraryBuilder.libraryNameSpace, ScopeKind.library, 'top'),
-      nameOrigin: libraryBuilder,
+      resolveInLibrary: libraryBuilder,
       isUnsupported: false,
       forAugmentationLibrary: false,
       isAugmenting: false,

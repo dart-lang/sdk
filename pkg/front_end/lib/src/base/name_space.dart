@@ -6,13 +6,14 @@ import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
-import '../builder/name_iterator.dart';
+import '../builder/property_builder.dart';
 import '../dill/dill_library_builder.dart';
 import 'lookup_result.dart';
 import 'scope.dart';
+import 'uris.dart';
 
 abstract class NameSpace {
-  void addLocalMember(String name, Builder member, {required bool setter});
+  void addLocalMember(String name, NamedBuilder member, {required bool setter});
 
   /// Adds [builder] to the extensions in this name space.
   void addExtension(ExtensionBuilder builder);
@@ -36,24 +37,11 @@ abstract class NameSpace {
   /// name space without any filtering or processed of duplicates.
   LookupResult? lookupLocalMember(String name);
 
-  void forEachLocalMember(void Function(String name, Builder member) f);
-
-  void forEachLocalSetter(void Function(String name, MemberBuilder member) f);
-
   void forEachLocalExtension(void Function(ExtensionBuilder member) f);
 
-  Iterable<Builder> get localMembers;
-
   /// Returns an iterator of all members and setters mapped in this name space,
   /// including duplicate members mapped to the same name.
-  Iterator<Builder> get unfilteredIterator;
-
-  /// Returns an iterator of all members and setters mapped in this name space,
-  /// including duplicate members mapped to the same name.
-  ///
-  /// Compared to [unfilteredIterator] this iterator also gives access to the
-  /// name that the builders are mapped to.
-  NameIterator get unfilteredNameIterator;
+  Iterator<NamedBuilder> get unfilteredIterator;
 
   /// Returns a filtered iterator of members and setters mapped in this name
   /// space.
@@ -62,20 +50,7 @@ abstract class NameSpace {
   /// declared in [parent] are included. If [includeDuplicates] is `true`, all
   /// duplicates of the same name are included, otherwise, only the first
   /// declared member is included.
-  Iterator<T> filteredIterator<T extends Builder>(
-      {required bool includeDuplicates});
-
-  /// Returns a filtered iterator of members and setters mapped in this name
-  /// space.
-  ///
-  /// Only members of type [T] are included. If [parent] is provided, on members
-  /// declared in [parent] are included. If [includeDuplicates] is `true`, all
-  /// duplicates of the same name are included, otherwise, only the first
-  /// declared member is included.
-  ///
-  /// Compared to [filteredIterator] this iterator also gives access to the
-  /// name that the builders are mapped to.
-  NameIterator<T> filteredNameIterator<T extends Builder>(
+  Iterator<T> filteredIterator<T extends NamedBuilder>(
       {required bool includeDuplicates});
 }
 
@@ -84,18 +59,9 @@ abstract class DeclarationNameSpace implements NameSpace {
 
   void addConstructor(String name, MemberBuilder builder);
 
-  void forEachConstructor(void Function(String, MemberBuilder) f);
-
   /// Returns an iterator of all constructors mapped in this scope,
   /// including duplicate constructors mapped to the same name.
   Iterator<MemberBuilder> get unfilteredConstructorIterator;
-
-  /// Returns an iterator of all constructors mapped in this scope,
-  /// including duplicate constructors mapped to the same name.
-  ///
-  /// Compared to [unfilteredConstructorIterator] this iterator also gives
-  /// access to the name that the builders are mapped to.
-  NameIterator<MemberBuilder> get unfilteredConstructorNameIterator;
 
   /// Returns a filtered iterator of constructors mapped in this scope.
   ///
@@ -105,37 +71,26 @@ abstract class DeclarationNameSpace implements NameSpace {
   /// declared member is included.
   Iterator<T> filteredConstructorIterator<T extends MemberBuilder>(
       {required bool includeDuplicates});
-
-  /// Returns a filtered iterator of constructors mapped in this scope.
-  ///
-  /// Only members of type [T] are included. If [parent] is provided, on members
-  /// declared in [parent] are included. If [includeDuplicates] is `true`, all
-  /// duplicates of the same name are included, otherwise, only the first
-  /// declared member is included.
-  ///
-  /// Compared to [filteredConstructorIterator] this iterator also gives access
-  /// to the name that the builders are mapped to.
-  NameIterator<T> filteredConstructorNameIterator<T extends MemberBuilder>(
-      {required bool includeDuplicates});
 }
 
 class NameSpaceImpl implements NameSpace {
-  Map<String, Builder>? _getables;
-  Map<String, MemberBuilder>? _setables;
+  Map<String, NamedBuilder>? _getables;
+  Map<String, NamedBuilder>? _setables;
   Set<ExtensionBuilder>? _extensions;
 
   NameSpaceImpl(
-      {Map<String, Builder>? getables,
-      Map<String, MemberBuilder>? setables,
+      {Map<String, NamedBuilder>? getables,
+      Map<String, NamedBuilder>? setables,
       Set<ExtensionBuilder>? extensions})
       : _getables = getables,
         _setables = setables,
         _extensions = extensions;
 
   @override
-  void addLocalMember(String name, Builder member, {required bool setter}) {
+  void addLocalMember(String name, NamedBuilder member,
+      {required bool setter}) {
     if (setter) {
-      (_setables ??= {})[name] = member as MemberBuilder;
+      (_setables ??= {})[name] = member;
     } else {
       (_getables ??= {})[name] = member;
     }
@@ -147,16 +102,9 @@ class NameSpaceImpl implements NameSpace {
   }
 
   @override
-  Iterator<T> filteredIterator<T extends Builder>(
+  Iterator<T> filteredIterator<T extends NamedBuilder>(
       {required bool includeDuplicates}) {
     return new FilteredIterator<T>(unfilteredIterator,
-        includeDuplicates: includeDuplicates);
-  }
-
-  @override
-  NameIterator<T> filteredNameIterator<T extends Builder>(
-      {required bool includeDuplicates}) {
-    return new FilteredNameIterator<T>(unfilteredNameIterator,
         includeDuplicates: includeDuplicates);
   }
 
@@ -166,35 +114,12 @@ class NameSpaceImpl implements NameSpace {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
-  void forEachLocalMember(void Function(String name, Builder member) f) {
-    if (_getables != null) {
-      for (MapEntry<String, Builder> entry in _getables!.entries) {
-        f(entry.key, entry.value);
-      }
-    }
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void forEachLocalSetter(void Function(String name, MemberBuilder member) f) {
-    if (_setables != null) {
-      for (MapEntry<String, MemberBuilder> entry in _setables!.entries) {
-        f(entry.key, entry.value);
-      }
-    }
-  }
-
-  @override
-  Iterable<Builder> get localMembers => _getables?.values ?? const [];
-
-  @override
   LookupResult? lookupLocal(String name,
       {required Uri fileUri,
       required int fileOffset,
       required bool staticOnly}) {
-    Builder? getable = _getables?[name];
-    Builder? setable = _setables?[name];
+    NamedBuilder? getable = _getables?[name];
+    NamedBuilder? setable = _setables?[name];
     return LookupResult.createProcessedResult(getable, setable,
         name: name,
         fileUri: fileUri,
@@ -208,14 +133,89 @@ class NameSpaceImpl implements NameSpace {
   }
 
   @override
-  Iterator<Builder> get unfilteredIterator => new ScopeIterator(
+  Iterator<NamedBuilder> get unfilteredIterator => new ScopeIterator(
       _getables?.values.iterator,
       _setables?.values.iterator,
       _extensions?.iterator);
+}
 
-  @override
-  NameIterator<Builder> get unfilteredNameIterator =>
-      new ScopeNameIterator(_getables, _setables, _extensions?.iterator);
+// Coverage-ignore(suite): Not run.
+/// Returns a string with an error message if [sourceNameSpace] and
+/// [dillNameSpace] are not equivalent.
+///
+/// This should be used for assertions only.
+String? areNameSpacesEquivalent(
+    {required Uri importUri,
+    required NameSpace sourceNameSpace,
+    required NameSpace dillNameSpace}) {
+  sourceNameSpace as NameSpaceImpl;
+  dillNameSpace as NameSpaceImpl;
+
+  Map<String, NamedBuilder>? sourceGetables = sourceNameSpace._getables;
+  Map<String, NamedBuilder>? sourceSetables = sourceNameSpace._setables;
+
+  Map<String, NamedBuilder>? dillGetables = dillNameSpace._getables;
+  Map<String, NamedBuilder>? dillSetables = dillNameSpace._setables;
+
+  bool isEquivalent = true;
+  StringBuffer sb = new StringBuffer();
+  sb.writeln('Mismatch on ${importUri}:');
+  if (sourceGetables != null) {
+    for (MapEntry<String, NamedBuilder> sourceEntry in sourceGetables.entries) {
+      Builder? dillBuilder = dillGetables?[sourceEntry.key];
+      if (dillBuilder == null) {
+        if ((sourceEntry.key == 'dynamic' || sourceEntry.key == 'Never') &&
+            importUri == dartCore) {
+          // The source library builder for dart:core has synthetically
+          // injected builders for `dynamic` and `Never` which do not have
+          // corresponding classes in the AST.
+          continue;
+        }
+        sb.writeln(
+            'No dill builder for ${sourceEntry.key}: ${sourceEntry.value}');
+        isEquivalent = false;
+      }
+    }
+  }
+  if (dillGetables != null) {
+    for (MapEntry<String, NamedBuilder> dillEntry in dillGetables.entries) {
+      Builder? sourceBuilder = sourceGetables?[dillEntry.key];
+      if (sourceBuilder == null) {
+        sb.writeln(
+            'No source builder for ${dillEntry.key}: ${dillEntry.value}');
+        isEquivalent = false;
+      }
+    }
+  }
+  if (sourceSetables != null) {
+    for (MapEntry<String, NamedBuilder> sourceEntry in sourceSetables.entries) {
+      Builder? dillBuilder = dillGetables?[sourceEntry.key];
+      if (dillBuilder == null) {
+        sb.writeln(
+            'No dill builder for ${sourceEntry.key}=: ${sourceEntry.value}');
+        isEquivalent = false;
+      }
+    }
+  }
+  if (dillSetables != null) {
+    for (MapEntry<String, NamedBuilder> dillEntry in dillSetables.entries) {
+      Builder? sourceBuilder = sourceSetables?[dillEntry.key];
+      if (sourceBuilder == null) {
+        sourceBuilder = sourceGetables?[dillEntry.key];
+        if (sourceBuilder is PropertyBuilder && sourceBuilder.hasSetter) {
+          // Assignable fields can be lowered into a getter and setter.
+          continue;
+        }
+        sb.writeln(
+            'No source builder for ${dillEntry.key}=: ${dillEntry.value}');
+        isEquivalent = false;
+      }
+    }
+  }
+  if (isEquivalent) {
+    return null;
+  }
+  return sb.toString();
 }
 
 class DeclarationNameSpaceImpl extends NameSpaceImpl
@@ -244,27 +244,10 @@ class DeclarationNameSpaceImpl extends NameSpaceImpl
       new ConstructorNameSpaceIterator(_constructors?.values.iterator);
 
   @override
-  NameIterator<MemberBuilder> get unfilteredConstructorNameIterator =>
-      new ConstructorNameSpaceNameIterator(
-          _constructors?.keys.iterator, _constructors?.values.iterator);
-
-  @override
   Iterator<T> filteredConstructorIterator<T extends MemberBuilder>(
       {required bool includeDuplicates}) {
     return new FilteredIterator<T>(unfilteredConstructorIterator,
         includeDuplicates: includeDuplicates);
-  }
-
-  @override
-  NameIterator<T> filteredConstructorNameIterator<T extends MemberBuilder>(
-      {required bool includeDuplicates}) {
-    return new FilteredNameIterator<T>(unfilteredConstructorNameIterator,
-        includeDuplicates: includeDuplicates);
-  }
-
-  @override
-  void forEachConstructor(void Function(String, MemberBuilder) f) {
-    _constructors?.forEach(f);
   }
 }
 
@@ -273,13 +256,13 @@ abstract class LazyNameSpace extends NameSpaceImpl {
   void ensureNameSpace();
 
   @override
-  Map<String, Builder>? get _getables {
+  Map<String, NamedBuilder>? get _getables {
     ensureNameSpace();
     return super._getables;
   }
 
   @override
-  Map<String, MemberBuilder>? get _setables {
+  Map<String, NamedBuilder>? get _setables {
     ensureNameSpace();
     return super._setables;
   }
@@ -315,8 +298,9 @@ class DillExportNameSpace extends LazyNameSpace {
   /// Patch up the scope, using the two replacement maps to replace builders in
   /// scope. The replacement maps from old LibraryBuilder to map, mapping
   /// from name to new (replacement) builder.
-  void patchUpScope(Map<LibraryBuilder, Map<String, Builder>> replacementMap,
-      Map<LibraryBuilder, Map<String, Builder>> replacementMapSetters) {
+  void patchUpScope(
+      Map<LibraryBuilder, Map<String, NamedBuilder>> replacementMap,
+      Map<LibraryBuilder, Map<String, NamedBuilder>> replacementMapSetters) {
     // In the following we refer to non-setters as 'getters' for brevity.
     //
     // We have to replace all getters and setters in [_locals] and [_setters]
@@ -346,10 +330,10 @@ class DillExportNameSpace extends LazyNameSpace {
         // We start be collecting the relation between an existing getter/setter
         // and the getter/setter that will replace it. This information is used
         // below to handle all the different cases that can occur.
-        Builder? existingGetter = _getables?[name];
+        NamedBuilder? existingGetter = _getables?[name];
         LibraryBuilder? replacementLibraryBuilderFromGetter;
-        Builder? replacementGetterFromGetter;
-        Builder? replacementSetterFromGetter;
+        NamedBuilder? replacementGetterFromGetter;
+        NamedBuilder? replacementSetterFromGetter;
         if (existingGetter != null &&
             replacementMap.containsKey(existingGetter.parent)) {
           replacementLibraryBuilderFromGetter =
@@ -359,10 +343,10 @@ class DillExportNameSpace extends LazyNameSpace {
           replacementSetterFromGetter =
               replacementMapSetters[replacementLibraryBuilderFromGetter]![name];
         }
-        Builder? existingSetter = _setables?[name];
+        NamedBuilder? existingSetter = _setables?[name];
         LibraryBuilder? replacementLibraryBuilderFromSetter;
-        Builder? replacementGetterFromSetter;
-        Builder? replacementSetterFromSetter;
+        NamedBuilder? replacementGetterFromSetter;
+        NamedBuilder? replacementSetterFromSetter;
         if (existingSetter != null &&
             replacementMap.containsKey(existingSetter.parent)) {
           replacementLibraryBuilderFromSetter =

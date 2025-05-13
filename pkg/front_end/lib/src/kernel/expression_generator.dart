@@ -1952,8 +1952,8 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
       int extensionTypeArgumentOffset,
       Extension extension,
       Name targetName,
-      Builder? getterBuilder,
-      Builder? setterBuilder,
+      MemberBuilder? getterBuilder,
+      MemberBuilder? setterBuilder,
       Expression receiver,
       List<DartType>? explicitTypeArguments,
       int extensionTypeParameterCount,
@@ -2316,31 +2316,15 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
       Token token,
       int extensionTypeArgumentOffset,
       Extension extension,
-      Builder? getterBuilder,
-      Builder? setterBuilder,
+      MemberBuilder? getterBuilder,
+      MemberBuilder? setterBuilder,
       Expression receiver,
       Expression index,
       List<DartType>? explicitTypeArguments,
       int extensionTypeParameterCount,
       {required bool isNullAware}) {
-    Procedure? readTarget;
-    if (getterBuilder != null) {
-      if (getterBuilder is MemberBuilder) {
-        MemberBuilder procedureBuilder = getterBuilder;
-        readTarget = procedureBuilder.invokeTarget as Procedure?;
-      } else {
-        return unhandled(
-            "${getterBuilder.runtimeType}",
-            "InstanceExtensionAccessGenerator.fromBuilder",
-            offsetForToken(token),
-            helper.uri);
-      }
-    }
-    Procedure? writeTarget;
-    if (setterBuilder is MemberBuilder) {
-      MemberBuilder memberBuilder = setterBuilder;
-      writeTarget = memberBuilder.invokeTarget as Procedure?;
-    }
+    Procedure? readTarget = getterBuilder?.invokeTarget as Procedure?;
+    Procedure? writeTarget = setterBuilder?.invokeTarget as Procedure?;
     return new ExplicitExtensionIndexedAccessGenerator(
         helper,
         token,
@@ -2623,11 +2607,11 @@ class ExplicitExtensionAccessGenerator extends Generator {
 
   Generator _createInstanceAccess(Token token, Name name,
       {bool isNullAware = false}) {
-    Builder? getter = extensionBuilder.lookupLocalMemberByName(name);
+    MemberBuilder? getter = extensionBuilder.lookupLocalMemberByName(name);
     if (getter != null && getter.isStatic) {
       getter = null;
     }
-    Builder? setter =
+    MemberBuilder? setter =
         extensionBuilder.lookupLocalMemberByName(name, setter: true);
     if (setter != null && setter.isStatic) {
       setter = null;
@@ -2715,8 +2699,10 @@ class ExplicitExtensionAccessGenerator extends Generator {
   @override
   Generator buildIndexedAccess(Expression index, Token token,
       {required bool isNullAware}) {
-    Builder? getter = extensionBuilder.lookupLocalMemberByName(indexGetName);
-    Builder? setter = extensionBuilder.lookupLocalMemberByName(indexSetName);
+    MemberBuilder? getter =
+        extensionBuilder.lookupLocalMemberByName(indexGetName);
+    MemberBuilder? setter =
+        extensionBuilder.lookupLocalMemberByName(indexSetName);
     if (getter == null && setter == null) {
       // Coverage-ignore-block(suite): Not run.
       return new UnresolvedNameGenerator(_helper, token, indexGetName,

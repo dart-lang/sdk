@@ -12,7 +12,6 @@ import '../builder/invalid_type_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
-import '../builder/name_iterator.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../codes/cfe_codes.dart'
@@ -415,11 +414,11 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
                 libraryBuilder.library)) {
           tearOffs = {};
           _tearOffDependencies = {};
-          NameIterator<MemberBuilder> iterator =
-              declaration.fullConstructorNameIterator();
+          Iterator<MemberBuilder> iterator =
+              declaration.fullConstructorIterator();
           while (iterator.moveNext()) {
-            String constructorName = iterator.name;
             MemberBuilder builder = iterator.current;
+            String constructorName = builder.name;
             Member? target = builder.invokeTarget;
             if (target != null) {
               if (target is Procedure && target.isRedirectingFactory) {
@@ -472,11 +471,11 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
                 libraryBuilder.library)) {
           tearOffs = {};
           _tearOffDependencies = {};
-          NameIterator<MemberBuilder> iterator =
-              declaration.fullConstructorNameIterator();
+          Iterator<MemberBuilder> iterator =
+              declaration.fullConstructorIterator();
           while (iterator.moveNext()) {
-            String constructorName = iterator.name;
             MemberBuilder builder = iterator.current;
+            String constructorName = builder.name;
             Member? target = builder.invokeTarget;
             if (target != null) {
               if (target is Procedure && target.isRedirectingFactory) {

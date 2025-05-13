@@ -31,7 +31,7 @@ class Export {
   /// This set in [SourceLibraryBuilder._addDependencies].
   late final LibraryDependency libraryDependency;
 
-  bool addToExportScope(String name, Builder member) {
+  bool addToExportScope(String name, NamedBuilder member) {
     if (combinators != null) {
       for (CombinatorBuilder combinator in combinators!) {
         if (combinator.isShow && !combinator.names.contains(name)) return false;

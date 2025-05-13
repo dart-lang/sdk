@@ -42,7 +42,6 @@ import 'declaration_builders.dart';
 import 'factory_builder.dart';
 import 'member_builder.dart';
 import 'metadata_builder.dart';
-import 'name_iterator.dart';
 import 'prefix_builder.dart';
 import 'type_builder.dart';
 
@@ -277,7 +276,7 @@ abstract class SourceCompilationUnit
 
   void addImportedBuilderToScope(
       {required String name,
-      required Builder builder,
+      required NamedBuilder builder,
       required int charOffset});
 
   void addImportsToScope();
@@ -364,34 +363,21 @@ abstract class LibraryBuilder implements Builder, ProblemReporting {
   /// Returns an iterator of all members (typedefs, classes and members)
   /// declared in this library, including duplicate declarations.
   // TODO(johnniwinther): Should the only exist on [SourceLibraryBuilder]?
-  Iterator<Builder> get localMembersIterator;
+  Iterator<NamedBuilder> get localMembersIterator;
 
   /// Returns an iterator of all members of specified type
   /// declared in this library, including duplicate declarations.
   // TODO(johnniwinther): Should the only exist on [SourceLibraryBuilder]?
-  Iterator<T> localMembersIteratorOfType<T extends Builder>();
-
-  /// Returns an iterator of all members (typedefs, classes and members)
-  /// declared in this library, including duplicate declarations.
-  ///
-  /// Compared to [localMembersIterator] this also gives access to the name
-  /// that the builders are mapped to.
-  NameIterator<Builder> get localMembersNameIterator;
+  Iterator<T> localMembersIteratorOfType<T extends NamedBuilder>();
 
   /// [Iterator] for all declarations declared in this library or any of its
   /// augmentations.
   ///
   /// Duplicates and augmenting members are _not_ included.
-  Iterator<T> fullMemberIterator<T extends Builder>();
-
-  /// [NameIterator] for all declarations declared in this class or any of its
-  /// augmentations.
-  ///
-  /// Duplicates and augmenting members are _not_ included.
-  NameIterator<T> fullMemberNameIterator<T extends Builder>();
+  Iterator<T> fullMemberIterator<T extends NamedBuilder>();
 
   /// Returns true if the export scope was modified.
-  bool addToExportScope(String name, Builder member,
+  bool addToExportScope(String name, NamedBuilder member,
       {required UriOffset uriOffset});
 
   /// Looks up [constructorName] in the class named [className].
@@ -415,7 +401,7 @@ abstract class LibraryBuilder implements Builder, ProblemReporting {
   ///
   /// If [required] is `true` and no member is found an internal problem is
   /// reported.
-  Builder? lookupLocalMember(String name, {bool required = false});
+  NamedBuilder? lookupLocalMember(String name, {bool required = false});
 
   void recordAccess(
       CompilationUnit accessor, int charOffset, int length, Uri fileUri);
@@ -467,18 +453,13 @@ abstract class LibraryBuilderImpl extends BuilderImpl
   Uri get importUri;
 
   @override
-  Iterator<Builder> get localMembersIterator {
+  Iterator<NamedBuilder> get localMembersIterator {
     return libraryNameSpace.filteredIterator(includeDuplicates: true);
   }
 
   @override
-  Iterator<T> localMembersIteratorOfType<T extends Builder>() {
+  Iterator<T> localMembersIteratorOfType<T extends NamedBuilder>() {
     return libraryNameSpace.filteredIterator<T>(includeDuplicates: true);
-  }
-
-  @override
-  NameIterator<Builder> get localMembersNameIterator {
-    return libraryNameSpace.filteredNameIterator(includeDuplicates: true);
   }
 
   @override
@@ -500,8 +481,8 @@ abstract class LibraryBuilderImpl extends BuilderImpl
   /// Computes a builder for the export collision between [declaration] and
   /// [other]. If [declaration] is declared in [libraryNameSpace] then this is
   /// returned instead of reporting a collision.
-  Builder _computeAmbiguousDeclarationForExport(
-      String name, Builder declaration, Builder other,
+  NamedBuilder _computeAmbiguousDeclarationForExport(
+      String name, NamedBuilder declaration, NamedBuilder other,
       {required UriOffset uriOffset}) {
     // Prefix builders and load library builders are not part of an export
     // scope.
@@ -516,7 +497,7 @@ abstract class LibraryBuilderImpl extends BuilderImpl
     if (declaration == other) return declaration;
     if (declaration is InvalidTypeDeclarationBuilder) return declaration;
     if (other is InvalidTypeDeclarationBuilder) return other;
-    Builder? preferred;
+    NamedBuilder? preferred;
     Uri? uri;
     Uri? otherUri;
     if (libraryNameSpace.lookupLocalMember(name)?.getable == declaration) {
@@ -555,13 +536,13 @@ abstract class LibraryBuilderImpl extends BuilderImpl
   }
 
   @override
-  bool addToExportScope(String name, Builder member,
+  bool addToExportScope(String name, NamedBuilder member,
       {required UriOffset uriOffset}) {
     if (name.startsWith("_")) return false;
     if (member is PrefixBuilder) return false;
     bool isSetter = isMappedAsSetter(member);
     LookupResult? result = exportNameSpace.lookupLocalMember(name);
-    Builder? existing = isSetter ? result?.setable : result?.getable;
+    NamedBuilder? existing = isSetter ? result?.setable : result?.getable;
     if (existing == member) {
       return false;
     } else {
@@ -571,7 +552,7 @@ abstract class LibraryBuilderImpl extends BuilderImpl
         exportNameSpace.addLocalMember(name, member, setter: isSetter);
         return true;
       } else if (existing != null) {
-        Builder result = _computeAmbiguousDeclarationForExport(
+        NamedBuilder result = _computeAmbiguousDeclarationForExport(
             name, existing, member,
             uriOffset: uriOffset);
         exportNameSpace.addLocalMember(name, result, setter: isSetter);
@@ -631,8 +612,8 @@ abstract class LibraryBuilderImpl extends BuilderImpl
   }
 
   @override
-  Builder? lookupLocalMember(String name, {bool required = false}) {
-    Builder? builder = libraryNameSpace.lookupLocalMember(name)?.getable;
+  NamedBuilder? lookupLocalMember(String name, {bool required = false}) {
+    NamedBuilder? builder = libraryNameSpace.lookupLocalMember(name)?.getable;
     if (required && builder == null) {
       internalProblem(
           templateInternalProblemNotFoundIn.withArguments(

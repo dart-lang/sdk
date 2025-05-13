@@ -38,7 +38,7 @@ abstract class IDeclarationBuilder implements ITypeDeclarationBuilder {
   /// If [setter] is `true` the sought member is a setter or assignable field.
   /// If [required] is `true` and no member is found an internal problem is
   /// reported.
-  Builder? lookupLocalMember(String name,
+  NamedBuilder? lookupLocalMember(String name,
       {bool setter = false, bool required = false});
 
   List<DartType> buildAliasedTypeArguments(LibraryBuilder library,

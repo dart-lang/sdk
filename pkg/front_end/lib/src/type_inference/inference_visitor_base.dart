@@ -1017,11 +1017,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     ExtensionAccessCandidate? bestSoFar;
     List<ExtensionAccessCandidate> noneMoreSpecific = [];
     extensionScope.forEachExtension((ExtensionBuilder extensionBuilder) {
-      MemberBuilder? thisBuilder = extensionBuilder
-          .lookupLocalMemberByName(name, setter: setter) as MemberBuilder?;
-      MemberBuilder? otherBuilder = extensionBuilder.lookupLocalMemberByName(
-          otherName,
-          setter: otherIsSetter) as MemberBuilder?;
+      MemberBuilder? thisBuilder =
+          extensionBuilder.lookupLocalMemberByName(name, setter: setter);
+      MemberBuilder? otherBuilder = extensionBuilder
+          .lookupLocalMemberByName(otherName, setter: otherIsSetter);
       if ((thisBuilder != null && !thisBuilder.isStatic) ||
           (otherBuilder != null && !otherBuilder.isStatic)) {
         DartType onType;

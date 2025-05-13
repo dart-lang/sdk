@@ -50,7 +50,7 @@ abstract class ParameterBuilder {
 
 /// A builder for a formal parameter, i.e. a parameter on a method or
 /// constructor.
-class FormalParameterBuilder extends BuilderImpl
+class FormalParameterBuilder extends NamedBuilderImpl
     implements VariableBuilder, ParameterBuilder, InferredTypeListener {
   static const String noNameSentinel = 'no name sentinel';
 
@@ -146,10 +146,10 @@ class FormalParameterBuilder extends BuilderImpl
       !isSuperInitializingFormal;
 
   @override
-  Builder get getable => this;
+  NamedBuilder get getable => this;
 
   @override
-  Builder? get setable => isAssignable ? this : null;
+  NamedBuilder? get setable => isAssignable ? this : null;
 
   @override
   // Coverage-ignore(suite): Not run.

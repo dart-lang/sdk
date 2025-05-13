@@ -100,10 +100,10 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   bool get isSynthesized => false;
 
   @override
-  Builder get getable => this;
+  NamedBuilder get getable => this;
 
   @override
-  Builder? get setable => null;
+  NamedBuilder? get setable => null;
 
   @override
   int buildBodyNodes(BuildNodesCallback f) {

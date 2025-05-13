@@ -97,7 +97,7 @@ Future<void> main() async {
         indexedLibrary: null,
         forAugmentationLibrary: false,
         augmentationRoot: null,
-        nameOrigin: null,
+        resolveInLibrary: null,
         referenceIsPartOwner: null,
         forPatchLibrary: false,
         isAugmenting: false,

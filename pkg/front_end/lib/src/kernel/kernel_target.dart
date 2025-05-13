@@ -50,7 +50,6 @@ import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/method_builder.dart';
-import '../builder/name_iterator.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/type_builder.dart';
@@ -891,11 +890,11 @@ class KernelTarget {
         bool isConstructorAdded = false;
         Map<TypeParameter, DartType>? substitutionMap;
 
-        NameIterator<MemberBuilder> iterator =
-            superclassBuilder.fullConstructorNameIterator();
+        Iterator<MemberBuilder> iterator =
+            superclassBuilder.fullConstructorIterator();
         while (iterator.moveNext()) {
-          String name = iterator.name;
           MemberBuilder memberBuilder = iterator.current;
+          String name = memberBuilder.name;
           if (memberBuilder.invokeTarget is Constructor) {
             substitutionMap ??=
                 builder.getSubstitutionMap(superclassBuilder.cls);

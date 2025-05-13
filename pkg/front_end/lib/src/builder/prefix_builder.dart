@@ -18,13 +18,14 @@ import 'builder.dart';
 import 'declaration_builders.dart';
 import 'library_builder.dart';
 
-class PrefixBuilder extends BuilderImpl implements LookupResult {
+class PrefixBuilder extends NamedBuilderImpl implements LookupResult {
+  @override
   final String name;
 
   final NameSpace _prefixNameSpace = new NameSpaceImpl();
 
   late final LookupScope _prefixScope =
-      new NameSpaceLookupScope(_prefixNameSpace, ScopeKind.library, "top");
+      new NameSpaceLookupScope(_prefixNameSpace, ScopeKind.library);
 
   @override
   final SourceLibraryBuilder parent;
@@ -50,7 +51,7 @@ class PrefixBuilder extends BuilderImpl implements LookupResult {
     assert(deferred == (loadLibraryBuilder != null),
         "LoadLibraryBuilder must be provided iff prefix is deferred.");
     if (loadLibraryBuilder != null) {
-      addToPrefixScope('loadLibrary', loadLibraryBuilder!,
+      addToPrefixScope(loadLibraryBuilder!.name, loadLibraryBuilder!,
           importOffset: importOffset, prefixOffset: prefixOffset);
     }
   }
@@ -68,7 +69,7 @@ class PrefixBuilder extends BuilderImpl implements LookupResult {
     return _prefixScope.lookup(name, charOffset, fileUri);
   }
 
-  void addToPrefixScope(String name, Builder member,
+  void addToPrefixScope(String name, NamedBuilder member,
       {required int importOffset, required int prefixOffset}) {
     if (deferred && member is ExtensionBuilder) {
       parent.addProblem(templateDeferredExtensionImport.withArguments(name),
@@ -78,9 +79,9 @@ class PrefixBuilder extends BuilderImpl implements LookupResult {
     bool isSetter = isMappedAsSetter(member);
 
     LookupResult? existingResult = _prefixNameSpace.lookupLocalMember(name);
-    Builder? existing =
+    NamedBuilder? existing =
         isSetter ? existingResult?.setable : existingResult?.getable;
-    Builder result;
+    NamedBuilder result;
     if (existing != null) {
       result = computeAmbiguousDeclarationForImport(
           parent, name, existing, member,
@@ -99,10 +100,10 @@ class PrefixBuilder extends BuilderImpl implements LookupResult {
   String get fullNameForErrors => name;
 
   @override
-  Builder get getable => this;
+  NamedBuilder get getable => this;
 
   @override
-  Builder? get setable => null;
+  NamedBuilder? get setable => null;
 }
 
 class PrefixFragment {

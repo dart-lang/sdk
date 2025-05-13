@@ -5,7 +5,9 @@
 part of 'declaration_builders.dart';
 
 // Coverage-ignore(suite): Not run.
-abstract class ITypeDeclarationBuilder implements Builder, LookupResult {
+abstract class ITypeDeclarationBuilder
+    implements Builder, LookupResult, NamedBuilder {
+  @override
   String get name;
 
   bool get isNamedMixinApplication;
@@ -55,7 +57,7 @@ abstract class ITypeDeclarationBuilder implements Builder, LookupResult {
           typeParametersTraversalState});
 }
 
-abstract class TypeDeclarationBuilderImpl extends BuilderImpl
+abstract class TypeDeclarationBuilderImpl extends NamedBuilderImpl
     implements ITypeDeclarationBuilder {
   @override
   // Coverage-ignore(suite): Not run.
@@ -71,10 +73,10 @@ abstract class TypeDeclarationBuilderImpl extends BuilderImpl
   int get typeParametersCount => 0;
 
   @override
-  Builder get getable => this;
+  NamedBuilder get getable => this;
 
   @override
-  Builder? get setable => null;
+  NamedBuilder? get setable => null;
 
   @override
   String toString() {

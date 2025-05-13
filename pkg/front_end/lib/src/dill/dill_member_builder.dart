@@ -257,7 +257,6 @@ class DillFactoryBuilder extends _DillProcedureBuilder
       super.libraryBuilder, DillClassBuilder super.declarationBuilder);
 
   @override
-  // Coverage-ignore(suite): Not run.
   Member get member => _procedure;
 
   @override

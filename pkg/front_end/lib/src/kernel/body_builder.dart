@@ -806,8 +806,8 @@ class BodyBuilder extends StackListenerImpl
       (declaredInCurrentGuard ??= {}).add(variable);
     }
     String variableName = variable.name!;
-    List<int>? previousOffsets =
-        scope.declare(variableName, new VariableBuilderImpl(variable, uri));
+    List<int>? previousOffsets = scope.declare(
+        variableName, new VariableBuilderImpl(variableName, variable, uri));
     if (previousOffsets != null && previousOffsets.isNotEmpty) {
       // This case is different from the above error. In this case, the problem
       // is using `x` before it's declared: `{ var x; { print(x); var x;
@@ -9138,7 +9138,7 @@ class BodyBuilder extends StackListenerImpl
     if (isWildcardLoweredFormalParameter(name)) {
       name = '_';
     }
-    Builder? builder = _context.lookupLocalMember(name);
+    NamedBuilder? builder = _context.lookupLocalMember(name);
     if (builder?.next != null) {
       // Duplicated name, already reported.
       while (builder != null) {
