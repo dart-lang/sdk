@@ -44,10 +44,10 @@
 #   issue created for it.
 #
 # Stats:
-# -  58 "needsEvaluation"
-# - 308 "needsFix"
-# - 470 "hasFix"
-# - 514 "noFix"
+# -  62 "needsEvaluation"
+# - 302 "needsFix"
+# - 500 "hasFix"
+# - 498 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
   status: noFix
@@ -2479,9 +2479,7 @@ LintCode.unnecessary_this:
 LintCode.unnecessary_to_list_in_spreads:
   status: hasFix
 LintCode.unnecessary_unawaited:
-  status: needsFix
-  notes: |-
-    A fix can be made to remove the 'unawaited' call.
+  status: hasFix
 LintCode.unnecessary_underscores:
   status: hasFix  
 LintCode.unreachable_from_main:

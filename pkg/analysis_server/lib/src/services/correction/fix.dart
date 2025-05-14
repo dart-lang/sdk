@@ -1550,6 +1550,16 @@ abstract final class DartFixKind {
     DartFixKindPriority.inFile,
     'Remove type check everywhere in file',
   );
+  static const REMOVE_UNAWAITED = FixKind(
+    'dart.fix.remove.unawaited',
+    DartFixKindPriority.standard,
+    "Remove 'unawaited' call",
+  );
+  static const REMOVE_UNAWAITED_MULTI = FixKind(
+    'dart.fix.remove.unawaited.multi',
+    DartFixKindPriority.standard,
+    "Remove 'unawaited' call in file",
+  );
   static const REMOVE_UNEXPECTED_UNDERSCORES = FixKind(
     'dart.fix.remove.unexpectedUnderscores',
     DartFixKindPriority.standard,

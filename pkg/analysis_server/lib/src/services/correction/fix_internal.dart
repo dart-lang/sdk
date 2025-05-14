@@ -178,6 +178,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_this_express
 import 'package:analysis_server/src/services/correction/dart/remove_to_list.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_arguments.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_unawaited.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unexpected_underscores.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_cast.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_final.dart';
@@ -528,6 +529,7 @@ final _builtInLintGenerators = <LintCode, List<ProducerGenerator>>{
   ],
   LinterLintCode.unnecessary_to_list_in_spreads: [RemoveToList.new],
   LinterLintCode.unnecessary_this: [RemoveThisExpression.new],
+  LinterLintCode.unnecessary_unawaited: [RemoveUnawaited.new],
   LinterLintCode.unnecessary_underscores: [ConvertToWildcardVariable.new],
   LinterLintCode.unreachable_from_main: [RemoveUnusedElement.new],
   LinterLintCode.use_colored_box: [ReplaceContainerWithColoredBox.new],
