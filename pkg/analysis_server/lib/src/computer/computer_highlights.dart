@@ -1346,6 +1346,17 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitInterpolationString(InterpolationString node) {
     computer._addRegion_node(node, HighlightRegionType.LITERAL_STRING);
+    if (computer._computeSemanticTokens) {
+      var string = node.contents.lexeme;
+      var parent = node.parent as StringInterpolation;
+      _addRegions_stringEscapes(
+        string,
+        parent.quote,
+        node.offset,
+        0,
+        string.length,
+      );
+    }
     super.visitInterpolationString(node);
   }
 
@@ -1663,7 +1674,17 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   void visitSimpleStringLiteral(SimpleStringLiteral node) {
     computer._addRegion_node(node, HighlightRegionType.LITERAL_STRING);
     if (computer._computeSemanticTokens) {
-      _addRegions_stringEscapes(node);
+      var string = node.literal.lexeme;
+      var quote = analyzeQuote(string);
+      var startIndex = firstQuoteLength(string, quote);
+      var endIndex = string.length - lastQuoteLength(quote);
+      _addRegions_stringEscapes(
+        string,
+        quote,
+        node.offset,
+        startIndex,
+        endIndex,
+      );
     }
     super.visitSimpleStringLiteral(node);
   }
@@ -1929,47 +1950,48 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     }
   }
 
-  void _addRegions_stringEscapes(SimpleStringLiteral node) {
-    var string = node.literal.lexeme;
-    var quote = analyzeQuote(string);
-    var startIndex = firstQuoteLength(string, quote);
-    var endIndex = string.length - lastQuoteLength(quote);
+  void _addRegions_stringEscapes(
+    String string,
+    Quote quote,
+    int nodeOffset,
+    int startIndex,
+    int endIndex,
+  ) {
     switch (quote) {
-      case Quote.Single:
-      case Quote.Double:
-      case Quote.MultiLineSingle:
-      case Quote.MultiLineDouble:
+      case Quote.RawSingle ||
+          Quote.RawDouble ||
+          Quote.RawMultiLineSingle ||
+          Quote.RawMultiLineDouble:
+        // Raw strings don't have escape characters.
+        break;
+      case Quote.Single ||
+          Quote.Double ||
+          Quote.MultiLineSingle ||
+          Quote.MultiLineDouble:
         _findEscapes(
-          node,
+          string,
           startIndex: startIndex,
           endIndex: endIndex,
           listener: (offset, end) {
             var length = end - offset;
             computer._addRegion(
-              node.offset + offset,
+              nodeOffset + offset,
               length,
               HighlightRegionType.VALID_STRING_ESCAPE,
             );
           },
         );
-      case Quote.RawSingle:
-      case Quote.RawDouble:
-      case Quote.RawMultiLineSingle:
-      case Quote.RawMultiLineDouble:
-        // Raw strings don't have escape characters.
-        break;
     }
   }
 
   /// Finds escaped regions within a string between [startIndex] and [endIndex],
   /// calling [listener] for each found region.
   void _findEscapes(
-    SimpleStringLiteral node, {
+    String string, {
     required int startIndex,
     required int endIndex,
     required void Function(int offset, int end) listener,
   }) {
-    var string = node.literal.lexeme;
     var codeUnits = string.codeUnits;
     var length = string.length;
 
@@ -2028,4 +2050,17 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
       }
     }
   }
+}
+
+extension on StringInterpolation {
+  Quote get quote => switch ((isRaw, isMultiline, isSingleQuoted)) {
+    (true, true, true) => Quote.RawMultiLineSingle,
+    (true, true, false) => Quote.RawMultiLineDouble,
+    (true, false, true) => Quote.RawSingle,
+    (true, false, false) => Quote.RawDouble,
+    (false, true, true) => Quote.MultiLineSingle,
+    (false, true, false) => Quote.MultiLineDouble,
+    (false, false, true) => Quote.Single,
+    (false, false, false) => Quote.Double,
+  };
 }
