@@ -52,11 +52,11 @@ or greater (`sdk: '^3.8.0'`).
 
 [null-aware elements]: https://github.com/dart-lang/language/issues/323
 
-The null-aware elements make it easier to omit a value from a collection literal
-if it's `null`. The syntax works in list literals, set literals, and map
-literals. For map literals, both null-aware keys and values are supported. Here
-is an example a list literal written in both styles, without the null-aware
-elements language feature and with it:
+Null-aware elements make it easier to omit a value from a collection literal if
+it's `null`. The syntax works in list literals, set literals, and map literals.
+For map literals, both null-aware keys and values are supported. Here is an
+example a list literal written in both styles, without the null-aware elements
+language feature and with it:
 
 ```dart
 String? lunch = isTuesday ? 'tacos!' : null;
