@@ -22,10 +22,10 @@ class ClassItem extends InterfaceItem<ClassElementImpl2> {
     required super.typeParameters,
     required super.declaredFields,
     required super.declaredMembers,
-    required super.interface,
     required super.supertype,
     required super.mixins,
     required super.interfaces,
+    required super.interface,
   });
 
   factory ClassItem.fromElement({
@@ -42,10 +42,10 @@ class ClassItem extends InterfaceItem<ClassElementImpl2> {
         typeParameters: typeParameters,
         declaredFields: {},
         declaredMembers: {},
-        interface: ManifestInterface.empty(),
         supertype: element.supertype?.encode(context),
         mixins: element.mixins.encode(context),
         interfaces: element.interfaces.encode(context),
+        interface: ManifestInterface.empty(),
       );
     });
   }
@@ -57,10 +57,10 @@ class ClassItem extends InterfaceItem<ClassElementImpl2> {
       typeParameters: ManifestTypeParameter.readList(reader),
       declaredFields: InstanceItemFieldItem.readMap(reader),
       declaredMembers: BaseNameMembers.readMap(reader),
-      interface: ManifestInterface.read(reader),
       supertype: ManifestType.readOptional(reader),
       mixins: ManifestType.readList(reader),
       interfaces: ManifestType.readList(reader),
+      interface: ManifestInterface.read(reader),
     );
   }
 
@@ -84,15 +84,12 @@ sealed class InstanceItem<E extends InstanceElementImpl2>
   /// superclass constructors.
   final Map<BaseName, BaseNameMembers> declaredMembers;
 
-  final ManifestInterface interface;
-
   InstanceItem({
     required super.id,
     required super.metadata,
     required this.typeParameters,
     required this.declaredFields,
     required this.declaredMembers,
-    required this.interface,
   });
 
   ManifestItemId? getConstructorId(LookupName name) {
@@ -135,7 +132,6 @@ sealed class InstanceItem<E extends InstanceElementImpl2>
     typeParameters.writeList(sink);
     declaredFields.write(sink);
     declaredMembers.write(sink);
-    interface.write(sink);
   }
 }
 
@@ -434,6 +430,7 @@ sealed class InterfaceItem<E extends InterfaceElementImpl2>
   final ManifestType? supertype;
   final List<ManifestType> interfaces;
   final List<ManifestType> mixins;
+  final ManifestInterface interface;
 
   InterfaceItem({
     required super.id,
@@ -441,10 +438,10 @@ sealed class InterfaceItem<E extends InterfaceElementImpl2>
     required super.typeParameters,
     required super.declaredFields,
     required super.declaredMembers,
-    required super.interface,
     required this.supertype,
     required this.mixins,
     required this.interfaces,
+    required this.interface,
   });
 
   @override
@@ -467,6 +464,7 @@ sealed class InterfaceItem<E extends InterfaceElementImpl2>
     supertype.writeOptional(sink);
     mixins.writeList(sink);
     interfaces.writeList(sink);
+    interface.write(sink);
   }
 }
 
@@ -743,10 +741,10 @@ class MixinItem extends InterfaceItem<MixinElementImpl2> {
       typeParameters: ManifestTypeParameter.readList(reader),
       declaredFields: InstanceItemFieldItem.readMap(reader),
       declaredMembers: BaseNameMembers.readMap(reader),
-      interface: ManifestInterface.read(reader),
       supertype: ManifestType.readOptional(reader),
       mixins: ManifestType.readList(reader),
       interfaces: ManifestType.readList(reader),
+      interface: ManifestInterface.read(reader),
       superclassConstraints: ManifestType.readList(reader),
     );
   }
