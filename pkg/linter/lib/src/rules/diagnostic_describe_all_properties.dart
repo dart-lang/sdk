@@ -29,7 +29,7 @@ class DiagnosticDescribeAllProperties extends LintRule {
     NodeLintRegistry registry,
     LinterContext context,
   ) {
-    var visitor = _Visitor(this, context.inheritanceManager);
+    var visitor = _Visitor(this);
     registry.addClassDeclaration(this, visitor);
   }
 }
@@ -64,9 +64,8 @@ class _IdentifierVisitor extends RecursiveAstVisitor<void> {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  final InheritanceManager3 inheritanceManager;
 
-  _Visitor(this.rule, this.inheritanceManager);
+  _Visitor(this.rule);
 
   void removeReferences(MethodDeclaration? method, List<Token> properties) {
     method?.body.accept(_IdentifierVisitor(properties));
@@ -132,7 +131,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     var name = member.name3;
     if (name == null) return false;
 
-    return inheritanceManager.getInherited4(classElement, Name(null, name)) !=
-        null;
+    return classElement.getInheritedMember(Name(null, name)) != null;
   }
 }

@@ -94,13 +94,12 @@ class _DeclarationGatherer {
         return false;
       }
 
-      var nameObj = Name.forElement(element);
-      if (nameObj == null) {
+      var name = Name.forElement(element);
+      if (name == null) {
         return false;
       }
 
-      var inheritance = linterContext.inheritanceManager;
-      return inheritance.getOverridden(containerElement, nameObj) != null;
+      return containerElement.getOverridden(name) != null;
     }
 
     for (var member in members) {

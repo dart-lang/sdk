@@ -24,16 +24,15 @@ class OverriddenFields extends LintRule {
     NodeLintRegistry registry,
     LinterContext context,
   ) {
-    var visitor = _Visitor(this, context.inheritanceManager);
+    var visitor = _Visitor(this);
     registry.addFieldDeclaration(this, visitor);
   }
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  final InheritanceManager3 inheritanceManager;
 
-  _Visitor(this.rule, this.inheritanceManager);
+  _Visitor(this.rule);
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
@@ -43,10 +42,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var variable in node.fields.variables) {
       var parent = variable.declaredFragment?.element.enclosingElement2;
       if (parent is InterfaceElement) {
-        var overriddenMember = inheritanceManager.getMember4(
-          parent,
+        var overriddenMember = parent.getInheritedConcreteMember(
           Name(parent.library2.uri, variable.name.lexeme),
-          forSuper: true,
         );
         if (overriddenMember is GetterElement2OrMember &&
             overriddenMember.isSynthetic) {

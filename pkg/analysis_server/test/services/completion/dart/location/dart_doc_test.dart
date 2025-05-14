@@ -306,6 +306,17 @@ suggestions
 ''');
   }
 
+  Future<void> test_notInSquareBraces() async {
+    allowedIdentifiers = const {'MyClass1'};
+    await computeSuggestions('''
+/// This doc should not suggest the commented class name [] outside the braces ^
+class MyClass1 {}
+''');
+    assertResponse(r'''
+suggestions
+''');
+  }
+
   Future<void> test_parameter() async {
     allowedIdentifiers = const {'param1'};
     await computeSuggestions('''

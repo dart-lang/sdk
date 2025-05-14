@@ -5443,11 +5443,6 @@ class Library : public Object {
   void CheckReload(const Library& replacement,
                    ProgramReloadContext* context) const;
 
-  // Returns a closure of top level function 'name' in the exported namespace
-  // of this library. If a top level function 'name' does not exist we look
-  // for a top level getter 'name' that returns a closure.
-  ObjectPtr GetFunctionClosure(const String& name) const;
-
   // Ensures that all top-level functions and variables (fields) are loaded.
   void EnsureTopLevelClassIsFinalized() const;
 

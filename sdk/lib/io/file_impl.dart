@@ -792,9 +792,9 @@ class _File extends FileSystemEntity implements File {
 }
 
 abstract class _RandomAccessFileOps {
-  external factory _RandomAccessFileOps(int pointer);
+  external factory _RandomAccessFileOps._(int pointer);
 
-  int getPointer();
+  int _getPointer();
   int get fd;
   int close();
   readByte();
@@ -823,7 +823,7 @@ class _RandomAccessFile implements RandomAccessFile {
 
   @pragma("vm:entry-point")
   _RandomAccessFile(int pointer, this.path)
-    : _ops = new _RandomAccessFileOps(pointer) {
+    : _ops = new _RandomAccessFileOps._(pointer) {
     _resourceInfo = new _FileResourceInfo(this);
     _maybeConnectHandler();
   }
@@ -1212,7 +1212,7 @@ class _RandomAccessFile implements RandomAccessFile {
   // object that implements the file operations. It should only be called to
   // pass the pointer to the IO Service, which will decrement the reference
   // count when it is finished with it.
-  int _pointer() => _ops.getPointer();
+  int _pointer() => _ops._getPointer();
 
   Future<Object?> _dispatch(int request, List data, {bool markClosed = false}) {
     if (closed) {

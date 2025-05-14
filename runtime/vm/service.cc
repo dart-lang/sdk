@@ -33,6 +33,7 @@
 #include "vm/message.h"
 #include "vm/message_handler.h"
 #include "vm/message_snapshot.h"
+#include "vm/microtask_mirror_queues.h"
 #include "vm/native_arguments.h"
 #include "vm/native_entry.h"
 #include "vm/native_symbol.h"
@@ -66,6 +67,8 @@ namespace dart {
 
 DECLARE_FLAG(bool, trace_service);
 DECLARE_FLAG(bool, trace_service_pause_events);
+// This flag is defined in "runtime/vm/microtask_mirror_queues.cc".
+DECLARE_FLAG(bool, profile_microtasks);
 DECLARE_FLAG(bool, profile_vm);
 DEFINE_FLAG(charp,
             vm_name,
@@ -431,6 +434,9 @@ char* RingServiceIdZone::GetServiceId(const Object& obj) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   ASSERT(zone != nullptr);
+  if (obj.IsSmi()) {
+    return zone->PrintToString("objects/int-%" Pd, Smi::Cast(obj).Value());
+  }
   const intptr_t object_part_of_service_id = GetIdForObject(obj.ptr());
   return zone->PrintToString("objects/%" Pd "/%" Pd, object_part_of_service_id,
                              id());
@@ -3835,6 +3841,32 @@ static void GetPorts(Thread* thread, JSONStream* js) {
   }
 }
 
+static const MethodParameter* const get_queued_microtasks_params[] = {
+    ISOLATE_PARAMETER,
+    nullptr,
+};
+
+static void GetQueuedMicrotasks(Thread* thread, JSONStream* js) {
+  if (!FLAG_profile_microtasks) {
+    js->PrintError(kFeatureDisabled,
+                   "getQueuedMicrotaks is only available when the VM is "
+                   "started with the flag --profile-microtasks.");
+    return;
+  }
+
+  const MicrotaskMirrorQueue& queue =
+      *MicrotaskMirrorQueues::GetQueue(thread->isolate()->main_port());
+
+  if (queue.is_disabled()) {
+    js->PrintError(
+        kCannotGetQueuedMicrotasks,
+        "An exception has gone unhandled in the specified isolate, so "
+        "information about the microtasks queued in it cannot be retrieved.");
+  } else {
+    queue.PrintJSON(*js);
+  }
+}
+
 #if !defined(DART_PRECOMPILED_RUNTIME)
 static const char* const report_enum_names[] = {
     SourceReport::kCallSitesStr,           SourceReport::kCoverageStr,
@@ -6268,6 +6300,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     lookup_resolved_package_uris_params },
   { "lookupPackageUris", LookupPackageUris,
     lookup_package_uris_params },
+  { "getQueuedMicrotasks", GetQueuedMicrotasks,
+    get_queued_microtasks_params },
   { "getRetainingPath", GetRetainingPath,
     get_retaining_path_params },
   { "getScripts", GetScripts,

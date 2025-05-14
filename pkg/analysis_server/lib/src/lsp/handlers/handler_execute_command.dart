@@ -40,6 +40,11 @@ class ExecuteCommandHandler
         Commands.sendWorkspaceEdit: SendWorkspaceEditCommandHandler(server),
         Commands.logAction: LogActionCommandHandler(server),
         Commands.applyCodeAction: ApplyCodeActionCommandHandler(server),
+        Commands.performRefactor: PerformRefactorCommandHandler(server),
+        Commands.validateRefactor: ValidateRefactorCommandHandler(server),
+        // Add commands for each of the refactorings.
+        for (var entry in RefactoringProcessor.generators.entries)
+          entry.key: RefactorCommandHandler(server, entry.key, entry.value),
 
         // Commands that currently require an underlying LSP server.
         if (server is LspAnalysisServer) ...{
@@ -47,11 +52,6 @@ class ExecuteCommandHandler
           Commands.fixAllInWorkspace: FixAllInWorkspaceCommandHandler(server),
           Commands.previewFixAllInWorkspace:
               PreviewFixAllInWorkspaceCommandHandler(server),
-          Commands.performRefactor: PerformRefactorCommandHandler(server),
-          Commands.validateRefactor: ValidateRefactorCommandHandler(server),
-          // Add commands for each of the refactorings.
-          for (var entry in RefactoringProcessor.generators.entries)
-            entry.key: RefactorCommandHandler(server, entry.key, entry.value),
         },
       } {
     server.executeCommandHandler = this;

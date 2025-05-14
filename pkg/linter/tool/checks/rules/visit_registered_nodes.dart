@@ -30,23 +30,18 @@ class VisitRegisteredNodes extends LintRule {
     NodeLintRegistry registry,
     LinterContext context,
   ) {
-    var visitor = _Visitor(this, context.inheritanceManager);
+    var visitor = _Visitor(this);
     registry.addMethodDeclaration(this, visitor);
   }
 }
 
 class _BodyVisitor extends RecursiveAstVisitor<void> {
   final LintRule rule;
-  final InheritanceManager3 inheritanceManager;
-  _BodyVisitor(this.rule, this.inheritanceManager);
+  _BodyVisitor(this.rule);
 
   bool implements(ClassElement visitor, String methodName) {
-    var member = inheritanceManager.getMember4(
-      visitor,
-      Name(null, methodName),
-      concrete: true,
-    );
-    // In general lint visitors should only inherit from SimpleAstVisitors
+    var member = visitor.lookUpConcreteMethod(methodName, visitor.library2);
+    // In general lint visitors should only inherit from [SimpleAstVisitor]s
     // (and the method implementations inherited from there are only stubs).
     // (We might consider enforcing this since it's harder to ensure that
     // Unifying and Generalizing visitors are doing the right thing.)
@@ -76,14 +71,13 @@ class _BodyVisitor extends RecursiveAstVisitor<void> {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  final InheritanceManager3 inheritanceManager;
 
-  _Visitor(this.rule, this.inheritanceManager);
+  _Visitor(this.rule);
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     if (node.name.lexeme == 'registerNodeProcessors') {
-      node.body.accept(_BodyVisitor(rule, inheritanceManager));
+      node.body.accept(_BodyVisitor(rule));
     }
   }
 }

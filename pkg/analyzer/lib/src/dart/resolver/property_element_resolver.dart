@@ -64,6 +64,18 @@ class PropertyElementResolver with ScopeHelpers {
         _definingLibrary,
       );
       if (element != null) {
+        if (!element.isFactory) {
+          var enclosingElement = element.enclosingElement2;
+          if (enclosingElement is ClassElementImpl2 &&
+              enclosingElement.isAbstract) {
+            _resolver.errorReporter.atNode(
+              node,
+              CompileTimeErrorCode
+                  .TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS,
+            );
+          }
+        }
+
         return PropertyElementResolverResult(
           readElementRequested2: element,
           getType: element.returnType,

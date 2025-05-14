@@ -67,11 +67,12 @@ ExpressionImpl insertCascadeTargetIntoExpression({
       question = _synthesizeToken(TokenType.QUESTION, expression.period!);
     }
 
-    return IndexExpressionImpl.forTarget(
+    return IndexExpressionImpl(
       target: insertCascadeTargetIntoExpression(
         expression: expressionTarget,
         cascadeTarget: cascadeTarget,
       ),
+      period: null,
       question: question,
       leftBracket: expression.leftBracket,
       index: expression.index,

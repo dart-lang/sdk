@@ -792,7 +792,10 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin, LspEditHelpersMixin
       pubspecFilePath,
       analysisOptionsPath;
 
-  final String simplePubspecContent = 'name: my_project';
+  /// The name of the test package (and the folder where the package lives).
+  final String testPackageName = 'my_project';
+
+  late final String simplePubspecContent = 'name: $testPackageName';
 
   /// The client capabilities sent to the server during initialization.
   ///

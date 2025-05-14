@@ -4582,6 +4582,14 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         return _emitDebuggerCall(expr).toStatement();
       }
     }
+    var jsExpression = _visitExpression(expr);
+    if (jsExpression is js_ast.InvocationWithHotReloadChecks) {
+      // When the static invocation expression has been rewritten to include
+      // hot reload correctness checks the entire resulting node shouldn't
+      // get source-mapped to the original call. Instead the call sites in
+      // the sub-expressions will have the correct mapping applied.
+      return jsExpression.toStatement()..sourceInformation = continueSourceMap;
+    }
     return _visitExpression(expr).toStatement();
   }
 
@@ -6795,25 +6803,37 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     var fn = _emitStaticTarget(target);
     var args = _emitArgumentList(node.arguments, target: target);
-    var staticCall = js_ast.Call(fn, args);
-    if (_inFunctionExpression &&
-        !usesJSInterop(node.target) &&
-        !_isBuildingSdk) {
+    var staticCall = js_ast.Call(fn, args)
+      ..sourceInformation = _nodeStart(node);
+    if (_shouldRewriteInvocationWithHotReloadChecks(target)) {
+      var generationCheck = js.call('# === #', [
+        js.number(_hotReloadGeneration),
+        _runtimeCall('global.dartDevEmbedder.hotReloadGeneration')
+      ]);
       var checkedCall = _rewriteInvocationWithHotReloadChecks(
-          target, node.arguments, node.getStaticType(_staticTypeContext));
+          target,
+          node.arguments,
+          node.getStaticType(_staticTypeContext),
+          _nodeStart(node));
       // As an optimization, avoid extra checks when the invocation code was
       // compiled in the same generation that it is running.
-      return js.call('# === # ? # : #', [
-        js.number(_hotReloadGeneration),
-        _runtimeCall('global.dartDevEmbedder.hotReloadGeneration'),
-        staticCall,
-        checkedCall
-      ]);
+      return js_ast.InvocationWithHotReloadChecks(
+          generationCheck, staticCall, checkedCall)
+        ..sourceInformation = continueSourceMap;
     }
     return _isNullCheckableJsInterop(target)
         ? _wrapWithJsInteropNullCheck(staticCall)
         : staticCall;
   }
+
+  /// Returns `true` when an invocation of [target] should be rewritten to
+  /// include checks to preserve soundness in the presence of hot reloads at
+  /// runtime.
+  bool _shouldRewriteInvocationWithHotReloadChecks(Member target) =>
+      _inFunctionExpression &&
+      !_isBuildingSdk &&
+      !usesJSInterop(target) &&
+      target != _assertInteropMethod;
 
   /// Rewrites an invocation of [target] that is statically sound at compile
   /// time to include checks to preserve soundness in the presence of hot
@@ -6826,8 +6846,14 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   ///
   /// Invokes `noSuchMethod` if the check fails. If that also returns a value,
   /// it's cast to the [expectedReturnType].
+  ///
+  /// The resulting expression for the validated call site will receive the
+  /// [originalCallSiteSourceLocation].
   js_ast.Expression _rewriteInvocationWithHotReloadChecks(
-      Member target, Arguments arguments, DartType expectedReturnType) {
+      Member target,
+      Arguments arguments,
+      DartType expectedReturnType,
+      SourceLocation? originalCallSiteSourceLocation) {
     var hoistedPositionalVariables = <js_ast.Expression>[];
     var hoistedNamedVariables = <String, js_ast.Expression>{};
     js_ast.Expression? letAssignments;
@@ -6906,7 +6932,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           for (var e in hoistedNamedVariables.entries)
             js_ast.Property(js.string(e.key), e.value)
         ])
-    ]);
+    ])
+      ..sourceInformation = originalCallSiteSourceLocation;
     // Cast the result of the checked call or the value returned from a
     // `NoSuchMethod` invocation.
     return js_ast.Binary(

@@ -208,7 +208,12 @@ class InheritanceManager3 {
     }
 
     var interface = getInterface(element);
-    return interface.superImplemented.last;
+    if (interface.superImplemented.isNotEmpty) {
+      return interface.superImplemented.last;
+    } else {
+      assert(element.name == 'Object');
+      return const {};
+    }
   }
 
   /// Returns the mapping from names to most specific signatures of members

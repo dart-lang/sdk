@@ -27,13 +27,13 @@ void main() {
 @reflectiveTest
 class ConvertGetterToMethodCodeActionsTest extends RefactorCodeActionsTest
     with
-        // Most tests are defined in a shared mixin.
+        // Tests are defined in a shared mixin.
         SharedConvertGetterToMethodRefactorCodeActionsTests {}
 
 @reflectiveTest
 class ConvertMethodToGetterCodeActionsTest extends RefactorCodeActionsTest
     with
-        // Most tests are defined in a shared mixin.
+        // Tests are defined in a shared mixin.
         SharedConvertMethodToGetterRefactorCodeActionsTests {}
 
 @reflectiveTest
@@ -42,6 +42,99 @@ class ExtractMethodRefactorCodeActionsTest extends RefactorCodeActionsTest
         LspProgressNotificationsMixin,
         // Most tests are defined in a shared mixin.
         SharedExtractMethodRefactorCodeActionsTests {
+  Future<void> test_progress_clientProvided() async {
+    const content = '''
+void f() {
+  print('Test!');
+  [!print('Test!');!]
+}
+''';
+    const expectedContent = '''
+void f() {
+  print('Test!');
+  newMethod();
+}
+
+void newMethod() {
+  print('Test!');
+}
+''';
+
+    // Expect begin/end progress updates without a create, since the
+    // token was supplied by us (the client).
+    expect(progressUpdates, emitsInOrder(['BEGIN', 'END']));
+
+    await verifyCodeActionLiteralEdits(
+      content,
+      expectedContent,
+      command: Commands.performRefactor,
+      title: extractMethodTitle,
+      commandWorkDoneToken: clientProvidedTestWorkDoneToken,
+    );
+  }
+
+  Future<void> test_progress_notSupported() async {
+    const content = '''
+void f() {
+  print('Test!');
+  [!print('Test!');!]
+}
+''';
+    const expectedContent = '''
+void f() {
+  print('Test!');
+  newMethod();
+}
+
+void newMethod() {
+  print('Test!');
+}
+''';
+
+    var didGetProgressNotifications = false;
+    progressUpdates.listen((_) => didGetProgressNotifications = true);
+
+    await verifyCodeActionLiteralEdits(
+      content,
+      expectedContent,
+      command: Commands.performRefactor,
+      title: extractMethodTitle,
+    );
+
+    expect(didGetProgressNotifications, isFalse);
+  }
+
+  Future<void> test_progress_serverGenerated() async {
+    const content = '''
+void f() {
+  print('Test!');
+  [!print('Test!');!]
+}
+''';
+    const expectedContent = '''
+void f() {
+  print('Test!');
+  newMethod();
+}
+
+void newMethod() {
+  print('Test!');
+}
+''';
+
+    // Expect create/begin/end progress updates, because in this case the server
+    // generates the token.
+    expect(progressUpdates, emitsInOrder(['CREATE', 'BEGIN', 'END']));
+
+    setWorkDoneProgressSupport();
+    await verifyCodeActionLiteralEdits(
+      content,
+      expectedContent,
+      command: Commands.performRefactor,
+      title: extractMethodTitle,
+    );
+  }
+
   /// Test if the client does not call refactor.validate it still gets a
   /// sensible `showMessage` call and not a failed request.
   Future<void> test_validLocation_failsInitialValidation_noValidation() async {
@@ -84,31 +177,25 @@ void doFoo(void Function() a) => a();
 @reflectiveTest
 class ExtractVariableRefactorCodeActionsTest extends RefactorCodeActionsTest
     with
-        // Most tests are defined in a shared mixin.
+        // Tests are defined in a shared mixin.
         SharedExtractVariableRefactorCodeActionsTests {}
 
 @reflectiveTest
 class ExtractWidgetRefactorCodeActionsTest extends RefactorCodeActionsTest
     with
-        // Most tests are defined in a shared mixin.
-        SharedExtractWidgetRefactorCodeActionsTests {
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
-}
+        // Tests are defined in a shared mixin.
+        SharedExtractWidgetRefactorCodeActionsTests {}
 
 @reflectiveTest
 class InlineLocalVariableRefactorCodeActionsTest extends RefactorCodeActionsTest
     with
-        // Most tests are defined in a shared mixin.
+        // Tests are defined in a shared mixin.
         SharedInlineLocalVariableRefactorCodeActionsTests {}
 
 @reflectiveTest
 class InlineMethodRefactorCodeActionsTest extends RefactorCodeActionsTest
     with
-        // Most tests are defined in a shared mixin.
+        // Tests are defined in a shared mixin.
         SharedInlineMethodRefactorCodeActionsTests {}
 
 abstract class RefactorCodeActionsTest extends AbstractLspAnalysisServerTest

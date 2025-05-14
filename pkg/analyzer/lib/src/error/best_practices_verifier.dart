@@ -21,7 +21,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ExecutableMember;
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -59,9 +58,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   /// The type system primitives.
   final TypeSystemImpl _typeSystem;
-
-  /// The inheritance manager to access interface type hierarchy.
-  final InheritanceManager3 _inheritanceManager;
 
   /// The current library.
   final LibraryElementImpl _currentLibrary;
@@ -101,13 +97,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     this._currentLibrary,
     CompilationUnit unit, {
     required TypeSystemImpl typeSystem,
-    required InheritanceManager3 inheritanceManager,
     required AnalysisOptions analysisOptions,
     required WorkspacePackage? workspacePackage,
   }) : _nullType = typeProvider.nullType,
        _typeSystem = typeSystem,
        _strictInference = analysisOptions.strictInference,
-       _inheritanceManager = inheritanceManager,
        _annotationVerifier = AnnotationVerifier(
          _errorReporter,
          _currentLibrary,
@@ -393,38 +387,26 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     try {
       super.visitFieldDeclaration(node);
       for (var field in node.fields.variables) {
-        ExecutableElement? getOverriddenPropertyAccessor() {
-          var element = field.declaredFragment!.element;
-          if (element is PropertyAccessorElement || element is FieldElement) {
-            var name = element.name3;
-            if (name == null) {
-              return null;
-            }
-            var nameObj = Name(_currentLibrary.source.uri, name);
-            var enclosingElement = element.enclosingElement2!;
-            var enclosingDeclaration = enclosingElement;
-            if (enclosingDeclaration is InterfaceElement) {
-              var overridden = _inheritanceManager.getMember4(
-                enclosingDeclaration,
-                nameObj,
-                forSuper: true,
-              );
-              // Check for a setter.
-              if (overridden == null) {
-                var setterName = Name(_currentLibrary.source.uri, '$name=');
-                overridden = _inheritanceManager.getMember4(
-                  enclosingDeclaration,
-                  setterName,
-                  forSuper: true,
-                );
-              }
-              return overridden;
-            }
-          }
-          return null;
+        if (!_invalidAccessVerifier._inTestDirectory) {
+          _checkForAssignmentOfDoNotStore(field.initializer);
         }
 
-        var overriddenElement = getOverriddenPropertyAccessor();
+        var element = field.declaredFragment!.element;
+        var enclosingElement = element.enclosingElement2!;
+        if (enclosingElement is! InterfaceElement) {
+          continue;
+        }
+
+        ExecutableElement? overriddenElement;
+        if (element
+            case PropertyAccessorElement(name3: var name?) ||
+                FieldElement(name3: var name?)) {
+          var nameObj = Name(_currentLibrary.source.uri, name);
+          overriddenElement =
+              enclosingElement.getInheritedConcreteMember(nameObj) ??
+              enclosingElement.getInheritedConcreteMember(nameObj.forSetter);
+        }
+
         if (overriddenElement != null &&
             _hasNonVirtualAnnotation(overriddenElement)) {
           // Overridden members are always inside classes or mixins, which are
@@ -438,9 +420,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
               overriddenElement.enclosingElement2!.displayName,
             ],
           );
-        }
-        if (!_invalidAccessVerifier._inTestDirectory) {
-          _checkForAssignmentOfDoNotStore(field.initializer);
         }
       }
     } finally {
@@ -619,9 +598,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       var elementIsOverride = false;
       if (enclosingElement is InterfaceElement) {
         if (element is MethodElement || element is PropertyAccessorElement) {
-          elementIsOverride =
-              _inheritanceManager.getOverridden4(enclosingElement, name) !=
-              null;
+          elementIsOverride = enclosingElement.getOverridden(name) != null;
         }
       }
 
@@ -638,11 +615,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
       var overriddenElement =
           enclosingElement is InterfaceElement
-              ? _inheritanceManager.getMember4(
-                enclosingElement,
-                name,
-                forSuper: true,
-              )
+              ? enclosingElement.getInheritedConcreteMember(name)
               : null;
 
       if (overriddenElement != null &&

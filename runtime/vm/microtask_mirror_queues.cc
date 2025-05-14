@@ -15,6 +15,13 @@
 
 namespace dart {
 
+DEFINE_FLAG(
+    bool,
+    profile_microtasks,
+    false,
+    "Record information about each microtask. Information about completed "
+    "microtasks will be written to the \"Microtask\" timeline stream.");
+
 MicrotaskMirrorQueue* MicrotaskMirrorQueues::GetQueue(int64_t isolate_id) {
   void* key = reinterpret_cast<void*>(isolate_id);
   const intptr_t hash = Utils::WordHash(isolate_id);
@@ -70,6 +77,22 @@ void MicrotaskMirrorQueue::OnAsyncCallbackComplete(int64_t start_time,
                        front.ReleaseStackTrace());
     event->Complete();
   }
+}
+
+void MicrotaskMirrorQueue::PrintJSON(JSONStream& js) const {
+  ASSERT(!is_disabled_);
+
+  JSONObject jsobj_topLevel(&js);
+  jsobj_topLevel.AddProperty("type", "QueuedMicrotasks");
+  jsobj_topLevel.AddProperty64("timestamp", OS::GetCurrentTimeMicros());
+
+  JSONArray jsarr(&jsobj_topLevel, "microtasks");
+  queue_.ForEach([&jsarr](const MicrotaskMirrorQueueEntry& entry) {
+    JSONObject jsobj_entry(&jsarr);
+    jsobj_entry.AddProperty("type", "Microtask");
+    jsobj_entry.AddProperty("id", entry.id());
+    jsobj_entry.AddProperty("stackTrace", entry.stack_trace().get());
+  });
 }
 
 Mutex MicrotaskMirrorQueues::isolate_id_to_queue_lock_;

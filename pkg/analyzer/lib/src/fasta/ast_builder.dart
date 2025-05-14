@@ -4890,7 +4890,8 @@ class AstBuilder extends StackListener {
       var receiver = pop() as CascadeExpressionImpl;
       var token = peek() as Token;
       push(receiver);
-      var expression = IndexExpressionImpl.forCascade(
+      var expression = IndexExpressionImpl(
+        target: null,
         period: token,
         question: question,
         leftBracket: leftBracket,
@@ -4901,8 +4902,9 @@ class AstBuilder extends StackListener {
       push(expression);
     } else {
       push(
-        IndexExpressionImpl.forTarget(
+        IndexExpressionImpl(
           target: target,
+          period: null,
           question: question,
           leftBracket: leftBracket,
           index: index,

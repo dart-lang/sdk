@@ -1199,6 +1199,40 @@ void f() async {
     await _initializeAndVerifyTokens(content, expected);
   }
 
+  Future<void> test_label() async {
+    var content = '''
+void f() {
+myLabel:
+  while (true) {
+    break myLabel;
+  }
+}
+''';
+
+    var expected = [
+      _Token('void', SemanticTokenTypes.keyword, [
+        CustomSemanticTokenModifiers.void_,
+      ]),
+      _Token('f', SemanticTokenTypes.function, [
+        SemanticTokenModifiers.declaration,
+        SemanticTokenModifiers.static,
+      ]),
+      _Token('myLabel', CustomSemanticTokenTypes.label, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('while', SemanticTokenTypes.keyword, [
+        CustomSemanticTokenModifiers.control,
+      ]),
+      _Token('true', CustomSemanticTokenTypes.boolean),
+      _Token('break', SemanticTokenTypes.keyword, [
+        CustomSemanticTokenModifiers.control,
+      ]),
+      _Token('myLabel', CustomSemanticTokenTypes.label),
+    ];
+
+    await _initializeAndVerifyTokens(content, expected);
+  }
+
   Future<void> test_lastLine_code() async {
     var content = 'String? bar;';
 

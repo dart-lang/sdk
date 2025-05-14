@@ -90,8 +90,8 @@ class _File {
 @patch
 class _RandomAccessFileOps {
   @patch
-  factory _RandomAccessFileOps(int pointer) =>
-      _RandomAccessFileOpsImpl(pointer);
+  factory _RandomAccessFileOps._(int pointer) =>
+      _RandomAccessFileOpsImpl._().._setPointer(pointer);
 }
 
 @pragma("vm:entry-point")
@@ -99,13 +99,10 @@ base class _RandomAccessFileOpsImpl extends NativeFieldWrapperClass1
     implements _RandomAccessFileOps {
   _RandomAccessFileOpsImpl._();
 
-  factory _RandomAccessFileOpsImpl(int pointer) =>
-      _RandomAccessFileOpsImpl._().._setPointer(pointer);
-
   @pragma("vm:external-name", "File_SetPointer")
   external void _setPointer(int pointer);
   @pragma("vm:external-name", "File_GetPointer")
-  external int getPointer();
+  external int _getPointer();
   @pragma("vm:external-name", "File_GetFD")
   external int get fd;
   @pragma("vm:external-name", "File_Close")

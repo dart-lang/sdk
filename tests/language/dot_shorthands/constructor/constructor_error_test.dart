@@ -40,4 +40,16 @@ void main() {
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
   //                                           ^
   // [cfe] The static getter or field 'new' isn't defined for the type 'UnnamedConstructor Function()'.
+
+  Function abstractInstantiation = .new();
+  //                               ^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INSTANTIATE_ABSTRACT_CLASS
+  //                                ^
+  // [cfe] The class 'Function' is abstract and can't be instantiated.
+
+  Function abstractClassTearoff = .new;
+  //                              ^^^^
+  // [analyzer] COMPILE_TIME_ERROR.TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS
+  //                               ^
+  // [cfe] Constructors on abstract classes can't be torn off.
 }

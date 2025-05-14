@@ -287,7 +287,13 @@ extern "C" int close_range(unsigned int first, unsigned int last, int flags)
     __attribute__((weak));
 
 void CloseAllButStdioAndExecControl(int exec_control_fd) {
+#if defined(DART_HOST_OS_ANDROID)
+  if (__builtin_available(android 34, *)) {
+#elif defined(DART_HOST_OS_LINUX)
   if (&close_range != nullptr) {
+#else
+#error "DART_HOST_OS_LINUX or DART_HOST_OS_ANDROID must be defined"
+#endif
     close_range(3, exec_control_fd - 1, 0);
     close_range(exec_control_fd + 1, ~0u, 0);
   } else {

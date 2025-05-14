@@ -162,10 +162,17 @@ doOneTask() {
 var fuzzArgument;
 
 main() {
+  // Avoid polluting the repository. Use a fixed path instead dynamically
+  // creating one because this test won't reliably cleanup on exit and we'd
+  // like to avoid accumulating temp directories.
+  var d = Directory(Directory.systemTemp.path + "/invocation_fuzz_test");
+  d.createSync();
+  Directory.current = d;
+
   fuzzArgument = null;
   fuzzArgument = 1; // //# smi: ok
   fuzzArgument = false; // //# false: ok
-  fuzzArgument = 'string'; // //# string: ok
+  fuzzArgument = 'fuzzstring'; // //# string: ok
   fuzzArgument = new List.filled(0, null); // //# emptyarray: ok
 
   print('Fuzzing with $fuzzArgument');

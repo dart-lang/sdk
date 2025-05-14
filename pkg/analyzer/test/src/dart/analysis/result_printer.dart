@@ -98,6 +98,13 @@ class BundleRequirementsPrinter {
         sink.writelnWithIndent(instanceEntry.key.asString);
         sink.withIndent(() {
           sink.writeElements(
+            'requestedFields',
+            instanceEntry.value.requestedFields.sorted,
+            _writeNamedId,
+          );
+        });
+        sink.withIndent(() {
+          sink.writeElements(
             'requestedMethods',
             instanceEntry.value.requestedMethods.sorted,
             _writeNamedId,
@@ -431,6 +438,15 @@ class DriverEventsPrinter {
       case ExportLibraryMissing():
         // TODO(scheglov): Handle this case.
         throw UnimplementedError();
+      case InstanceFieldIdMismatch():
+        sink.writelnWithIndent('instanceFieldIdMismatch');
+        sink.writeProperties({
+          'libraryUri': failure.libraryUri,
+          'interfaceName': failure.interfaceName.asString,
+          'fieldName': failure.fieldName.asString,
+          'expectedId': idProvider.manifestId(failure.expectedId),
+          'actualId': idProvider.manifestId(failure.actualId),
+        });
       case InstanceMethodIdMismatch():
         sink.writelnWithIndent('instanceMethodIdMismatch');
         sink.writeProperties({

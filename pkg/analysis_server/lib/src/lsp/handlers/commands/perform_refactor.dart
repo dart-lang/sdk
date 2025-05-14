@@ -8,6 +8,7 @@ import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/abstract_refactor.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
+import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/protocol_server.dart';
@@ -74,7 +75,10 @@ class PerformRefactorCommandHandler extends AbstractRefactorCommandHandler {
             // Show the error to the user but don't fail the request, as the
             // LSP Client may show a failed request in a way that looks like a
             // server error.
-            server.showErrorMessageToUser(status.message!);
+            if (server case LspAnalysisServer server) {
+              // Error notifications are not supported for LSP-over-Legacy.
+              server.showErrorMessageToUser(status.message!);
+            }
             return success(null);
           }
 

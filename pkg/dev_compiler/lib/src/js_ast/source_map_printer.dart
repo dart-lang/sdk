@@ -139,6 +139,22 @@ class SourceMapPrintingContext extends SimpleJavaScriptPrintingContext {
     }
   }
 
+  @override
+  void expressionBranch() {
+    // Only one branch of a conditional expression will be executed but the
+    // expressions could be mapped to the same source location. To ensure
+    // mappings are produced for both branches any pending locations should be
+    // flushed when switching output from one branch to the other.
+    _flushPendingMarks();
+  }
+
+  @override
+  void expressionJoin() {
+    // To ensure mappings get output for all branches when nesting conditional
+    // expressions they should be flushed after code flow joins after branching.
+    _flushPendingMarks();
+  }
+
   /// Marks that we entered a Dart node at this offset.
   ///
   /// Multiple nested Dart expressions will appear to start at the same Dart

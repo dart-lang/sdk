@@ -14,7 +14,8 @@ import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 typedef StaticOptions = Either2<bool, CodeActionOptions>;
 
 class CodeActionHandler
-    extends LspMessageHandler<CodeActionParams, TextDocumentCodeActionResult> {
+    extends
+        SharedMessageHandler<CodeActionParams, TextDocumentCodeActionResult> {
   CodeActionHandler(super.server);
 
   @override
@@ -23,6 +24,9 @@ class CodeActionHandler
   @override
   LspJsonHandler<CodeActionParams> get jsonHandler =>
       CodeActionParams.jsonHandler;
+
+  @override
+  bool get requiresTrustedCaller => false;
 
   @override
   Future<ErrorOr<TextDocumentCodeActionResult>> handle(

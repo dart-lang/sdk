@@ -11,6 +11,7 @@
 #include "platform/list_queue.h"
 #include "platform/synchronization.h"
 #include "platform/utils.h"
+#include "vm/json_stream.h"
 #include "vm/stack_frame.h"
 
 namespace dart {
@@ -45,9 +46,11 @@ class MicrotaskMirrorQueue {
   MicrotaskMirrorQueue()
       : is_disabled_(false), queue_(), next_available_id_(0) {}
 
+  bool is_disabled() const { return is_disabled_; }
   void OnScheduleAsyncCallback(const StackTrace& st);
   void OnSchedulePriorityAsyncCallback();
   void OnAsyncCallbackComplete(int64_t start_time, int64_t end_time);
+  void PrintJSON(JSONStream& js) const;
 
  private:
   bool is_disabled_;

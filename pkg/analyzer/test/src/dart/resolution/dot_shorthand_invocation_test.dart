@@ -619,6 +619,24 @@ DotShorthandInvocation
 ''');
   }
 
+  test_requiredParameters_missing() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  static C member({required int x}) => C(x);
+  int x;
+  C(this.x);
+}
+
+void main() {
+  C c = .member();
+  print(c);
+}
+''',
+      [error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 103, 6)],
+    );
+  }
+
   test_typeParameters_inference() async {
     await assertNoErrorsInCode(r'''
 class C<T> {

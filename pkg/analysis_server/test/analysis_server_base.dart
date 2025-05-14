@@ -209,11 +209,13 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
     '$testPackageLibPath/test.dart',
   );
 
-  late String pubspecFilePath = resourceProvider.convertPath(
-    '$testPackageLibPath/pubspec.yaml',
+  late String pubspecFilePath = pathContext.normalize(
+    resourceProvider.convertPath('$testPackageRootPath/pubspec.yaml'),
   );
 
   late TestCode parsedTestCode;
+
+  final String testPackageName = 'test';
 
   /// Return a list of the experiments that are to be enabled for tests in this
   /// class, an empty list if there are no experiments that should be enabled.
@@ -237,7 +239,7 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
   Folder get testPackageRoot => getFolder(testPackageRootPath);
 
   @override
-  String get testPackageRootPath => '$workspaceRootPath/test';
+  String get testPackageRootPath => '$workspaceRootPath/$testPackageName';
 
   String get testPackageTestPath => '$testPackageRootPath/test';
 
@@ -267,7 +269,7 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
   @override
   void createDefaultFiles() {
     writeTestPackageConfig();
-    writeTestPackagePubspecYamlFile('name: test');
+    writeTestPackagePubspecYamlFile('name: $testPackageName');
 
     writeTestPackageAnalysisOptionsFile(
       analysisOptionsContent(experiments: experiments),

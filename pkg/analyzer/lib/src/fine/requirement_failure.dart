@@ -44,6 +44,22 @@ final class ExportLibraryMissing extends ExportFailure {
   ExportLibraryMissing({required this.uri});
 }
 
+class InstanceFieldIdMismatch extends RequirementFailure {
+  final Uri libraryUri;
+  final LookupName interfaceName;
+  final LookupName fieldName;
+  final ManifestItemId? expectedId;
+  final ManifestItemId? actualId;
+
+  InstanceFieldIdMismatch({
+    required this.libraryUri,
+    required this.interfaceName,
+    required this.fieldName,
+    required this.expectedId,
+    required this.actualId,
+  });
+}
+
 class InstanceMethodIdMismatch extends RequirementFailure {
   final Uri libraryUri;
   final LookupName interfaceName;

@@ -334,6 +334,10 @@ enum RPCErrorKind {
   kInvalidTimelineRequest(code: 114,
       message: 'Invalid timeline request for the current timeline configuration'),
 
+  /// Information about the microtasks queued in the specified isolate cannot be
+  /// retrieved.
+  kCannotGetQueuedMicrotasks(code: 115, message: 'Cannot get queued microtasks'),
+
   /// The custom stream does not exist.
   kCustomStreamDoesNotExist(code: 130, message: 'Custom stream does not exist'),
 
