@@ -2073,9 +2073,10 @@ multi
     // The 9's in these strings are not part of the escapes (they make the
     // strings too long).
     var content = r'''
-const string1 = 'it\'s escaped\\\n';
+const string1 = 'it\'s escaped\\\n\$';
 const string2 = 'hex \x12\x1299';
 const string3 = 'unicode \u1234\u123499\u{123456}\u{12345699}';
+const string4 = "\"";
 ''';
 
     var expected = [
@@ -2092,6 +2093,9 @@ const string3 = 'unicode \u1234\u123499\u{123456}\u{12345699}';
         CustomSemanticTokenModifiers.escape,
       ]),
       _Token(r'\n', SemanticTokenTypes.string, [
+        CustomSemanticTokenModifiers.escape,
+      ]),
+      _Token(r'\$', SemanticTokenTypes.string, [
         CustomSemanticTokenModifiers.escape,
       ]),
       _Token(r"'", SemanticTokenTypes.string),
@@ -2126,6 +2130,94 @@ const string3 = 'unicode \u1234\u123499\u{123456}\u{12345699}';
       ]),
       // The 99 makes this invalid so i's not an escape
       _Token(r"\u{12345699}'", SemanticTokenTypes.string),
+      _Token('const', SemanticTokenTypes.keyword),
+      _Token('string4', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('"', SemanticTokenTypes.string),
+      _Token(r'\"', SemanticTokenTypes.string, [
+        CustomSemanticTokenModifiers.escape,
+      ]),
+      _Token('"', SemanticTokenTypes.string),
+    ];
+
+    await _initializeAndVerifyTokens(content, expected);
+  }
+
+  Future<void> test_strings_escape_interpolation1() async {
+    var content = r'''
+const value = 1;
+const string1 = 'it\'s $value escaped\\\n';
+''';
+
+    var expected = [
+      _Token('const', SemanticTokenTypes.keyword),
+      _Token('value', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('1', SemanticTokenTypes.number),
+      _Token('const', SemanticTokenTypes.keyword),
+      _Token('string1', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token("'it", SemanticTokenTypes.string),
+      _Token(r"\'", SemanticTokenTypes.string, [
+        CustomSemanticTokenModifiers.escape,
+      ]),
+      _Token('s ', SemanticTokenTypes.string),
+      _Token(r'$', CustomSemanticTokenTypes.source, [
+        CustomSemanticTokenModifiers.interpolation,
+      ]),
+      _Token('value', SemanticTokenTypes.property),
+      _Token(' escaped', SemanticTokenTypes.string),
+      _Token(r'\\', SemanticTokenTypes.string, [
+        CustomSemanticTokenModifiers.escape,
+      ]),
+      _Token(r'\n', SemanticTokenTypes.string, [
+        CustomSemanticTokenModifiers.escape,
+      ]),
+      _Token(r"'", SemanticTokenTypes.string),
+    ];
+
+    await _initializeAndVerifyTokens(content, expected);
+  }
+
+  Future<void> test_strings_escape_interpolation2() async {
+    var content = r'''
+const value = 1;
+const string1 = 'it\'s ${value} escaped\\\n';
+''';
+
+    var expected = [
+      _Token('const', SemanticTokenTypes.keyword),
+      _Token('value', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('1', SemanticTokenTypes.number),
+      _Token('const', SemanticTokenTypes.keyword),
+      _Token('string1', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token("'it", SemanticTokenTypes.string),
+      _Token(r"\'", SemanticTokenTypes.string, [
+        CustomSemanticTokenModifiers.escape,
+      ]),
+      _Token('s ', SemanticTokenTypes.string),
+      _Token(r'${', CustomSemanticTokenTypes.source, [
+        CustomSemanticTokenModifiers.interpolation,
+      ]),
+      _Token('value', SemanticTokenTypes.property),
+      _Token('}', CustomSemanticTokenTypes.source, [
+        CustomSemanticTokenModifiers.interpolation,
+      ]),
+      _Token(' escaped', SemanticTokenTypes.string),
+      _Token(r'\\', SemanticTokenTypes.string, [
+        CustomSemanticTokenModifiers.escape,
+      ]),
+      _Token(r'\n', SemanticTokenTypes.string, [
+        CustomSemanticTokenModifiers.escape,
+      ]),
+      _Token(r"'", SemanticTokenTypes.string),
     ];
 
     await _initializeAndVerifyTokens(content, expected);
