@@ -52,28 +52,31 @@ or greater (`sdk: '^3.8.0'`).
 
 [null-aware elements]: https://github.com/dart-lang/language/issues/323
 
-The null-aware elements language feature enables a simple syntax for
-including an element into a collection only if the element is not
-null. The syntax is available for list elements, set elements, map
-keys, and map values as described in the
-[null-aware elements specification](https://github.com/dart-lang/language/blob/main/accepted/future-releases/0323-null-aware-elements/feature-specification.md).
-
-The following is an example of a list literal written in both styles,
-without the null-aware elements language feature and with it:
+The null-aware elements make it easier to omit a value from a collection literal
+if it's `null`. The syntax works in list literals, set literals, and map
+literals. For map literals, both null-aware keys and values are supported. Here
+is an example a list literal written in both styles, without the null-aware
+elements language feature and with it:
 
 ```dart
-var listWithoutNullAwareElements = [
-  if (promotableNullableValue != null) promotableNullableValue,
-  if (nullable.value != null) nullable.value!,
-  if (nullable.value case var value?) value,
+String? lunch = isTuesday ? 'tacos!' : null;
+
+var withoutNullAwareElements = [
+  if (lunch != null) lunch,
+  if (lunch.length != null) lunch.length!,
+  if (lunch.length case var length?) length,
 ];
 
-var listWithNullAwareElements = [
-  ?promotableNullableValue,
-  ?nullable.value,
-  ?nullable.value,
+var withNullAwareElements = [
+  ?lunch,
+  ?lunch.length,
+  ?lunch.length,
 ];
 ```
+
+Full details are in the [feature specification][null-aware elements].
+
+[null-aware elements]: https://github.com/dart-lang/language/blob/main/accepted/future-releases/0323-null-aware-elements/feature-specification.md
 
 ### Libraries
 
@@ -83,8 +86,8 @@ var listWithNullAwareElements = [
 
 #### `dart:io`
 
-- Added support `HttpClientBearerCredentials`.
-- Update `Stdout.supportsAnsiEscapes` and `Stdin.supportsAnsiEscapes` to
+- Added `HttpClientBearerCredentials`.
+- Updated `Stdout.supportsAnsiEscapes` and `Stdin.supportsAnsiEscapes` to
   return `true` for `TERM` containing `tmux` values.
 
 #### `dart:html`
@@ -92,10 +95,10 @@ var listWithNullAwareElements = [
 - **Breaking change**: Native classes in `dart:html`, like `HtmlElement`, can no
   longer be extended. Long ago, to support custom elements, element classes
   exposed a `.created` constructor that adhered to the v0.5 spec of web
-  components. On this release, those constructors has been removed and with that
-  change, the classes can no longer be extended. In a future change, they may be
-  marked as interface classes as well.  This is a follow up from an earlier
-  breaking change in 3.0.0 that removed the `registerElement` APIs. See
+  components. On this release, those constructors have been removed and with
+  that change, the classes can no longer be extended. In a future change, they
+  may be marked as interface classes as well. This is a follow up from an
+  earlier breaking change in 3.0.0 that removed the `registerElement` APIs. See
   [#53264](https://github.com/dart-lang/sdk/issues/53264) for details.
 
 #### `dart:ffi`
@@ -126,21 +129,21 @@ var listWithNullAwareElements = [
 - Add a quick fix to create an extension method to resolve an "undefined method
   invocation" error.
 - Renaming a closure parameter is now possible.
-- Renaming a field now adjusts implicit 'this' references in order to avoid
+- Renaming a field now adjusts implicit `this` references in order to avoid
   name collisions.
 - Renaming a field formal parameter now properly renames known super-parameters
   in subclasses in other libraries.
 - Renaming a method parameter now properly renames across the type hierarchy.
 - The "encapsulate field" quick assist now works on final fields.
 - The "inline method" refactoring now properly handles inner closures.
-- The quick fix that adds names to a `show` combinator or removes names from a
-  'hide' combinator can now add or remove multiple names simultaneously, in
-  order to resolve as many "undefined" errors as possible.
+- The quick fix that adds names to a `show` clause or removes names from a
+  `hide` clause can now add or remove multiple names simultaneously, in order to
+  resolve as many "undefined" errors as possible.
 - The "remove const" quick fix now operates on more types of code.
 - The "add missing required argument" quick fix can now add multiple missing
   required arguments.
 - Add a new warning that reports an import or export directive with multiple
-  'show' or 'hide' combinators, which are never necessary.
+  `show` or `hide` clauses, which are never necessary.
 - Add a quick fix for this warning.
 - Add LSP document links for lint rules in analysis options files.
 - Add LSP document links for dependency packages in pubspec files.
@@ -171,9 +174,9 @@ Removed the `--experiment-new-rti` and `--use-old-rti` flags.
 
 #### Dart Native Compiler
 
-Added
-[cross-compilation](https://dart.dev/tools/dart-compile#cross-compilation-exe)
-for the Linux x64 and Linux ARM64 target platforms.
+Added [cross-compilation][] for the Linux x64 and Linux ARM64 target platforms.
+
+[cross-compilation]: https://dart.dev/tools/dart-compile#cross-compilation-exe
 
 #### Dart format
 
