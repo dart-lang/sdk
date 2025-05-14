@@ -148,6 +148,8 @@ class EventsPrinterConfiguration {}
 abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
     with
         LspRequestHelpersMixin,
+        LspReverseRequestHelpersMixin,
+        LspNotificationHelpersMixin,
         LspEditHelpersMixin,
         ClientCapabilitiesHelperMixin,
         LspVerifyEditHelpersMixin,

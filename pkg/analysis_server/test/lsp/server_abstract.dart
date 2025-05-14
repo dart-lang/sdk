@@ -49,6 +49,8 @@ abstract class AbstractLspAnalysisServerTest
         ResourceProviderMixin,
         ClientCapabilitiesHelperMixin,
         LspRequestHelpersMixin,
+        LspReverseRequestHelpersMixin,
+        LspNotificationHelpersMixin,
         LspEditHelpersMixin,
         LspVerifyEditHelpersMixin,
         LspAnalysisServerTestMixin,
@@ -784,7 +786,12 @@ mixin ClientCapabilitiesHelperMixin {
   }
 }
 
-mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin, LspEditHelpersMixin
+mixin LspAnalysisServerTestMixin
+    on
+        LspRequestHelpersMixin,
+        LspReverseRequestHelpersMixin,
+        LspNotificationHelpersMixin,
+        LspEditHelpersMixin
     implements ClientCapabilitiesHelperMixin {
   late String projectFolderPath,
       mainFilePath,
