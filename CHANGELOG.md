@@ -40,7 +40,7 @@ constraint][language version] lower bound to 3.9 or greater (`sdk: '^3.9.0'`).
 
 ## 3.8.0
 
-**Released on:** Unreleased
+**Released on:** 2025-05-20
 
 ### Language
 
@@ -346,6 +346,45 @@ same as it was before.
     labelColor: Colors.white70,
   );
   ```
+
+## 3.7.3
+
+**Released on:** 2025-04-16
+
+This is a patch release that:
+
+- Fixes a performance regression in the analysis server (issue [#60335]).
+
+[#60335]: https://github.com/dart-lang/sdk/issues/60335
+
+## 3.7.2
+
+**Released on:** 2025-03-12
+
+This is a patch release that:
+
+ - Fixes a bug in dart2wasm that imports a `js-string` builtin function with a
+   non-nullable parameter type where it must use a nullable one (issue [#59899]).
+
+[#59899]: https://github.com/dart-lang/sdk/issues/59899
+
+## 3.7.1
+
+**Released on:** 2025-02-26
+
+This is a patch release that:
+
+ - Fixes a bug in the DevTools network profiler that was causing network
+   traffic to be dropped (issue [#8888]).
+ - Fixes a bug in DDC that prevents code from compiling when it includes
+   factory constructors containing generic local functions (issue [#160338]).
+ - Fixes a bug in the CFE that didn't correctly mark wildcard variables
+   in formal parameters, causing the wildcard variables to appear in
+   variable lists while debugging (issue [#60121]).
+
+[#8888]: https://github.com/flutter/devtools/issues/8888
+[#160338]: https://github.com/flutter/flutter/issues/160338
+[#60121]: https://github.com/dart-lang/sdk/issues/60121
 
 ## 3.7.0
 
