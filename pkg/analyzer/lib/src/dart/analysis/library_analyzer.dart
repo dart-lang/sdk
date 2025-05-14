@@ -408,7 +408,6 @@ class LibraryAnalyzer {
       definingContextUnit,
       _typeProvider,
       _typeSystem,
-      _inheritance,
       workspacePackage,
     );
 
@@ -520,7 +519,7 @@ class LibraryAnalyzer {
 
     unit.accept(OverrideVerifier(_inheritance, errorReporter));
 
-    unit.accept(RedeclareVerifier(_inheritance, errorReporter));
+    unit.accept(RedeclareVerifier(errorReporter));
 
     TodoFinder(errorReporter).findIn(unit);
     LanguageVersionOverrideVerifier(errorReporter).verify(unit);

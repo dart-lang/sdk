@@ -106,10 +106,10 @@ abstract final class DartAssistKind {
     DartAssistKindPriority.DEFAULT,
     'Convert to double quoted string',
   );
-  static const CONVERT_TO_FIELD_PARAMETER = AssistKind(
-    'dart.assist.convert.toConstructorFieldParameter',
+  static const CONVERT_TO_INITIALIZING_FORMAL = AssistKind(
+    'dart.assist.convert.toInitializingFormal',
     DartAssistKindPriority.DEFAULT,
-    'Convert to field formal parameter',
+    'Convert to initializing formal parameter',
   );
   static const CONVERT_TO_FOR_ELEMENT = AssistKind(
     'dart.assist.convert.toForElement',

@@ -856,92 +856,72 @@ class _LibraryMatch {
     _addMatchingElementItem(element, item, matchContext);
 
     _matchInterfaceElementConstructors(
-      matchContext: matchContext,
       interfaceElement: element,
       item: item,
+      matchContext: matchContext,
     );
 
-    _matchInstanceElementStaticExecutables(
-      matchContext: matchContext,
+    _matchInstanceElementExecutables(
       element: element,
       item: item,
-    );
-
-    _matchInterfaceElementInstanceExecutables(
       matchContext: matchContext,
-      element: element,
-      item: item,
     );
 
     return true;
   }
 
-  bool _matchInstanceElementExecutable({
-    required MatchContext interfaceMatchContext,
-    required Map<BaseName, BaseNameMembers> members,
-    required ExecutableElementImpl2 executable,
+  void _matchInstanceElementExecutables({
+    required InstanceElementImpl2 element,
+    required InstanceItem item,
+    required MatchContext matchContext,
   }) {
-    var lookupName = executable.lookupName?.asLookupName;
-    if (lookupName == null) {
-      return true;
+    for (var field in element.fields2) {
+      if (!_matchInstanceElementField(
+        instanceItem: item,
+        instanceMatchContext: matchContext,
+        element: field,
+      )) {
+        structureMismatched.add(field);
+      }
     }
-    var baseName = lookupName.asBaseName;
 
-    switch (executable) {
-      case GetterElementImpl():
-        var item = members[baseName]?.declaredGetter;
-        if (item is! InstanceItemGetterItem) {
-          return false;
-        }
+    for (var method in element.methods2) {
+      if (!_matchInstanceElementMethod(
+        instanceItem: item,
+        instanceMatchContext: matchContext,
+        element: method,
+      )) {
+        structureMismatched.add(method);
+      }
+    }
 
-        var matchContext = MatchContext(parent: interfaceMatchContext);
-        if (!item.match(matchContext, executable)) {
-          return false;
-        }
+    for (var getter in element.getters2) {
+      if (!_matchInstanceElementGetter(
+        instanceItem: item,
+        instanceMatchContext: matchContext,
+        element: getter,
+      )) {
+        structureMismatched.add(getter);
+      }
+    }
 
-        _addMatchingElementItem(executable, item, matchContext);
-        return true;
-      case MethodElementImpl2():
-        var item =
-            lookupName.isIndexEq
-                ? members[baseName]?.declaredIndexEq
-                : members[baseName]?.declaredMethod;
-        if (item is! InstanceItemMethodItem) {
-          return false;
-        }
-
-        var matchContext = MatchContext(parent: interfaceMatchContext);
-        if (!item.match(matchContext, executable)) {
-          return false;
-        }
-
-        _addMatchingElementItem(executable, item, matchContext);
-        return true;
-      case SetterElementImpl():
-        var item = members[baseName]?.declaredSetter;
-        if (item is! InstanceItemSetterItem) {
-          return false;
-        }
-
-        var matchContext = MatchContext(parent: interfaceMatchContext);
-        if (!item.match(matchContext, executable)) {
-          return false;
-        }
-
-        _addMatchingElementItem(executable, item, matchContext);
-        return true;
-      default:
-        // SAFETY: the cases above handle all expected executables.
-        throw StateError('(${executable.runtimeType}) $executable');
+    for (var setter in element.setters2) {
+      if (!_matchInstanceElementSetter(
+        instanceItem: item,
+        instanceMatchContext: matchContext,
+        element: setter,
+      )) {
+        structureMismatched.add(setter);
+      }
     }
   }
 
   bool _matchInstanceElementField({
     required InstanceItem instanceItem,
     required MatchContext instanceMatchContext,
-    required FieldElementImpl2 field,
+    required FieldElementImpl2 element,
   }) {
-    var lookupName = field.lookupName?.asLookupName;
+    var lookupName = element.lookupName?.asLookupName;
     if (lookupName == null) {
       return true;
     }
@@ -952,51 +932,95 @@ class _LibraryMatch {
     }
 
     var matchContext = MatchContext(parent: instanceMatchContext);
-    if (!item.match(matchContext, field)) {
+    if (!item.match(matchContext, element)) {
       return false;
     }
 
-    _addMatchingElementItem(field, item, matchContext);
+    _addMatchingElementItem(element, item, matchContext);
     return true;
   }
 
-  void _matchInstanceElementStaticExecutables({
-    required MatchContext matchContext,
-    required InstanceElementImpl2 element,
-    required InstanceItem item,
+  bool _matchInstanceElementGetter({
+    required InstanceItem instanceItem,
+    required MatchContext instanceMatchContext,
+    required GetterElementImpl element,
   }) {
-    for (var field in element.fields2) {
-      if (!_matchInstanceElementField(
-        instanceItem: item,
-        instanceMatchContext: matchContext,
-        field: field,
-      )) {
-        structureMismatched.add(field);
-      }
+    var lookupName = element.lookupName?.asLookupName;
+    if (lookupName == null) {
+      return false;
     }
 
-    var executables = [
-      ...element.getters2,
-      ...element.methods2,
-      ...element.setters2,
-    ];
-
-    for (var executable in executables) {
-      if (executable.isStatic) {
-        if (!_matchInstanceElementExecutable(
-          interfaceMatchContext: matchContext,
-          members: item.declaredMembers,
-          executable: executable,
-        )) {
-          structureMismatched.add(executable);
-        }
-      }
+    var baseName = lookupName.asBaseName;
+    var item = instanceItem.declaredMembers[baseName]?.declaredGetter;
+    if (item is! InstanceItemGetterItem) {
+      return false;
     }
+
+    var matchContext = MatchContext(parent: instanceMatchContext);
+    if (!item.match(matchContext, element)) {
+      return false;
+    }
+
+    _addMatchingElementItem(element, item, matchContext);
+    return true;
+  }
+
+  bool _matchInstanceElementMethod({
+    required InstanceItem instanceItem,
+    required MatchContext instanceMatchContext,
+    required MethodElementImpl2 element,
+  }) {
+    var lookupName = element.lookupName?.asLookupName;
+    if (lookupName == null) {
+      return false;
+    }
+
+    var baseName = lookupName.asBaseName;
+    var item =
+        lookupName.isIndexEq
+            ? instanceItem.declaredMembers[baseName]?.declaredIndexEq
+            : instanceItem.declaredMembers[baseName]?.declaredMethod;
+    if (item is! InstanceItemMethodItem) {
+      return false;
+    }
+
+    var matchContext = MatchContext(parent: instanceMatchContext);
+    if (!item.match(matchContext, element)) {
+      return false;
+    }
+
+    _addMatchingElementItem(element, item, matchContext);
+    return true;
+  }
+
+  bool _matchInstanceElementSetter({
+    required InstanceItem instanceItem,
+    required MatchContext instanceMatchContext,
+    required SetterElementImpl element,
+  }) {
+    var lookupName = element.lookupName?.asLookupName;
+    if (lookupName == null) {
+      return true;
+    }
+
+    var baseName = lookupName.asBaseName;
+    var item = instanceItem.declaredMembers[baseName]?.declaredSetter;
+    if (item is! InstanceItemSetterItem) {
+      return false;
+    }
+
+    var matchContext = MatchContext(parent: instanceMatchContext);
+    if (!item.match(matchContext, element)) {
+      return false;
+    }
+
+    _addMatchingElementItem(element, item, matchContext);
+    return true;
   }
 
   bool _matchInterfaceElementConstructor({
+    required InterfaceItem interfaceItem,
     required MatchContext interfaceMatchContext,
-    required Map<BaseName, BaseNameMembers> members,
     required ConstructorElementImpl2 element,
   }) {
     var lookupName = element.lookupName?.asLookupName;
@@ -1005,7 +1029,7 @@ class _LibraryMatch {
     }
 
     var baseName = lookupName.asBaseName;
-    var item = members[baseName]?.declaredConstructor;
+    var item = interfaceItem.declaredMembers[baseName]?.declaredConstructor;
     if (item is! InterfaceItemConstructorItem) {
       return false;
     }
@@ -1026,32 +1050,11 @@ class _LibraryMatch {
   }) {
     for (var constructor in interfaceElement.constructors2) {
       if (!_matchInterfaceElementConstructor(
+        interfaceItem: item,
         interfaceMatchContext: matchContext,
-        members: item.declaredMembers,
         element: constructor,
       )) {
         structureMismatched.add(constructor);
-      }
-    }
-  }
-
-  void _matchInterfaceElementInstanceExecutables({
-    required MatchContext matchContext,
-    required InterfaceElementImpl2 element,
-    required InterfaceItem item,
-  }) {
-    var map = element.inheritanceManager.getInterface2(element).map2;
-    for (var executable in map.values) {
-      if (executable.enclosingElement2 == element) {
-        // SAFETY: declared in the element are always impl.
-        executable as ExecutableElementImpl2;
-        if (!_matchInstanceElementExecutable(
-          interfaceMatchContext: matchContext,
-          members: item.declaredMembers,
-          executable: executable,
-        )) {
-          structureMismatched.add(executable);
-        }
       }
     }
   }
@@ -1072,16 +1075,10 @@ class _LibraryMatch {
 
     _addMatchingElementItem(element, item, matchContext);
 
-    _matchInstanceElementStaticExecutables(
-      matchContext: matchContext,
+    _matchInstanceElementExecutables(
       element: element,
       item: item,
-    );
-
-    _matchInterfaceElementInstanceExecutables(
       matchContext: matchContext,
-      element: element,
-      item: item,
     );
 
     return true;

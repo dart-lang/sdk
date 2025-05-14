@@ -157,10 +157,10 @@ abstract final class DartFixKind {
     DartFixKindPriority.inFile,
     'Add cast everywhere in file',
   );
-  static const ADD_FIELD_FORMAL_PARAMETERS = FixKind(
-    'dart.fix.add.fieldFormalParameters',
+  static const ADD_INITIALIZING_FORMAL_PARAMETERS = FixKind(
+    'dart.fix.add.initializingFormalParameters',
     70,
-    'Add final field formal parameters',
+    'Add final initializing formal parameters',
   );
   static const ADD_KEY_TO_CONSTRUCTORS = FixKind(
     'dart.fix.add.keyToConstructors',

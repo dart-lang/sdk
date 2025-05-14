@@ -27,7 +27,6 @@ import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
-import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer/src/lint/linter.dart';
@@ -347,8 +346,6 @@ class PluginServer {
       currentUnit,
       libraryResult.element2.typeProvider,
       libraryResult.element2.typeSystem as TypeSystemImpl,
-      (analysisContext.currentSession as AnalysisSessionImpl)
-          .inheritanceManager,
       // TODO(srawlins): Support 'package' parameter.
       null,
     );

@@ -67,11 +67,11 @@ abstract class DartEditBuilder implements EditBuilder {
   /// parameters (enclosing parenthesis are written for you). Otherwise, if an
   /// [argumentList] is provided then the constructor will have parameters that
   /// match the given arguments. If no argument list is given, but a list of
-  /// [fieldNames] is provided, then field formal parameters will be created for
-  /// each of the field names. If an [initializerWriter] is provided then it is
-  /// used to write the constructor initializers (the ` : ` prefix is written
-  /// for you). If a [bodyWriter] is provided then it is used to write the
-  /// constructor body, otherwise an empty body is written.
+  /// [fieldNames] is provided, then initializing formal parameters will be
+  /// created for each of the field names. If an [initializerWriter] is provided
+  /// then it is used to write the constructor initializers (the ` : ` prefix is
+  /// written for you). If a [bodyWriter] is provided then it is used to write
+  /// the constructor body, otherwise an empty body is written.
   void writeConstructorDeclaration(String className,
       {ArgumentList? argumentList,
       void Function()? bodyWriter,
